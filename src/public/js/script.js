@@ -1,0 +1,1 @@
+/* For common logic across multiple HTML pages */
