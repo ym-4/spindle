@@ -1,5 +1,6 @@
 const pool = require('./db');
 
+// Get all Person
 module.exports.getAllPersons = async function getAllPersons() {
   const { rows } = await pool.query('SELECT * FROM "Person"');
   return rows;
@@ -12,7 +13,7 @@ module.exports.getPersonByID = async function getPersonByID(data) {
   return rows;
 };
 
-// GET person by name 
+// GET person by Name
 module.exports.getPersonByName = async function getPersonByName(data) {
   const VALUES = [data.name];
   const { rows } = await pool.query('SELECT * FROM "Person" WHERE name = ?', VALUES);
