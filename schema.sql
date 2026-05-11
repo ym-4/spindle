@@ -24,7 +24,10 @@ CREATE TABLE "Person" (
   "email" TEXT NOT NULL,
   "name" TEXT NOT NULL,
   "avatar" TEXT,
+<<<<<<< HEAD
   "hashed_password" TEXT NOT NULL, 
+=======
+>>>>>>> 89177896b8afb5d8353af503dfd1b131ec4c0fbc
   CONSTRAINT "Person_pkey" PRIMARY KEY ("id")
 );
 

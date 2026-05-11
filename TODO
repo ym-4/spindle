@@ -1,0 +1,22 @@
+Front End: 
+
+HTML pages
+1. Login page
+2. Profile page
+3. Home page
+
+CSS 
+
+
+JS
+1. Login: Call Backend to check that username and password are correct
+2. Profile page: Call Backend to GET user stats
+
+----------------------------------------------------------------------
+Back End: 
+
+1. Login and Register System
+2. Setup routes
+
+
+

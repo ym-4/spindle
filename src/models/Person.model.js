@@ -1,10 +1,14 @@
 const pool = require('./db');
 
+<<<<<<< HEAD
 // Get all Person
+=======
+>>>>>>> 89177896b8afb5d8353af503dfd1b131ec4c0fbc
 module.exports.getAllPersons = async function getAllPersons() {
   const { rows } = await pool.query('SELECT * FROM "Person"');
   return rows;
 };
+<<<<<<< HEAD
 
 // GET person by id
 module.exports.getPersonByID = async function getPersonByID(data) {
@@ -33,3 +37,5 @@ module.exports.insertPerson = async function insertPerson(data) {
   const { rows } = await pool.query('INSERT INTO "Person" (name, email, avatar, password) VALUES (?, ?, ?, ?)', VALUES);
   return rows; 
 }
+=======
+>>>>>>> 89177896b8afb5d8353af503dfd1b131ec4c0fbc
