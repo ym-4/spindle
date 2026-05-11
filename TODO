@@ -11,6 +11,8 @@ CSS
 JS
 1. Login: Call Backend to check that username and password are correct
 2. Profile page: Call Backend to GET user stats
+3. Hashing person passwords
+4. JWT sessions? 
 
 ----------------------------------------------------------------------
 Back End: 
