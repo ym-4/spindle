@@ -24,6 +24,7 @@ CREATE TABLE "Person" (
   "email" TEXT NOT NULL,
   "name" TEXT NOT NULL,
   "avatar" TEXT,
+  "hashed_password" TEXT NOT NULL, 
   CONSTRAINT "Person_pkey" PRIMARY KEY ("id")
 );
 
