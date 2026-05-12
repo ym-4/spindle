@@ -160,10 +160,11 @@ CREATE TABLE "GroupDiscussions" (
 
 CREATE TABLE "GroupFiles" (
   "id" SERIAL NOT NULL,
+  "group_id" INT NOT NULL,
   "creator_id" INT NOT NULL,
   "description" TEXT NOT NULL,
   "file_path" TEXT NOT NULL,
-  CONSTRAINT "GroupDiscussions_pkey" PRIMARY KEY ("id"), 
+  CONSTRAINT "GroupFiles_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
 );
@@ -187,13 +188,11 @@ CREATE TABLE "UserCart" (
   "seller_id" INT NOT NULL,
   "user_id" INT NOT NULL,
   "item_id" INT NOT NULL,
-  "name" TEXT NOT NULL,
   "amount" INT NOT NULL,
-  "total_price" NUMERIC(10, 2) NOT NULL,
   CONSTRAINT "UserCart_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("seller_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
-  FOREIGN KEY ("item_id") REFERENCES "MarketplaceItems"("id") ON DELETE CASCADE, 
+  FOREIGN KEY ("item_id") REFERENCES "MarketplaceItems"("id") ON DELETE CASCADE
 );
 
 -- -------------------------------------------------------------------------------------
@@ -203,8 +202,8 @@ CREATE TABLE "UserCart" (
 CREATE TABLE "Chatroom" (
   "id" SERIAL NOT NULL,
   "name" TEXT NOT NULL,
-  "created_at" TIMESTAMP NOT NULL,
-  CONSTRAINT "Chatroom_pkey" PRIMARY KEY ("id"), 
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT "Chatroom_pkey" PRIMARY KEY ("id")
 );
 
 CREATE TABLE "ChatroomMessages" (
@@ -212,7 +211,7 @@ CREATE TABLE "ChatroomMessages" (
   "user_id" INT NOT NULL,
   "chatroom_id" INT NOT NULL,
   "message" TEXT NOT NULL,
-  "created_at" TIMESTAMP NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   CONSTRAINT "ChatroomMessages_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("chatroom_id") REFERENCES "Chatroom"("id") ON DELETE CASCADE
@@ -240,9 +239,9 @@ CREATE TABLE "PersonalMessages" (
   "sender_id" INT NOT NULL,
   "receiver_id" INT NOT NULL,
   "message" TEXT NOT NULL, 
-  "is_read" TEXT NOT NULL, 
-  "created_at" TIMESTAMP NOT NULL,
-  CONSTRAINT "Groups_pkey" PRIMARY KEY ("id"), 
+  "is_read" BOOLEAN NOT NULL DEFAULT FALSE, 
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT "PersonalMessages_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("sender_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   FOREIGN KEY ("receiver_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
@@ -250,13 +249,13 @@ CREATE TABLE "PersonalMessages" (
 CREATE TABLE "Timetable" (
   "id" SERIAL NOT NULL, 
   "user_id" INT NOT NULL,
-  "subject" INT NOT NULL,
+  "subject" TEXT NOT NULL,
   "day_of_week" INT NOT NULL,
   "start_time" INT NOT NULL,
   "end_time" INT NOT NULL,
-  "location" INT NOT NULL,
+  "location" TEXT NOT NULL,
   CONSTRAINT "Timetable_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 CREATE TABLE "AILogs" (
@@ -265,8 +264,8 @@ CREATE TABLE "AILogs" (
   "prompt" TEXT NOT NULL,
   "response" TEXT NOT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "Timetable_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  CONSTRAINT "AILogs_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 CREATE TABLE "Events" (
@@ -278,8 +277,8 @@ CREATE TABLE "Events" (
   "location" TEXT NOT NULL,
   "category" TEXT NOT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "Timetable_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  CONSTRAINT "Events_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 CREATE TABLE "Flashcards" (
@@ -287,8 +286,8 @@ CREATE TABLE "Flashcards" (
   "user_id" INT NOT NULL,
   "title" TEXT NOT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "Timetable_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  CONSTRAINT "Flashcards_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 CREATE TABLE "FlashcardItems" (
@@ -296,7 +295,7 @@ CREATE TABLE "FlashcardItems" (
   "flashcard_id" INT NOT NULL,
   "front" TEXT NOT NULL,
   "back" TEXT NOT NULL,
-  CONSTRAINT "Timetable_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "FlashcardItems_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("flashcard_id") REFERENCES "Flashcards"("id") ON DELETE CASCADE
 );
 
@@ -306,7 +305,7 @@ CREATE TABLE "Quizzes" (
   "title" TEXT NOT NULL,
   "description" TEXT NOT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "Timetable_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "Quizzes_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
@@ -319,7 +318,7 @@ CREATE TABLE "QuizQuestions" (
   "option_c" TEXT NOT NULL,
   "option_d" TEXT NOT NULL,
   "correct_option" TEXT NOT NULL,
-  CONSTRAINT "Timetable_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "QuizQuestions_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("quiz_id") REFERENCES "Quizzes"("id") ON DELETE CASCADE
 );
 
@@ -329,13 +328,16 @@ CREATE TABLE "QuizAttempts" (
   "user_id" INT NOT NULL,
   "score" INT NOT NULL,
   "attempted_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "Timetable_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "QuizAttempts_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("quiz_id") REFERENCES "Quizzes"("id") ON DELETE CASCADE, 
-  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 -- Indexes
 CREATE UNIQUE INDEX "Person_email_key" ON "Person"("email");
-CREATE UNIQUE INDEX "Person_name_key" ON "Person"("name");
-
+CREATE INDEX ON "Posts"("user_id");
+CREATE INDEX ON "PostComments"("post_id");
+CREATE INDEX ON "GroupDiscussions"("group_id");
+CREATE INDEX ON "MarketplaceItems"("seller_id");
+CREATE INDEX ON "ChatroomMessages"("chatroom_id");
 
