@@ -2,17 +2,13 @@ const express = require('express');
 const { getAllPersons } = require('../models/Person.model');
 const router = express.Router();
 
-<<<<<<< HEAD
 // Get all person
-=======
->>>>>>> 89177896b8afb5d8353af503dfd1b131ec4c0fbc
 router.get('/', (req, res, next) => {
   getAllPersons()
     .then((persons) => res.status(200).json(persons))
     .catch(next);
 });
 
-<<<<<<< HEAD
 // Get person by ID
 router.get('/:id', (req, res, next) => {
   const data = {
@@ -85,6 +81,4 @@ router.post('/', (req, res, next) => {
     })
 });
 
-=======
->>>>>>> 89177896b8afb5d8353af503dfd1b131ec4c0fbc
 module.exports = router;
