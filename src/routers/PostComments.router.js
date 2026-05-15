@@ -1,46 +1,33 @@
 const express = require('express');
 const { 
-  getAllPost, 
-  getPostByID, 
-  getPostByCategory, 
-  insertPost,
-  updatePostByID,
-  deletePostByID
-} = require('../models/Posts.model');
+  getAllComments,
+  getCommentsByPostID,  
+  insertComments,
+  updateCommentsByID,
+  deleteCommentsByID
+} = require('../models/PostComments.model');
 
 const router = express.Router();
 
-// Get all post
+// Get all comments
 router.get('/', (req, res, next) => {
-  getAllPost()
-    .then((post) => res.status(200).json(post))
+  getAllComments()
+    .then((Comments) => res.status(200).json(Comments))
     .catch(next);
 });
 
-// Get post by ID
+// Get Comments by ID
 router.get('/:id', (req, res, next) => {
   const data = {
-    id: req.params.id
+    post_id: req.params.id
   }
 
-  getPostByID(data)
-    .then((post) => res.status(200).json(post))
+  getCommentsByPostID(data)
+    .then((Comments) => res.status(200).json(Comments))
     .catch(next);
 });
 
-// Get post by Category
-router.get('/tag/:category', (req, res, next) => {
-  const data = {
-    category: req.params.category
-  }
-
-  getPostByCategory(data)
-    .then((post) => res.status(200).json(post))
-    .catch(next);
-});
-
-
-// Creates new post 
+// Creates new comment
 router.post('/', (req, res, next) => {
   // missing required information
   if (req.body == undefined  || req.body.user_id == undefined || req.body.title == undefined || req.body.category == undefined || req.body.content == undefined) {
@@ -48,14 +35,11 @@ router.post('/', (req, res, next) => {
     return;
   }
   const data = {
-    user_id: req.body.user_id,
-    title: req.body.title, 
-    category: req.body.category, 
-    content: req.body.content
+    
   }
 
-// create post
-insertPost(data)
+// create Comments
+insertComments(data)
     .then(results => res.status(201).json({
         "id": results.id, 
         "user_id": data.user_id,
@@ -64,46 +48,44 @@ insertPost(data)
         "content": data.content 
     }))
     .catch((error) => {
-        console.error("Error insertPost: " + error);
+        console.error("Error insertComments: " + error);
         res.status(500).json(error);
     })
 });
 
-// Update post (owner only) 
+// Update Comments (owner only) 
 router.put('/:id', (req, res, next) => {
   const data = {
-    id: req.params.id,
-    title: req.body.title,
-    content: req.body.content
+    
   }
 
-  updatePostByID(data)
+  updateCommentsByID(data)
     .then((results) => {
       if (!results) {
-        return res.status(404).json({ error: 'Post not found' });
+        return res.status(404).json({ error: 'Comments not found' });
       }
       res.status(200).json(results);
     })
     .catch((error) => {
-        console.error("Error updatePostByID: " + error);
+        console.error("Error updateCommentsByID: " + error);
         res.status(500).json(error);
     })
 });
 
-// delete post (owner only)
+// delete Comments (owner only)
 router.delete('/:id', (req, res, next) => {
    const data = {
     id: req.params.id
   }
-  deletePostByID(data)
+  deleteCommentsByID(data)
     .then((results) => {
       if (!results) {
-        return res.status(404).json({ error: 'Post not found' });
+        return res.status(404).json({ error: 'Comments not found' });
       }
       res.status(200).json(results);
     })
     .catch((error) => {
-        console.error("Error deletePostByID: " + error);
+        console.error("Error deleteCommentsByID: " + error);
         res.status(500).json(error);
     })
 });

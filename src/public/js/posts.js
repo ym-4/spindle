@@ -1,8 +1,7 @@
-// ─────────────────────────────────────────────────────────
 //  individual posts view
 //  fetches GET /posts/:id, renders post
 //  Comments section TBC
-// ─────────────────────────────────────────────────────────
+// 
 
 document.addEventListener('DOMContentLoaded', () => {
   const postId = new URLSearchParams(window.location.search).get('id');

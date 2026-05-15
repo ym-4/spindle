@@ -6,6 +6,7 @@ const path = require('path');
 const somethingRouter = require('./routers/Something.router');
 const personRouter = require('./routers/Person.router');
 const postsRouter = require('./routers/Posts.router');
+const postCommentsRouter = require('./routers/PostComments.router');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.use('/somethings', somethingRouter);
 app.use('/persons', personRouter);
 app.use('/posts', postsRouter);
+app.use('/comments', postCommentsRouter);
 
 // 404 handler — if no route above matched the request,
 // create a 404 error and pass it to the error handler below.

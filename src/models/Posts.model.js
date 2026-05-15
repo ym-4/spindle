@@ -33,3 +33,20 @@ module.exports.insertPost = async function insertPost(data) {
   const { rows } = await pool.query('INSERT INTO "Posts" (user_id, title, category, content) VALUES ($1, $2, $3, $4) RETURNING id', VALUES);
   return rows[0]; 
 }
+
+// update post by ID (owner only)
+module.exports.updatePostByID = async function updatePostByID(data) {
+  const VALUES = [data.title, data.content, data.id];
+  const { rows } = await pool.query(
+    'UPDATE "Posts" SET "title" = $1, "content" = $2 WHERE "id" = $3 RETURNING *',
+    VALUES
+  );
+  return rows[0];
+};
+
+// delete a post (owner only)
+module.exports.deletePostByID = async function deletePostByID(data) {
+  const VALUES = [data.id];
+  const { rows } = await pool.query('DELETE FROM "Posts" WHERE "id" = $1 RETURNING *', VALUES);
+  return rows[0];
+};
