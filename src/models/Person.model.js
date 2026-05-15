@@ -29,7 +29,7 @@ module.exports.getPersonByEmail = async function getPersonByEmail(data) {
 
 // Create new person
 module.exports.insertPerson = async function insertPerson(data) {
-  const VALUES = [data.name, data.email, data.avatar, data.password];
-  const { rows } = await pool.query('INSERT INTO "Person" (name, email, avatar, password) VALUES ($1, $2, $3, $4)', VALUES);
+  const VALUES = [data.name, data.email, data.bio, data.password];
+  const { rows } = await pool.query('INSERT INTO "Person" (name, email, bio, hashed_password) VALUES ($1, $2, $3, $4) RETURNING id, name, email, bio', VALUES);
   return rows; 
 }

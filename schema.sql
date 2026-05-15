@@ -133,9 +133,10 @@ CREATE TABLE "Groups" (
   "description" TEXT NOT NULL, 
   "school" TEXT NOT NULL, 
   "module" TEXT NOT NULL, 
-  "public" BOOlEAN NOT NULL DEFAULT TRUE,
+  "public" BOOLEAN NOT NULL DEFAULT TRUE,
   CONSTRAINT "Groups_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
+  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  UNIQUE ("name")
 );
 
 CREATE TYPE join_status AS ENUM ('pending', 'accepted', 'denied');

@@ -10,16 +10,23 @@ module.exports.getAllGroups = async function getAllGroups() {
   return rows;
 };
 
-// GET Group by id
+// GET Group by group id
 module.exports.getGroupsByGroupID = async function getGroupsByGroupID(data) {
   const VALUES = [data.group_id];
   const { rows } = await pool.query('SELECT * FROM "Groups" WHERE id = $1', VALUES);
   return rows;
 };
 
+// GET Group by group name
+module.exports.getGroupsByGroupName = async function getGroupsByGroupName(data) {
+  const VALUES = [data.name, data.group_id];
+  const { rows } = await pool.query('SELECT * FROM "Groups" WHERE name = $1 AND id != $2', VALUES);
+  return rows;
+};
+
 // GET Group by creator id
 module.exports.getGroupByCreatorID = async function getGroupByCreatorID(data) {
-  const VALUES = [data.user_id];
+  const VALUES = [data.creator_id];
   const { rows } = await pool.query('SELECT * FROM "Groups" WHERE creator_id = $1', VALUES);
   return rows;
 };
@@ -27,28 +34,36 @@ module.exports.getGroupByCreatorID = async function getGroupByCreatorID(data) {
 // Create new Group (name, description, school, module)
 module.exports.insertGroup = async function insertGroup(data) {
   const VALUES = [data.name, data.creator_id, data.description, data.school, data.module];
-  const { rows } = await pool.query('INSERT INTO "Groups" (name, creator_id, description, school, module) VALUES ($1, $2, $3, $4, $5)', VALUES);
+  const { rows } = await pool.query(
+    'INSERT INTO "Groups" (name, creator_id, description, school, module) VALUES ($1, $2, $3, $4, $5) RETURNING *', VALUES);
   return rows; 
 }
 
-// Update Group info (group name, description) - only creator/admins
-module.exports.updateGroup = async function updateGroup(data) {
-  const VALUES = [data.group_id, data.name, data.description];
-  const { rows } = await pool.query('UPDATE "Groups" SET name = $2, description = $3 WHERE id = $1', VALUES);
+// Update Group name (group name, description) - only creator/admins
+module.exports.updateGroupName = async function updateGroupName(data) {
+  const VALUES = [data.group_id, data.name];
+  const { rows } = await pool.query('UPDATE "Groups" SET name = $2 WHERE id = $1 RETURNING *', VALUES);
+  return rows;
+}
+
+// Update Group description (group name, description) - only creator/admins
+module.exports.updateGroupDescription = async function updateGroupDescription(data) {
+  const VALUES = [data.group_id, data.description];
+  const { rows } = await pool.query('UPDATE "Groups" SET description = $2 WHERE id = $1 RETURNING *', VALUES);
   return rows;
 }
 
 // Delete Group (Can only be done by the group's creator)
 module.exports.deleteGroup = async function deleteGroup(data) {
-  const VALUES = [data.group_id, data.user_id];
-  const { rows } = await pool.query('DELETE FROM "Groups" WHERE id = $1 AND creator_id = $2', VALUES);
+  const VALUES = [data.group_id, data.creator_id];
+  const { rows } = await pool.query('DELETE FROM "Groups" WHERE id = $1 AND creator_id = $2 RETURNING *', VALUES);
   return rows;
 }
 
 // Update Group publicity (Can only be done by group's creator)
 module.exports.updateGroupPublicity = async function updateGroupPublicity(data) {
-  const VALUES = [data.group_id, data.user_id, data.public];
-  const { rows } = await pool.query('UPDATE "Groups" SET public = $3 WHERE id = $1 AND creator_id = $2', VALUES);
+  const VALUES = [data.group_id, data.creator_id, data.public];
+  const { rows } = await pool.query('UPDATE "Groups" SET public = $3 WHERE id = $1 AND creator_id = $2 RETURNING *', VALUES);
   return rows;
 }
 
@@ -73,24 +88,32 @@ module.exports.getGroupMemberByUserID = async function getGroupMemberByUserID(da
 // Create new Group member (group_id, user_id)
 module.exports.insertGroupMember = async function insertGroupMember(data) {
   const VALUES = [data.group_id, data.user_id];
-  const { rows } = await pool.query(`INSERT INTO "GroupMembers" (group_id, user_id, role) VALUES ($1, $2, 'user')`, VALUES);
+  const { rows } = await pool.query(`INSERT INTO "GroupMembers" (group_id, user_id, role) VALUES ($1, $2, 'user') RETURNING *`, VALUES);
   return rows; 
 }
 
 // Update member role (user to admin)
 module.exports.updateMemberRoleToAdmin = async function updateMemberRoleToAdmin(data) {
   const VALUES = [data.group_id, data.user_id];
-  const { rows } = await pool.query(`UPDATE "GroupMembers" SET role = 'admin' WHERE group_id = $1 AND user_id = $2`, VALUES);
+  const { rows } = await pool.query(`UPDATE "GroupMembers" SET role = 'admin' WHERE group_id = $1 AND user_id = $2 RETURNING *`, VALUES);
   return rows; 
 }
 
 // Update member role (admin to user) - not applicable to group's creator
 module.exports.updateMemberRoleToUser = async function updateMemberRoleToUser(data) {
   const VALUES = [data.group_id, data.user_id];
-  const { rows } = await pool.query(`UPDATE "GroupMembers" SET role = 'user' WHERE group_id = $1 AND user_id = $2`, VALUES);
+  const { rows } = await pool.query(`UPDATE "GroupMembers" SET role = 'user' WHERE group_id = $1 AND user_id = $2 RETURNING *`, VALUES);
   return rows; 
 }
 
+// Check for admin role (group_id)
+module.exports.getAllGroupAdmin = async function getAllGroupAdmin(data) {
+  const VALUES = [data.group_id];
+  const { rows } = await pool.query(`SELECT * FROM "GroupMembers" WHERE group_id = $1 AND role = 'admin'`, VALUES);
+  return rows; 
+}
+
+// Delete/kick member out of group
 
 // -----------------------------------------------------------------------------------------------------
 //                          GroupDiscussions Table
@@ -99,21 +122,21 @@ module.exports.updateMemberRoleToUser = async function updateMemberRoleToUser(da
 // Create new group message (group_id, user_id, message)
 module.exports.insertGroupDiscussion = async function insertGroupDiscussion(data) {
   const VALUES = [data.group_id, data.user_id, data.message];
-  const { rows } = await pool.query('INSERT INTO "GroupDiscussions" (group_id, user_id, message) VALUES ($1, $2, $3)', VALUES);
+  const { rows } = await pool.query('INSERT INTO "GroupDiscussions" (group_id, user_id, message) VALUES ($1, $2, $3) RETURNING *', VALUES);
   return rows; 
 }
 
 // Update group messages (id, message)
 module.exports.updateGroupDiscussion = async function updateGroupDiscussion(data) {
   const VALUES = [data.id, data.message];
-  const { rows } = await pool.query('UPDATE "GroupDiscussions" SET message = $2 WHERE id = $1', VALUES);
+  const { rows } = await pool.query('UPDATE "GroupDiscussions" SET message = $2 WHERE id = $1 RETURNING *', VALUES);
   return rows; 
 }
 
 // GET all group messages by group_id (maybe just display a few unless user scrolls up or presses up button)
 module.exports.getAllGroupDiscussionByGroupID = async function getAllGroupDiscussionByGroupID(data) {
   const VALUES = [data.group_id];
-  const { rows } = await pool.query('SELECT * FROM "GroupDiscussions" WHERE group_id = ?');
+  const { rows } = await pool.query('SELECT * FROM "GroupDiscussions" WHERE group_id = $1', VALUES);
   return rows;
 }
 
