@@ -133,8 +133,23 @@ CREATE TABLE "Groups" (
   "description" TEXT NOT NULL, 
   "school" TEXT NOT NULL, 
   "module" TEXT NOT NULL, 
+  "public" BOOlEAN NOT NULL DEFAULT TRUE,
   CONSTRAINT "Groups_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TYPE join_status AS ENUM ('pending', 'accepted', 'denied');
+
+CREATE TABLE "GroupJoinRequests" (
+  "id" SERIAL NOT NULL,
+  "user_id" INT NOT NULL,
+  "group_id" INT NOT NULL, 
+  "status" join_status NOT NULL DEFAULT 'pending', 
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+  CONSTRAINT "GroupJoinRequest_pkey" PRIMARY KEY ("id"), 
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE, 
+  UNIQUE ("user_id", "group_id")
 );
 
 CREATE TYPE member_role AS ENUM ('user', 'admin');
@@ -153,6 +168,7 @@ CREATE TABLE "GroupDiscussions" (
   "group_id" INT NOT NULL,
   "user_id" INT NOT NULL,
   "message" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
   CONSTRAINT "GroupDiscussions_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
