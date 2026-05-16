@@ -16,10 +16,10 @@ router.get('/', (req, res, next) => {
     .catch(next);
 });
 
-// Get Comments by ID
-router.get('/:id', (req, res, next) => {
+// Get Comments by post ID
+router.get('/:post_id', (req, res, next) => {
   const data = {
-    post_id: req.params.id
+    post_id: req.params.post_id
   }
 
   getCommentsByPostID(data)
@@ -27,15 +27,17 @@ router.get('/:id', (req, res, next) => {
     .catch(next);
 });
 
-// Creates new comment
-router.post('/', (req, res, next) => {
+// Creates new comment under a post (post_id)
+router.post('/:post_id', (req, res, next) => {
   // missing required information
-  if (req.body == undefined  || req.body.user_id == undefined || req.body.title == undefined || req.body.category == undefined || req.body.content == undefined) {
-    res.status(400).json({"message": "Error: user_id, title, category or content is undefined"});
+  if (req.body == undefined  || req.body.user_id == undefined || req.params.post_id == undefined || req.body.content == undefined) {
+    res.status(400).json({"message": "Error: user_id, post_id or content is undefined"});
     return;
   }
   const data = {
-    
+    user_id: req.body.user_id,
+    post_id: req.params.post_id,
+    content: req.body.content
   }
 
 // create Comments
@@ -43,8 +45,7 @@ insertComments(data)
     .then(results => res.status(201).json({
         "id": results.id, 
         "user_id": data.user_id,
-        "title": data.title, 
-        "category": data.category,
+        "commented_on": data.post_id, 
         "content": data.content 
     }))
     .catch((error) => {
@@ -56,7 +57,9 @@ insertComments(data)
 // Update Comments (owner only) 
 router.put('/:id', (req, res, next) => {
   const data = {
-    
+    id: req.params.id,
+    user_id: req.body.user_id,
+    content: req.body.content
   }
 
   updateCommentsByID(data)
