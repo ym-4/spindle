@@ -9,11 +9,17 @@
       integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
       crossorigin="anonymous"
     />
+    <link rel="stylesheet" href="css/styles.css" />
     <title>Marketplace</title>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
   </head>
   <body>
     <div>
-      <!doctype html> 
+      <!doctype html>
       <html lang="en">
         <head>
           <meta charset="utf-8" />
@@ -99,24 +105,20 @@
                 <div class="col mb-5">
                   <div class="card h-100">
                     <!-- Product image-->
-                    <img
-                      class="card-img-top"
-                      src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg"
-                      alt="..."
-                    />
+                    <img class="card-img-top" src="images-for-marketplace/backpack.jpg" alt="..." />
                     <!-- Product details-->
                     <div class="card-body p-4">
                       <div class="text-center">
                         <!-- Product name-->
-                        <h5 class="fw-bolder">Fancy Product</h5>
+                        <h5 class="fw-bolder">Backpack</h5>
                         <!-- Product price-->
-                        $40.00 - $80.00
+                        $20.00
                       </div>
                     </div>
                     <!-- Product actions-->
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                       <div class="text-center">
-                        <a class="btn btn-outline-dark mt-auto" href="#">View options</a>
+                        <button class="btn btn-outline-dark mt-auto" data-bs-toggle="modal" data-bs-target="#addedToCartModal">Add to cart</button>
                       </div>
                     </div>
                   </div>
@@ -133,31 +135,22 @@
                     <!-- Product image-->
                     <img
                       class="card-img-top"
-                      src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg"
+                      src="images-for-marketplace/calculator.jpg"
                       alt="..."
                     />
                     <!-- Product details-->
                     <div class="card-body p-4">
                       <div class="text-center">
                         <!-- Product name-->
-                        <h5 class="fw-bolder">Special Item</h5>
-                        <!-- Product reviews-->
-                        <div class="d-flex justify-content-center small text-warning mb-2">
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                        </div>
+                        <h5 class="fw-bolder">Calculator</h5>
                         <!-- Product price-->
-                        <span class="text-muted text-decoration-line-through">$20.00</span>
-                        $18.00
+                        $30.00
                       </div>
                     </div>
                     <!-- Product actions-->
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                       <div class="text-center">
-                        <a class="btn btn-outline-dark mt-auto" href="#">Add to cart</a>
+                        <button class="btn btn-outline-dark mt-auto" data-bs-toggle="modal" data-bs-target="#addedToCartModal">Add to cart</button>
                       </div>
                     </div>
                   </div>
@@ -172,25 +165,20 @@
                       Sale
                     </div>
                     <!-- Product image-->
-                    <img
-                      class="card-img-top"
-                      src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg"
-                      alt="..."
-                    />
+                    <img class="card-img-top" src="images-for-marketplace/folder.jpg" alt="..." />
                     <!-- Product details-->
                     <div class="card-body p-4">
                       <div class="text-center">
                         <!-- Product name-->
-                        <h5 class="fw-bolder">Sale Item</h5>
+                        <h5 class="fw-bolder">Folder</h5>
                         <!-- Product price-->
-                        <span class="text-muted text-decoration-line-through">$50.00</span>
-                        $25.00
+                        $3.50
                       </div>
                     </div>
                     <!-- Product actions-->
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                       <div class="text-center">
-                        <a class="btn btn-outline-dark mt-auto" href="#">Add to cart</a>
+                        <button class="btn btn-outline-dark mt-auto" data-bs-toggle="modal" data-bs-target="#addedToCartModal">Add to cart</button>
                       </div>
                     </div>
                   </div>
@@ -198,32 +186,20 @@
                 <div class="col mb-5">
                   <div class="card h-100">
                     <!-- Product image-->
-                    <img
-                      class="card-img-top"
-                      src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg"
-                      alt="..."
-                    />
+                    <img class="card-img-top" src="images-for-marketplace/notebook.jpg" alt="..." />
                     <!-- Product details-->
                     <div class="card-body p-4">
                       <div class="text-center">
                         <!-- Product name-->
-                        <h5 class="fw-bolder">Popular Item</h5>
-                        <!-- Product reviews-->
-                        <div class="d-flex justify-content-center small text-warning mb-2">
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                        </div>
+                        <h5 class="fw-bolder">Notebook</h5>
                         <!-- Product price-->
-                        $40.00
+                        $5.00
                       </div>
                     </div>
                     <!-- Product actions-->
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                       <div class="text-center">
-                        <a class="btn btn-outline-dark mt-auto" href="#">Add to cart</a>
+                        <button class="btn btn-outline-dark mt-auto" data-bs-toggle="modal" data-bs-target="#addedToCartModal">Add to cart</button>
                       </div>
                     </div>
                   </div>
@@ -238,25 +214,20 @@
                       Sale
                     </div>
                     <!-- Product image-->
-                    <img
-                      class="card-img-top"
-                      src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg"
-                      alt="..."
-                    />
+                    <img class="card-img-top" src="images-for-marketplace/paper.jpg" alt="..." />
                     <!-- Product details-->
                     <div class="card-body p-4">
                       <div class="text-center">
                         <!-- Product name-->
-                        <h5 class="fw-bolder">Sale Item</h5>
+                        <h5 class="fw-bolder">Paper</h5>
                         <!-- Product price-->
-                        <span class="text-muted text-decoration-line-through">$50.00</span>
-                        $25.00
+                        $3.00
                       </div>
                     </div>
                     <!-- Product actions-->
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                       <div class="text-center">
-                        <a class="btn btn-outline-dark mt-auto" href="#">Add to cart</a>
+                        <button class="btn btn-outline-dark mt-auto" data-bs-toggle="modal" data-bs-target="#addedToCartModal">Add to cart</button>
                       </div>
                     </div>
                   </div>
@@ -264,24 +235,20 @@
                 <div class="col mb-5">
                   <div class="card h-100">
                     <!-- Product image-->
-                    <img
-                      class="card-img-top"
-                      src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg"
-                      alt="..."
-                    />
+                    <img class="card-img-top" src="images-for-marketplace/pen.jpg" alt="..." />
                     <!-- Product details-->
                     <div class="card-body p-4">
                       <div class="text-center">
                         <!-- Product name-->
-                        <h5 class="fw-bolder">Fancy Product</h5>
+                        <h5 class="fw-bolder">Pens</h5>
                         <!-- Product price-->
-                        $120.00 - $280.00
+                        $6.00
                       </div>
                     </div>
                     <!-- Product actions-->
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                       <div class="text-center">
-                        <a class="btn btn-outline-dark mt-auto" href="#">View options</a>
+                        <button class="btn btn-outline-dark mt-auto" data-bs-toggle="modal" data-bs-target="#addedToCartModal">Add to cart</button>
                       </div>
                     </div>
                   </div>
@@ -296,33 +263,20 @@
                       Sale
                     </div>
                     <!-- Product image-->
-                    <img
-                      class="card-img-top"
-                      src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg"
-                      alt="..."
-                    />
+                    <img class="card-img-top" src="images-for-marketplace/pencil.jpg" alt="..." />
                     <!-- Product details-->
                     <div class="card-body p-4">
                       <div class="text-center">
                         <!-- Product name-->
-                        <h5 class="fw-bolder">Special Item</h5>
-                        <!-- Product reviews-->
-                        <div class="d-flex justify-content-center small text-warning mb-2">
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                        </div>
+                        <h5 class="fw-bolder">Pencils</h5>
                         <!-- Product price-->
-                        <span class="text-muted text-decoration-line-through">$20.00</span>
-                        $18.00
+                        $3.00
                       </div>
                     </div>
                     <!-- Product actions-->
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                       <div class="text-center">
-                        <a class="btn btn-outline-dark mt-auto" href="#">Add to cart</a>
+                        <button class="btn btn-outline-dark mt-auto" data-bs-toggle="modal" data-bs-target="#addedToCartModal">Add to cart</button>
                       </div>
                     </div>
                   </div>
@@ -332,30 +286,22 @@
                     <!-- Product image-->
                     <img
                       class="card-img-top"
-                      src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg"
+                      src="images-for-marketplace/stationary-pack.jpg"
                       alt="..."
                     />
                     <!-- Product details-->
                     <div class="card-body p-4">
                       <div class="text-center">
                         <!-- Product name-->
-                        <h5 class="fw-bolder">Popular Item</h5>
-                        <!-- Product reviews-->
-                        <div class="d-flex justify-content-center small text-warning mb-2">
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                          <div class="bi-star-fill"></div>
-                        </div>
+                        <h5 class="fw-bolder">Stationary Pack</h5>
                         <!-- Product price-->
-                        $40.00
+                        $20.00
                       </div>
                     </div>
                     <!-- Product actions-->
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                       <div class="text-center">
-                        <a class="btn btn-outline-dark mt-auto" href="#">Add to cart</a>
+                        <button class="btn btn-outline-dark mt-auto" data-bs-toggle="modal" data-bs-target="#addedToCartModal">Add to cart</button>
                       </div>
                     </div>
                   </div>
@@ -376,5 +322,28 @@
         </body>
       </html>
     </div>
+
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="addedToCartModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="addedToCartModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addedToCartModalLabel">Item Added to Cart Successfullyl!</h5>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
+
+  <script src="js/marketplace-js.js"></script>
 </html>

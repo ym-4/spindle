@@ -1,2 +1,8 @@
 /* For common styles across multiple HTML pages */
+
+img {
+    max-width: 300;
+    max-height: 450;
+}
+
 /* Such as navigation bar, footer, buttons */
