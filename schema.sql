@@ -126,12 +126,14 @@ CREATE TABLE "ConfessionComments" (
 --                                  GROUPS
 -- -------------------------------------------------------------------------------------
 
+CREATE TYPE school_choices AS ENUM ('SOC', 'MAD', 'EEE', 'ABE', 'SB', 'SMA', 'MAE', 'CLS');
+
 CREATE TABLE "Groups" (
   "id" SERIAL NOT NULL,
   "name" TEXT NOT NULL,
   "creator_id" INT NOT NULL,
   "description" TEXT NOT NULL, 
-  "school" TEXT NOT NULL, 
+  "school" school_choices NOT NULL, 
   "module" TEXT NOT NULL, 
   "public" BOOLEAN NOT NULL DEFAULT TRUE,
   CONSTRAINT "Groups_pkey" PRIMARY KEY ("id"), 

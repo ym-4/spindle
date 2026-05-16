@@ -1,0 +1,233 @@
+/* For styles for Groups.html */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.map {
+  position: relative;
+  margin: 0;
+}
+
+.map-bg {
+  width: 100%;
+  display: block;
+}
+
+.map-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  
+}
+
+/* Responsive based on screen size */
+
+/* Default */
+.img-sizing-small {
+  width: 200px;
+  height: auto;
+}
+
+.img-sizing {
+  width: 300px;
+  height: auto;
+}
+
+.img-sizing-large {
+  width: 350px;
+  height: auto;
+}
+
+.btn-style {
+  background: #7d7d7d;
+  color: white;
+
+  border: 4px solid #000000;
+  padding: 14px 22px;
+
+  font-family: 'Press Start 2P';
+  font-size: 12px;
+  text-align: center;
+
+  box-shadow:
+    inset 0 4px 0 rgba(255,255,255,0.15),
+    inset 0 -4px 0 rgba(0,0,0,0.25),
+    0 6px 0 #1b103d;
+
+  border-radius: 8px;
+}
+
+/* Laptop */
+@media (max-width: 992px) {
+  img-sizing-small {
+    width: 100px;
+    height: auto;
+  }
+
+  .img-sizing {
+    width: 200px;
+    height: auto;
+  }
+
+  .img-sizing-large {
+    width: 250px;
+    height: auto;
+  }
+
+  .btn-style {
+    font-size: 8px;
+    padding: 10px 16px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .img-sizing-small {
+    width: 100px;
+    height: auto;
+  }
+
+  .img-sizing {
+    width: 150px;
+  }
+  
+  .img-sizing-large {
+    width: 200px;
+    height: auto;
+  }
+
+  .btn-style {
+    font-size: 6px;
+    padding: 8px 12px;
+  }
+}
+
+.school {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.img-school {
+
+}
+
+/* Positioning schools images */
+.cls {
+  top: 5%;
+  left: 8%;
+}
+
+.mae {
+  top: 10%;
+  left: 40%;
+}
+
+.eee {
+  top: 10%;
+  left: 70%;
+}
+
+.sb {
+  top: 45%;
+  left: 7%;
+}
+
+.abe {
+  top: 40%;
+  left: 28%;
+}
+
+.sma {
+  top: 73%;
+  left: 25%;
+}
+
+.mad {
+  top: 65%;
+  left: 52%;
+}
+
+.soc {
+  top: 45%;
+  left: 72%;
+}
+
+
+/* Button styling */
+
+.btn-red {
+  background: #7a2b2b;
+  border: 4px solid #22114d;
+}
+
+.btn-red:hover {
+  background-color: #b74545;
+}
+
+.btn-orange {
+  background: #9b6f36;
+  border: 4px solid #623e17;
+}
+
+.btn-orange:hover {
+  background-color: rgb(204, 156, 45);
+}
+
+.btn-yellow {
+  background: #bbaf3e;
+  border: 4px solid #9a952c;
+}
+
+.btn-yellow:hover {
+  background-color: rgb(218, 211, 65);
+}
+
+.btn-green {
+  background: #36912f;
+  border: 4px solid #298735;
+}
+
+.btn-green:hover {
+  background-color: rgb(74, 195, 70);
+}
+
+.btn-blue {
+  background: #2f2575;
+  border: 4px solid #2e329d;
+}
+
+.btn-blue:hover {
+  background-color: rgb(63, 89, 175);
+}
+
+.btn-purple {
+  background: #3d2b7a;
+  border: 4px solid #22114d;
+}
+
+.btn-purple:hover {
+    background-color: #563dab;
+}
+
+.btn-indigo {
+  background: #792b7a;
+  border: 4px solid #4d1137;
+}
+
+.btn-indigo:hover {
+    background-color: #9a3277;
+}
+
+.btn-light-blue {
+  background: #2b6e7a;
+  border: 4px solid #1a525b;
+}
+
+.btn-light-blue:hover {
+    background-color: #40bdc1;
+}
