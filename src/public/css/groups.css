@@ -23,6 +23,17 @@
   
 }
 
+.star {
+  font-size: 42px;
+  position: absolute;
+  top: -40%;
+  left: -10%;
+}
+
+.search-bar {
+
+}
+
 /* Responsive based on screen size */
 
 /* Default */
@@ -105,15 +116,11 @@
   }
 }
 
-.school {
+.school, .explanation {
   position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.img-school {
-
 }
 
 /* Positioning schools images */
@@ -134,12 +141,12 @@
 
 .sb {
   top: 45%;
-  left: 7%;
+  left: 31%;
 }
 
 .abe {
-  top: 40%;
-  left: 28%;
+  top: 45%;
+  left: 7%;
 }
 
 .sma {
@@ -148,14 +155,20 @@
 }
 
 .mad {
-  top: 65%;
-  left: 52%;
+  top: 40%;
+  left: 50%;
 }
 
 .soc {
   top: 45%;
   left: 72%;
 }
+
+.explanation {
+  top: 88%;
+  left: 1%;
+}
+
 
 
 /* Button styling */
@@ -230,4 +243,16 @@
 
 .btn-light-blue:hover {
     background-color: #40bdc1;
+}
+
+.btn-light {
+  background: #999999;
+  border: 4px solid #717171;
+
+  position: relative;
+
+}
+
+.btn-light:hover {
+  background-color: #bebebe;
 }

@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="css/groups.css">
     <link rel="stylesheet" href="css/styles.css">
 
+    <!-- JS files -->
+    <script src="js/groups.js" defer></script>
+    <script src="js/queryCmd.js"></script>
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"/>
 
@@ -22,101 +26,108 @@
             <!-- Map -->
             <img class="map-bg" src="images/Groups_TEMP_Map.png" alt="Map">
 
-            <!-- SOC -->
-            <div class="school soc">
-                <img class="img-sizing-large img-school" src="images/Groups_SOC_Building.png" alt="SOC Building">
+            <!-- CLS -->
+            <div class="school cls">
+                <img class="img-sizing-large" src="images/Groups_CLS_Building.png" alt="CLS Building">
 
-                <button class="btn-style btn-indigo">
-                    SCHOOL OF COMPUTING
-                    <br><strong>SOC</strong>
+                <button class="btn-style btn-purple" type="button" id="cls">
+                    CHEMICAL AND <br> 
+                    LIFE SCIENCES
+                    <br><strong>CLS</strong>
                 </button>
             </div>
-            
-            
-            <!-- ABE -->
-            <div class="school abe">
-                <img class="img-sizing img-school" src="images/Groups_ABE_Building.png" alt="ABE Building">
-
-                <button class="btn-style btn-red">
-                    SCHOOL OF ARCHITECTURE <br>
-                    AND THE BUILT ENVIRONMENT  
-                    <br><strong>ABE</strong>
-                </button>
-            </div>
-
-            
-            <!-- SB -->
-            <div class="school sb">
-                <img class="img-sizing-small img-school" src="images/Groups_SB_Building.png" alt="SB Building">
-
-                <button class="btn-style btn-orange">
-                    SCHOOL OF BUSINESS
-                    <br><strong>SB</strong>
-                </button>
-            </div>
-
-
-            <!-- EEE -->
-            <div class="school eee">
-                <img class="img-sizing img-school" src="images/Groups_EEE_Building.png" alt="EEE Building">
-
-                <button class="btn-style btn-yellow">
-                    SCHOOL OF ELECTRICAL AND <br>
-                    ELECTRONIC ENGINEERING
-                    <br><strong>EEE</strong>
-                </button>
-            </div>
-
-
-            <!-- SMA -->
-            <div class="school sma">
-                <img class="img-sizing img-school" src="images/Groups_SMA_Building.png" alt="SMA Building">
-
-                <button class="btn-style btn-green">
-                    SINGAPORE MARITIME ACADEMY
-                    <br><strong>SMA</strong>
-                </button>
-            </div>
-
-
+                  
             <!-- MAE -->
             <div class="school mae">
-                <img class="img-sizing img-school" src="images/Groups_MAE_Building.png" alt="MAE Building">
+                <img class="img-sizing" src="images/Groups_MAE_Building.png" alt="MAE Building">
 
-                <button class="btn-style btn-blue">
-                    SCHOOL OF MECHANICAL & <br>
+                <button class="btn-style btn-blue" type="button" id="mae">
+                    MECHANICAL & <br>
                     AERONAUTICAL ENGINEERING
                     <br><strong>MAE</strong>
                 </button>
             </div>
 
+            <!-- EEE -->
+            <div class="school eee">
+                <img class="img-sizing" src="images/Groups_EEE_Building.png" alt="EEE Building">
 
-            <!-- CLS -->
-            <div class="school cls">
-                <img class="img-sizing-large img-school" src="images/Groups_CLS_Building.png" alt="CLS Building">
-
-                <button class="btn-style btn-purple">
-                    SCHOOL OF CHEMICAL <br>
-                    AND LIFE SCIENCES
-                    <br><strong>CLS</strong>
+                <button class="btn-style btn-yellow" type="button" id="eee">
+                    ELECTRICAL AND <br>
+                    ELECTRONIC ENGINEERING
+                    <br><strong>EEE</strong>
                 </button>
             </div>
 
+            <!-- ABE -->
+            <div class="school abe">
+                <img class="img-sizing" src="images/Groups_ABE_Building.png" alt="ABE Building">
+
+                <button class="btn-style btn-red" type="button" id="abe">
+                    ARCHITECTURE AND<br>
+                    THE BUILT ENVIRONMENT  
+                    <br><strong>ABE</strong>
+                </button>
+            </div>
+
+            <!-- SB -->
+            <div class="school sb">
+                <img class="img-sizing-small" src="images/Groups_SB_Building.png" alt="SB Building">
+
+                <button class="btn-style btn-orange" type="button" id="sb">
+                    SCHOOL OF BUSINESS
+                    <br><strong>SB</strong>
+                </button>
+            </div>
 
             <!-- MAD -->
             <div class="school mad">
                 <!-- Image not completed yet -->
-                <img class="img-sizing img-school" src="images/Groups_MAD_Building.png" alt="MAD Building">
+                <img class="img-sizing" src="images/Groups_MAD_Building.png" alt="MAD Building">
 
-                <button class="btn-style btn-light-blue">
-                    SCHOOL OF MEDIA, <br>
-                    ARTS & DESIGN
+                <button class="btn-style btn-light-blue" type="button" id="mad">
+                    MEDIA, ARTS & DESIGN
                     <br><strong>MAD</strong>
+                </button>
+            </div>
+
+            <!-- SOC -->
+            <div class="school soc">
+                <img class="img-sizing-large" src="images/Groups_SOC_Building.png" alt="SOC Building">
+
+                <button class="btn-style btn-indigo" type="button" id="soc">
+                    SCHOOL OF COMPUTING
+                    <br><strong>SOC</strong>
+                </button>
+            </div>
+
+            <!-- SMA -->
+            <div class="school sma">
+                <img class="img-sizing" src="images/Groups_SMA_Building.png" alt="SMA Building">
+
+                <button class="btn-style btn-green" type="button" id="sma">
+                    SINGAPORE MARITIME ACADEMY
+                    <br><strong>SMA</strong>
+                </button>
+            </div>
+
+            <!-- Explanation -->
+            <div class="explanation">
+                <button class="btn-style btn-light" type="button" id="userGroups">
+                    <span class="star">⭐</span>
+
+                    Click here to<br> 
+                    view all your<br>
+                    joined groups!
+
                 </button>
             </div>
 
         </div>
     </div>
+
+    <!-- Copy footer over from home page -->
+
 
 </body>
 

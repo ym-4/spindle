@@ -31,6 +31,13 @@ module.exports.getGroupByCreatorID = async function getGroupByCreatorID(data) {
   return rows;
 };
 
+// GET Groups by school
+module.exports.getGroupsBySchool = async function getGroupsBySchool(data) {
+  const VALUES = [data.school];
+  const { rows } = await pool.query('SELECT * FROM "Groups" WHERE school = $1', VALUES);
+  return rows;
+};
+
 // Create new Group (name, description, school, module)
 module.exports.insertGroup = async function insertGroup(data) {
   const VALUES = [data.name, data.creator_id, data.description, data.school, data.module];

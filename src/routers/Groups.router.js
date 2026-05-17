@@ -1,7 +1,8 @@
 const express = require('express');
-const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreatorID, insertGroup, updateGroupName, 
-				updateGroupDescription, deleteGroup, updateGroupPublicity, getGroupMemberByGroupID, 
-				getGroupMemberByUserID, insertGroupMember, updateMemberRoleToAdmin, updateMemberRoleToUser, 
+const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreatorID, getGroupsBySchool, insertGroup, 
+		updateGroupName, 
+		updateGroupDescription, deleteGroup, updateGroupPublicity, getGroupMemberByGroupID, 
+		getGroupMemberByUserID, insertGroupMember, updateMemberRoleToAdmin, updateMemberRoleToUser, 
         getAllGroupAdmin, insertGroupDiscussion, updateGroupDiscussion, getAllGroupDiscussionByGroupID, 
         getGroupDiscussionMatch } = require('../models/Groups.model');
 const router = express.Router();
@@ -31,6 +32,17 @@ router.get('/creator/:creator_id', (req, res, next) => {
   }
 
   getGroupByCreatorID(data)
+    .then((groups) => res.status(200).json(groups))
+    .catch(next);
+});
+
+// GET Groups by school
+router.get('/school/:school_name', (req, res, next) => {
+  const data = {
+    school: req.params.school_name
+  }
+
+  getGroupsBySchool(data)
     .then((groups) => res.status(200).json(groups))
     .catch(next);
 });
