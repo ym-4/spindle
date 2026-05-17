@@ -50,3 +50,5 @@ module.exports.deletePostByID = async function deletePostByID(data) {
   const { rows } = await pool.query('DELETE FROM "Posts" WHERE "id" = $1 RETURNING *', VALUES);
   return rows[0];
 };
+
+//==================== post interactions ===========================

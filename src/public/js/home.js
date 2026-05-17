@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadPosts();
   setupCategoryTabs();
   setupCreatePost();
+  setupSearch();
 });
 
 //format the time of post
@@ -232,6 +233,119 @@ function setupCreatePost() {
       }
     }, 'POST', payload);
   });
+}
+
+// SEARCH BAR
+function setupSearch() {
+  const input = document.getElementById('searchInput');
+  if (!input) return;
+
+  let debounceTimer;
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const query = input.value.trim();
+
+    if (!query) {
+      // restore normal feed (no searches)
+      loadPosts();
+      return;
+    }
+
+    // wait 400ms after user stops typing 
+    debounceTimer = setTimeout(() => runSearch(query), 400);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      clearTimeout(debounceTimer);
+      const query = input.value.trim();
+      if (query) runSearch(query);
+    }
+  });
+}
+
+function runSearch(query) {
+  showPostsLoading();
+  fetchMethod(`${API_BASE}/search?q=${encodeURIComponent(query)}`, (status, data) => {
+    if (status !== 200) { showPostsError(); return; }
+    renderSearchResults(data, query);
+  });
+}
+
+function renderSearchResults(results, query) {
+  const container = document.getElementById('postsContainer');
+  container.innerHTML = '';
+
+  if (!results || results.length === 0) {
+    container.innerHTML = `
+      <div class="post-card text-center py-4 text-muted">
+        <i class="fas fa-search fa-2x mb-2 d-block"></i>
+        No results found for "<strong>${escapeHtml(query)}</strong>"
+      </div>`;
+    return;
+  }
+
+  // Header for search cat
+  const header = document.createElement('div');
+  header.className = 'text-muted mb-2 px-1';
+  header.style.fontSize = '0.9rem';
+  header.innerHTML = `<i class="fas fa-search me-1"></i> ${results.length} result${results.length !== 1 ? 's' : ''} for "<strong>${escapeHtml(query)}</strong>"`;
+  container.appendChild(header);
+
+  results.forEach(result => {
+    if (result.result_type === 'post') {
+      container.appendChild(buildPostCard(result));
+    } else if (result.result_type === 'group') {
+      container.appendChild(buildGroupResult(result));
+    } else if (result.result_type === 'user') {
+      container.appendChild(buildUserResult(result));
+    }
+  });
+}
+
+function buildGroupResult(group) {
+  const el = document.createElement('div');
+  el.className = 'post-card';
+  el.style.cursor = 'pointer';
+  el.innerHTML = `
+    <div class="post-header">
+      <div class="post-avatar" style="background:var(--secondary-color);">
+        <i class="fas fa-users" style="font-size:1rem;"></i>
+      </div>
+      <div class="post-author">
+        <div class="post-author-name">${escapeHtml(group.title)}</div>
+        <div class="post-timestamp">Study Group · by ${escapeHtml(group.author_name)}</div>
+      </div>
+      <span class="post-category category-general">Group</span>
+    </div>
+    <div class="post-content text-muted" style="font-size:0.9rem;">
+      ${escapeHtml(group.description || 'No description available.')}
+    </div>`;
+  el.addEventListener('click', () => {
+    window.location.href = `study-groups.html?id=${group.id}`;
+  });
+  return el;
+}
+
+function buildUserResult(user) {
+  const el = document.createElement('div');
+  el.className = 'post-card';
+  el.style.cursor = 'pointer';
+  el.innerHTML = `
+    <div class="post-header">
+      <div class="post-avatar">${escapeHtml(user.title.charAt(0).toUpperCase())}</div>
+      <div class="post-author">
+        <div class="post-author-name">${escapeHtml(user.title)}</div>
+        <div class="post-timestamp">User</div>
+      </div>
+      <span class="post-category" style="background:#f0f0f0;color:#555;">Profile</span>
+    </div>`;
+  el.addEventListener('click', () => {
+    window.location.href = `profile.html?id=${user.id}`;
+  });
+  return el;
 }
 
 // error n validation indicators

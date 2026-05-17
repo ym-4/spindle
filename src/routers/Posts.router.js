@@ -108,4 +108,8 @@ router.delete('/:id', (req, res, next) => {
     })
 });
 
+//==================== post interactions ===========================
+
+
+
 module.exports = router;
