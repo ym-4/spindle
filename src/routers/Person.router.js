@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllPersons } = require('../models/Person.model');
+const { getAllPersons, getPersonByID, getPersonByName, getPersonByEmail, insertPerson } = require('../models/Person.model');
 const router = express.Router();
 
 // Get all person
@@ -23,19 +23,19 @@ router.get('/:id', (req, res, next) => {
 
 // Creates new person 
 // Errors handled: same name or same email
-// Request: name, email, avatar, password
-// Response: user_id, name, email, avatar
+// Request: name, email, bio, password
+// Response: user_id, name, email, bio
 router.post('/', (req, res, next) => {
   // missing required information
-  if (req.body == undefined || req.body.name == undefined || req.body.email == undefined || req.body.avatar == undefined || req.body.password == undefined) {
-    res.status(400).json({"message": "Error: name, email, avatar or password is undefined"});
+  if (req.body == undefined || req.body.name == undefined || req.body.email == undefined || req.body.bio == undefined || req.body.password == undefined) {
+    res.status(400).json({"message": "Error: name, email, bio or password is undefined"});
     return;
   }
   
   const data = {
     name: req.body.name, 
     email: req.body.email, 
-    avatar: req.body.avatar, 
+    bio: req.body.bio, 
     password: req.body.password
   }
 
@@ -57,9 +57,9 @@ router.post('/', (req, res, next) => {
               // create person
               insertPerson(data)
                 .then(results => res.status(201).json({
-                  "id": results.insertId, 
+                  "id": results[0].id, 
                   "name": data.name, 
-                  "avatar": data.avatar, 
+                  "bio": data.bio, 
                 }))
                 .catch((error) => {
                   console.error("Error insertPerson: " + error);

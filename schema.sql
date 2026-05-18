@@ -126,16 +126,19 @@ CREATE TABLE "ConfessionComments" (
 --                                  GROUPS
 -- -------------------------------------------------------------------------------------
 
+CREATE TYPE school_choices AS ENUM ('SOC', 'MAD', 'EEE', 'ABE', 'SB', 'SMA', 'MAE', 'CLS');
+
 CREATE TABLE "Groups" (
   "id" SERIAL NOT NULL,
   "name" TEXT NOT NULL,
   "creator_id" INT NOT NULL,
   "description" TEXT NOT NULL, 
-  "school" TEXT NOT NULL, 
+  "school" school_choices NOT NULL, 
   "module" TEXT NOT NULL, 
-  "public" BOOlEAN NOT NULL DEFAULT TRUE,
+  "public" BOOLEAN NOT NULL DEFAULT TRUE,
   CONSTRAINT "Groups_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
+  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  UNIQUE ("name")
 );
 
 CREATE TYPE join_status AS ENUM ('pending', 'accepted', 'denied');

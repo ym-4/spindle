@@ -5,6 +5,7 @@ const path = require('path');
 // Import route handlers
 const somethingRouter = require('./routers/Something.router');
 const personRouter = require('./routers/Person.router');
+const groupRouter = require('./routers/Groups.router');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 app.use('/somethings', somethingRouter);
 app.use('/persons', personRouter);
+app.use('/groups', groupRouter);
 
 // 404 handler — if no route above matched the request,
 // create a 404 error and pass it to the error handler below.
