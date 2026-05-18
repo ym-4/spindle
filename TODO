@@ -20,5 +20,9 @@ Back End:
 1. Login and Register System
 2. Setup routes
 
+schema default entries?
 
+
+Security issue: 
+1. Route for get person returns hashed_password
 
