@@ -77,7 +77,13 @@ This project demonstrates a CRUD web application with a complete CI/CD workflow.
 │   │   └── Something.router.js # CRUD /somethings
 │   └── public/
 │       ├── index.html          # Frontend UI
-│       └── index.js            # Frontend JavaScript
+│       ├── css                 # Frontend styling
+|       |   ├── styles.css      # Common styles across multiple pages
+|       |   └── specific.css    # For specific CSS files
+|       ├── images              # Assets used
+|       └── js                  
+|           ├── index.js        # Frontend JavaScript   
+|           └── script.js       # Common JavaScript file across multiple pages
 ├── e2e-tests/                  # Playwright E2E test specs
 ├── schema.sql                  # Database schema (single source of truth)
 ├── package.json
