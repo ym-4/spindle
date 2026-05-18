@@ -78,7 +78,7 @@ CREATE TABLE "PostComments" (
 
 CREATE TYPE reaction_types AS ENUM ('like', 'dislike');
 
-CREATE TABLE PostReactions (
+CREATE TABLE "PostReactions" (
   "id" SERIAL NOT NULL,
   "post_id" INT NOT NULL,
   "user_id" INT NOT NULL,

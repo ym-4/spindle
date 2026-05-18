@@ -242,4 +242,16 @@ router.put('/public/:group_id', (req, res, next) => {
 		.catch(next);
 });
 
+// Get Joined Groups by user_id 
+router.get('/joined_groups/:user_id', (req, res, next) => {
+  const data = {
+    user_id: req.params.user_id
+  }
+
+  getGroupMemberByUserID(data)
+    .then((groups) => res.status(200).json(groups))
+    .catch(next);
+});
+
+
 module.exports = router;

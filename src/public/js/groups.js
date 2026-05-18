@@ -44,76 +44,93 @@ schoolButtons.forEach(btn => {
     });
 });
 
+let groups = [];
+let joinedGroups = [];
+
 async function handleSchoolButtonClick(school) {
-    let groups = await fetchGroupsBySchool();
+    try  {
+        // Get groups user joined
+        joinedGroups = await fetchJoinedGroups();
+        console.log("joinedGroups", joinedGroups);
+
+        // Display joined groups
+        if (school == "userGroups") {
+            
+        // Display groups from school clicked
+        } else {
+
+            groups = await fetchGroupsBySchool(school.toUpperCase());
+            console.log("Groups", groups);
+            
+
+            // filter joined groups by school
+            joinedGroups.forEach(joinedGroup => {
+                let currGroupID = joinedGroup.group_id;
+            })
+
+            // Redirect user to groups_page.html
+            window.location.href = 'groups_page.html';
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Failed to fetch groups");
+    }
+}
 
 
-    // Redirect user to groups_page.html
-    window.location.href = '/groups_page.html';
+// -------------------------------------------------------------------------------------
+//                              Fetch Functions  
+// -------------------------------------------------------------------------------------
 
+function fetchGroupsBySchool(school) {
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/school/${school.toUpperCase()}`;
 
+        const callback = (responseStatus, responseData) => {
+            console.log("fetchGroupsBySchool", responseData);
+
+            if (responseStatus == 200) {
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './login.html';
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback);
+    });
+}
+
+function fetchJoinedGroups() {
+    // get the user_id from the local storage
+    const user_id = localStorage.getItem('userId');
+
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/joined_groups/${user_id}`;
+
+        const callback = (responseStatus, responseData) => {
+            console.log("fetchJoinedGroups", responseData);
+
+            if (responseStatus == 200) {
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './login.html';
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback);
+    });
 }
 
 
 
-
-
-// function fetchGroupsBySchool() {
-//     // Get the user_id from the local storage
-//     const user_id = localStorage.getItem('userId');
-
-//     const url = `http://localhost:3000/groups/school/${school_name}`;
-
-//     // getting the fields where data will be displayed
-//     const usernameMessage = document.getElementById('usernameField');
-//     const pointsMessage = document.getElementById('pointsField')
-
-//     const callback = (responseStatus, responseData) => {
-//         console.log(responseData)
-//         if (responseStatus == 200) {
-//             usernameMessage.innerText = responseData.username;
-//             pointsMessage.innerText = responseData.points;
-
-//         // User not found or token expired
-//         } else if (responseStatus == 404 || responseStatus == 401) {
-//             // redirects to login page
-//             window.location.href = './login.html'
-//         // Internal server error
-//         } else {
-//             alert('Error occured with the server. Check server is running before trying again. ')
-//         }
-//     }
-
-//     fetchMethod(url, callback)
-// }
-
-// function getJoinedGroups() {
-//     // get the user_id from the local storage
-//     const user_id = localStorage.getItem('userId');
-
-//     const url = `http://localhost:3000/api/users/${user_id}`;
-
-//     // getting the fields where data will be displayed
-//     const usernameMessage = document.getElementById('usernameField');
-//     const pointsMessage = document.getElementById('pointsField')
-
-//     const callback = (responseStatus, responseData) => {
-//         console.log(responseData)
-//         if (responseStatus == 200) {
-//             usernameMessage.innerText = responseData.username;
-//             pointsMessage.innerText = responseData.points;
-
-//         // User not found or token expired
-//         } else if (responseStatus == 404 || responseStatus == 401) {
-//             // redirects to login page
-//             window.location.href = './login.html'
-//         // Internal server error
-//         } else {
-//             alert('Error occured with the server. Check server is running before trying again. ')
-//         }
-//     }
-
-//     fetchMethod(url, callback)
-// }
-
-// getUsernameAndPoints();

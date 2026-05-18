@@ -54,6 +54,53 @@ const savedPosts = [
   { userEmail: 'heidi@example.com', postTitle: 'General Thoughts' },
 ];
 
+// seed data for groups
+// Example Groups 
+const groups = [
+  {
+    name: 'SOC Study Buddies',
+    creatorEmail: 'alice@example.com',
+    description: 'A group for SOC students to revise and share notes.',
+    school: 'SOC',
+    module: 'CS1010',
+    public: true,
+  },
+  {
+    name: 'MAD Project Team',
+    creatorEmail: 'bob@example.com',
+    description: 'Mobile App Development project collaboration group.',
+    school: 'MAD',
+    module: 'CP2106',
+    public: false,
+  },
+  {
+    name: 'EEE Circuit Masters',
+    creatorEmail: 'carol@example.com',
+    description: 'Discuss circuits, labs, and exam prep for EEE modules.',
+    school: 'EEE',
+    module: 'EE2020',
+    public: true,
+  },
+];
+
+// Example GroupMembers
+const groupMembers = [
+  // SOC group
+  { groupName: 'SOC Study Buddies', userEmail: 'alice@example.com', role: 'admin' },
+  { groupName: 'SOC Study Buddies', userEmail: 'bob@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'carol@example.com', role: 'user' },
+
+  // MAD group
+  { groupName: 'MAD Project Team', userEmail: 'bob@example.com', role: 'admin' },
+  { groupName: 'MAD Project Team', userEmail: 'dave@example.com', role: 'user' },
+  { groupName: 'MAD Project Team', userEmail: 'eve@example.com', role: 'user' },
+
+  // EEE group
+  { groupName: 'EEE Circuit Masters', userEmail: 'carol@example.com', role: 'admin' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'frank@example.com', role: 'user' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'grace@example.com', role: 'user' },
+];
+
 
 async function seed() {
   console.log('Seeding data...');
@@ -142,6 +189,57 @@ async function seed() {
     }
   }
   console.log(`Inserted ${savedPosts.length} saved posts.`);
+
+  // Insert groups
+  for (const group of groups) {
+    const userRes = await pool.query(
+      `SELECT id FROM "Person" WHERE email = $1`,
+      [group.creatorEmail]
+    );
+
+    if (userRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "Groups" ("name", "creator_id", "description", "school", "module", "public")
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT ("name") DO NOTHING`,
+        [
+          group.name,
+          userRes.rows[0].id,
+          group.description,
+          group.school,
+          group.module,
+          group.public,
+        ]
+      );
+    }
+  }
+
+  console.log(`Inserted ${groups.length} groups.`);
+
+  // Insert group members
+  for (const member of groupMembers) {
+    const userRes = await pool.query(
+      `SELECT id FROM "Person" WHERE email = $1`,
+      [member.userEmail]
+    );
+
+    const groupRes = await pool.query(
+      `SELECT id FROM "Groups" WHERE name = $1`,
+      [member.groupName]
+    );
+
+    if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "GroupMembers" ("group_id", "user_id", "role")
+        VALUES ($1, $2, $3)
+        ON CONFLICT DO NOTHING`,
+        [groupRes.rows[0].id, userRes.rows[0].id, member.role]
+      );
+    }
+  }
+
+  console.log(`Inserted ${groupMembers.length} group members.`);
+
 
 }
 

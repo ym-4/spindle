@@ -30,10 +30,6 @@
   left: -10%;
 }
 
-.search-bar {
-
-}
-
 /* Responsive based on screen size */
 
 /* Default */
@@ -145,7 +141,7 @@
 }
 
 .abe {
-  top: 45%;
+  top: 50%;
   left: 7%;
 }
 
@@ -160,7 +156,7 @@
 }
 
 .soc {
-  top: 45%;
+  top: 50%;
   left: 72%;
 }
 
