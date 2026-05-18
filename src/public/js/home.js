@@ -1,10 +1,9 @@
-//  Spindle — Home Page TBC
+//  Spindle — Home Page
 
 const API_BASE = currentUrl; 
 
 let currentCategory = 'all';
 
-// page loaded
 document.addEventListener('DOMContentLoaded', () => {
   loadPosts();
   setupCategoryTabs();
@@ -12,15 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSearch();
 });
 
-//format the time of post
+// format post date
 function formatTimestamp(createdAt, updatedAt) {
   const created = new Date(createdAt);
   const updated = updatedAt ? new Date(updatedAt) : null;
   const wasEdited = updated && Math.abs(updated - created) > 5000;
-  const displayDate = wasEdited ? updated : created;
 
   const now = new Date();
-  const diffMs = now - displayDate;
+  const diffMs = now - created;
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
@@ -29,14 +27,21 @@ function formatTimestamp(createdAt, updatedAt) {
   if (diffMins < 1) timeStr = 'Just now';
   else if (diffMins < 60) timeStr = `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
   else if (diffHours < 24) timeStr = `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-  else if (diffDays === 1) timeStr = `Yesterday at ${displayDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  else if (diffDays === 1) timeStr = `Yesterday at ${created.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   else if (diffDays < 7) timeStr = `${diffDays} days ago`;
-  else timeStr = displayDate.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+  else timeStr = created.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
 
-  return { timeStr, wasEdited };
+  let editedStr = null;
+  if (wasEdited) {
+    editedStr = updated.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })
+      + ', '
+      + updated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  return { timeStr, wasEdited, editedStr };
 }
 
-// cats
+// category 
 function getCategoryLabel(category) {
   return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[category] || category;
 }
@@ -56,10 +61,9 @@ function getAuthorName(post) {
   return post.author_name || `User ${post.user_id}`;
 }
 
-// post box
+// individual post card
 function buildPostCard(post) {
-  const { timeStr, wasEdited } = formatTimestamp(post.created_at, post.updated_at);
-  const editedTag = wasEdited ? `<span class="post-edited-tag text-muted" style="font-size:0.75rem;">(edited)</span>` : '';
+  const { timeStr, wasEdited, editedStr } = formatTimestamp(post.created_at, post.updated_at);
   const hideOption = post.category !== 'confession' ? `<li><a class="dropdown-item" href="#">Hide post</a></li>` : '';
 
   const card = document.createElement('div');
@@ -72,7 +76,10 @@ function buildPostCard(post) {
       <div class="post-avatar">${getAvatarInitial(post)}</div>
       <div class="post-author">
         <div class="post-author-name">${getAuthorName(post)}</div>
-        <div class="post-timestamp">${timeStr} ${editedTag}</div>
+        <div class="post-timestamp">
+          ${timeStr}
+          ${wasEdited ? `<span class="post-edited-tag text-muted">&nbsp;·&nbsp;edited on ${editedStr}</span>` : ''}
+        </div>
       </div>
       <div class="dropdown">
         <button class="btn btn-sm post-menu-btn" data-bs-toggle="dropdown" aria-expanded="false">
@@ -92,10 +99,10 @@ function buildPostCard(post) {
 
     <div class="post-actions">
       <button class="post-action-btn like-btn" data-liked="false" data-post-id="${post.id}">
-        <i class="far fa-thumbs-up"></i> <span class="like-count">–</span>
+        <i class="far fa-thumbs-up"></i> <span class="like-count">${post.like_count ?? '0'}</span>
       </button>
       <button class="post-action-btn comment-btn" data-post-id="${post.id}">
-        <i class="far fa-comment"></i> <span class="comment-count">–</span>
+        <i class="far fa-comment"></i> <span class="comment-count">${post.comment_count ?? '0'}</span>
       </button>
       <button class="post-action-btn share-btn">
         <i class="far fa-share-square"></i> Share
@@ -103,18 +110,19 @@ function buildPostCard(post) {
     </div>
   `;
 
-  // navigate to post page
+  // redirect to indiv post page
   card.addEventListener('click', (e) => {
     if (e.target.closest('.post-actions') || e.target.closest('.dropdown')) return;
     window.location.href = `posts.html?id=${post.id}`;
   });
 
+  // redirect to indiv post page
   card.querySelector('.comment-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     window.location.href = `posts.html?id=${post.id}`;
   });
 
-  // Like button 
+  // like button (placeholder until endpoint implementation)
   card.querySelector('.like-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     const btn = e.currentTarget;
@@ -123,13 +131,12 @@ function buildPostCard(post) {
     btn.style.color = liked ? '' : 'var(--primary-color)';
   });
 
- 
   card.querySelector('.post-menu-btn').addEventListener('click', (e) => e.stopPropagation());
 
   return card;
 }
 
-// render post box
+// list of posts
 function renderPosts(posts) {
   const container = document.getElementById('postsContainer');
   container.innerHTML = '';
@@ -146,24 +153,25 @@ function renderPosts(posts) {
   posts.forEach(post => container.appendChild(buildPostCard(post)));
 }
 
-// sort by upload date
+// sort newest first
 function sortNewestFirst(posts) {
   return posts.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }
 
-// display all posts api
+// fetch all posts
 function loadPosts() {
   showPostsLoading();
   fetchMethod(`${API_BASE}/posts`, (status, data) => {
     if (status === 200) {
       renderPosts(sortNewestFirst(data));
+      renderTop3(data);
     } else {
       showPostsError();
     }
   });
 }
 
-// display post by cat
+// fetch posts by category
 function loadPostsByCategory(category) {
   showPostsLoading();
   fetchMethod(`${API_BASE}/posts/tag/${category}`, (status, data) => {
@@ -175,7 +183,7 @@ function loadPostsByCategory(category) {
   });
 }
 
-// cat tabs
+// category filter tabs
 function setupCategoryTabs() {
   const tabLinks = document.querySelectorAll('.filter-tabs .nav-link');
   tabLinks.forEach(link => {
@@ -191,12 +199,43 @@ function setupCategoryTabs() {
   });
 }
 
-// creating post (Form)
+// top 3 posts
+function renderTop3(posts) {
+  const container = document.getElementById('top5Container');
+  if (!container) return;
+
+  const top3 = posts
+    .slice()
+    .sort((a, b) => (b.like_count - a.like_count) || (b.comment_count - a.comment_count))
+    .slice(0, 3);
+
+  container.innerHTML = '';
+
+  if (top3.length === 0) {
+    container.innerHTML = `<div class="list-group-item text-muted small text-center py-3">No posts yet.</div>`;
+    return;
+  }
+
+  top3.forEach((post, index) => {
+    const item = document.createElement('a');
+    item.href = '#';
+    item.className = 'list-group-item list-group-item-action py-2';
+    item.innerHTML = `
+      <div class="text-muted mb-1" style="font-size:0.75rem;">Trending #${index + 1}</div>
+      <div class="fw-bold" style="font-size:0.9rem;">${escapeHtml(post.title)}</div>`;
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = `posts.html?id=${post.id}`;
+    });
+    container.appendChild(item);
+  });
+}
+
+// create post form
 function setupCreatePost() {
   const submitBtn = document.getElementById('submitPostBtn');
   if (!submitBtn) return;
 
-  // category dropdown
   document.querySelectorAll('.create-post-option[data-category-shortcut]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.getElementById('postCategory').value = btn.dataset.categoryShortcut;
@@ -211,11 +250,9 @@ function setupCreatePost() {
     if (!title) { showModalError('Please enter a title.'); return; }
     if (!content) { showModalError('Post content cannot be empty.'); return; }
 
-    // TODO: replace with real user ID from session once auth is implemented WIP
-    const user_id = 1;
+    const user_id = localStorage.getItem('loggedInUserId') || 1; // TODO: real token
 
     const payload = { user_id, title, category, content };
-
     submitBtn.disabled = true;
     submitBtn.textContent = 'Posting...';
 
@@ -235,7 +272,7 @@ function setupCreatePost() {
   });
 }
 
-// SEARCH BAR
+// search
 function setupSearch() {
   const input = document.getElementById('searchInput');
   if (!input) return;
@@ -245,14 +282,7 @@ function setupSearch() {
   input.addEventListener('input', () => {
     clearTimeout(debounceTimer);
     const query = input.value.trim();
-
-    if (!query) {
-      // restore normal feed (no searches)
-      loadPosts();
-      return;
-    }
-
-    // wait 400ms after user stops typing 
+    if (!query) { loadPosts(); return; }
     debounceTimer = setTimeout(() => runSearch(query), 400);
   });
 
@@ -287,7 +317,6 @@ function renderSearchResults(results, query) {
     return;
   }
 
-  // Header for search cat
   const header = document.createElement('div');
   header.className = 'text-muted mb-2 px-1';
   header.style.fontSize = '0.9rem';
@@ -295,13 +324,9 @@ function renderSearchResults(results, query) {
   container.appendChild(header);
 
   results.forEach(result => {
-    if (result.result_type === 'post') {
-      container.appendChild(buildPostCard(result));
-    } else if (result.result_type === 'group') {
-      container.appendChild(buildGroupResult(result));
-    } else if (result.result_type === 'user') {
-      container.appendChild(buildUserResult(result));
-    }
+    if (result.result_type === 'post') container.appendChild(buildPostCard(result));
+    else if (result.result_type === 'group') container.appendChild(buildGroupResult(result));
+    else if (result.result_type === 'user') container.appendChild(buildUserResult(result));
   });
 }
 
@@ -348,7 +373,7 @@ function buildUserResult(user) {
   return el;
 }
 
-// error n validation indicators
+// utilities
 function escapeHtml(str) {
   if (!str) return '';
   return str

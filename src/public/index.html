@@ -60,7 +60,7 @@
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
-            <a href="study-groups.html" class="sidebar-item">
+            <a href="groups.html" class="sidebar-item">
                 <i class="fas fa-users"></i>
                 <span>Study Groups</span>
             </a>
@@ -158,26 +158,13 @@
         <!-- Right sidebar -->
         <aside class="right-sidebar">
             <div class="card">
-                <div class="card-header">Trending Topics</div>
-                <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>#ExamPrep2024</strong>
-                                <div class="small text-muted">234 posts</div>
-                            </div>
-                            <i class="fas fa-fire text-danger"></i>
-                        </div>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div><strong>#StudyTips</strong><div class="small text-muted">189 posts</div></div>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div><strong>#CampusLife</strong><div class="small text-muted">156 posts</div></div>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div><strong>#AssignmentHelp</strong><div class="small text-muted">127 posts</div></div>
-                    </a>
+                <div class="card-header">
+                    <i class="fas fa-fire text-danger me-2"></i>Hot Posts
+                </div>
+                <div class="list-group list-group-flush" id="top5Container">
+                    <div class="list-group-item text-muted small text-center py-3">
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                    </div>
                 </div>
             </div>
 

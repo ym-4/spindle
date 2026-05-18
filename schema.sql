@@ -76,7 +76,7 @@ CREATE TABLE "PostComments" (
 
 CREATE TYPE reaction_types AS ENUM ('like', 'dislike');
 
-CREATE TABLE PostReactions (
+CREATE TABLE "PostReactions" (
   "id" SERIAL NOT NULL,
   "post_id" INT NOT NULL,
   "user_id" INT NOT NULL,
@@ -97,29 +97,6 @@ CREATE TABLE "SavedPosts" (
   FOREIGN KEY ("post_id") REFERENCES "Posts"("id") ON DELETE CASCADE,
   CONSTRAINT "SavedPosts_pkey" PRIMARY KEY ("id"), 
   UNIQUE(user_id, post_id)
-);
-
--- -------------------------------------------------------------------------------------
---                                  CONFESSIONS
--- -------------------------------------------------------------------------------------
-
-CREATE TABLE "Confessions" (
-  "id" SERIAL NOT NULL,
-  "user_id" INT NOT NULL,
-  "details" TEXT NOT NULL,
-  CONSTRAINT "Confessions_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
-
-);
-
-CREATE TABLE "ConfessionComments" (
-  "id" SERIAL NOT NULL, 
-  "confession_id" INT NOT NULL,
-  "user_id" INT NOT NULL,
-  "details" TEXT NOT NULL,
-  CONSTRAINT "ConfessionComments_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
-  FOREIGN KEY ("confession_id") REFERENCES "Confessions"("id") ON DELETE CASCADE
 );
 
 -- -------------------------------------------------------------------------------------
