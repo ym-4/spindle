@@ -11,6 +11,8 @@
 -- Drop existing tables
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
 
 -- Create tables
 CREATE TABLE "Something" (
@@ -88,7 +90,7 @@ CREATE TABLE PostReactions (
   UNIQUE(post_id, user_id)
 );
 
-CREATE TABLE SavedPosts (
+CREATE TABLE "SavedPosts" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
   "post_id" INT NOT NULL,

@@ -29,6 +29,32 @@ const persons = [
 
 const somethings = [{ name: 'Seed 1' }, { name: 'Seed 2' }];
 
+// seed data for discussion pg
+// Example posts
+const posts = [
+  { userEmail: 'alice@example.com', title: 'First Confession', category: 'confession', content: 'I love pineapple pizza!' },
+  { userEmail: 'bob@example.com', title: 'Need Help', category: 'qna', content: 'How do I fix my seed script?' },
+  { userEmail: 'carol@example.com', title: 'General Thoughts', category: 'general', content: 'Postgres is powerful.' },
+];
+
+// Example comments
+const comments = [
+  { userEmail: 'dave@example.com', postTitle: 'First Confession', content: 'Same here!' },
+  { userEmail: 'eve@example.com', postTitle: 'Need Help', content: 'Try ON CONFLICT DO NOTHING.' },
+];
+
+// Example reactions
+const reactions = [
+  { userEmail: 'frank@example.com', postTitle: 'First Confession', reactionType: 'like' },
+  { userEmail: 'grace@example.com', postTitle: 'Need Help', reactionType: 'dislike' },
+];
+
+// Example saved posts
+const savedPosts = [
+  { userEmail: 'heidi@example.com', postTitle: 'General Thoughts' },
+];
+
+
 async function seed() {
   console.log('Seeding data...');
 
@@ -37,7 +63,8 @@ async function seed() {
     const personPlaceholders = persons.map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`);
     const personValues = persons.flatMap((p) => [p.email, p.name]);
     await pool.query(
-      `INSERT INTO "Person" ("email", "name") VALUES ${personPlaceholders.join(', ')}`,
+      `INSERT INTO "Person" ("email", "name") VALUES ${personPlaceholders.join(', ')} ON CONFLICT ("email") DO NOTHING`,
+      // "do nothing" prevents duplicate error when seeding data
       personValues,
     );
   }
@@ -55,6 +82,67 @@ async function seed() {
   console.log(`Inserted ${somethings.length} somethings.`);
 
   console.log('Seed data inserted successfully.');
+
+  // homepg function
+    // Insert posts
+  for (const post of posts) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [post.userEmail]);
+    if (userRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "Posts" ("user_id", "title", "category", "content")
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT DO NOTHING`,
+        [userRes.rows[0].id, post.title, post.category, post.content]
+      );
+    }
+  }
+  console.log(`Inserted ${posts.length} posts.`);
+
+  // Insert comments
+  for (const comment of comments) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [comment.userEmail]);
+    const postRes = await pool.query(`SELECT id FROM "Posts" WHERE title = $1`, [comment.postTitle]);
+    if (userRes.rows.length > 0 && postRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "PostComments" ("user_id", "post_id", "content")
+         VALUES ($1, $2, $3)
+         ON CONFLICT DO NOTHING`,
+        [userRes.rows[0].id, postRes.rows[0].id, comment.content]
+      );
+    }
+  }
+  console.log(`Inserted ${comments.length} comments.`);
+
+  // Insert reactions
+  for (const reaction of reactions) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [reaction.userEmail]);
+    const postRes = await pool.query(`SELECT id FROM "Posts" WHERE title = $1`, [reaction.postTitle]);
+    if (userRes.rows.length > 0 && postRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "PostReactions" ("post_id", "user_id", "reaction_type")
+         VALUES ($1, $2, $3)
+         ON CONFLICT DO NOTHING`,
+        [postRes.rows[0].id, userRes.rows[0].id, reaction.reactionType]
+      );
+    }
+  }
+  console.log(`Inserted ${reactions.length} reactions.`);
+
+  // Insert saved posts
+  for (const saved of savedPosts) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [saved.userEmail]);
+    const postRes = await pool.query(`SELECT id FROM "Posts" WHERE title = $1`, [saved.postTitle]);
+    if (userRes.rows.length > 0 && postRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "SavedPosts" ("user_id", "post_id")
+         VALUES ($1, $2)
+         ON CONFLICT DO NOTHING`,
+        [userRes.rows[0].id, postRes.rows[0].id]
+      );
+    }
+  }
+  console.log(`Inserted ${savedPosts.length} saved posts.`);
+
 }
 
 seed()
