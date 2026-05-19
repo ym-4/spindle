@@ -88,7 +88,8 @@ module.exports.getGroupMemberByGroupID = async function getGroupMemberByGroupID(
 // GET Group members by user_id
 module.exports.getGroupMemberByUserID = async function getGroupMemberByUserID(data) {
   const VALUES = [data.user_id];
-  const { rows } = await pool.query('SELECT * FROM "GroupMembers" WHERE user_id = $1', VALUES);
+  const { rows } = await pool.query(`SELECT * FROM "GroupMembers" INNER JOIN "Groups" ON "GroupMembers".group_id = "Groups".id 
+    WHERE "GroupMembers".user_id = $1`, VALUES);
   return rows;
 };
 

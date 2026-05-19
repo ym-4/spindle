@@ -122,10 +122,10 @@
                 <div class="header-left">
                     <!-- Add the schools building using JS -->
                     <!-- Maybe clicking image makes it bigger? -->
-                    <img src="./images/Groups_SOC_Building.png" alt="SOC Building" class="header-img">
+                    <img src="./images/Groups_SOC_Building.png" alt="SOC Building" class="header-img" id="school-img">
                     
                     <!-- Added using JS -->
-                    <h1>School of Computing</h1>
+                    <h1 id="school-name">School of Computing</h1>
                 </div>
 
                 <!-- Search bar to search for specific groups -->
@@ -134,22 +134,20 @@
             </section>
 
             <!-- Popular Groups (>? users) -->
-            <section>
+            <section id="popularGroupsSection">
                 <div class="section-header">
                     <h2 id="schoolTitle">Popular Groups</h2>
 
                     <div class="left-right-btn">
                         <!-- Buttons to go left and right - To view more groups -->
-                        <button class="arrow-btn" id="left">&#129168;</button>
-                        <button class="arrow-btn" id="right">&#129170;</button>
+                        <button class="arrow-btn" id="popularLeft">&#129168;</button>
+                        <button class="arrow-btn" id="popularRight">&#129170;</button>
                     </div>
                 </div>
 
-
-
                 <!-- Cards will be inserted using JS-->
-                <div class="groups-grid" id="groupsContainer">
-
+                <div class="groups-grid" id="popularGroupsContainer">
+<!-- 
                     <div class="group-card">
                         <div class="group-top">
 
@@ -214,7 +212,7 @@
                             <span>🟢 Online</span>
                             <span>10K Members</span>
                         </div>
-                    </div>
+                    </div> -->
 
 
                 </div>
@@ -229,17 +227,15 @@
 
                     <div class="left-right-btn">
                         <!-- Buttons to go left and right - To view more groups -->
-                        <button class="arrow-btn" id="left">&#129168;</button>
-                        <button class="arrow-btn" id="right">&#129170;</button>
+                        <button class="arrow-btn" id="joinedLeft">&#129168;</button>
+                        <button class="arrow-btn" id="joinedRight">&#129170;</button>
                     </div>
                 </div>
 
-
-
                 <!-- Cards will be inserted using JS-->
-                <div class="groups-grid" id="groupsContainer">
+                <div class="groups-grid" id="joinedGroupsContainer">
 
-                    <div class="group-card">
+                    <!-- <div class="group-card">
                         <div class="group-top">
 
                             <div class="group-info">
@@ -304,13 +300,33 @@
                             <span>10K Members</span>
                         </div>
                     </div>
+                    
+                    <div class="group-card">
+                        <div class="group-top">
 
+                            <div class="group-info">
+                                <img src="images/Groups_SOC_Building.png" class="group-icon">
+                                <h3>Genshin Impact Official</h3>
+                            </div>
+
+                            <div class="card-line"></div>
+                        </div>
+
+                        <p>
+                            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                        </p>
+
+                        <div class="group-footer">
+                            <span>🟢 Online</span>
+                            <span>10K Members</span>
+                        </div>
+                    </div> -->
 
                 </div>
 
             </section>
 
-            <!--  -->
+            <!-- Add button to create new groups -->
             <section>
 
                 <!-- Add button - To create new groups -->
