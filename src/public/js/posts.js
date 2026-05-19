@@ -70,10 +70,10 @@ function renderPost(post) {
 
       <div class="post-actions">
         <button class="post-action-btn like-btn" id="likeBtn" data-liked="false">
-          <i class="far fa-thumbs-up"></i> <span id="likeCount">–</span>
+          <i class="far fa-thumbs-up"></i> <span id="likeCount">0</span>
         </button>
         <button class="post-action-btn" style="cursor: default;">
-          <i class="far fa-comment"></i> <span id="commentCountBtn">–</span>
+          <i class="far fa-comment"></i> <span id="commentCountBtn">0</span>
         </button>
         <button class="post-action-btn share-btn">
           <i class="far fa-share-square"></i> Share

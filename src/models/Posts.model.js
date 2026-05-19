@@ -93,6 +93,7 @@ module.exports.deletePostByID = async function deletePostByID(data) {
 };
 
 //==================== post interactions (saves, likes, etc) ================================
+// saves
 // GET saved posts by user ID
 module.exports.getSavedByUserID = async function getSavedByUserID(data) {
   const VALUES = [data.user_id];
@@ -114,4 +115,34 @@ module.exports.deleteSavedByID = async function deleteSavedByID(data) {
   return rows[0];
 };
 
+// likes and dislikes
+// GET reaction state by post ID
+module.exports.getReactionByPostID = async function getReactionByPostID(data) {
+  const VALUES = [data.post_id, data.user_id];
+  const { rows } = await pool.query('SELECT * FROM "PostReactions" WHERE post_id = $1 and user_id = $2', VALUES);
+  return rows[0];
+};
 
+// like a post 
+module.exports.insertLike = async function insertLike(data) {
+  const VALUES = [data.post_id, data.user_id, data.reaction_type];
+  const { rows } = await pool.query('INSERT INTO "PostReactions" (post_id, user_id, reaction_type) VALUES ($1, $2, $3) RETURNING id', VALUES);
+  return rows[0]; 
+}
+
+// update reaction type 
+module.exports.updateReaction = async function updateReaction(data) {
+  const VALUES = [data.reaction_type, data.user_id, data.id];
+  const { rows } = await pool.query(
+    'UPDATE "PostReactions" SET "reaction_type" = $1 WHERE "user_id" = $2 and "id" = $3 RETURNING *',
+    VALUES
+  );
+  return rows[0];
+};
+
+// delete a reaction 
+module.exports.deleteReaction = async function deleteReaction(data) {
+  const VALUES = [data.id, data.user_id];
+  const { rows } = await pool.query('DELETE FROM "PostReactions" WHERE "id" = $1 and "user_id" = $2 RETURNING *', VALUES);
+  return rows[0];
+};

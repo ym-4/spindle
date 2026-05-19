@@ -9,7 +9,10 @@ const {
   getSavedByUserID,
   insertSaved,
   deleteSavedByID,
-  getPostStats
+  getReactionByPostID,
+  insertLike,
+  updateReaction,
+  deleteReaction
 } = require('../models/Posts.model');
 
 const router = express.Router();
@@ -113,6 +116,7 @@ router.delete('/:id', (req, res, next) => {
 });
 
 //==================== post interactions (saves, likes, etc) ============================
+//saves
 // Get saved posts by user ID
 router.get('/saved/:user_id', (req, res, next) => {
   const data = {
@@ -166,11 +170,83 @@ router.delete('/saved/:id', (req, res, next) => {
     })
 });
 
-// post stats - like count, comment count 
-router.get('/stats', (req, res, next) => {
-  getPostStats()
+// likes n dislikes
+// Get reaction by post_id
+router.get('/reaction/:post_id', (req, res, next) => {
+  const data = {
+    post_id: req.params.post_id,
+    user_id: req.body.user_id
+  }
+  getReactionByPostID(data)
     .then((post) => res.status(200).json(post))
     .catch(next);
+});
+
+// creates like for a post
+router.post('/like', (req, res, next) => {
+  // missing required information
+  if (req.body == undefined  || req.body.post_id == undefined || req.body.user_id == undefined) {
+    res.status(400).json({"message": "Error: user_id or post_id is undefined"});
+    return;
+  }
+  const data = {
+    post_id: req.body.post_id,
+    user_id: req.body.user_id,
+    reaction_type: req.body.reaction_type
+  }
+
+// likes a post_id 
+insertLike(data)
+    .then(results => res.status(201).json({
+        "id": results.id, 
+        "post_id": data.post_id,
+        "user_id": data.user_id,
+        "reaction_type": data.reaction_type
+    }))
+    .catch((error) => {
+        console.error("Error insertLike: " + error);
+        res.status(500).json(error);
+    })
+});
+
+// Update reaction type
+router.put('/reaction/:id', (req, res, next) => {
+  const data = {
+    id: req.params.id,
+    user_id: req.body.user_id,
+    reaction_type: req.body.reaction_type
+  }
+
+  updateReaction(data)
+    .then((results) => {
+      if (!results) {
+        return res.status(404).json({ error: 'Reaction not found' });
+      }
+      res.status(200).json(results);
+    })
+    .catch((error) => {
+        console.error("Error updateReaction: " + error);
+        res.status(500).json(error);
+    })
+});
+
+// remove a like or dislike
+router.delete('/reaction/:id', (req, res, next) => {
+   const data = {
+    id: req.params.id,
+    user_id: req.body.user_id
+  }
+  deleteReaction(data)
+    .then((results) => {
+      if (!results) {
+        return res.status(404).json({ error: 'Reaction not found' });
+      }
+      res.status(200).json(results);
+    })
+    .catch((error) => {
+        console.error("Error deleteReaction: " + error);
+        res.status(500).json(error);
+    })
 });
 
 module.exports = router;
