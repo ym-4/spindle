@@ -78,19 +78,19 @@ router.post('/:creator_id', (req, res, next) => {
       } else {
           insertGroup(data)
             .then(results => {
-							const group = results[0];
-							data.group_id = group.id;
+				const group = results[0];
+				data.group_id = group.id;
 
-							// Add group creator to group's member list 
-							insertGroupMember(data)
-								.then(results => {
-									// Add group creator to admin list
-									updateMemberRoleToAdmin({user_id: data.creator_id, group_id: group.id})
-										.then(results => res.status(201).json(group))
-										.catch(next);
-								})
-								.catch(next);
-						})
+				// Add group creator to group's member list 
+				insertGroupMember(data)
+					.then(results => {
+						// Add group creator to admin list
+						updateMemberRoleToAdmin({user_id: data.creator_id, group_id: group.id})
+							.then(results => res.status(201).json(group))
+							.catch(next);
+					})
+					.catch(next);
+					})
             .catch(next);
       }
     })
