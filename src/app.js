@@ -1,6 +1,9 @@
+require('dotenv').config();
+
 const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
+
 
 // Import route handlers
 const somethingRouter = require('./routers/Something.router');
@@ -9,6 +12,8 @@ const postsRouter = require('./routers/Posts.router');
 const postCommentsRouter = require('./routers/PostComments.router');
 const searchRouter = require('./routers/Search.router');
 const groupRouter = require('./routers/Groups.router');
+
+const authRouter = require('./routers/Auth.router');
 
 const app = express();
 
@@ -28,12 +33,14 @@ app.use('/posts', postsRouter);
 app.use('/comments', postCommentsRouter);
 app.use('/search', searchRouter);
 app.use('/groups', groupRouter);
+app.use('/auth', authRouter);
 
 // 404 handler — if no route above matched the request,
 // create a 404 error and pass it to the error handler below.
 app.use((req, res, next) => {
   next(createError(404, `Unknown resource ${req.method} ${req.originalUrl}`));
 });
+
 
 // Global error handler — catches all errors thrown or passed via next(err).
 // Sends a consistent JSON response instead of Express's default HTML error page.

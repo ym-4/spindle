@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Spindle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+
+    <div class="top-bar">
+        <a href="index.html" class="brand">spindle</a>
+    </div>
+
+    <div class="page-wrapper">
+        <div class="auth-container">
+
+            <!-- Left hero -->
+            <div class="hero-panel">
+                <div class="hero-title">Join your<br>campus today.</div>
+                <p class="hero-subtitle">It's free. It's your school. It's where students actually talk.</p>
+                <p class="already-link">Already have an account? <a href="login.html">Log in</a></p>
+            </div>
+
+            <!-- Register card -->
+            <div class="auth-card">
+                <h2>Create account</h2>
+                <p class="card-sub">Takes less than a minute.</p>
+
+                <!-- Warning card — ids match registerUser.js -->
+                <div class="warning-card d-none" id="warningCard">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="warningText"></span>
+                </div>
+
+                <!-- Form id matches registerUser.js -->
+                <form id="signupForm" novalidate>
+
+                    <!-- id="username" matches registerUser.js -->
+                    <div class="form-group">
+                        <label for="username">Display Name</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user icon-left"></i>
+                            <input type="text" id="username" name="username" placeholder="How others will see you" autocomplete="name" required>
+                        </div>
+                    </div>
+
+                    <!-- id="email" matches registerUser.js -->
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope icon-left"></i>
+                            <input type="email" id="email" name="email" placeholder="you@school.edu" autocomplete="email" required>
+                        </div>
+                    </div>
+
+                    <!-- id="password" matches registerUser.js -->
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock icon-left"></i>
+                            <input type="password" id="password" name="password" placeholder="Create a password" autocomplete="new-password" required oninput="checkStrength(this.value)">
+                            <button class="toggle-password" type="button" onclick="togglePw('password', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+                        <div class="field-hint" id="strengthLabel">Use 8+ characters</div>
+                    </div>
+
+                    <!-- id="confirmPassword" matches registerUser.js -->
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock icon-left"></i>
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Repeat your password" autocomplete="new-password" required>
+                            <button class="toggle-password" type="button" onclick="togglePw('confirmPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="field-hint" id="confirmHint"></div>
+                    </div>
+
+                    <div class="terms-row">
+                        <input type="checkbox" id="agreeTerms">
+                        <label for="agreeTerms">
+                            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Create Account</button>
+
+                </form>
+
+                <div class="switch-link">
+                    Already on Spindle? <a href="login.html">Log in</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/js/queryCmds.js"></script>
+    <script src="/js/getCurrentURL.js"></script>
+    <script src="/js/registerUser.js"></script>
+    <script>
+        function togglePw(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        function checkStrength(val) {
+            const fill  = document.getElementById('strengthFill');
+            const label = document.getElementById('strengthLabel');
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            const levels = [
+                { pct: '0%',   color: '#e4e6eb', text: 'Use 8+ characters' },
+                { pct: '25%',  color: '#e02020', text: 'Weak' },
+                { pct: '50%',  color: '#f0803a', text: 'Fair' },
+                { pct: '75%',  color: '#f5c518', text: 'Good' },
+                { pct: '100%', color: '#28a745', text: 'Strong' },
+            ];
+
+            const level = val.length === 0 ? levels[0] : levels[score];
+            fill.style.width  = level.pct;
+            fill.style.background = level.color;
+            label.textContent = val.length === 0 ? 'Use 8+ characters' : level.text;
+        }
+
+        // Live confirm match indicator
+        document.getElementById('confirmPassword').addEventListener('input', function () {
+            const hint = document.getElementById('confirmHint');
+            const pw   = document.getElementById('password').value;
+            if (this.value.length === 0) {
+                hint.textContent = '';
+                this.className = '';
+            } else if (this.value === pw) {
+                hint.textContent = 'Passwords match';
+                hint.className = 'field-hint success-hint';
+                this.classList.replace('input-error', 'input-valid');
+            } else {
+                hint.textContent = 'Passwords do not match';
+                hint.className = 'field-hint error-hint';
+                this.classList.replace('input-valid', 'input-error');
+            }
+        });
+    </script>
+</body>
+</html>
