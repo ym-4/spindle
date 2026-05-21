@@ -34,10 +34,7 @@ router.get('/:id', (req, res, next) => {
 });
 
 
-// Creates new person 
-// Errors handled: same name or same email
-// Request: name, email, bio, password
-// Response: user_id, name, email, bio
+// CREATE PERSON 
 router.post('/', (req, res, next) => {
 
   if (req.body == undefined || req.body.name == undefined || req.body.email == undefined || req.body.bio == undefined || req.body.password == undefined) 
