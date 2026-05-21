@@ -9,7 +9,7 @@
 
 /* HTML Templates */
 let groupCardTemplate = `
-    <div class="group-card">
+    <div class="group-card" data-group-id="curr-group-id">
         <div class="group-top">
 
             <div class="group-info">
@@ -46,6 +46,7 @@ schoolButtons.forEach(btn => {
 
 let groups = [];
 let joinedGroups = [];
+let groupMembers = [];
 let currentSchool = '';
 let popularGroupsContainer;
 let joinedGroupsContainer;
@@ -78,7 +79,7 @@ if (currentURL == 'http://localhost:3000/groups_page.html') {
             { id: "sma", name: "Singapore Maritime Academy", code: "SMA" }
         ];
 
-        currentSchoolObj = fullSchoolName.find(obj => obj.id == school);
+        let currentSchoolObj = fullSchoolName.find(obj => obj.id == school);
 
         if (!currentSchoolObj) {
             currentSchoolObj = {
@@ -114,7 +115,6 @@ if (currentURL == 'http://localhost:3000/groups_page.html') {
                 // Hide Add button 
                 document.getElementById("add-btn").style.display = "none";
 
-                displayJoinedGroups(joinedGroups, joinedGroupsContainer, currentJoinedPage)
 
                 // Add event listeners for arrow buttons
                 document.getElementById("joinedLeft")
@@ -125,7 +125,30 @@ if (currentURL == 'http://localhost:3000/groups_page.html') {
 
                 if (joinedGroups.length == 0) {
                     joinedGroupsContainer.innerText = "There are no groups currently, feel free to join one";
+                } else {
+                    // reset
+                    groupMembers = [];
+                   // Get group members for each group
+                    for (let i = 0; i < joinedGroups.length; i++) {
+                        let members = await fetchGroupMembers(joinedGroups[i].group_id);
+                        let groupId = joinedGroups[i].group_id;
+                        groupMembers.push({
+                            groupId: groupId, 
+                            member: members
+                        });
+                    }
+
+                    // Add event listener to detect when group is clicked
+                    joinedGroupsContainer.addEventListener("click", (e) => {
+                        const card = e.target.closest(".group-card");
+                        if (!card) return;
+
+                        const groupId = card.dataset.groupId;;
+                        handleJoinedGroupClicked(groupId);
+                    });
                 }
+
+                displayJoinedGroups(joinedGroups, joinedGroupsContainer, currentJoinedPage)
 
             // Display groups from school clicked
             } else {
@@ -159,19 +182,50 @@ if (currentURL == 'http://localhost:3000/groups_page.html') {
                     return groupIDs.includes(joinedGroup.group_id);
                 })
 
-                // Display groups 
-                displayGroups(groups, popularGroupsContainer, currentPopularPage);
-
-                // Display joined groups
-                displayGroups(joinedGroups, joinedGroupsContainer, currentJoinedPage);
-
                 // Displays message if there are no groups
                 if (groups.length == 0) {
                     popularGroupsContainer.innerHTML = "There are no groups currently, feel free to create one";
+                } else {
+                    // reset
+                    groupMembers = [];
+
+                    // Get group members for each group
+                    for (let i = 0; i < groups.length; i++) {
+                        let members = await fetchGroupMembers(groups[i].id);
+                        let group_id = groups[i].id;
+                        groupMembers.push({
+                            groupId: group_id, 
+                            member: members
+                        });
+                    }
+
+                    // Display groups 
+                    displayGroups(groups, popularGroupsContainer, currentPopularPage);
+
+                    // Add event listener to detect when group is clicked
+                    popularGroupsContainer.addEventListener("click", (e) => {
+                        const card = e.target.closest(".group-card");
+                        if (!card) return;
+
+                        const groupId = card.dataset.groupId;;
+                        handleGroupClicked(groupId);
+                    });
                 }
 
                 if (joinedGroups.length == 0) {
                     joinedGroupsContainer.innerText = "There are no groups currently, feel free to join one";
+                } else {
+                    // Display joined groups
+                    displayJoinedGroups(joinedGroups, joinedGroupsContainer, currentJoinedPage);
+
+                    // Add event listener to detect when group is clicked
+                    joinedGroupsContainer.addEventListener("click", (e) => {
+                        const card = e.target.closest(".group-card");
+                        if (!card) return;
+
+                        const groupId = card.dataset.groupId;
+                        handleJoinedGroupClicked(groupId);
+                    });
                 }
 
             }
@@ -325,6 +379,28 @@ async function handleCreateButton() {
     }
 }
 
+// Show modal for group clicked
+async function handleGroupClicked(groupId) {
+    // NOT DONE
+    console.log("Group clicked");
+
+    const modalElement = document.getElementById('join-group-modal');
+    const modal = new bootstrap.Modal(modalElement);
+
+    displayGroupInfo(groupId);
+
+    modal.show();
+
+    // Refresh to show new content
+    refreshGroupPage();
+}
+
+// Redirects user to respective group feed
+async function handleJoinedGroupClicked(groupId) {
+    console.log("Joined group clicked");
+    window.location.href = './groups_feed.html';
+
+}
 
 // -------------------------------------------------------------------------------------
 //                              Display Functions  
@@ -350,9 +426,12 @@ function displayGroups(groups, container, currPage) {
     for (let i = start; i < end && i < groups.length; i++) {
         let currGroup = groups[i];
 
+        let groupObj = groupMembers.find(groupObj => currGroup.id == groupObj.groupId);
+        let members = groupObj ? groupObj.member : [];
+
         // CHANGE currentSchool to respective group icon if implemented
         tempHTML += `
-            <div class="group-card">
+            <div class="group-card" data-group-id="${currGroup.id}">
                 <div class="group-top">
 
                     <div class="group-info">
@@ -370,7 +449,7 @@ function displayGroups(groups, container, currPage) {
 
                 <div class="group-footer">
                     <span>${currGroup.module}</span>
-                    <span>10K Members</span>
+                    <span>${members?.length || 0}  Members</span>
                 </div>
             </div>
         `;
@@ -400,9 +479,15 @@ function displayJoinedGroups(groups, container, currPage) {
         let currGroup = groups[i];
         let school = currGroup.school;
         
+        console.log("jigfoji", groupMembers)
+        let groupObj = groupMembers.find(groupObj => currGroup.group_id == groupObj.groupId);
+        console.log("jifdsjsfdjoji", groupObj)
+
+        let members = groupObj ? groupObj.member : [];
+
         // CHANGE currentSchool to respective group icon if implemented
         tempHTML += `
-            <div class="group-card">
+            <div class="group-card" data-group-id="${currGroup.group_id}">
                 <div class="group-top">
 
                     <div class="group-info">
@@ -420,7 +505,7 @@ function displayJoinedGroups(groups, container, currPage) {
 
                 <div class="group-footer">
                     <span>${currGroup.module}</span>
-                    <span>10K Members</span>
+                    <span>${members?.length || 0} Members</span>
                 </div>
             </div>
         `;
@@ -430,6 +515,63 @@ function displayJoinedGroups(groups, container, currPage) {
     container.innerHTML = tempHTML;
 }
 
+// Displays Group info and allows users to join or leave group
+function displayGroupInfo(groupId) {
+
+    // Get the current group 
+    const currGroup = groups.find(group => {return group.id == groupId});
+    // Sample group
+    /*
+        creator_id: 1
+        description: "A group for SOC students to revise and share notes."
+        id: 1
+        module: "CS1010"
+        name: "SOC Study Buddies"
+        public: true
+        school: "SOC"
+    */
+   console.log("currgroup", currGroup)
+
+    let groupObj = groupMembers.find(groupObj => groupObj.groupId == groupId);
+    let members = groupObj ? groupObj.member : [];
+
+    const isJoined = joinedGroups.find(group => {
+        return group.group_id == groupId
+    })
+
+    // Update modal details
+    document.getElementById("joinGroupName").innerText = currGroup.name;
+    document.getElementById("joinGroupMembers").innerText = members.length;
+    document.getElementById("joinGroupModule").innerText = currGroup.module;
+    document.getElementById("joinGroupSchool").innerText = currGroup.school;
+    document.getElementById("joinGroupDescription").innerText = currGroup.description;
+    
+    document.getElementById("joinGroupPublicity").classList.remove("bg-success", "bg-danger");
+
+    if (currGroup.public) {
+        document.getElementById("joinGroupPublicity").innerText = "Public Group";
+        document.getElementById("joinGroupPublicity").classList.add("bg-success");
+
+    } else {
+        document.getElementById("joinGroupPublicity").innerText = "Private Group";
+        document.getElementById("joinGroupPublicity").classList.add("bg-danger");
+    
+    }
+
+    // Check if user is a member 
+    // Is a member (hide join button and show leave button)
+    if (isJoined) {
+        document.getElementById("leave-group-btn").style.display = "block";
+        document.getElementById("join-group-btn").style.display = "none";
+
+    // Not a member (hide leave button and show join button)
+    } else {
+        document.getElementById("join-group-btn").style.display = "block";
+        document.getElementById("leave-group-btn").style.display = "none";
+
+    }
+
+}
 
 // -------------------------------------------------------------------------------------
 //                              Fetch Functions  
@@ -443,6 +585,7 @@ function fetchGroupsBySchool(school) {
             console.log("fetchGroupsBySchool", responseData);
 
             if (responseStatus == 200) {
+                groups = responseData;
                 resolve(responseData);
 
             // Token expired
@@ -469,6 +612,30 @@ function fetchJoinedGroups() {
             console.log("fetchJoinedGroups", responseData);
 
             if (responseStatus == 200) {
+                joinedGroups = responseData;
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './login.html';
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback);
+    });
+}
+
+function fetchGroupMembers(groupId) {
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/joined/${groupId}`;
+
+        const callback = (responseStatus, responseData) => {
+            console.log("fetchGroupMembers", responseData);
+
+            if (responseStatus == 200) {
                 resolve(responseData);
 
             // Token expired
@@ -487,6 +654,7 @@ function fetchJoinedGroups() {
 // -------------------------------------------------------------------------------------
 //                              Create Functions  
 // -------------------------------------------------------------------------------------
+
 
 // data includes: (name, description, school, module)
 function createGroup(data) {
@@ -542,12 +710,35 @@ async function refreshGroupPage() {
 
     joinedGroups = await fetchJoinedGroups();
     joinedGroups = joinedGroups.filter(g => groupIDs.includes(g.group_id));
-
     currentPopularPage = 1;
     currentJoinedPage = 1;
+    
+    // Display with new data
+    // Popular groups
+    if (groups.length == 0) {
+        popularGroupsContainer.innerHTML =
+            "There are no groups currently, feel free to create one";
+    } else {
+        groupMembers = [];
 
-    // display with new data
-    displayGroups(groups, popularGroupsContainer, currentPopularPage);
-    displayJoinedGroups(joinedGroups, joinedGroupsContainer, currentJoinedPage);
+        for (let i = 0; i < groups.length; i++) {
+            let members = await fetchGroupMembers(groups[i].id);
+
+            groupMembers.push({
+                groupId: groups[i].id,
+                member: members
+            });
+        }
+
+        displayGroups(groups, popularGroupsContainer, currentPopularPage);
+    }
+
+    // Joined groups
+    if (joinedGroups.length == 0) {
+        joinedGroupsContainer.innerHTML =
+            "There are no groups currently, feel free to join one";
+    } else {
+        displayJoinedGroups(joinedGroups, joinedGroupsContainer, currentJoinedPage);
+    }
 
 }

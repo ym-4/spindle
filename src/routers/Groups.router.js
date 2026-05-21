@@ -253,5 +253,16 @@ router.get('/joined_groups/:user_id', (req, res, next) => {
     .catch(next);
 });
 
+// Get Group members by group_id 
+// Response: group_id, user_id, role
+router.get('/joined/:group_id', (req, res, next) => {
+  const data = {
+    group_id: req.params.group_id
+  }
+
+  getGroupMemberByGroupID(data)
+    .then((groups) => res.status(200).json(groups))
+    .catch(next);
+});
 
 module.exports = router;

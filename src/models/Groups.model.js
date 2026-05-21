@@ -122,6 +122,7 @@ module.exports.getAllGroupAdmin = async function getAllGroupAdmin(data) {
 }
 
 // Delete/kick member out of group
+// NOT DONE
 
 // -----------------------------------------------------------------------------------------------------
 //                          GroupDiscussions Table
