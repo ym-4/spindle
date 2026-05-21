@@ -1,22 +1,35 @@
 const express = require('express');
-const { getAllPersons, getPersonByID, getPersonByName, getPersonByEmail, insertPerson } = require('../models/Person.model');
 const router = express.Router();
 
-// Get all person
+const {
+  getAllPersons,
+  getPersonByID,
+  getPersonByName,
+  getPersonByEmail,
+  insertPerson,
+  login,
+  readUserByEmailAndUsername,
+  register
+} = require('../models/Person.model');
+
+const bcryptMiddleware = require('../middlewares/bcryptMiddleware');
+const jwtMiddleware = require('../middlewares/jwtMiddleware');
+
+// GET ALL PERSONS
 router.get('/', (req, res, next) => {
   getAllPersons()
-    .then((persons) => res.status(200).json(persons))
+    .then((results) => res.status(200).json(results))
     .catch(next);
 });
 
-// Get person by ID
-router.get('/:id', (req, res, next) => {
-  const data = {
-    id: req.params.id
-  }
 
+// GET PERSON BY ID
+router.get('/:id', (req, res, next) => {
+  const data = { 
+    id: req.params.id 
+  };
   getPersonByID(data)
-    .then((person) => res.status(200).json(person))
+    .then((results) => res.status(200).json(results))
     .catch(next);
 });
 
@@ -26,59 +39,129 @@ router.get('/:id', (req, res, next) => {
 // Request: name, email, bio, password
 // Response: user_id, name, email, bio
 router.post('/', (req, res, next) => {
-  // missing required information
-  if (req.body == undefined || req.body.name == undefined || req.body.email == undefined || req.body.bio == undefined || req.body.password == undefined) {
-    res.status(400).json({"message": "Error: name, email, bio or password is undefined"});
-    return;
+
+  if (
+    req.body == undefined || req.body.name == undefined || req.body.email == undefined || req.body.bio == undefined || req.body.password == undefined) 
+    {
+    return res.status(400).json({
+      message: "name, email, bio or password is undefined"});
   }
   
   const data = {
-    name: req.body.name, 
-    email: req.body.email, 
-    bio: req.body.bio, 
+    name: req.body.name,
+    email: req.body.email,
+    bio: req.body.bio,
     password: req.body.password
-  }
+  };
 
-  // Check that name doesn't already exist
   getPersonByName(data)
-    .then((person) => {
-      // name already exists
-      if (person.length > 0) {
-        return res.status(409).json({"message": "Error: Person with the same name already exists"});
-
-      } else {
-        // Check that email isn't already used 
-        getPersonByEmail(data)
-          .then((person) => {
-            // email already exists
-            if (person.length > 0) {
-              return res.status(409).json({"message": "Error: Person with the same email already exists"});
-            } else {
-              // create person
-              insertPerson(data)
-                .then(results => res.status(201).json({
-                  "id": results[0].id, 
-                  "name": data.name, 
-                  "bio": data.bio, 
-                }))
-                .catch((error) => {
-                  console.error("Error insertPerson: " + error);
-                  res.status(500).json(error);
-                })
-            }
-          })
-          
-          .catch((error) => {
-            console.error("Error getPersonByEmail: " + error);
-            res.status(500).json(error);
-          })
+    .then((results) => {
+      if (results.length > 0) {
+        return res.status(409).json({
+          message: "Name already exists"
+        });
       }
+      return getPersonByEmail(data);
     })
-
+    .then((results) => {
+      if (results && results.length > 0) {
+        return res.status(409).json({
+          message: "Email already exists"
+        });
+      }
+      return insertPerson(data);
+    })
+    .then((results) => {
+      if (!results) return;
+      res.status(201).json({
+        id: results[0].id,
+        name: results[0].name,
+        bio: results[0].bio
+      });
+    })
     .catch((error) => {
-      console.error("Error getPersonByName: " + error);
+      console.error("Create person error:", error);
       res.status(500).json(error);
-    })
+    });
 });
+
+///////////////////////////////////////////////
+// LOGIN 
+///////////////////////////////////////////////
+router.post('/login',
+  (req, res, next) => {
+    const requiredFields = ['name', 'password'];
+    for (const field of requiredFields) {
+      if (
+        req.body == undefined || req.body[field] == undefined || req.body[field] === "") {
+        return res.status(400).json({
+          message: `${field} is undefined or empty`
+        });
+      }
+    }
+    const data = {
+      name: req.body.name
+    };
+
+    login(data)
+      .then((results) => {
+        if (!results) {
+          return res.status(404).json({
+            message: "User not found"
+          });
+        }
+        res.locals.userId = results[0].id;
+        res.locals.hash = results[0].hashed_password;
+        next();
+      })
+      .catch((error) => {
+        console.error("Login error:", error);
+        res.status(500).json(error);
+      });
+  },
+  bcryptMiddleware.comparePassword,
+  jwtMiddleware.generateToken,
+  jwtMiddleware.sendToken
+);
+
+//////////////////////////////////////////////////////
+// REGISTER 
+//////////////////////////////////////////////////////
+router.post('/register',
+  (req, res, next) => {
+    if (req.body.name == undefined || req.body.email == undefined || req.body.password == undefined) 
+      {
+      return res.status(400).json({
+        message: "name, email or password missing"
+      });
+    }
+    next();
+  },
+  bcryptMiddleware.hashPassword, 
+  (req, res, next) => {
+    const data = {
+      name: req.body.name,
+      email: req.body.email,
+      bio: req.body.bio || "",
+      hashed_password: res.locals.hash   
+    };
+    register(data)
+      .then((results) => {
+        res.locals.userId = results[0].id;
+        next();
+      })
+    
+      .catch(err => {
+      if (err.code === "23505") {
+        return res.status(409).json({
+          message: "Email already exists"
+        });
+      }
+      res.status(500).json(err);
+    });
+  },
+  jwtMiddleware.generateToken,
+  jwtMiddleware.sendToken
+);
 
 module.exports = router;
