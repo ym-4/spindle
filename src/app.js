@@ -1,3 +1,6 @@
+// Marcus here, Im getting this weird CORS error, idk why but I added something to the app.js as I literally cannot run my code without it.
+
+const cors = require('cors'); // Might remove later
 const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
@@ -12,6 +15,7 @@ const groupRouter = require('./routers/Groups.router');
 const marketplaceRouter = require('./routers/Marketplace.router')
 
 const app = express();
+app.use(cors()); // Might remove later
 
 // Parse incoming JSON request bodies (e.g. from POST/PUT requests)
 app.use(express.json());
