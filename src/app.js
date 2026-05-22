@@ -9,6 +9,7 @@ const postsRouter = require('./routers/Posts.router');
 const postCommentsRouter = require('./routers/PostComments.router');
 const searchRouter = require('./routers/Search.router');
 const groupRouter = require('./routers/Groups.router');
+const marketplaceRouter = require('./routers/Marketplace.router')
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/posts', postsRouter);
 app.use('/comments', postCommentsRouter);
 app.use('/search', searchRouter);
 app.use('/groups', groupRouter);
+app.use('/marketplace', marketplaceRouter);
 
 // 404 handler — if no route above matched the request,
 // create a 404 error and pass it to the error handler below.
