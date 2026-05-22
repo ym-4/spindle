@@ -91,7 +91,8 @@ if (currentURL == 'http://localhost:3000/groups_page.html') {
         // Display school name 
         document.getElementById("school-name").innerText = currentSchoolObj.name;
 
-        // Display school image
+        // Display school image 
+        // User Groups image: <a href="https://www.flaticon.com/free-icons/people" title="people icons">People icons created by Freepik - Flaticon</a>
         document.getElementById("school-img").src = `./images/Groups_${currentSchoolObj.code}_Building.png`;
 
         popularGroupsContainer = document.getElementById('popularGroupsContainer');
@@ -381,24 +382,126 @@ async function handleCreateButton() {
 
 // Show modal for group clicked
 async function handleGroupClicked(groupId) {
-    // NOT DONE
     console.log("Group clicked");
 
     const modalElement = document.getElementById('join-group-modal');
     const modal = new bootstrap.Modal(modalElement);
 
+    // store groupId
+    modalElement.dataset.groupId = groupId;
+
     displayGroupInfo(groupId);
+
+    // Add event listeners to detect if user clicks button
+    document.getElementById("leave-group-btn").onclick = () => {
+        handleLeaveButton();
+    }
+
+    document.getElementById("join-group-btn").onclick = () => {
+        handleJoinButton();
+    }
 
     modal.show();
 
-    // Refresh to show new content
-    refreshGroupPage();
 }
 
 // Redirects user to respective group feed
 async function handleJoinedGroupClicked(groupId) {
     console.log("Joined group clicked");
     window.location.href = './groups_feed.html';
+
+}
+
+// Send confirm message then let user leave (as long as the user is not the group's creator)
+async function handleLeaveButton() {
+    // NOT DONE
+
+    // Get group id 
+    const modalElement = document.getElementById('join-group-modal');
+    const groupId = modalElement.dataset.groupId;
+
+    try {
+        await deleteMember({group_id: groupId});
+
+        let currGroup = groups.find(group => group.id == groupId);
+
+        // TODO: CHANGE TO TOAST
+        alert(`You have left ${currGroup.name}`);
+
+        // Show new data 
+        refreshGroupPage();
+
+        const modalElement = document.getElementById('join-group-modal');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+
+        // close the modal
+        modal.hide();
+
+    } catch (err) {
+        console.error(err);
+
+        if (err.type == "conflict") {
+            // TODO: CHANGE TO TOAST
+            alert("You cannot leave as its creator"); 
+
+        } else if (err.type == "not found") {
+            // TODO: CHANGE TO TOAST
+            alert("You are not a member");
+
+        } else if (err.type == "bad request") {
+            // TODO: CHANGE TO TOAST
+            alert("Missing information");
+
+        } else {
+            alert("Something went wrong");
+        }
+    }
+}
+
+// Let user join the group (for now all are allowed to join any groups)
+// In future: only allowed to join public groups and send request to join private groups
+async function handleJoinButton() {
+
+    // Get group id 
+    const modalElement = document.getElementById('join-group-modal');
+    const groupId = modalElement.dataset.groupId;
+
+    try {
+        await createMember({group_id: groupId});
+
+        let currGroup = groups.find(group => group.id == groupId);
+
+        // TODO: CHANGE TO TOAST
+        alert(`You have successfully joined ${currGroup.name}`);
+
+        // Show new data 
+        refreshGroupPage();
+
+        const modalElement = document.getElementById('join-group-modal');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+
+        // close the modal
+        modal.hide();
+
+    } catch (err) {
+        console.error(err);
+
+        if (err.type == "conflict") {
+            // TODO: CHANGE TO TOAST
+            alert("You are already a member"); 
+
+        } else if (err.type == "not found") {
+            // TODO: CHANGE TO TOAST
+            alert("Group not found");
+
+        } else if (err.type == "bad request") {
+            // TODO: CHANGE TO TOAST
+            alert("Missing information");
+
+        } else {
+            alert("Something went wrong");
+        }
+    }
 
 }
 
@@ -655,14 +758,13 @@ function fetchGroupMembers(groupId) {
 //                              Create Functions  
 // -------------------------------------------------------------------------------------
 
-
 // data includes: (name, description, school, module)
 function createGroup(data) {
     // get the user_id from the local storage
     const user_id = localStorage.getItem('userId');
 
     return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/${user_id}`;
+        const url = `http://localhost:3000/groups/create/${user_id}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("createGroup", responseData);
@@ -699,6 +801,120 @@ function createGroup(data) {
     })
 }
 
+// data includes: (group_id)
+function createMember(data) {
+    // get the user_id from the local storage
+    const user_id = localStorage.getItem('userId');
+
+    const requestData = {
+        ...data,
+        user_id: user_id
+    };
+
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/join/${requestData.group_id}`;
+
+        const callback = (responseStatus, responseData) => {
+            console.log("createMember", responseData);
+
+            // membership added: success
+            if (responseStatus == 201) {
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './login.html';
+
+            // user is already a member 
+            } else if (responseStatus == 409) {
+                reject({
+                    "type": "conflict", 
+                    "message": "User is already a member"
+                })
+
+            // bad request: missing info
+            } else if (responseStatus == 400) {
+                reject({
+                    "type": "bad request",
+                    "message": "Missing required fields"
+                })
+
+            } else if (responseStatus == 404) {
+                reject({
+                    "type": "not found", 
+                    "message": "Group not found"
+                })
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback, "POST", requestData);
+
+    })
+}
+
+// -------------------------------------------------------------------------------------
+//                              Delete Functions  
+// -------------------------------------------------------------------------------------
+
+// data includes: group_id
+function deleteMember(data) {
+    // get the user_id from the local storage
+    const user_id = localStorage.getItem('userId');
+
+    const requestData = {
+        ...data,
+        user_id: user_id
+    };
+
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/leave/${requestData.group_id}`;
+
+        const callback = (responseStatus, responseData) => {
+            console.log("deleteMember", responseData);
+
+            // membership deleted: success
+            if (responseStatus == 204) {
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './login.html';
+
+            // user cannot leave 
+            } else if (responseStatus == 409) {
+                reject({
+                    "type": "conflict", 
+                    "message": "User cannot leave as its creator"
+                })
+
+            // bad request: missing info
+            } else if (responseStatus == 400) {
+                reject({
+                    "type": "bad request",
+                    "message": "Missing required fields"
+                })
+
+            // User is not a member
+            } else if (responseStatus == 404) {
+                reject({
+                    "type": "not found", 
+                    "message": "User is not a member"
+                })
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback, "DELETE", requestData);
+
+    })
+}
+
+
 // -------------------------------------------------------------------------------------
 //                              Other Functions  
 // -------------------------------------------------------------------------------------
@@ -712,7 +928,7 @@ async function refreshGroupPage() {
     joinedGroups = joinedGroups.filter(g => groupIDs.includes(g.group_id));
     currentPopularPage = 1;
     currentJoinedPage = 1;
-    
+
     // Display with new data
     // Popular groups
     if (groups.length == 0) {

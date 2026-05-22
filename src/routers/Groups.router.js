@@ -4,7 +4,7 @@ const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreato
 		updateGroupDescription, deleteGroup, updateGroupPublicity, getGroupMemberByGroupID, 
 		getGroupMemberByUserID, insertGroupMember, updateMemberRoleToAdmin, updateMemberRoleToUser, 
         getAllGroupAdmin, insertGroupDiscussion, updateGroupDiscussion, getAllGroupDiscussionByGroupID, 
-        getGroupDiscussionMatch } = require('../models/Groups.model');
+        getGroupDiscussionMatch, deleteGroupMemberByUserId} = require('../models/Groups.model');
 const router = express.Router();
 
 // Get all Groups
@@ -49,7 +49,7 @@ router.get('/school/:school_name', (req, res, next) => {
 
 // Create new Group (name, description, school, module)
 // Error handled: same name
-router.post('/:creator_id', (req, res, next) => {
+router.post('/create/:creator_id', (req, res, next) => {
   if (req.body == undefined || req.body.name == undefined || req.body.description == undefined || req.body.school == undefined 
 		|| req.body.module == undefined) {
     res.status(400).json({"message": "Error: name, description, school or module is undefined"});
@@ -102,7 +102,7 @@ router.put('/name/:group_id', (req, res, next) => {
   if (req.body == undefined || req.body.name == undefined || req.body.creator_id == undefined) {
     res.status(400).json({"message": "Error: name or creator_id is undefined"});
     return;
-	} 
+  } 
 
 	const data = {
 		group_id: req.params.group_id, 
@@ -145,7 +145,7 @@ router.put('/description/:group_id', (req, res, next) => {
   if (req.body == undefined || req.body.description == undefined || req.body.user_id == undefined) {
     res.status(400).json({"message": "Error: description or creator_id is undefined"});
     return;
-	} 
+  } 
 
 	const data = {
 		group_id: req.params.group_id, 
@@ -177,7 +177,7 @@ router.delete('/:group_id', (req, res, next) => {
   if (req.body == undefined || req.body.creator_id == undefined) {
     res.status(400).json({"message": "Error: creator_id is undefined"});
     return;
-	} 
+  } 
 
 	const data = {
 		group_id: req.params.group_id, 
@@ -191,11 +191,11 @@ router.delete('/:group_id', (req, res, next) => {
 			if (results.filter(group => group.id == data.group_id).length > 0) {
 				deleteGroup(data)
 					.then(results => {
-					  if (results.length === 0) {
-                return res.status(404).json({ "message": "Group not found" });
-            } else {
-                res.status(204).send();
-            }
+					  	if (results.length === 0) {
+							return res.status(404).json({ "message": "Group not found" });
+						} else {
+							res.status(204).send();
+						}
 
 					})
 					.catch(next);
@@ -214,7 +214,7 @@ router.put('/public/:group_id', (req, res, next) => {
   if (req.body == undefined || req.body.creator_id == undefined || req.body.public == undefined) {
     res.status(400).json({"message": "Error: public or creator_id is undefined"});
     return;
-	} 
+  } 
 
 	const data = {
 		group_id: req.params.group_id, 
@@ -264,5 +264,97 @@ router.get('/joined/:group_id', (req, res, next) => {
     .then((groups) => res.status(200).json(groups))
     .catch(next);
 });
+
+// Let user join group (as user)
+// Insert user as group member
+// Request: user_id
+router.post('/join/:group_id', (req, res, next) => {
+	if (req.body == undefined || req.body.user_id == undefined) {
+		res.status(400).json({"message": "Error: user_id is undefined"});
+		return;
+	}
+
+	const data = {
+		group_id: req.params.group_id, 
+		user_id: req.body.user_id,
+	}
+
+	// Check group exists
+	getGroupsByGroupID(data)
+		.then(results => {
+			if (results.length == 0) {
+				return res.status(404).json({"message": "Error: Group not found"})
+			} else {
+				// Check that user is not already a member
+				getGroupMemberByGroupID(data)
+					.then(results => {
+						let isMember = results.filter(member => member.user_id == data.user_id)
+
+						// user is already a member
+						if (isMember.length > 0) {
+							return res.status(409).json({"message": "Error: User is already a member"});
+
+						// user is not a member yet
+						} else {
+							// Insert Group Member
+							insertGroupMember(data) 
+								.then(results => {
+									return res.status(201).json(results);
+									
+								})
+								.catch(next);
+							
+						}
+					})
+					.catch(next);
+			}
+		})
+		.catch(next);
+
+});
+
+// Let user leave group (if not creator)
+// Request: user_id
+router.delete('/leave/:group_id', (req, res, next) => {
+  if (req.body == undefined || req.body.user_id == undefined) {
+    return res.status(400).json({"message": "Error: user_id is undefined"});
+    
+  } 
+
+	const data = {
+		group_id: req.params.group_id, 
+		user_id: req.body.user_id,
+	}
+
+	// Check that user is a member
+	getGroupMemberByUserID(data)
+		.then((groups) => {
+			let found = groups.find(groups => groups.group_id == data.group_id);
+
+			// User is a member
+			if (found) {
+				if (found.creator_id == data.user_id) {
+					return res.status(409).json({"message": "User cannot leave the group as its creator"});
+
+				} else {
+					// Let user leave
+					deleteGroupMemberByUserId(data)
+						.then(results => {
+							res.status(204).send();
+						})
+						.catch(next);
+				}
+				
+			// User is not a member
+			} else {
+				return res.status(404).json({"message": "User is not a member"})
+			}
+
+		})
+		.catch(next);
+
+
+});
+
 
 module.exports = router;

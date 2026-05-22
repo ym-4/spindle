@@ -122,7 +122,11 @@ module.exports.getAllGroupAdmin = async function getAllGroupAdmin(data) {
 }
 
 // Delete/kick member out of group
-// NOT DONE
+module.exports.deleteGroupMemberByUserId = async function deleteGroupMemberByUserId(data) {
+  const VALUES = [data.group_id, data.user_id];
+  const { rows } = await pool.query(`DELETE FROM "GroupMembers" WHERE group_id = $1 AND user_id = $2 RETURNING *`, VALUES);
+  return rows; 
+}
 
 // -----------------------------------------------------------------------------------------------------
 //                          GroupDiscussions Table
