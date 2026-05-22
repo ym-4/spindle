@@ -1,20 +1,19 @@
 //  individual posts view
 //  fetches GET /posts/:id, renders post
-//  Comments: GET /comments/:post_id, POST /comments/:post_id, DELETE /comments/:id
+//  Comments: GET /comments/:post_id, POST /comments/:post_id, PUT /comments/:id, DELETE /comments/:id
 //  creator: PUT /posts/:id, DELETE /posts/:id
 
 const COMMENTS_BASE = `${currentUrl}/comments`;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(window.location.search);
-  const postId = params.get('id');
+  const params  = new URLSearchParams(window.location.search);
+  const postId  = params.get('id');
   const editMode = params.get('edit') === 'true';
 
   if (!postId) { showError('No post ID found in URL.'); return; }
 
   loadPost(postId, editMode);
 
-  // block comment input for logged-out users
   const commentInput = document.getElementById('commentInput');
   if (commentInput) {
     commentInput.addEventListener('focus', () => {
@@ -26,19 +25,45 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Confirm modal
+function showConfirm(title, message, onConfirm) {
+  const overlay   = document.getElementById('confirmOverlay');
+  const titleEl   = document.getElementById('confirmTitle');
+  const msgEl     = document.getElementById('confirmMessage');
+  const okBtn     = document.getElementById('confirmOkBtn');
+  const cancelBtn = document.getElementById('confirmCancelBtn');
+
+  titleEl.textContent = title;
+  msgEl.textContent   = message;
+  overlay.classList.remove('d-none');
+  document.body.style.overflow = 'hidden';
+
+  // clone to remove previous listeners
+  const newOk     = okBtn.cloneNode(true);
+  const newCancel = cancelBtn.cloneNode(true);
+  okBtn.replaceWith(newOk);
+  cancelBtn.replaceWith(newCancel);
+
+  function close() {
+    overlay.classList.add('d-none');
+    document.body.style.overflow = '';
+  }
+
+  newOk.addEventListener('click', () => { close(); onConfirm(); });
+  newCancel.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); }, { once: true });
+}
+
 function showLoginRequiredModal() {
   document.getElementById('authOverlay').classList.remove('d-none');
 }
 
-// load posts
+//Load post 
 function loadPost(postId, editMode = false) {
   fetchMethod(`${currentUrl}/posts/${postId}`, (status, data) => {
     if (status === 200 && data) {
-      if (editMode) {
-        renderPostEditMode(data);
-      } else {
-        renderPost(data);
-      }
+      if (editMode) renderPostEditMode(data);
+      else renderPost(data);
       document.getElementById('commentsSection').style.display = 'block';
       loadComments(postId);
       setupCommentSubmit(postId);
@@ -48,14 +73,14 @@ function loadPost(postId, editMode = false) {
   });
 }
 
-// render posts
+// Render post 
 function renderPost(post) {
   document.title = `${escapeHtml(post.title || 'Post')} - Spindle`;
 
-  const { timeStr, wasEdited, editedStr } = formatTimestamp(post.created_at, post.updated_at);
+  const { timeStr, wasEdited } = formatTimestamp(post.created_at, post.updated_at);
   const categoryLabel = getCategoryLabel(post.category);
   const categoryClass = getCategoryClass(post.category);
-  const initial = getAvatarInitial(post);
+  const initial    = getAvatarInitial(post);
   const authorName = getAuthorName(post);
 
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
@@ -115,7 +140,6 @@ function renderPost(post) {
       </div>
     </div>`;
 
-  // like placeholder
   document.getElementById('likeBtn').addEventListener('click', () => {
     const btn = document.getElementById('likeBtn');
     const liked = btn.dataset.liked === 'true';
@@ -123,27 +147,28 @@ function renderPost(post) {
     btn.style.color = liked ? '' : 'var(--primary-color)';
   });
 
-  // owner actions
   if (isOwner) {
     document.querySelector('.edit-post-btn').addEventListener('click', () => {
       renderPostEditMode(post);
     });
 
     document.querySelector('.delete-post-btn').addEventListener('click', () => {
-      if (!confirm('Delete this post? This cannot be undone.')) return;
-      const token = localStorage.getItem('token');
-      fetchMethod(`${currentUrl}/posts/${post.id}`, (status, data) => {
-        if (status === 200) {
-          window.location.href = 'index.html';
-        } else {
-          alert(data.message || 'Failed to delete post.');
+      showConfirm(
+        'Delete post?',
+        'This will permanently remove the post and all its comments.',
+        () => {
+          const token = localStorage.getItem('token');
+          fetchMethod(`${currentUrl}/posts/${post.id}`, (status, data) => {
+            if (status === 200) window.location.href = 'index.html';
+            else alert(data.message || 'Failed to delete post.');
+          }, 'DELETE', null, token);
         }
-      }, 'DELETE', null, token);
+      );
     });
   }
 }
 
-// edit mode
+//Render post (edit mode)
 function renderPostEditMode(post) {
   document.title = `Editing: ${escapeHtml(post.title || 'Post')} - Spindle`;
 
@@ -157,7 +182,6 @@ function renderPostEditMode(post) {
         </div>
       </div>
 
-      <!-- Category selector -->
       <div class="mb-2">
         <select class="form-select form-select-sm" id="editCategory" style="width:auto;">
           <option value="confession" ${post.category === 'confession' ? 'selected' : ''}>Confession</option>
@@ -166,44 +190,36 @@ function renderPostEditMode(post) {
         </select>
       </div>
 
-      <!-- Title input -->
       <div class="mb-2">
         <input type="text" class="form-control" id="editTitle"
-          placeholder="Post title"
-          value="${escapeHtml(post.title || '')}">
+          placeholder="Post title" value="${escapeHtml(post.title || '')}">
       </div>
 
-      <!-- Content textarea -->
       <div class="mb-3">
         <textarea class="form-control" id="editContent" rows="5"
           placeholder="Post content">${escapeHtml(post.content || '')}</textarea>
       </div>
 
-      <!-- Error message -->
       <div id="editError" class="alert alert-danger py-2 d-none"></div>
 
-      <!-- Actions -->
       <div class="d-flex gap-2 justify-content-end">
         <button class="btn btn-outline-secondary btn-sm" id="cancelEditBtn">Cancel</button>
         <button class="btn btn-primary btn-sm" id="saveEditBtn">Save changes</button>
       </div>
     </div>`;
 
-  // cancel → go back to read mode
   document.getElementById('cancelEditBtn').addEventListener('click', () => {
-    // strip ?edit=true from URL without reload
     const url = new URL(window.location.href);
     url.searchParams.delete('edit');
     window.history.replaceState({}, '', url);
     renderPost(post);
   });
 
-  // save changes -> PUT /posts/:id
   document.getElementById('saveEditBtn').addEventListener('click', () => {
-    const title   = document.getElementById('editTitle').value.trim();
-    const content = document.getElementById('editContent').value.trim();
+    const title    = document.getElementById('editTitle').value.trim();
+    const content  = document.getElementById('editContent').value.trim();
     const category = document.getElementById('editCategory').value;
-    const errEl   = document.getElementById('editError');
+    const errEl    = document.getElementById('editError');
 
     if (!title)   { errEl.textContent = 'Title cannot be empty.';   errEl.classList.remove('d-none'); return; }
     if (!content) { errEl.textContent = 'Content cannot be empty.'; errEl.classList.remove('d-none'); return; }
@@ -224,7 +240,6 @@ function renderPostEditMode(post) {
         const url = new URL(window.location.href);
         url.searchParams.delete('edit');
         window.history.replaceState({}, '', url);
-        // display updated values
         renderPost({ ...post, title, content, category, updated_at: new Date().toISOString() });
       } else {
         errEl.textContent = data.message || 'Failed to save changes.';
@@ -234,7 +249,7 @@ function renderPostEditMode(post) {
   });
 }
 
-//fetch comments
+// Load comments
 function loadComments(postId) {
   const container = document.getElementById('commentsContainer');
   container.innerHTML = `
@@ -253,7 +268,7 @@ function loadComments(postId) {
       const countEl = document.getElementById('commentCountBtn');
       if (countEl) countEl.textContent = comments.length;
       document.getElementById('totalCommentsLabel').textContent = `(${comments.length})`;
-      comments.forEach(comment => appendCommentToDOM(comment));
+      comments.forEach(comment => appendCommentToDOM(comment, postId));
     } else if (status === 200 && comments.length === 0) {
       showNoComments();
     } else {
@@ -264,16 +279,16 @@ function loadComments(postId) {
 
 // Submit comment 
 function setupCommentSubmit(postId) {
-  const commentInput = document.getElementById('commentInput');
-  const submitBtn    = document.getElementById('submitCommentBtn');
-  const authOverlay  = document.getElementById('authOverlay');
+  const commentInput   = document.getElementById('commentInput');
+  const submitBtn      = document.getElementById('submitCommentBtn');
+  const authOverlay    = document.getElementById('authOverlay');
   const closeAuthPopup = document.getElementById('closeAuthPopup');
 
-  function openAuthPopup()  { authOverlay.classList.remove('d-none'); }
+  function openAuthPopup()    { authOverlay.classList.remove('d-none'); }
   function closeAuthPopupFn() { authOverlay.classList.add('d-none'); }
 
   if (closeAuthPopup) closeAuthPopup.addEventListener('click', closeAuthPopupFn);
-  if (authOverlay) authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) closeAuthPopupFn(); });
+  if (authOverlay)    authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) closeAuthPopupFn(); });
 
   commentInput.addEventListener('focus', () => {
     if (!localStorage.getItem('token')) { commentInput.blur(); openAuthPopup(); }
@@ -301,7 +316,8 @@ function setupCommentSubmit(postId) {
   });
 }
 
-function appendCommentToDOM(comment) {
+//  Build comment 
+function appendCommentToDOM(comment, postId) {
   const container = document.getElementById('commentsContainer');
   const { timeStr } = formatTimestamp(comment.created_at, null);
 
@@ -312,6 +328,24 @@ function appendCommentToDOM(comment) {
 
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
   const isOwner = loggedInUserId && parseInt(comment.user_id) === loggedInUserId;
+
+  // Conditional menu options based on ownership
+  const menuOptions = isOwner ? `
+    <li>
+      <button class="dropdown-item edit-comment-btn" data-comment-id="${comment.id}">
+        <i class="fas fa-pen me-2"></i>Edit
+      </button>
+    </li>
+    <li>
+      <button class="dropdown-item text-danger delete-comment-btn" data-comment-id="${comment.id}">
+        <i class="fas fa-trash-alt me-2"></i>Delete
+      </button>
+    </li>` : `
+    <li>
+      <button class="dropdown-item report-comment-btn" data-comment-id="${comment.id}">
+        <i class="fas fa-flag me-2"></i>Report
+      </button>
+    </li>`;
 
   const el = document.createElement('div');
   el.className = 'comment-item';
@@ -324,21 +358,23 @@ function appendCommentToDOM(comment) {
         <div class="comment-content">
           <div class="d-flex align-items-start justify-content-between">
             <div class="comment-author">${escapeHtml(authorDisplay)}</div>
-            ${isOwner ? `
             <div class="dropdown ms-2">
               <button class="btn btn-sm p-0 px-1 comment-menu-btn" data-bs-toggle="dropdown" style="line-height:1;">
                 <i class="fas fa-ellipsis-h" style="font-size:0.8rem; color:var(--text-secondary);"></i>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                  <button class="dropdown-item text-danger delete-comment-btn" data-comment-id="${comment.id}">
-                    <i class="fas fa-trash-alt me-2"></i>Delete
-                  </button>
-                </li>
+                ${menuOptions}
               </ul>
-            </div>` : ''}
+            </div>
           </div>
-          <div class="comment-text">${escapeHtml(comment.content)}</div>
+          <div class="comment-text-display">${escapeHtml(comment.content)}</div>
+          <div class="comment-edit-form" style="display: none;">
+            <textarea class="form-control form-control-sm comment-edit-input" rows="2">${escapeHtml(comment.content)}</textarea>
+            <div class="mt-2 d-flex gap-2">
+              <button class="btn btn-sm btn-outline-secondary cancel-edit-comment-btn">Cancel</button>
+              <button class="btn btn-sm btn-primary save-edit-comment-btn" data-comment-id="${comment.id}">Save</button>
+            </div>
+          </div>
           <div class="comment-actions">
             <button class="comment-action-link">Like</button>
             <button class="comment-action-link">Reply</button>
@@ -348,20 +384,101 @@ function appendCommentToDOM(comment) {
       </div>
     </div>`;
 
-  if (isOwner) {
-    el.querySelector('.delete-comment-btn').addEventListener('click', (e) => {
+  // Event listeners
+  el.querySelector('.comment-menu-btn').addEventListener('click', (e) => e.stopPropagation());
+
+  // Edit button (owner only)
+  const editBtn = el.querySelector('.edit-comment-btn');
+  if (editBtn) {
+    editBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      deleteComment(comment.id, el);
+      enterEditMode(el);
     });
-    el.querySelector('.comment-menu-btn').addEventListener('click', (e) => e.stopPropagation());
   }
+
+  // Delete button (owner only)
+  const deleteBtn = el.querySelector('.delete-comment-btn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showConfirm(
+        'Delete comment?',
+        'This will permanently remove your comment.',
+        () => deleteComment(comment.id, el, postId)
+      );
+    });
+  }
+
+  // Report button (non-owner only)
+  const reportBtn = el.querySelector('.report-comment-btn');
+  if (reportBtn) {
+    reportBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      alert('Report functionality will be implemented soon.');
+      // TODO: Implement report functionality
+    });
+  }
+
+  // Cancel edit button
+  el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => {
+    exitEditMode(el);
+  });
+
+  // Save edit button
+  el.querySelector('.save-edit-comment-btn').addEventListener('click', () => {
+    saveCommentEdit(comment.id, el);
+  });
 
   container.appendChild(el);
 }
 
-// delete comment
-function deleteComment(commentId, commentEl) {
-  if (!confirm('Delete this comment?')) return;
+// Enter edit mode for comment
+function enterEditMode(commentEl) {
+  commentEl.querySelector('.comment-text-display').style.display = 'none';
+  commentEl.querySelector('.comment-edit-form').style.display = 'block';
+  commentEl.querySelector('.comment-actions').style.display = 'none';
+  commentEl.querySelector('.comment-edit-input').focus();
+}
+
+// Exit edit mode for comment
+function exitEditMode(commentEl) {
+  commentEl.querySelector('.comment-text-display').style.display = 'block';
+  commentEl.querySelector('.comment-edit-form').style.display = 'none';
+  commentEl.querySelector('.comment-actions').style.display = 'flex';
+}
+
+// Save edited comment - PUT /comments/:id
+function saveCommentEdit(commentId, commentEl) {
+  const input = commentEl.querySelector('.comment-edit-input');
+  const newContent = input.value.trim();
+  
+  if (!newContent) {
+    alert('Comment cannot be empty.');
+    return;
+  }
+
+  const token = localStorage.getItem('token');
+  const saveBtn = commentEl.querySelector('.save-edit-comment-btn');
+  
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
+
+  fetchMethod(`${currentUrl}/comments/${commentId}`, (status, data) => {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save';
+
+    if (status === 200) {
+      // Update the displayed text
+      commentEl.querySelector('.comment-text-display').textContent = newContent;
+      exitEditMode(commentEl);
+    } else {
+      alert(data.message || 'Failed to update comment.');
+    }
+  }, 'PUT', { content: newContent }, token);
+}
+
+//  Delete comment 
+function deleteComment(commentId, commentEl, postId) {
   const token = localStorage.getItem('token');
 
   fetchMethod(`${currentUrl}/comments/${commentId}`, (status, data) => {

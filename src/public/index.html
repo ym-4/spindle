@@ -208,47 +208,102 @@
 
     <!-- Create post modal -->
     <div class="modal fade" id="createPostModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Create Post</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content modern-post-modal">
+
+                <div class="modal-header border-0 pb-2">
+                    <h5 class="modal-title fw-bold">Create Post</h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <!-- Title field-->
+
+                <div class="modal-body pt-0">
+
+                    <!-- TITLE -->
                     <div class="mb-3">
-                        <label class="form-label">Title</label>
-                        <input type="text" id="postTitle" class="form-control" placeholder="Give your post a title">
+                        <input
+                            type="text"
+                            id="postTitle"
+                            class="form-control post-title-input"
+                            placeholder="Title">
                     </div>
-                    <!-- Category -->
-                    <div class="mb-3">
-                        <label class="form-label">Category</label>
-                        <select class="form-select" id="postCategory">
-                            <option value="confession">Confession</option>
-                            <option value="qna">Q&amp;A</option>
-                            <option value="general">General Talk</option>
-                        </select>
+
+                    <!-- CONTENT -->
+                    <div class="mb-4">
+                        <textarea
+                            class="form-control post-content-input"
+                            id="postContent"
+                            rows="8"
+                            placeholder="What's on your mind?"></textarea>
                     </div>
-                    <!-- Option to post anonymously -->
-                    <div class="mb-3">
-                        <label class="form-label">Post as</label>
-                        <select class="form-select" id="postAs">
-                            <option value="Your Name">Your Name</option>
-                            <option value="Anonymous">Anonymous</option>
-                        </select>
+
+                    <!-- LESS IMPORTANT CONTROLS -->
+                    <div class="post-meta-section">
+
+                        <div class="row g-3">
+
+                            <!-- CATEGORY -->
+                            <div class="col-md-6">
+                                <label class="form-label subtle-label">
+                                    Category
+                                </label>
+
+                                <select class="form-select modern-select"
+                                        id="postCategory">
+                                    <option value="confession">Confession</option>
+                                    <option value="qna">Q&amp;A</option>
+                                    <option value="general">General Talk</option>
+                                </select>
+                            </div>
+
+                            <!-- POST AS -->
+                            <div class="col-md-6">
+                                <label class="form-label subtle-label">
+                                    Post as
+                                </label>
+
+                                <select class="form-select modern-select"
+                                        id="postAs">
+                                    <option value="Your Name">Your Name</option>
+                                    <option value="Anonymous">Anonymous</option>
+                                </select>
+                            </div>
+
+                        </div>
                     </div>
-                    <!-- Content  -->
-                    <div class="mb-3">
-                        <label class="form-label">Content</label>
-                        <textarea class="form-control" id="postContent" rows="5" placeholder="What's on your mind?"></textarea>
-                    </div>
+
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="submitPostBtn">Post</button>
+
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button"
+                            class="btn btn-light px-4"
+                            data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-primary px-4"
+                            id="submitPostBtn">
+                        Post
+                    </button>
                 </div>
+
             </div>
         </div>
+    </div>
+
+    <!-- Confirm delete modal -->
+    <div id="confirmOverlay" class="auth-overlay d-none">
+    <div class="auth-popup-card" style="max-width:360px;">
+        <h2 id="confirmTitle" style="font-size:1.2rem;">Are you sure?</h2>
+        <p class="auth-popup-sub" id="confirmMessage">This action cannot be undone.</p>
+        <div class="auth-popup-actions">
+        <button class="auth-popup-btn secondary" id="confirmCancelBtn">Cancel</button>
+        <button class="auth-popup-btn" id="confirmOkBtn" style="background:var(--danger-color);border-color:var(--danger-color);">Delete</button>
+        </div>
+    </div>
     </div>
 
     <!-- login required modal -->
