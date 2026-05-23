@@ -1,11 +1,14 @@
 //  Spindle — Home Page
 
-const API_BASE = currentUrl; 
+const API_BASE = currentUrl;
 
 let currentCategory = 'all';
+let savedPostIds = new Set(); // tracks which post IDs the user has saved
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadPosts();
+  loadSavedIds().then(() => {
+    loadPosts();
+  });
   setupCategoryTabs();
   setupCreatePost();
   setupSearch();
@@ -13,12 +16,68 @@ document.addEventListener('DOMContentLoaded', () => {
   protectCreatePostUI();
 });
 
-//Confirmation modal 
+// ── Load saved post IDs for the current user ────────────────
+// Returns a promise so loadPosts waits for it before rendering
+function loadSavedIds() {
+  const userId = localStorage.getItem('loggedInUserId');
+  const token  = localStorage.getItem('token');
+
+  if (!userId || !token) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    fetchMethod(`${API_BASE}/posts/saved/${userId}`, (status, data) => {
+      if (status === 200 && Array.isArray(data)) {
+        savedPostIds = new Set(data.map(row => parseInt(row.post_id)));
+      }
+      resolve();
+    }, 'GET', null, token);
+  });
+}
+
+// ── Save / Unsave a post ────────────────────────────────────
+function savePost(postId, onSuccess) {
+  const token  = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+  if (!token) { showAuthPopup(); return; }
+
+  fetchMethod(`${API_BASE}/posts/saved`, (status, data) => {
+    if (status === 201) {
+      savedPostIds.add(parseInt(postId));
+      if (onSuccess) onSuccess(true);
+    } else {
+      alert(data.message || 'Failed to save post.');
+    }
+  }, 'POST', { user_id: userId, post_id: postId }, token);
+}
+
+function unsavePost(postId, onSuccess) {
+  const token  = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+  if (!token) { showAuthPopup(); return; }
+
+  // find the save row id — we need to get it from the saved list
+  fetchMethod(`${API_BASE}/posts/saved/${userId}`, (status, data) => {
+    if (status !== 200) return;
+    const row = data.find(r => parseInt(r.post_id) === parseInt(postId));
+    if (!row) return;
+
+    fetchMethod(`${API_BASE}/posts/saved/${row.id}`, (delStatus) => {
+      if (delStatus === 200) {
+        savedPostIds.delete(parseInt(postId));
+        if (onSuccess) onSuccess(false);
+      } else {
+        alert('Failed to unsave post.');
+      }
+    }, 'DELETE', null, token);
+  }, 'GET', null, token);
+}
+
+// ── Confirmation modal ──────────────────────────────────────
 function showConfirm(title, message, onConfirm) {
-  const overlay  = document.getElementById('confirmOverlay');
-  const titleEl  = document.getElementById('confirmTitle');
-  const msgEl    = document.getElementById('confirmMessage');
-  const okBtn    = document.getElementById('confirmOkBtn');
+  const overlay   = document.getElementById('confirmOverlay');
+  const titleEl   = document.getElementById('confirmTitle');
+  const msgEl     = document.getElementById('confirmMessage');
+  const okBtn     = document.getElementById('confirmOkBtn');
   const cancelBtn = document.getElementById('confirmCancelBtn');
 
   titleEl.textContent = title;
@@ -31,17 +90,14 @@ function showConfirm(title, message, onConfirm) {
   okBtn.replaceWith(newOk);
   cancelBtn.replaceWith(newCancel);
 
-  function close() {
-    overlay.classList.add('d-none');
-    document.body.style.overflow = '';
-  }
+  function close() { overlay.classList.add('d-none'); document.body.style.overflow = ''; }
 
   newOk.addEventListener('click', () => { close(); onConfirm(); });
   newCancel.addEventListener('click', close);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); }, { once: true });
 }
 
-// format post date
+// ── Timestamp ───────────────────────────────────────────────
 function formatTimestamp(createdAt, updatedAt) {
   const created = new Date(createdAt);
   const updated = updatedAt ? new Date(updatedAt) : null;
@@ -66,35 +122,39 @@ function formatTimestamp(createdAt, updatedAt) {
     editedStr = updated.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })
       + ', ' + updated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
-
   return { timeStr, wasEdited, editedStr };
 }
 
 function getCategoryLabel(category) {
   return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[category] || category;
 }
-
 function getCategoryClass(category) {
   return { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[category] || '';
 }
-
 function getAvatarInitial(post) {
   if (post.category === 'confession') return 'A';
   if (post.author_name) return post.author_name.charAt(0).toUpperCase();
   return 'U';
 }
-
 function getAuthorName(post) {
   if (post.category === 'confession') return 'Anonymous';
   return post.author_name || `User ${post.user_id}`;
 }
 
-// individual post card
+// post card
 function buildPostCard(post) {
   const { timeStr, wasEdited } = formatTimestamp(post.created_at, post.updated_at);
 
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
-  const isOwner = loggedInUserId && parseInt(post.user_id) === loggedInUserId;
+  const isOwner  = loggedInUserId && parseInt(post.user_id) === loggedInUserId;
+  const isSaved  = savedPostIds.has(parseInt(post.id));
+  const isLoggedIn = !!localStorage.getItem('token');
+
+  // save/unsave option 
+  const saveOption = isLoggedIn ? `
+    <li><button class="dropdown-item save-post-btn" data-post-id="${post.id}" data-saved="${isSaved}">
+      <i class="fa${isSaved ? 's' : 'r'} fa-bookmark me-2"></i>${isSaved ? 'Unsave post' : 'Save post'}
+    </button></li>` : '';
 
   const ownerOptions = isOwner ? `
     <li><hr class="dropdown-divider"></li>
@@ -125,7 +185,7 @@ function buildPostCard(post) {
           <i class="fas fa-ellipsis-h"></i>
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item" href="#">Save post</a></li>
+          ${saveOption}
           <li><a class="dropdown-item" href="#">Report</a></li>
           ${ownerOptions}
         </ul>
@@ -149,6 +209,7 @@ function buildPostCard(post) {
     </div>
   `;
 
+  
   card.addEventListener('click', (e) => {
     if (e.target.closest('.post-actions') || e.target.closest('.dropdown')) return;
     window.location.href = `posts.html?id=${post.id}`;
@@ -169,6 +230,28 @@ function buildPostCard(post) {
 
   card.querySelector('.post-menu-btn').addEventListener('click', (e) => e.stopPropagation());
 
+  // save/unsave
+  if (isLoggedIn) {
+    card.querySelector('.save-post-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const btn = e.currentTarget;
+      const currentlySaved = btn.dataset.saved === 'true';
+
+      if (currentlySaved) {
+        unsavePost(post.id, () => {
+          btn.dataset.saved = 'false';
+          btn.innerHTML = `<i class="far fa-bookmark me-2"></i>Save post`;
+        });
+      } else {
+        savePost(post.id, () => {
+          btn.dataset.saved = 'true';
+          btn.innerHTML = `<i class="fas fa-bookmark me-2"></i>Unsave post`;
+        });
+      }
+    });
+  }
+
+  // owner actions
   if (isOwner) {
     card.querySelector('.edit-post-btn').addEventListener('click', (e) => {
       e.preventDefault();
@@ -189,7 +272,7 @@ function buildPostCard(post) {
   return card;
 }
 
-// DELETE /posts/:id
+// delete posts 
 function deletePost(postId, cardEl) {
   const token = localStorage.getItem('token');
   fetchMethod(`${API_BASE}/posts/${postId}`, (status, data) => {
@@ -203,6 +286,7 @@ function deletePost(postId, cardEl) {
   }, 'DELETE', null, token);
 }
 
+// render posts
 function renderPosts(posts) {
   const container = document.getElementById('postsContainer');
   container.innerHTML = '';
@@ -293,63 +377,48 @@ function renderTop3(posts) {
 }
 
 function setupCreatePost() {
-  const submitBtn = document.getElementById('submitPostBtn');
+  const submitBtn    = document.getElementById('submitPostBtn');
   if (!submitBtn) return;
 
-  const titleInput = document.getElementById('postTitle');
+  const titleInput   = document.getElementById('postTitle');
   const categoryInput = document.getElementById('postCategory');
   const contentInput = document.getElementById('postContent');
 
-  // enable/disable button based on inputs
   function validateForm() {
-    const title = titleInput.value.trim();
-    const category = categoryInput.value.trim();
-    const content = contentInput.value.trim();
-
-    submitBtn.disabled = !(title && category && content);
+    submitBtn.disabled = !(titleInput.value.trim() && categoryInput.value && contentInput.value.trim());
   }
 
   validateForm();
-
-  [titleInput, categoryInput, contentInput].forEach(input => {
-    input.addEventListener('input', validateForm);
-    input.addEventListener('change', validateForm);
+  [titleInput, categoryInput, contentInput].forEach(i => {
+    i.addEventListener('input', validateForm);
+    i.addEventListener('change', validateForm);
   });
 
   submitBtn.addEventListener('click', () => {
     const title    = titleInput.value.trim();
     const category = categoryInput.value;
     const content  = contentInput.value.trim();
+    const user_id  = localStorage.getItem('loggedInUserId');
+    const token    = localStorage.getItem('token');
 
-    const user_id = localStorage.getItem('loggedInUserId');
-    const token   = localStorage.getItem('token');
-
-    if (!token) {
-      window.location.href = 'login.html';
-      return;
-    }
-
-    const payload = { user_id, title, category, content };
+    if (!token) { window.location.href = 'login.html'; return; }
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Posting...';
 
     fetchMethod(`${API_BASE}/posts`, (status, data) => {
       submitBtn.textContent = 'Post';
-
       if (status === 201) {
         bootstrap.Modal.getInstance(document.getElementById('createPostModal')).hide();
-
         clearCreatePostForm();
         validateForm();
-
         if (currentCategory === 'all') loadPosts();
         else loadPostsByCategory(currentCategory);
       } else {
         submitBtn.disabled = false;
         showModalError(data.message || 'Failed to create post. Please try again.');
       }
-    }, 'POST', payload, token);
+    }, 'POST', { user_id, title, category, content }, token);
   });
 }
 
@@ -507,7 +576,6 @@ function hideAuthPopup() {
 function setupAuthPopup() {
   const closeBtn = document.getElementById('closeAuthPopup');
   if (closeBtn) closeBtn.addEventListener('click', hideAuthPopup);
-
   const overlay = document.getElementById('authOverlay');
   if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) hideAuthPopup(); });
 }
@@ -528,9 +596,7 @@ function protectCreatePostUI() {
       e.stopPropagation();
       if (!isLoggedIn()) { showAuthPopup(); return; }
       const modal = new bootstrap.Modal(document.getElementById('createPostModal'));
-
       clearCreatePostForm();
-      
       if (trigger.dataset.categoryShortcut) {
         document.getElementById('postCategory').value = trigger.dataset.categoryShortcut;
       }
