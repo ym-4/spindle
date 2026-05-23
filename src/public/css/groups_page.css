@@ -4,6 +4,15 @@ body {
   font-family: Arial, sans-serif;
 }
 
+.main-container {
+  padding-top: 0 !important;
+}
+
+main {
+  background-color: #f0f2f5;
+  padding-top: 1rem !important;
+}
+
 /* ----------------------------------------------------------------------
                             Header
  ---------------------------------------------------------------------- */

@@ -149,6 +149,7 @@ CREATE TABLE "GroupDiscussions" (
   "id" SERIAL NOT NULL,
   "group_id" INT NOT NULL,
   "user_id" INT NOT NULL,
+  "channel_name" TEXT NOT NULL,
   "message" TEXT NOT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
   CONSTRAINT "GroupDiscussions_pkey" PRIMARY KEY ("id"), 

@@ -6,6 +6,8 @@
 
     <!-- CSS Files -->
     <link rel="stylesheet" href="css/posts.css">
+    <link rel="stylesheet" href="css/groups_page.css">
+    <link rel="stylesheet" href="css/groups_feed.css">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,7 +21,7 @@
     <script src="js/queryCmds.js"></script>
     <script src="/js/userNavBarToggle.js"></script>
 
-    <title>Document</title>
+    <title>Groups feed</title>
 </head>
 <body>
     <!---Navbar-->
@@ -113,8 +115,307 @@
         </aside>
 
         <main id="content-area">
+            <!-- Back button -->
+            <a href="groups_page.html" class="text-decoration-none back-btn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+
+            <div class="container-fluid mt-3">
+
+                <!-- GROUP BANNER -->
+                <div class="group-banner mb-3 position-relative">
+
+                    <img src="images/Groups_Group_Banner.jpg" class="w-100 rounded-4 banner-img" alt="Group Banner">
+
+                    <div class="banner-overlay p-3 p-lg-4 rounded-4">
+
+                    <div class="d-flex justify-content-between align-items-end h-100 w-100">
+
+                        <!-- LEFT: Group Info -->
+                        <div class="text-white">
+                            <h2 class="fw-bold mb-1">SOC Study Group</h2>
+                            <small>CS1010 • School of Computing • 120 members</small>
+                        </div>
+
+                        <!-- RIGHT: Quick actions -->
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light btn">
+                                <i class="bi bi-people"></i> Members
+                            </button>
+
+                            <button class="btn btn-primary btn">
+                                Leave
+                            </button>
+                        </div>
+
+                    </div>
+
+                    </div>
+                </div>
+
+                <!-- MAIN GRID -->
+                <div class="row g-3">
+
+                    <!-- LEFT PANEL: INFO + FILES -->
+                    <div class="col-lg-3">
+
+                        <!-- Group Info Card -->
+                        <div class="card shadow-sm mb-3">
+                        <div class="card-body">
+                            <h6 class="fw-bold">Group Info</h6>
+                            <p class="text-muted small mb-2">
+                            A group for SOC students to share notes, ask questions and revise.
+                            </p>
+
+                            <div class="small">
+                            <div><i class="bi bi-book"></i> CS1010</div>
+                            <div><i class="bi bi-people"></i> 120 Members</div>
+                            <div><i class="bi bi-globe"></i> Public Group</div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <!-- Files -->
+                        <!-- <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h6 class="fw-bold">Files</h6>
+
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item small">
+                                        <i class="bi bi-file-earmark-pdf"></i> lecture1.pdf
+                                    </li>
+                                    <li class="list-group-item small">
+                                        <i class="bi bi-file-earmark"></i> notes.docx
+                                    </li>
+                                    <li class="list-group-item small">
+                                        <i class="bi bi-image"></i> diagram.png
+                                    </li>
+                                </ul>
+
+                                <button class="btn btn-outline-primary btn-sm w-100 mt-2">
+                                    View all
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-body">
+                                <h6 class="fw-bold">Files</h6>
+
+                                <div class="small text-muted mb-2">Recent uploads</div>
+
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>lecture1.pdf</span>
+                                        <i class="bi bi-download"></i>
+                                    </li>
+
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>notes.docx</span>
+                                        <i class="bi bi-download"></i>
+                                    </li>
+                                </ul>
+
+                                <button class="btn btn-outline-primary btn-sm w-100 mt-2">
+                                    View all files
+                                </button>
+                            </div>
+                        </div>
+                        -->
+                        
+                        <!-- Annoucements -->
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-body">
+
+                                <h6 class="fw-bold"><i class="bi bi-megaphone me-2"></i>Announcements</h6>
+
+                                <div class="alert p-2 small mb-2 announcement-color">
+                                    Assignment 1 Released
+                                </div>
+
+                                <div class="alert p-2 small announcement-color">
+                                    CA2 DUE NEXT WEEK
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Members -->
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h6 class="fw-bold">Members</h6>
+
+                                <div class="d-flex align-items-center mb-2">
+                                    <img src="images/user.png" class="rounded-circle me-2" width="30" height="30">
+                                    <span>Alex</span>
+                                </div>
+
+                                <div class="d-flex align-items-center mb-2">
+                                    <img src="images/user.png" class="rounded-circle me-2" width="30" height="30">
+                                    <span>Jamie</span>
+                                </div>
+
+                                <div class="d-flex align-items-center">
+                                    <img src="images/user.png" class="rounded-circle me-2" width="30" height="30">
+                                    <span>You</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- CENTER: CHAT -->
+                    <div class="col-lg-6 d-flex flex-column">
+
+                        <!-- TABS -->
+                        <div class="btn-group w-100 mb-2 custom-tabs">
+                            <button class="btn btn-outline-secondary active flex-fill" id="chatBtn">Chat</button>
+                            <button class="btn btn-outline-secondary flex-fill" id="filesBtn">Files</button>
+                            <button class="btn btn-outline-secondary flex-fill" id="wikiBtn">Wiki</button>
+                            <!-- OR change to calendar-->
+                            <button class="btn btn-outline-secondary flex-fill" id="tasksBtn">Tasks</button>
+                        </div>
+
+                        <!-- CHAT CARD -->
+                        <div class="card shadow-sm d-flex flex-column flex-grow-1">
+
+                            <!-- CHAT HEADER -->
+                            <div class="card-header chat-header">
+                                <strong># general</strong>
+                            </div>
+
+                            <!-- MESSAGES -->
+                            <div class="card-body flex-grow-1 overflow-auto" style="height: 0;">
+                                
+
+                                <!-- messages -->
+                                <div class="chat-messages">
+                                 
+                                    <div class="chat-divider"><span> 20 May 2026 </span></div>
+
+                                    <div class="msg msg-left">
+                                        <div class="meta">
+                                            <b class="name">Beni</b>
+                                            <small>20/5/2026 18:54 AM</small>
+                                        </div>
+
+                                        <div class="bubble">
+                                            When is the CA2 due? 
+                                        </div>
+                                    </div>
+
+                                    <div class="msg msg-left">
+                                        <div class="meta">
+                                            <b class="name">Emataso</b>
+                                            <small>20/5/2026 20:49 AM</small>
+                                        </div>
+
+                                        <div class="bubble">
+                                            Next week
+                                        </div>
+                                    </div>
+
+                                    <div class="msg msg-left">
+                                        <div class="meta">
+                                            <b class="name">Beni</b>
+                                            <small>20/5/2026 23:19 AM</small>
+                                        </div>
+
+                                        <div class="bubble">
+                                            😭
+                                        </div>
+                                    </div>
+
+
+                                    <div class="chat-divider"><span> Today </span></div>
+
+                                    <div class="msg msg-left">
+                                        <div class="meta">
+                                            <b class="name">Hinano</b>
+                                            <small>23/5/2026 10:32 AM</small>
+                                        </div>
+
+                                        <div class="bubble">
+                                            Hey, did you finish the assignment?
+                                        </div>
+                                    </div>
+
+                                    <div class="msg msg-right">
+                                        <div class="meta">
+                                            <b class="name">You</b>
+                                            <small>23/5/2026 10:33 AM</small>
+                                        </div>
+
+                                        <div class="bubble">
+                                            Yeah, I just submitted it 👍
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- INPUT -->
+                            <div class="card-footer bg-white">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Message #general...">
+                                    <button class="btn" id="sendChatBtn">
+                                        <i class="bi bi-send"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Right side -->
+                    <div class="col-lg-3">
+
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+
+                                <h6 class="fw-bold mb-3">Channels</h6>
+
+                                <!-- CHANNEL LIST -->
+                                <div class="list-group list-group-flush">
+
+                                    <a href="#" class="list-group-item list-group-item-action active d-flex align-items-center channel-color" id="generalChannel">
+                                        <span class="me-2">#</span> general
+                                    </a>
+
+                                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center channel-color" id="assignmentChannel">
+                                        <span class="me-2">#</span> assignment-help
+                                    </a>
+
+                                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center channel-color" id="examChannel">
+                                        <span class="me-2">#</span> exam-prep
+                                    </a>
+
+                                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center channel-color" id="randomChannel">
+                                        <span class="me-2">#</span> random
+                                    </a>
+
+                                </div>
+
+                                <hr>
+
+                                <!-- ADMINS ONLY -->
+                                <button class="btn btn-sm w-100 mt-2" id="createChannelBtn">
+                                    + Create Channel
+                                </button>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </main>
+
+
     </div>
     
 </body>

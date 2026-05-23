@@ -348,24 +348,24 @@
                             <form id="create-group-form">
                                 <div class="mb-3">
                                     <label for="group-name" class="fw-semibold form-label">Group Name</label>
-                                    <input type="text" id="group-name" class="form-control">
+                                    <input type="text" id="group-name" class="form-control" required>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="group-description" class="fw-semibold form-label">Group Description</label>
-                                    <input type="text" id="group-description" class="form-control">
+                                    <input type="text" id="group-description" class="form-control" required>
                                 </div>
 
                                 <div>
                                     <label for="group-module" class="fw-semibold form-label">Group Module</label>
-                                    <input type="text" id="group-module" class="form-control">
+                                    <input type="text" id="group-module" class="form-control" required>
                                 </div>
 
                             </form>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary"  data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary" id="create-group-btn">Create</button>
+                            <button type="submit" class="btn btn-primary" id="create-group-btn">Create</button>
                         </div>
                         </div>
                     </div>
@@ -436,6 +436,19 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Toast that shows messages -->
+            <div class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true" id="messageToast">
+                <div class="toast-header" id="toastHeader">
+                    <!-- <img src="" class="rounded me-2" alt=""> -->
+                    <strong class="me-auto" id="toastTitle">Bootstrap</strong>
+                    <small id="toastSmallText">11 mins ago</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body" id="toastMessage">
+                    Hello, world! This is a toast message.
+                </div>
+            </div>
 
         </main>
     </div>
