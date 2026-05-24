@@ -116,11 +116,11 @@ module.exports.deleteSavedByID = async function deleteSavedByID(data) {
 };
 
 // likes and dislikes
-// GET reaction state by post ID
-module.exports.getReactionByPostID = async function getReactionByPostID(data) {
-  const VALUES = [data.post_id, data.user_id];
-  const { rows } = await pool.query('SELECT * FROM "PostReactions" WHERE post_id = $1 and user_id = $2', VALUES);
-  return rows[0];
+// GET reaction state by user ID
+module.exports.getReactionByUserID = async function getReactionByUserID(data) {
+  const VALUES = [data.user_id];
+  const { rows } = await pool.query('SELECT * FROM "PostReactions" where user_id = $1', VALUES);
+  return rows;
 };
 
 // like a post 

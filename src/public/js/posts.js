@@ -25,6 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+const REACTIONS_BASE = `${currentUrl}/posts`;
+let currentReaction = null;
+
+
 // Confirm modal
 function showConfirm(title, message, onConfirm) {
   const overlay   = document.getElementById('confirmOverlay');
@@ -128,11 +132,23 @@ function renderPost(post) {
       <div class="post-content">${escapeHtml(post.content)}</div>
 
       <div class="post-actions">
-        <button class="post-action-btn like-btn" id="likeBtn" data-liked="false">
-          <i class="far fa-thumbs-up"></i> <span id="likeCount">0</span>
+        <button 
+          class="post-action-btn like-btn" 
+          id="likeBtn"
+          data-post-id="${post.id}">
+          <i class="far fa-thumbs-up"></i>
+          <span id="likeCount">${post.like_count || 0}</span>
+        </button>
+        <button 
+          class="post-action-btn dislike-btn" 
+          id="dislikeBtn"
+          data-post-id="${post.id}">
+          <i class="far fa-thumbs-down"></i>
+          <span id="dislikeCount">${post.dislike_count || 0}</span>
         </button>
         <button class="post-action-btn" style="cursor: default;">
-          <i class="far fa-comment"></i> <span id="commentCountBtn">0</span>
+          <i class="far fa-comment"></i>
+          <span id="commentCountBtn">0</span>
         </button>
         <button class="post-action-btn share-btn">
           <i class="far fa-share-square"></i> Share
@@ -140,12 +156,8 @@ function renderPost(post) {
       </div>
     </div>`;
 
-  document.getElementById('likeBtn').addEventListener('click', () => {
-    const btn = document.getElementById('likeBtn');
-    const liked = btn.dataset.liked === 'true';
-    btn.dataset.liked = liked ? 'false' : 'true';
-    btn.style.color = liked ? '' : 'var(--primary-color)';
-  });
+    setupReactionButtons(post.id);
+
 
   if (isOwner) {
     document.querySelector('.edit-post-btn').addEventListener('click', () => {
@@ -551,6 +563,152 @@ function getAuthorName(post) {
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+//reactions
+// load user's reaction for this post
+function setupReactionButtons(postId) {
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  const likeBtn = document.getElementById('likeBtn');
+  const dislikeBtn = document.getElementById('dislikeBtn');
+
+  if (!token || !userId) return;
+
+  // get all user reactions
+  fetchMethod(`${REACTIONS_BASE}/reaction/${userId}`, (status, data) => {
+    if (status !== 200 || !Array.isArray(data)) return;
+
+    const existingReaction = data.find(
+      r => parseInt(r.post_id) === parseInt(postId)
+    );
+
+    if (existingReaction) {
+    currentReaction = {
+      id: existingReaction.id,
+      reaction_type: existingReaction.reaction_type
+    };
+    setTimeout(() => {
+      updateReactionUI(existingReaction.reaction_type);
+    }, 0);
+  }
+  }, 'GET', null, token);
+
+  // like click
+  likeBtn.addEventListener('click', () => {
+    handleReaction(postId, 'like');
+  });
+
+  // dislike click
+  dislikeBtn.addEventListener('click', () => {
+    handleReaction(postId, 'dislike');
+  });
+}
+
+function handleReaction(postId, newReactionType) {
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  if (!token) {
+    showLoginRequiredModal();
+    return;
+  }
+
+  if (!currentReaction) {
+    fetchMethod(`${REACTIONS_BASE}/like`, (status, data) => {
+      if (status === 201) {
+        currentReaction = {
+          id: data.id,
+          reaction_type: newReactionType
+        };
+        updateReactionUI(newReactionType);
+        updateReactionCounts(null, newReactionType);
+      }
+    }, 'POST', {
+      post_id: postId,
+      user_id: userId,
+      reaction_type: newReactionType
+    }, token);
+    return;
+  }
+
+  //remove reaction
+  if (currentReaction.reaction_type === newReactionType) {
+    fetchMethod(`${REACTIONS_BASE}/reaction/${currentReaction.id}`, (status) => {
+      if (status === 200) {
+        updateReactionCounts(currentReaction.reaction_type, null);
+        currentReaction = null;
+        updateReactionUI(null);
+      }
+    }, 'DELETE', {
+      user_id: userId
+    }, token);
+    return;
+  }
+
+  // change reaction
+  fetchMethod(`${REACTIONS_BASE}/reaction/${currentReaction.id}`, (status, data) => {
+    if (status === 200) {
+      updateReactionCounts(
+        currentReaction.reaction_type,
+        newReactionType
+      );
+      currentReaction.reaction_type = newReactionType;
+      updateReactionUI(newReactionType);
+    }
+  }, 'PUT', {
+    user_id: userId,
+    reaction_type: newReactionType
+  }, token);
+
+}
+
+// updates solid icons
+function updateReactionUI(reactionType) {
+  const likeBtn = document.getElementById('likeBtn');
+  const dislikeBtn = document.getElementById('dislikeBtn');
+
+  const likeIcon = likeBtn.querySelector('i');
+  const dislikeIcon = dislikeBtn.querySelector('i');
+  // reset
+  likeIcon.className = 'far fa-thumbs-up';
+  dislikeIcon.className = 'far fa-thumbs-down';
+
+  likeBtn.style.color = '';
+  dislikeBtn.style.color = '';
+
+  // liked
+  if (reactionType === 'like') {
+    likeIcon.className = 'fas fa-thumbs-up';
+    likeBtn.style.color = 'var(--primary-color)';
+  }
+
+  // disliked
+  if (reactionType === 'dislike') {
+    dislikeIcon.className = 'fas fa-thumbs-down';
+    dislikeBtn.style.color = '#dc3545';
+  }
+}
+
+// update count
+function updateReactionCounts(oldReaction, newReaction) {
+  const likeCountEl = document.getElementById('likeCount');
+  const dislikeCountEl = document.getElementById('dislikeCount');
+
+  let likes = parseInt(likeCountEl.textContent);
+  let dislikes = parseInt(dislikeCountEl.textContent);
+
+  // remove old
+  if (oldReaction === 'like') likes--;
+  if (oldReaction === 'dislike') dislikes--;
+
+  // add new
+  if (newReaction === 'like') likes++;
+  if (newReaction === 'dislike') dislikes++;
+
+  likeCountEl.textContent = likes;
+  dislikeCountEl.textContent = dislikes;
 }
 
 function showError(message) {

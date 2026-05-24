@@ -3,12 +3,15 @@
 const API_BASE = currentUrl;
 
 let currentCategory = 'all';
-let savedPostIds = new Set(); // tracks which post IDs the user has saved
+let savedPostIds = new Set(); 
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadUserReactions();
+
   loadSavedIds().then(() => {
     loadPosts();
   });
+
   setupCategoryTabs();
   setupCreatePost();
   setupSearch();
@@ -16,8 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   protectCreatePostUI();
 });
 
-// ── Load saved post IDs for the current user ────────────────
-// Returns a promise so loadPosts waits for it before rendering
+// Load saved post IDs 
 function loadSavedIds() {
   const userId = localStorage.getItem('loggedInUserId');
   const token  = localStorage.getItem('token');
@@ -34,7 +36,7 @@ function loadSavedIds() {
   });
 }
 
-// ── Save / Unsave a post ────────────────────────────────────
+//  Save / Unsave a post
 function savePost(postId, onSuccess) {
   const token  = localStorage.getItem('token');
   const userId = localStorage.getItem('loggedInUserId');
@@ -55,7 +57,6 @@ function unsavePost(postId, onSuccess) {
   const userId = localStorage.getItem('loggedInUserId');
   if (!token) { showAuthPopup(); return; }
 
-  // find the save row id — we need to get it from the saved list
   fetchMethod(`${API_BASE}/posts/saved/${userId}`, (status, data) => {
     if (status !== 200) return;
     const row = data.find(r => parseInt(r.post_id) === parseInt(postId));
@@ -72,7 +73,7 @@ function unsavePost(postId, onSuccess) {
   }, 'GET', null, token);
 }
 
-// ── Confirmation modal ──────────────────────────────────────
+//  Confirmation modal 
 function showConfirm(title, message, onConfirm) {
   const overlay   = document.getElementById('confirmOverlay');
   const titleEl   = document.getElementById('confirmTitle');
@@ -97,7 +98,7 @@ function showConfirm(title, message, onConfirm) {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); }, { once: true });
 }
 
-// ── Timestamp ───────────────────────────────────────────────
+//  Timestamp 
 function formatTimestamp(createdAt, updatedAt) {
   const created = new Date(createdAt);
   const updated = updatedAt ? new Date(updatedAt) : null;
@@ -197,8 +198,13 @@ function buildPostCard(post) {
     <div class="post-content">${escapeHtml(post.content)}</div>
 
     <div class="post-actions">
-      <button class="post-action-btn like-btn" data-liked="false" data-post-id="${post.id}">
-        <i class="far fa-thumbs-up"></i> <span class="like-count">${post.like_count ?? '0'}</span>
+      <button class="post-action-btn like-btn" data-post-id="${post.id}">
+        <i class="far fa-thumbs-up"></i>
+        <span class="like-count">${post.like_count ?? '0'}</span>
+      </button>
+      <button class="post-action-btn dislike-btn" data-post-id="${post.id}">
+        <i class="far fa-thumbs-down"></i>
+        <span class="dislike-count">${post.dislike_count ?? '0'}</span>
       </button>
       <button class="post-action-btn comment-btn" data-post-id="${post.id}">
         <i class="far fa-comment"></i> <span class="comment-count">${post.comment_count ?? '0'}</span>
@@ -220,15 +226,21 @@ function buildPostCard(post) {
     window.location.href = `posts.html?id=${post.id}`;
   });
 
-  card.querySelector('.like-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    const btn = e.currentTarget;
-    const liked = btn.dataset.liked === 'true';
-    btn.dataset.liked = liked ? 'false' : 'true';
-    btn.style.color = liked ? '' : 'var(--primary-color)';
-  });
-
   card.querySelector('.post-menu-btn').addEventListener('click', (e) => e.stopPropagation());
+  const likeBtn = card.querySelector('.like-btn');
+  const dislikeBtn = card.querySelector('.dislike-btn');
+
+  initReactionButtons(
+    post.id,
+    likeBtn,
+    dislikeBtn
+  );
+
+  setupReactionEvents(
+    post.id,
+    likeBtn,
+    dislikeBtn
+  );
 
   // save/unsave
   if (isLoggedIn) {
