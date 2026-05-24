@@ -433,6 +433,7 @@ async function handleGroupClicked(groupId) {
 // Redirects user to respective group feed
 async function handleJoinedGroupClicked(groupId) {
     console.log("Joined group clicked");
+    localStorage.setItem("groupId", groupId);
     window.location.href = './groups_feed.html';
 
 }
