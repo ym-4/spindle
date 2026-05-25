@@ -37,12 +37,11 @@ router.get('/:id', (req, res, next) => {
 // CREATE PERSON 
 router.post('/', (req, res, next) => {
 
-  if (
-    req.body == undefined || req.body.name == undefined || req.body.email == undefined || req.body.bio == undefined || req.body.password == undefined) 
+  if (req.body == undefined || req.body.name == undefined || req.body.email == undefined || req.body.bio == undefined || req.body.password == undefined) 
     {
-    return res.status(400).json({
-      message: "name, email, bio or password is undefined"});
-  }
+      return res.status(400).json({
+        message: "name, email, bio or password is undefined"});
+    }
 
   const data = {
     name: req.body.name,
@@ -81,6 +80,7 @@ router.post('/', (req, res, next) => {
       res.status(500).json(error);
     });
 });
+
 
 ///////////////////////////////////////////////
 // LOGIN 

@@ -53,7 +53,7 @@ module.exports.updateGroupName = async function updateGroupName(data) {
   return rows;
 }
 
-// Update Group description (group name, description) - only creator/admins
+// Update Group description (group id, description) - only creator/admins
 module.exports.updateGroupDescription = async function updateGroupDescription(data) {
   const VALUES = [data.group_id, data.description];
   const { rows } = await pool.query('UPDATE "Groups" SET description = $2 WHERE id = $1 RETURNING *', VALUES);
@@ -88,7 +88,8 @@ module.exports.getGroupMemberByGroupID = async function getGroupMemberByGroupID(
 // GET Group members by user_id
 module.exports.getGroupMemberByUserID = async function getGroupMemberByUserID(data) {
   const VALUES = [data.user_id];
-  const { rows } = await pool.query('SELECT * FROM "GroupMembers" WHERE user_id = $1', VALUES);
+  const { rows } = await pool.query(`SELECT * FROM "GroupMembers" INNER JOIN "Groups" ON "GroupMembers".group_id = "Groups".id 
+    WHERE "GroupMembers".user_id = $1`, VALUES);
   return rows;
 };
 
@@ -121,15 +122,20 @@ module.exports.getAllGroupAdmin = async function getAllGroupAdmin(data) {
 }
 
 // Delete/kick member out of group
+module.exports.deleteGroupMemberByUserId = async function deleteGroupMemberByUserId(data) {
+  const VALUES = [data.group_id, data.user_id];
+  const { rows } = await pool.query(`DELETE FROM "GroupMembers" WHERE group_id = $1 AND user_id = $2 RETURNING *`, VALUES);
+  return rows; 
+}
 
 // -----------------------------------------------------------------------------------------------------
 //                          GroupDiscussions Table
 // -----------------------------------------------------------------------------------------------------
 
-// Create new group message (group_id, user_id, message)
+// Create new group message (group_id, user_id, message, channel_name)
 module.exports.insertGroupDiscussion = async function insertGroupDiscussion(data) {
-  const VALUES = [data.group_id, data.user_id, data.message];
-  const { rows } = await pool.query('INSERT INTO "GroupDiscussions" (group_id, user_id, message) VALUES ($1, $2, $3) RETURNING *', VALUES);
+  const VALUES = [data.group_id, data.user_id, data.message, data.channel_name];
+  const { rows } = await pool.query('INSERT INTO "GroupDiscussions" (group_id, user_id, message, channel_name) VALUES ($1, $2, $3, $4) RETURNING *', VALUES);
   return rows; 
 }
 
@@ -149,8 +155,28 @@ module.exports.getAllGroupDiscussionByGroupID = async function getAllGroupDiscus
 
 // GET all group messages that match search (case insensitive)
 module.exports.getGroupDiscussionMatch = async function getGroupDiscussionMatch(data) {
-  const VALUES = [data.group_id, `%${data.message}%`];  
-  const { rows } = await pool.query('SELECT * FROM "GroupDiscussions" WHERE group_id = $1 AND message ILIKE $2', VALUES);
+  const VALUES = [data.group_id, `%${data.match}%`, data.channel_name];  
+  const { rows } = await pool.query('SELECT * FROM "GroupDiscussions" WHERE group_id = $1 AND message ILIKE $2 AND channel_name = $3', VALUES);
   return rows;
 }
 
+// GET all group messages by user_id
+module.exports.getGroupDiscussionByUserID = async function getGroupDiscussionByUserID(data) {
+  const VALUES = [data.user_id];
+  const { rows } = await pool.query('SELECT * FROM "GroupDiscussions" WHERE user_id = $1', VALUES);
+  return rows;
+}
+
+// GET all group messages by group_id and channel_name
+module.exports.getGroupDiscussionByGroupIDAndChannelName = async function getGroupDiscussionByGroupIDAndChannelName(data) {
+  const VALUES = [data.group_id, data.channel_name];
+  const { rows } = await pool.query('SELECT * FROM "GroupDiscussions" WHERE group_id = $1 AND channel_name = $2', VALUES);
+  return rows;
+}
+
+// DELETE message by ID
+module.exports.deleteGroupDiscussionByID = async function deleteGroupDiscussionByID(data) {
+  const VALUES = [data.id, data.user_id];
+  const { rows } = await pool.query(`DELETE FROM "GroupDiscussions" WHERE id = $1 AND user_id = $2 RETURNING *`, VALUES);
+  return rows; 
+}
