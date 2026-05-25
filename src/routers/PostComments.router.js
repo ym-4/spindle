@@ -1,4 +1,6 @@
 const express = require('express');
+const jwtMiddleware = require('../middlewares/jwtMiddleware');
+
 const { 
   getAllComments,
   getCommentsByPostID,  
@@ -28,14 +30,16 @@ router.get('/:post_id', (req, res, next) => {
 });
 
 // Creates new comment under a post (post_id)
-router.post('/:post_id', (req, res, next) => {
+router.post('/:post_id', 
+  jwtMiddleware.verifyToken, 
+  (req, res, next) => {
   // missing required information
-  if (req.body == undefined  || req.body.user_id == undefined || req.params.post_id == undefined || req.body.content == undefined) {
+  if (req.body == undefined || req.params.post_id == undefined || req.body.content == undefined) {
     res.status(400).json({"message": "Error: user_id, post_id or content is undefined"});
     return;
   }
   const data = {
-    user_id: req.body.user_id,
+    user_id: res.locals.userId,
     post_id: req.params.post_id,
     content: req.body.content
   }
@@ -58,7 +62,7 @@ insertComments(data)
 router.put('/:id', (req, res, next) => {
   const data = {
     id: req.params.id,
-    user_id: req.body.user_id,
+    user_id: res.locals.userId,
     content: req.body.content
   }
 

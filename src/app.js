@@ -5,6 +5,7 @@ const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
 
+
 // Import route handlers
 const somethingRouter = require('./routers/Something.router');
 const personRouter = require('./routers/Person.router');
@@ -13,6 +14,8 @@ const postCommentsRouter = require('./routers/PostComments.router');
 const searchRouter = require('./routers/Search.router');
 const groupRouter = require('./routers/Groups.router');
 const marketplaceRouter = require('./routers/Marketplace.router')
+
+const authRouter = require('./routers/Auth.router');
 
 const app = express();
 app.use(cors()); // Might remove later
@@ -40,6 +43,7 @@ app.use('/marketplace', marketplaceRouter);
 app.use((req, res, next) => {
   next(createError(404, `Unknown resource ${req.method} ${req.originalUrl}`));
 });
+
 
 // Global error handler — catches all errors thrown or passed via next(err).
 // Sends a consistent JSON response instead of Express's default HTML error page.
