@@ -187,7 +187,11 @@ function buildPostCard(post) {
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
           ${saveOption}
-          <li><a class="dropdown-item" href="#">Report</a></li>
+          <li>
+            <button class="dropdown-item report-post-btn" data-post-id="${post.id}">
+              Report
+            </button>
+          </li>
           ${ownerOptions}
         </ul>
       </div>
@@ -263,6 +267,22 @@ function buildPostCard(post) {
     });
   }
 
+  // report button
+  const reportBtn = card.querySelector('.report-post-btn');
+
+  if (reportBtn) {
+    reportBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!isLoggedIn) {
+        showAuthPopup();
+        return;
+      }
+      alert('Report functionality  WIP.');
+    });
+  }
+  
   // owner actions
   if (isOwner) {
     card.querySelector('.edit-post-btn').addEventListener('click', (e) => {

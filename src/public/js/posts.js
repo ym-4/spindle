@@ -12,7 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!postId) { showError('No post ID found in URL.'); return; }
 
-  loadPost(postId, editMode);
+    loadSavedIds().then(() => {
+    loadPost(postId, editMode);
+  });
 
   const commentInput = document.getElementById('commentInput');
   if (commentInput) {
@@ -27,7 +29,78 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const REACTIONS_BASE = `${currentUrl}/posts`;
 let currentReaction = null;
+let savedPostIds = new Set();
 
+// Load saved IDs
+function loadSavedIds() {
+  const userId = localStorage.getItem('loggedInUserId');
+  const token  = localStorage.getItem('token');
+
+  if (!userId || !token) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    fetchMethod(`${currentUrl}/posts/saved/${userId}`, (status, data) => {
+      if (status === 200 && Array.isArray(data)) {
+        savedPostIds = new Set(data.map(row => parseInt(row.post_id)));
+      }
+      resolve();
+    }, 'GET', null, token);
+  });
+}
+
+// Save post
+function savePost(postId, onSuccess) {
+  const token  = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  if (!token) {
+    showLoginRequiredModal();
+    return;
+  }
+
+  fetchMethod(`${currentUrl}/posts/saved`, (status, data) => {
+    if (status === 201) {
+      savedPostIds.add(parseInt(postId));
+      if (onSuccess) onSuccess(true);
+    } else {
+      alert(data.message || 'Failed to save post.');
+    }
+  }, 'POST', {
+    user_id: userId,
+    post_id: postId
+  }, token);
+}
+
+// Unsave post
+function unsavePost(postId, onSuccess) {
+  const token  = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  if (!token) {
+    showLoginRequiredModal();
+    return;
+  }
+
+  fetchMethod(`${currentUrl}/posts/saved/${userId}`, (status, data) => {
+    if (status !== 200) return;
+
+    const row = data.find(
+      r => parseInt(r.post_id) === parseInt(postId)
+    );
+
+    if (!row) return;
+
+    fetchMethod(`${currentUrl}/posts/saved/${row.id}`, (delStatus) => {
+      if (delStatus === 200) {
+        savedPostIds.delete(parseInt(postId));
+        if (onSuccess) onSuccess(false);
+      } else {
+        alert('Failed to unsave post.');
+      }
+    }, 'DELETE', null, token);
+
+  }, 'GET', null, token);
+}
 
 // Confirm modal
 function showConfirm(title, message, onConfirm) {
@@ -87,8 +160,10 @@ function renderPost(post) {
   const initial    = getAvatarInitial(post);
   const authorName = getAuthorName(post);
 
+  const isLoggedIn = !!localStorage.getItem('token');
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
   const isOwner = loggedInUserId && parseInt(post.user_id) === loggedInUserId;
+  const isSaved = savedPostIds.has(parseInt(post.id));
 
   const ownerOptions = isOwner ? `
     <li><hr class="dropdown-divider"></li>
@@ -118,9 +193,22 @@ function renderPost(post) {
             <i class="fas fa-ellipsis-h"></i>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="#">Save post</a></li>
+            ${isLoggedIn ? `
+              <li>
+                <button 
+                  class="dropdown-item save-post-btn"
+                  data-post-id="${post.id}"
+                  data-saved="${isSaved}">
+                  <i class="fa${isSaved ? 's' : 'r'} fa-bookmark me-2"></i>
+                  ${isSaved ? 'Unsave post' : 'Save post'}
+                </button>
+              </li>` : ''}
             ${hideOption}
-            <li><a class="dropdown-item" href="#">Report</a></li>
+            <li>
+              <button class="dropdown-item report-post-btn">
+                Report
+              </button>
+            </li>
             ${ownerOptions}
           </ul>
         </div>
@@ -158,6 +246,34 @@ function renderPost(post) {
 
     setupReactionButtons(post.id);
 
+    // save / unsave
+    const saveBtn = document.querySelector('.save-post-btn');
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        const currentlySaved = saveBtn.dataset.saved === 'true';
+
+        if (currentlySaved) {
+          unsavePost(post.id, () => {
+            saveBtn.dataset.saved = 'false';
+            saveBtn.innerHTML = `
+              <i class="far fa-bookmark me-2"></i>
+              Save post
+            `;
+          });
+        } else {
+          savePost(post.id, () => {
+            saveBtn.dataset.saved = 'true';
+            saveBtn.innerHTML = `
+              <i class="fas fa-bookmark me-2"></i>
+              Unsave post
+            `;
+          });
+        }
+      });
+    }
 
   if (isOwner) {
     document.querySelector('.edit-post-btn').addEventListener('click', () => {
@@ -568,15 +684,38 @@ function escapeHtml(str) {
 //reactions
 // load user's reaction for this post
 function setupReactionButtons(postId) {
+  const reportBtn = document.querySelector('.report-post-btn');
+
+    if (reportBtn) {
+      reportBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          showLoginRequiredModal();
+          return;
+        }
+        alert('Report function WIP');
+      });
+    }
   const token = localStorage.getItem('token');
   const userId = localStorage.getItem('loggedInUserId');
 
   const likeBtn = document.getElementById('likeBtn');
   const dislikeBtn = document.getElementById('dislikeBtn');
 
+  likeBtn.addEventListener('click', () => {
+    handleReaction(postId, 'like');
+  });
+
+  dislikeBtn.addEventListener('click', () => {
+    handleReaction(postId, 'dislike');
+  });
+
+  // not logged in
   if (!token || !userId) return;
 
-  // get all user reactions
+  // get existing user reaction
   fetchMethod(`${REACTIONS_BASE}/reaction/${userId}`, (status, data) => {
     if (status !== 200 || !Array.isArray(data)) return;
 
@@ -585,25 +724,14 @@ function setupReactionButtons(postId) {
     );
 
     if (existingReaction) {
-    currentReaction = {
-      id: existingReaction.id,
-      reaction_type: existingReaction.reaction_type
-    };
-    setTimeout(() => {
+      currentReaction = {
+        id: existingReaction.id,
+        reaction_type: existingReaction.reaction_type
+      };
+
       updateReactionUI(existingReaction.reaction_type);
-    }, 0);
-  }
+    }
   }, 'GET', null, token);
-
-  // like click
-  likeBtn.addEventListener('click', () => {
-    handleReaction(postId, 'like');
-  });
-
-  // dislike click
-  dislikeBtn.addEventListener('click', () => {
-    handleReaction(postId, 'dislike');
-  });
 }
 
 function handleReaction(postId, newReactionType) {

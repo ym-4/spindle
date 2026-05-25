@@ -780,7 +780,7 @@ function fetchGroupsBySchool(school) {
 
 function fetchJoinedGroups() {
     // get the user_id from the local storage
-    const user_id = localStorage.getItem('userId');
+    const user_id = localStorage.getItem('loggedInUserId');
 
     return new Promise((resolve, reject) => {
         const url = `http://localhost:3000/groups/joined_groups/${user_id}`;
@@ -835,7 +835,7 @@ function fetchGroupMembers(groupId) {
 // data includes: (name, description, school, module)
 function createGroup(data) {
     // get the user_id from the local storage
-    const user_id = localStorage.getItem('userId');
+    const user_id = localStorage.getItem('loggedInUserId');
 
     return new Promise((resolve, reject) => {
         const url = `http://localhost:3000/groups/create/${user_id}`;
@@ -878,7 +878,7 @@ function createGroup(data) {
 // data includes: (group_id)
 function createMember(data) {
     // get the user_id from the local storage
-    const user_id = localStorage.getItem('userId');
+    const user_id = localStorage.getItem('loggedInUserId');
 
     const requestData = {
         ...data,
@@ -936,7 +936,7 @@ function createMember(data) {
 // data includes: group_id
 function deleteMember(data) {
     // get the user_id from the local storage
-    const user_id = localStorage.getItem('userId');
+    const user_id = localStorage.getItem('loggedInUserId');
 
     const requestData = {
         ...data,
