@@ -1,0 +1,267 @@
+
+.main-container {
+    padding-top: 0;
+}
+
+main {
+    background-color: #f0f2f5;
+    padding-top: 1rem !important;
+}
+
+/* -------------------------------------------------------------- */
+/*                            CHANNELS                            */
+/* -------------------------------------------------------------- */
+
+.channel-color {
+    background-color: #BDA6CE !important; 
+    border: none !important;
+    color: white !important;
+
+    border-radius: 6px !important;
+    margin-bottom: 4px;
+    padding: 12px 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.list-group-item.active {
+    background-color: #9286b8 !important;    
+}
+
+/* -------------------------------------------------------------- */
+/*                           BANNER                               */
+/* -------------------------------------------------------------- */
+
+.group-banner {
+    height: 180px;
+    overflow: hidden;
+}
+
+.banner-img {
+    height: 180px;
+    object-fit: cover;
+    filter: brightness(0.75);
+}
+
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    display: flex;
+    align-items: flex-end;
+}
+
+/* Base tab styling */
+.custom-tabs .btn {
+    background: white;
+    border: 1px solid #ddd;
+    color: #555;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+/* Hover */
+.custom-tabs .btn:hover {
+    transform: translateY(-1px);
+}
+
+/* -------------------------------------------------------------- */
+/*                            TABS                                */
+/* -------------------------------------------------------------- */
+
+/* Change Colours of tabs */
+
+/* Chat: Red */
+
+#chatBtn {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
+
+#chatBtn.active {
+    border: 3px solid white;
+    box-shadow: 0 0 0 3px #ef4444;
+    transform: translateY(-2px) scale(1.03);
+    z-index: 100;
+}
+
+
+/* Files: Yellow */
+
+#filesBtn {
+    background: #ffaf25;
+    border-color: #ffaf25;
+    color: white;
+}
+
+
+#filesBtn.active {
+    border: 3px solid white;
+    box-shadow: 0 0 0 3px #ffaf25;
+    transform: translateY(-2px) scale(1.03);
+    z-index: 100;
+}
+
+/* Wiki: Green */
+
+#wikiBtn {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: white;
+}
+
+#wikiBtn.active {
+    border: 3px solid white;
+    box-shadow: 0 0 0 3px #22c55e;
+    transform: translateY(-2px) scale(1.03);
+}
+
+
+/* Tasks: Blue */
+
+#tasksBtn {
+    background: #3694dc;
+    border-color: #3694dc;
+    color: white;
+}
+
+#tasksBtn.active {
+    border: 3px solid white;
+    box-shadow: 0 0 0 3px #3694dc;
+    transform: translateY(-2px) scale(1.03);
+}
+.custom-tabs .btn:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+
+/* -------------------------------------------------------------- */
+/*                            Announcement                        */
+/* -------------------------------------------------------------- */
+
+.announcement-color {
+    background-color: #f7d5ed !important;
+    font-weight: 650;
+    color: rgb(198, 145, 187) !important;
+}
+
+/* -------------------------------------------------------------- */
+/*                     CREATE CHANNEL BUTTON                      */
+/* -------------------------------------------------------------- */
+
+#createChannelBtn {
+    background: white;
+    color: #b890d4;
+    border: 2px solid #b890d4;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+/* Hover effect */
+#createChannelBtn:hover {
+    background: #aa97d6;
+    border-color: #aa97d6;
+    color: white;
+}
+
+/* -------------------------------------------------------------- */
+/*                             CHAT                               */
+/* -------------------------------------------------------------- */
+
+#sendChatBtn {
+    background-color: #ef4444;
+    color: white;
+}
+
+.chat-header {
+    background-color: #ffddeb !important;
+    color: #000000 !important;
+}
+
+
+/* messages area */
+.chat-messages {
+    flex: 1;
+    padding-left: 15px;
+    padding-right: 15px;
+    overflow-y: auto;
+}
+
+/* message layout */
+.msg {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+.msg-left {
+    align-items: flex-start;
+}
+
+/* RIGHT messages */
+.msg-right {
+    align-items: flex-end;
+    text-align: right;
+}
+
+/* bubbles */
+.bubble {
+    max-width: 60%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* left (other users) */
+.msg-left .bubble {
+    background: #e7e7e7f2;
+    border-top-left-radius: 4px;
+}
+
+/* right (you) */
+.msg-right .bubble {
+    background: #d4e5ff;
+    border-top-right-radius: 4px;
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #777777;
+    margin-bottom: 4px;
+}
+
+.msg-right .meta {
+    justify-content: flex-end;
+}
+
+.chat-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+    color: #999999;
+    font-size: 0.8rem;
+    font-weight: 600;
+    position: relative;
+}
+
+.chat-divider::before,
+.chat-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #dddddd;
+}
+
+.chat-divider span {
+    padding: 0 10px;
+}
