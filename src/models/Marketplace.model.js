@@ -28,3 +28,4 @@ module.exports.deleteItem = async function deleteItem(id) {
   );
   return rows[0];
 };
+
