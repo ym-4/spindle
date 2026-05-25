@@ -1,4 +1,11 @@
 const express = require('express');
+<<<<<<< HEAD
+const createError = require('http-errors');
+const { getAllPersons, getPersonByID } = require('../models/Person.model');
+
+const router = express.Router();
+
+=======
 const router = express.Router();
 
 const {
@@ -16,12 +23,32 @@ const bcryptMiddleware = require('../middlewares/bcryptMiddleware');
 const jwtMiddleware = require('../middlewares/jwtMiddleware');
 
 // GET ALL PERSONS
+>>>>>>> origin/main
 router.get('/', (req, res, next) => {
   getAllPersons()
     .then((results) => res.status(200).json(results))
     .catch(next);
 });
 
+<<<<<<< HEAD
+router.get('/:id', (req, res, next) => {
+  const id = Number.parseInt(req.params.id, 10);
+  if (Number.isNaN(id)) {
+    return next(createError(400, 'Invalid person id.'));
+  }
+
+  getPersonByID({ id })
+    .then((persons) => {
+      if (persons.length === 0) {
+        return next(createError(404, 'Person not found.'));
+      }
+      res.status(200).json(persons[0]);
+    })
+    .catch(next);
+});
+
+module.exports = router;
+=======
 
 // GET PERSON BY ID
 router.get('/:id', (req, res, next) => {
@@ -165,3 +192,4 @@ router.post('/register',
 );
 
 module.exports = router;
+>>>>>>> origin/main

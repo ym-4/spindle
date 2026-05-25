@@ -29,7 +29,7 @@ describe('Person.model - getAllPersons', () => {
     const result = await getAllPersons();
 
     expect(pool.query).toHaveBeenCalledTimes(1);
-    expect(pool.query).toHaveBeenCalledWith('SELECT * FROM "Person"');
+    expect(pool.query).toHaveBeenCalledWith('SELECT id, email, name, avatar FROM "Person"');
     expect(result).toEqual(fakePersons);
   });
 

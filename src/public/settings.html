@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings — Campus Hub</title>
+    <link rel="stylesheet" href="css/wa.css" />
+    <script src="js/api.js"></script>
+    <script src="js/page-guard.js" data-require-login data-return="settings.html"></script>
+  </head>
+  <body class="wa-body" data-wa-page="settings">
+    <div class="wa-app">
+      <div id="waHeaderSlot"></div>
+      <main style="flex: 1; overflow-y: auto">
+        <div id="settingsMenuView">
+          <ul class="wa-settings-menu">
+            <li><button type="button" class="wa-menu-item" data-open="profile"><span class="wa-menu-icon">👤</span><span><strong>Profile</strong><small>Name, photo, bio</small></span></button></li>
+            <li><button type="button" class="wa-menu-item" data-open="account"><span class="wa-menu-icon">📧</span><span><strong>Account</strong><small>Email, language, timezone</small></span></button></li>
+            <li><button type="button" class="wa-menu-item" data-open="security"><span class="wa-menu-icon">🔐</span><span><strong>Security</strong><small>2FA, password, linked devices</small></span></button></li>
+            <li><button type="button" class="wa-menu-item" data-open="appearance"><span class="wa-menu-icon">🎨</span><span><strong>Appearance</strong><small>Theme, font, compact mode</small></span></button></li>
+            <li><button type="button" class="wa-menu-item" data-open="privacy"><span class="wa-menu-icon">🛡</span><span><strong>Privacy</strong><small>Profile visibility, data export</small></span></button></li>
+            <li><button type="button" class="wa-menu-item" data-open="payment"><span class="wa-menu-icon">💳</span><span><strong>Payment</strong><small>Cards, PayNow, GrabPay</small></span></button></li>
+            <li><button type="button" class="wa-menu-item" data-open="danger"><span class="wa-menu-icon">⚠</span><span><strong>Account actions</strong><small>Deactivate or delete account</small></span></button></li>
+          </ul>
+        </div>
+
+        <div id="settingsDetailView" class="wa-settings-detail is-hidden">
+          <button type="button" class="wa-settings-back" id="settingsBack">← Back</button>
+          <div id="pane-profile" class="settings-pane is-hidden wa-form-section">
+            <h3>Profile photo</h3>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem">
+              <div id="avatarPreview" class="wa-avatar" style="width: 72px; height: 72px"></div>
+              <label class="wa-btn">Upload photo<input type="file" id="avatarFile" accept="image/*" hidden /></label>
+            </div>
+            <label>Bio<textarea id="accBio" rows="3"></textarea></label>
+            <button type="button" class="wa-btn" id="btnSaveBio">Save bio</button>
+          </div>
+          <div id="pane-account" class="settings-pane is-hidden wa-form-section">
+            <form id="accountForm">
+              <label>Display name<input type="text" id="accDisplayName" /></label>
+              <label>Email<input type="email" id="accEmail" /></label>
+              <label>Language<select id="accLanguage"><option value="en">English</option><option value="zh">中文</option></select></label>
+              <label>Time zone<select id="accTimezone"><option value="Asia/Singapore">Asia/Singapore</option><option value="UTC">UTC</option></select></label>
+              <button type="submit" class="wa-btn">Save account</button>
+            </form>
+          </div>
+          <div id="pane-security" class="settings-pane is-hidden">
+            <ul class="wa-settings-list">
+              <li class="wa-settings-row"><label><span>Two-factor authentication</span><input type="checkbox" class="wa-toggle" id="sec2fa" data-autosave="security" data-field="two_factor_enabled" /></label></li>
+              <li class="wa-settings-row"><label><span>Email on new login</span><input type="checkbox" class="wa-toggle" id="secLoginNotify" data-autosave="security" data-field="login_notifications" /></label></li>
+            </ul>
+            <h3 class="wa-side-label">Linked devices</h3>
+            <ul id="sessionsList" class="wa-list"></ul>
+            <div class="wa-form-section">
+              <h3>Change password</h3>
+              <p style="color: var(--wa-muted); font-size: 0.85rem">Requires email 2FA. New password must be entered twice.</p>
+              <form id="passwordForm">
+                <label>Current<input type="password" id="curPassword" required /></label>
+                <label>New password<input type="password" id="newPassword" minlength="4" required /></label>
+                <label>Confirm new password<input type="password" id="newPasswordConfirm" minlength="4" required /></label>
+                <label>Email 2FA code<input type="text" id="pwd2faCode" maxlength="6" placeholder="6-digit code" required /></label>
+                <button type="button" class="wa-btn wa-btn--ghost" id="btnRequestPwdCode">Send code to email</button>
+                <button type="submit" class="wa-btn" style="margin-top: 0.5rem">Update password</button>
+              </form>
+            </div>
+          </div>
+          <div id="pane-appearance" class="settings-pane is-hidden">
+            <ul class="wa-settings-list">
+              <li class="wa-settings-row"><label>Theme<select id="appTheme" data-autosave="appearance" data-field="theme"><option value="dark">Dark</option><option value="light">Light</option></select></label></li>
+              <li class="wa-settings-row"><label>Compact mode<input type="checkbox" class="wa-toggle" id="appCompact" data-autosave="appearance" data-field="compact_mode" /></label></li>
+              <li class="wa-settings-row"><label>Font size<select id="appFontSize" data-autosave="appearance" data-field="font_size"><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></label></li>
+            </ul>
+          </div>
+          <div id="pane-privacy" class="settings-pane is-hidden">
+            <ul class="wa-settings-list">
+              <li class="wa-settings-row"><label>Public profile<input type="checkbox" class="wa-toggle" id="privPublic" data-autosave="privacy" data-field="public_profile" /></label></li>
+              <li class="wa-settings-row"><label>Activity tracking<input type="checkbox" class="wa-toggle" id="privTracking" data-autosave="privacy" data-field="activity_tracking" /></label></li>
+            </ul>
+            <button type="button" class="wa-btn wa-btn--ghost" id="btnExportData" style="margin: 1rem">Export my data</button>
+          </div>
+          <div id="pane-payment" class="settings-pane is-hidden wa-form-section">
+            <form id="paymentForm">
+              <label>Name on account<input type="text" id="paymentBillingName" required /></label>
+              <label>Method<select id="paymentMethod" required><option value="">Choose…</option><option value="card">Card</option><option value="paynow">PayNow</option><option value="grabpay">GrabPay</option></select></label>
+              <label>Card number (only last 4 saved)<input type="text" id="paymentCardInput" placeholder="1234 5678 9012 3456" /></label>
+              <button type="submit" class="wa-btn">Save payment</button>
+            </form>
+          </div>
+          <div id="pane-danger" class="settings-pane is-hidden wa-form-section">
+            <p style="color: var(--wa-muted); font-size: 0.9rem">These actions affect your entire Campus Hub account.</p>
+            <button type="button" class="wa-btn wa-btn--ghost" id="btnDeactivate">Deactivate account</button>
+            <button type="button" class="wa-btn wa-btn--danger" id="btnDeleteAccount" style="margin-top: 0.75rem">Delete permanently</button>
+          </div>
+        </div>
+      </main>
+      <div id="waNavSlot"></div>
+    </div>
+
+    <div id="dangerModal" class="wa-danger-modal hidden" role="dialog" aria-modal="true">
+      <div class="wa-danger-modal__card">
+        <h3 id="dangerModalTitle">Are you sure?</h3>
+        <ul id="dangerModalList"></ul>
+        <p id="dangerModalExtra" style="color: var(--wa-muted); font-size: 0.85rem"></p>
+        <div class="wa-danger-modal__actions">
+          <button type="button" class="wa-btn wa-btn--ghost" id="dangerModalCancel">Cancel</button>
+          <button type="button" class="wa-btn wa-btn--danger" id="dangerModalConfirm">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/wa-nav.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/settings.js"></script>
+  </body>
+</html>
