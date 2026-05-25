@@ -1,11 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    test
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marketplace — Campus Hub</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <script src="js/api.js"></script>
+    <script src="js/page-guard.js" data-require-login data-return="marketplace.html"></script>
+  </head>
+  <body class="auth-body">
+    <div class="auth-bg" aria-hidden="true"></div>
+    <nav class="site-nav">
+      <a href="home.html" class="site-logo" style="text-decoration: none">CAMPUS HUB</a>
+      <div class="nav-actions">
+        <div id="navUser">
+          <span class="nav-user">Hello, <strong id="navUserName"></strong></span>
+          <a href="profile.html" class="btn-neon">Profile</a>
+          <button type="button" class="btn-neon" id="btnLogout">Log out</button>
+        </div>
+      </div>
+    </nav>
+    <main class="hero">
+      <h1>Marketplace</h1>
+      <p>Coming soon — list and browse campus items here. Payment details are saved in your profile settings.</p>
+      <a href="profile.html" class="btn-neon" style="display: inline-block; margin-top: 1rem; text-decoration: none"
+        >Back to profile</a
+      >
+    </main>
+    <script src="js/auth.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        updateNavForUser(getStoredUser());
+      });
+    </script>
+  </body>
 </html>

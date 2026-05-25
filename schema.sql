@@ -19,12 +19,15 @@ CREATE TABLE "Something" (
   CONSTRAINT "Something_pkey" PRIMARY KEY ("id")
 );
 
+CREATE TYPE user_role AS ENUM ('user', 'admin');
+
 CREATE TABLE "Person" (
   "id" SERIAL NOT NULL,
   "email" TEXT NOT NULL,
   "name" TEXT NOT NULL,
   "avatar" TEXT,
-  "hashed_password" TEXT NOT NULL DEFAULT '1234', 
+  "hashed_password" TEXT NOT NULL DEFAULT '1234',
+  "role" user_role NOT NULL DEFAULT 'user',
   CONSTRAINT "Person_pkey" PRIMARY KEY ("id")
 );
 
@@ -166,7 +169,26 @@ CREATE TABLE "ChatroomMessages" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
   "message" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "ChatroomMessages_pkey" PRIMARY KEY ("id"), 
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "UserSettings" (
+  "user_id" INT NOT NULL,
+  "bio" TEXT DEFAULT '',
+  "phone" TEXT DEFAULT '',
+  "campus" TEXT DEFAULT '',
+  CONSTRAINT "UserSettings_pkey" PRIMARY KEY ("user_id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "UserPaymentDetails" (
+  "user_id" INT NOT NULL,
+  "billing_name" TEXT DEFAULT '',
+  "payment_method" TEXT DEFAULT '',
+  "card_last4" VARCHAR(4) DEFAULT '',
+  CONSTRAINT "UserPaymentDetails_pkey" PRIMARY KEY ("user_id"),
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
@@ -187,6 +209,22 @@ CREATE TABLE "UserFriends" (
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("friend_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
+
+-- Direct personal messages between users (WhatsApp-style PMs)
+CREATE TABLE "PersonalMessages" (
+  "id" SERIAL NOT NULL,
+  "sender_id" INT NOT NULL,
+  "recipient_id" INT NOT NULL,
+  "body" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "PersonalMessages_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("sender_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("recipient_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  CHECK ("sender_id" <> "recipient_id")
+);
+
+CREATE INDEX "PersonalMessages_conversation_idx"
+  ON "PersonalMessages" ("sender_id", "recipient_id", "created_at");
 
 -- Indexes
 CREATE UNIQUE INDEX "Person_email_key" ON "Person"("email");

@@ -5,8 +5,31 @@ const path = require('path');
 // Import route handlers
 const somethingRouter = require('./routers/Something.router');
 const personRouter = require('./routers/Person.router');
+const authRouter = require('./routers/Auth.router');
+const messageRouter = require('./routers/Message.router');
+const profileRouter = require('./routers/Profile.router');
 
 const app = express();
+
+// Allow Live Server (port 5500) to call the API while Express runs on PORT
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const liveServerOrigins = [
+    'http://127.0.0.1:5500',
+    'http://localhost:5500',
+    'http://127.0.0.1:5501',
+    'http://localhost:5501',
+  ];
+  if (origin && liveServerOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  }
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // Parse incoming JSON request bodies (e.g. from POST/PUT requests)
 app.use(express.json());
@@ -20,6 +43,9 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 app.use('/somethings', somethingRouter);
 app.use('/persons', personRouter);
+app.use('/auth', authRouter);
+app.use('/messages', messageRouter);
+app.use('/profile', profileRouter);
 
 // 404 handler — if no route above matched the request,
 // create a 404 error and pass it to the error handler below.

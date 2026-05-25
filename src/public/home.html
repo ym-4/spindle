@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pineapple Pizza — Home</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+  </head>
+  <body class="auth-body">
+    <div class="auth-bg" aria-hidden="true"></div>
+
+    <nav class="site-nav">
+      <span class="site-logo">PINEAPPLE PIZZA</span>
+      <div class="nav-actions">
+        <div id="navGuest">
+          <button type="button" class="btn-neon" id="btnOpenLogin">Log in</button>
+          <button type="button" class="btn-neon btn-neon--filled" id="btnOpenRegister">
+            Register
+          </button>
+        </div>
+        <div id="navUser" class="hidden">
+          <span class="nav-user">Hello, <strong id="navUserName"></strong></span>
+          <a href="profile.html" class="btn-neon">Profile</a>
+          <a href="admin.html" class="btn-neon hidden" id="navAdminLink">Admin</a>
+          <button type="button" class="btn-neon" id="btnLogout">Log out</button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="hero">
+      <h1>Connect. Share. Thrive.</h1>
+      <p>
+        Your campus hub for posts, groups, marketplace, and more. Sign in to unlock your
+        profile and stats.
+      </p>
+      <div class="hero-links" id="heroLinksGuest">
+        <button type="button" class="hero-link-btn" id="heroSignInProfile">Sign in to view profile</button>
+        <a href="home.html?login=1&amp;return=marketplace.html">Sign in for marketplace</a>
+      </div>
+      <div class="hero-links hidden" id="heroLinksUser">
+        <a href="profile.html">My profile</a>
+        <a href="marketplace.html">Marketplace</a>
+      </div>
+      <p class="hero-note hidden" id="heroAdminNote">
+        Staff admin? Use the <strong>Admin</strong> button in the top bar after logging in.
+      </p>
+    </main>
+
+    <!-- 3D futuristic auth popup -->
+    <div id="authOverlay" class="auth-overlay" aria-hidden="true">
+      <div class="auth-modal" role="dialog" aria-labelledby="authTitle">
+        <div class="auth-modal__glow" aria-hidden="true"></div>
+        <div class="auth-modal__panel">
+          <button type="button" class="auth-close" id="authClose" aria-label="Close">&times;</button>
+
+          <div class="auth-tabs">
+            <button type="button" class="auth-tab is-active" data-tab="login">Log in</button>
+            <button type="button" class="auth-tab" data-tab="register">Register</button>
+          </div>
+
+          <p id="authMessage" class="auth-message" aria-live="polite"></p>
+
+          <form id="loginForm" class="auth-form is-active">
+            <h2 id="authTitle">Access Portal</h2>
+            <div class="field">
+              <label for="loginUsername">Username or email</label>
+              <input
+                type="text"
+                id="loginUsername"
+                name="username"
+                autocomplete="username"
+                required
+              />
+            </div>
+            <div class="field">
+              <label for="loginPassword">Password</label>
+              <input
+                type="password"
+                id="loginPassword"
+                name="password"
+                autocomplete="current-password"
+                required
+              />
+            </div>
+            <button type="submit" class="auth-submit">Enter</button>
+          </form>
+
+          <form id="registerForm" class="auth-form">
+            <h2>Create Identity</h2>
+            <div class="field">
+              <label for="registerName">Username</label>
+              <input type="text" id="registerName" name="name" autocomplete="username" required />
+            </div>
+            <div class="field">
+              <label for="registerEmail">Email</label>
+              <input type="email" id="registerEmail" name="email" autocomplete="email" required />
+            </div>
+            <div class="field">
+              <label for="registerPassword">Password</label>
+              <input
+                type="password"
+                id="registerPassword"
+                name="password"
+                autocomplete="new-password"
+                minlength="4"
+                required
+              />
+            </div>
+            <div class="field">
+              <label for="registerAvatar">Avatar (optional)</label>
+              <input type="text" id="registerAvatar" name="avatar" placeholder="e.g. AP" />
+            </div>
+            <button type="submit" class="auth-submit">Join</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+  </body>
+</html>

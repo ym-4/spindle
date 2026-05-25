@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Profile — Campus Hub</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <script src="js/api.js"></script>
+    <script src="js/page-guard.js" data-require-login data-return="profile.html"></script>
+  </head>
+  <body class="auth-body">
+    <div class="auth-bg" aria-hidden="true"></div>
+
+    <nav class="site-nav">
+      <a href="home.html" class="site-logo" style="text-decoration: none">CAMPUS HUB</a>
+      <div class="nav-actions">
+        <div id="navGuest">
+          <a href="home.html?login=1&amp;return=profile.html" class="btn-neon">Log in</a>
+        </div>
+        <div id="navUser" class="hidden">
+          <span class="nav-user">Hello, <strong id="navUserName"></strong></span>
+          <button type="button" class="btn-neon" id="btnLogout">Log out</button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="profile-main">
+      <div id="profileLoading" class="profile-loading">Loading your profile...</div>
+      <div id="profileError" class="profile-error hidden"></div>
+      <div id="profileContent" class="hidden"></div>
+
+      <div id="profileHub" class="profile-hub hidden">
+        <nav class="profile-tabs" aria-label="Profile sections">
+          <button type="button" class="profile-tab profile-tab--active" data-section="settings">
+            Settings
+          </button>
+          <button type="button" class="profile-tab" data-section="friends">Friends</button>
+          <button type="button" class="profile-tab" data-section="saved">Saved Posts</button>
+          <button type="button" class="profile-tab" data-section="history">Post History</button>
+          <button type="button" class="profile-tab" data-section="groups">Study Groups</button>
+          <button type="button" class="profile-tab" data-section="chatroom">Chatroom</button>
+          <button type="button" class="profile-tab" data-section="messages">Messages</button>
+        </nav>
+
+        <section id="section-settings" class="profile-section profile-section--active">
+          <h2 class="section-title">Settings &amp; personal info</h2>
+          <p class="section-desc">Update your profile and campus details.</p>
+          <form id="settingsForm" class="profile-form">
+            <label>Name <input type="text" id="settingsName" name="name" /></label>
+            <label>Avatar <input type="text" id="settingsAvatar" name="avatar" placeholder="e.g. AB" /></label>
+            <label>Campus <input type="text" id="settingsCampus" name="campus" /></label>
+            <label>Phone <input type="text" id="settingsPhone" name="phone" /></label>
+            <label>Bio <textarea id="settingsBio" name="bio" rows="3"></textarea></label>
+            <p class="form-readonly">Email: <span id="settingsEmail"></span></p>
+            <button type="submit" class="btn-neon btn-neon--filled">Save settings</button>
+            <p id="settingsMsg" class="form-msg hidden"></p>
+          </form>
+
+          <h3 class="subsection-title">Marketplace payment details</h3>
+          <p class="section-desc">Used when buying or selling on the marketplace.</p>
+          <form id="paymentForm" class="profile-form">
+            <label>Billing name <input type="text" id="paymentBillingName" name="billing_name" /></label>
+            <label
+              >Payment method
+              <select id="paymentMethod" name="payment_method">
+                <option value="">Select...</option>
+                <option value="card">Credit / Debit card</option>
+                <option value="paynow">PayNow</option>
+                <option value="grabpay">GrabPay</option>
+              </select>
+            </label>
+            <label>Card last 4 digits <input type="text" id="paymentCardLast4" maxlength="4" pattern="\d{4}" /></label>
+            <button type="submit" class="btn-neon btn-neon--filled">Save payment</button>
+            <p id="paymentMsg" class="form-msg hidden"></p>
+          </form>
+        </section>
+
+        <section id="section-friends" class="profile-section hidden">
+          <h2 class="section-title">Friends</h2>
+          <p class="section-desc">Add or remove classmates from your friends list.</p>
+          <div class="profile-split">
+            <div>
+              <h3 class="subsection-title">Your friends</h3>
+              <ul id="friendsList" class="profile-list"></ul>
+            </div>
+            <div>
+              <h3 class="subsection-title">Add a friend</h3>
+              <ul id="friendCandidates" class="profile-list"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="section-saved" class="profile-section hidden">
+          <h2 class="section-title">Saved posts</h2>
+          <p class="section-desc">Posts you bookmarked from the discussion wall.</p>
+          <ul id="savedPostsList" class="profile-list profile-list--cards"></ul>
+        </section>
+
+        <section id="section-history" class="profile-section hidden">
+          <h2 class="section-title">Post history</h2>
+          <p class="section-desc">Your posts on the discussion wall.</p>
+          <ul id="postHistoryList" class="profile-list profile-list--cards"></ul>
+        </section>
+
+        <section id="section-groups" class="profile-section hidden">
+          <h2 class="section-title">Study groups</h2>
+          <p class="section-desc">Groups you have joined.</p>
+          <ul id="groupsList" class="profile-list profile-list--cards"></ul>
+        </section>
+
+        <section id="section-chatroom" class="profile-section hidden">
+          <h2 class="section-title">Campus chatroom</h2>
+          <p class="section-desc">Public room — everyone logged in can read and post.</p>
+          <div id="chatroomMessages" class="chatroom-feed" role="log"></div>
+          <form id="chatroomForm" class="chat-compose">
+            <input type="text" id="chatroomInput" class="chat-input" placeholder="Say something..." maxlength="500" />
+            <button type="submit" class="btn-neon btn-neon--filled">Post</button>
+          </form>
+        </section>
+
+        <section id="section-messages" class="profile-section hidden">
+          <p class="profile-tagline">Direct Messages</p>
+          <h2 class="chat-section-title">Personal Chat</h2>
+          <p class="chat-section-blurb">
+            Private messages between users. Log in on two accounts to see sent vs received.
+          </p>
+          <div class="chat-panel">
+            <aside class="chat-contacts" aria-label="Contacts">
+              <h3 class="chat-contacts-title">Classmates</h3>
+              <ul id="chatContactList" class="chat-contact-list"></ul>
+            </aside>
+            <div class="chat-thread">
+              <div id="chatThreadHeader" class="chat-thread-header">
+                <span class="chat-thread-placeholder">Select a classmate to start chatting</span>
+              </div>
+              <div id="chatMessages" class="chat-messages" role="log" aria-live="polite"></div>
+              <form id="chatForm" class="chat-compose hidden">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." maxlength="2000" />
+                <button type="submit" class="btn-neon btn-neon--filled chat-send">Send</button>
+              </form>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/profile.js"></script>
+    <script src="js/profile-sections.js"></script>
+    <script src="js/messages.js"></script>
+  </body>
+</html>

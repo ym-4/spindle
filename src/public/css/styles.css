@@ -1,2 +1,5 @@
-/* For common styles across multiple HTML pages */
-/* Such as navigation bar, footer, buttons */
+/* Shared layout helpers used across pages */
+
+.hidden {
+  display: none !important;
+}
