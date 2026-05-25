@@ -11,6 +11,7 @@ function signToken(user) {
       email: user.email,
       role: user.role,
       avatar: user.avatar ?? null,
+      sessionId: user.sessionId ?? null,
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN },

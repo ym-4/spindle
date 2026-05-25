@@ -1,27 +1,32 @@
 /**
- * Runs immediately on protected pages (include after api.js).
- * data-require-login — must be signed in
- * data-require-admin — must be signed in as admin
- * data-return — page to open after login (e.g. profile.html)
+ * Must run synchronously right after api.js on protected pages.
  */
 (function runPageGuard() {
   const script = document.currentScript;
   if (!script) return;
 
-  const returnPath = script.dataset.return || 'profile.html';
+  const returnPath = script.dataset.return || 'chat.html';
+  const needsLogin = script.dataset.requireLogin !== undefined;
+  const needsAdmin = script.dataset.requireAdmin !== undefined;
 
-  if (script.dataset.requireLogin && !isLoggedIn()) {
-    redirectToLogin(returnPath);
+  function goLogin() {
+    const params = new URLSearchParams({ login: '1', return: returnPath });
+    window.location.replace(`home.html?${params.toString()}`);
+  }
+
+  if (needsLogin && !isLoggedIn()) {
+    goLogin();
     return;
   }
 
-  if (script.dataset.requireAdmin) {
+  if (needsAdmin) {
     if (!isLoggedIn()) {
-      redirectToLogin(returnPath);
+      goLogin();
       return;
     }
-    if (!isAdmin(getStoredUser())) {
-      window.location.replace('profile.html');
+    const user = getStoredUser();
+    if (!isAdmin(user)) {
+      window.location.replace('chat.html');
     }
   }
 })();
