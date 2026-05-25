@@ -24,25 +24,16 @@ function renderProfile(profile) {
       : '<span class="role-badge">User</span>';
 
   const card = document.createElement('div');
-  card.className = 'profile-card';
+  card.className = 'profile-card profile-card--compact';
   card.innerHTML = `
-    <div class="profile-intro">
-      <p class="profile-tagline">Player Profile</p>
-      <h2 class="profile-welcome">Your campus stats board</h2>
-      <p class="profile-blurb">
-        This is your home base on Campus Hub — see how active you are across posts, comments,
-        friends, groups, and marketplace listings. Level up by joining discussions and trading
-        with classmates.
-      </p>
-    </div>
-    <div class="profile-header">
+    <div class="profile-header profile-header--compact">
       <div class="profile-avatar">${escapeHtml(displayAvatar)}</div>
-      <div>
+      <div class="profile-header-text">
         <h1>${escapeHtml(profile.name)} ${roleBadge}</h1>
         <p>${escapeHtml(profile.email)}</p>
       </div>
     </div>
-    <div class="stats-grid"></div>
+    <div class="stats-grid stats-grid--compact"></div>
   `;
 
   const grid = card.querySelector('.stats-grid');
@@ -82,7 +73,7 @@ async function loadProfile() {
   try {
     const profile = await authFetch('/auth/me');
     loading.classList.add('hidden');
-    content.classList.remove('hidden');
+    document.getElementById('profileShell')?.classList.remove('hidden');
     renderProfile(profile);
     if (typeof initProfileHub === 'function') {
       initProfileHub(profile.id);
