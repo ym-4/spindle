@@ -1,13 +1,21 @@
 {
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "dotenv-cli": "^11.0.0",
     "express": "^5.2.1",
     "http-errors": "^2.0.1",
+<<<<<<< HEAD
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "pg": "^8.20.0",
     "ws": "^8.19.0"
+=======
+    "jsonwebtoken": "^9.0.3",
+    "nodemon": "^3.1.14",
+    "pg": "^8.20.0"
+>>>>>>> origin/main
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -35,7 +43,8 @@
     "lint:report": "eslint -c configs/eslint.config.mjs . --format html --output-file reports/eslint-report.html || true",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "report": "node scripts/qa-report.js"
+    "report": "node scripts/qa-report.js",
+    "dev": "nodemon index.js"
   },
   "jest": {
     "testMatch": [

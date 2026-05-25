@@ -11,6 +11,8 @@
 -- Drop existing tables
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
 
 -- Create tables
 CREATE TABLE "Something" (
@@ -25,6 +27,7 @@ CREATE TABLE "Person" (
   "id" SERIAL NOT NULL,
   "email" TEXT NOT NULL,
   "name" TEXT NOT NULL,
+<<<<<<< HEAD
   "display_name" TEXT,
   "avatar" TEXT,
   "profile_image" TEXT,
@@ -35,6 +38,10 @@ CREATE TABLE "Person" (
   "is_active" BOOLEAN NOT NULL DEFAULT TRUE,
   "deleted_at" TIMESTAMP,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+=======
+  "bio" TEXT,
+  "hashed_password" TEXT NOT NULL DEFAULT '1234', 
+>>>>>>> origin/main
   CONSTRAINT "Person_pkey" PRIMARY KEY ("id")
 );
 
@@ -143,41 +150,36 @@ CREATE TABLE "SavedPosts" (
 );
 
 -- -------------------------------------------------------------------------------------
---                                  CONFESSIONS
--- -------------------------------------------------------------------------------------
-
-CREATE TABLE "Confessions" (
-  "id" SERIAL NOT NULL,
-  "user_id" INT NOT NULL,
-  "details" TEXT NOT NULL,
-  CONSTRAINT "Confessions_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
-
-);
-
-CREATE TABLE "ConfessionComments" (
-  "id" SERIAL NOT NULL, 
-  "confession_id" INT NOT NULL,
-  "user_id" INT NOT NULL,
-  "details" TEXT NOT NULL,
-  CONSTRAINT "ConfessionComments_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
-  FOREIGN KEY ("confession_id") REFERENCES "Confessions"("id") ON DELETE CASCADE
-);
-
--- -------------------------------------------------------------------------------------
 --                                  GROUPS
 -- -------------------------------------------------------------------------------------
+
+CREATE TYPE school_choices AS ENUM ('SOC', 'MAD', 'EEE', 'ABE', 'SB', 'SMA', 'MAE', 'CLS');
 
 CREATE TABLE "Groups" (
   "id" SERIAL NOT NULL,
   "name" TEXT NOT NULL,
   "creator_id" INT NOT NULL,
   "description" TEXT NOT NULL, 
-  "school" TEXT NOT NULL, 
+  "school" school_choices NOT NULL, 
   "module" TEXT NOT NULL, 
+  "public" BOOLEAN NOT NULL DEFAULT TRUE,
   CONSTRAINT "Groups_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
+  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  UNIQUE ("name")
+);
+
+CREATE TYPE join_status AS ENUM ('pending', 'accepted', 'denied');
+
+CREATE TABLE "GroupJoinRequests" (
+  "id" SERIAL NOT NULL,
+  "user_id" INT NOT NULL,
+  "group_id" INT NOT NULL, 
+  "status" join_status NOT NULL DEFAULT 'pending', 
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+  CONSTRAINT "GroupJoinRequest_pkey" PRIMARY KEY ("id"), 
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE, 
+  UNIQUE ("user_id", "group_id")
 );
 
 CREATE TYPE member_role AS ENUM ('user', 'admin');
@@ -195,18 +197,17 @@ CREATE TABLE "GroupDiscussions" (
   "id" SERIAL NOT NULL,
   "group_id" INT NOT NULL,
   "user_id" INT NOT NULL,
+  "channel_name" TEXT NOT NULL,
   "message" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
   CONSTRAINT "GroupDiscussions_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
 );
 
--- -------------------------------------------------------------------------------------
---                                  OTHERS
--- -------------------------------------------------------------------------------------
-
-CREATE TABLE "ChatroomMessages" (
+CREATE TABLE "GroupFiles" (
   "id" SERIAL NOT NULL,
+<<<<<<< HEAD
   "user_id" INT NOT NULL,
   "message" TEXT NOT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -259,6 +260,20 @@ CREATE TABLE "UserPaymentDetails" (
   CONSTRAINT "UserPaymentDetails_pkey" PRIMARY KEY ("user_id"),
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
+=======
+  "group_id" INT NOT NULL,
+  "creator_id" INT NOT NULL,
+  "description" TEXT NOT NULL,
+  "file_path" TEXT NOT NULL,
+  CONSTRAINT "GroupFiles_pkey" PRIMARY KEY ("id"), 
+  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
+);
+
+-- -------------------------------------------------------------------------------------
+--                                  Marketplace Items
+-- -------------------------------------------------------------------------------------
+>>>>>>> origin/main
 
 CREATE TABLE "MarketplaceItems" (
   "id" SERIAL NOT NULL,
@@ -270,14 +285,54 @@ CREATE TABLE "MarketplaceItems" (
   FOREIGN KEY ("seller_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
+CREATE TABLE "UserCart" (
+  "id" SERIAL NOT NULL,
+  "seller_id" INT NOT NULL,
+  "user_id" INT NOT NULL,
+  "item_id" INT NOT NULL,
+  "amount" INT NOT NULL,
+  CONSTRAINT "UserCart_pkey" PRIMARY KEY ("id"), 
+  FOREIGN KEY ("seller_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  FOREIGN KEY ("item_id") REFERENCES "MarketplaceItems"("id") ON DELETE CASCADE
+);
+
+-- -------------------------------------------------------------------------------------
+--                                  Chatroom
+-- -------------------------------------------------------------------------------------
+
+CREATE TABLE "Chatroom" (
+  "id" SERIAL NOT NULL,
+  "name" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT "Chatroom_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "ChatroomMessages" (
+  "id" SERIAL NOT NULL,
+  "user_id" INT NOT NULL,
+  "chatroom_id" INT NOT NULL,
+  "message" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT "ChatroomMessages_pkey" PRIMARY KEY ("id"), 
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  FOREIGN KEY ("chatroom_id") REFERENCES "Chatroom"("id") ON DELETE CASCADE
+);
+
+-- -------------------------------------------------------------------------------------
+--                                  Friends
+-- -------------------------------------------------------------------------------------
+
 CREATE TABLE "UserFriends" (
   "user_id" INT NOT NULL,
   "friend_id" INT NOT NULL,
+  "status" TEXT DEFAULT 'pending',
   CONSTRAINT "UserFriends_pkey" PRIMARY KEY ("user_id", "friend_id"),
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("friend_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
+<<<<<<< HEAD
 -- Direct personal messages between users (WhatsApp-style PMs)
 CREATE TABLE "PersonalMessages" (
   "id" SERIAL NOT NULL,
@@ -353,11 +408,116 @@ CREATE TABLE "Stories" (
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "expires_at" TIMESTAMP NOT NULL,
   CONSTRAINT "Stories_pkey" PRIMARY KEY ("id"),
+=======
+-- -------------------------------------------------------------------------------------
+--                             Other (for later sprints)
+-- -------------------------------------------------------------------------------------
+
+CREATE TABLE "PersonalMessages" (
+  "id" SERIAL NOT NULL,
+  "sender_id" INT NOT NULL,
+  "receiver_id" INT NOT NULL,
+  "message" TEXT NOT NULL, 
+  "is_read" BOOLEAN NOT NULL DEFAULT FALSE, 
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT "PersonalMessages_pkey" PRIMARY KEY ("id"), 
+  FOREIGN KEY ("sender_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("receiver_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "Timetable" (
+  "id" SERIAL NOT NULL, 
+  "user_id" INT NOT NULL,
+  "subject" TEXT NOT NULL,
+  "day_of_week" INT NOT NULL,
+  "start_time" INT NOT NULL,
+  "end_time" INT NOT NULL,
+  "location" TEXT NOT NULL,
+  CONSTRAINT "Timetable_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "AILogs" (
+  "id" SERIAL NOT NULL, 
+  "user_id" INT NOT NULL,
+  "prompt" TEXT NOT NULL,
+  "response" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "AILogs_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "Events" (
+  "id" SERIAL NOT NULL, 
+  "creator_id" INT NOT NULL,
+  "title" TEXT NOT NULL,
+  "description" TEXT NOT NULL,
+  "event_date" TIMESTAMP NOT NULL,
+  "location" TEXT NOT NULL,
+  "category" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Events_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "Flashcards" (
+  "id" SERIAL NOT NULL, 
+  "user_id" INT NOT NULL,
+  "title" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Flashcards_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "FlashcardItems" (
+  "id" SERIAL NOT NULL, 
+  "flashcard_id" INT NOT NULL,
+  "front" TEXT NOT NULL,
+  "back" TEXT NOT NULL,
+  CONSTRAINT "FlashcardItems_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("flashcard_id") REFERENCES "Flashcards"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "Quizzes" (
+  "id" SERIAL NOT NULL, 
+  "creator_id" INT NOT NULL,
+  "title" TEXT NOT NULL,
+  "description" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Quizzes_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "QuizQuestions" (
+  "id" SERIAL NOT NULL, 
+  "quiz_id" INT NOT NULL,
+  "question" TEXT NOT NULL,
+  "option_a" TEXT NOT NULL,
+  "option_b" TEXT NOT NULL,
+  "option_c" TEXT NOT NULL,
+  "option_d" TEXT NOT NULL,
+  "correct_option" TEXT NOT NULL,
+  CONSTRAINT "QuizQuestions_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("quiz_id") REFERENCES "Quizzes"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "QuizAttempts" (
+  "id" SERIAL NOT NULL, 
+  "quiz_id" INT NOT NULL,
+  "user_id" INT NOT NULL,
+  "score" INT NOT NULL,
+  "attempted_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "QuizAttempts_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("quiz_id") REFERENCES "Quizzes"("id") ON DELETE CASCADE, 
+>>>>>>> origin/main
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 -- Indexes
 CREATE UNIQUE INDEX "Person_email_key" ON "Person"("email");
-CREATE UNIQUE INDEX "Person_name_key" ON "Person"("name");
-
+CREATE INDEX ON "Posts"("user_id");
+CREATE INDEX ON "PostComments"("post_id");
+CREATE INDEX ON "GroupDiscussions"("group_id");
+CREATE INDEX ON "MarketplaceItems"("seller_id");
+CREATE INDEX ON "ChatroomMessages"("chatroom_id");
 

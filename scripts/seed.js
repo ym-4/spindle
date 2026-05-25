@@ -303,6 +303,7 @@ async function seed() {
   }
   console.log(`Inserted ${somethings.length} somethings.`);
 
+<<<<<<< HEAD
   // Auth-ready users (hashed passwords + verified email for login)
   await pool.query(
     `INSERT INTO "Person" (email, name, hashed_password, role, email_verified)
@@ -339,6 +340,11 @@ async function seed() {
   }
 
   // Discussion board extras
+=======
+  console.log('Seed data inserted successfully.');
+
+  // homepg function
+>>>>>>> origin/main
   // Insert posts
   for (const post of posts) {
     const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [post.userEmail]);
@@ -384,7 +390,11 @@ async function seed() {
       await pool.query(
         `INSERT INTO "PostReactions" ("post_id", "user_id", "reaction_type")
          VALUES ($1, $2, $3)
+<<<<<<< HEAD
          ON CONFLICT ("post_id", "user_id") DO NOTHING`,
+=======
+         ON CONFLICT DO NOTHING`,
+>>>>>>> origin/main
         [postRes.rows[0].id, userRes.rows[0].id, reaction.reactionType],
       );
     }
@@ -433,9 +443,23 @@ async function seed() {
 
     if (userRes.rows.length > 0) {
       await pool.query(
+<<<<<<< HEAD
         `INSERT INTO "Groups" ("name", "creator_id", "description", "school", "module")
          VALUES ($1, $2, $3, $4, $5)`,
         [group.name, userRes.rows[0].id, group.description, group.school, group.module],
+=======
+        `INSERT INTO "Groups" ("name", "creator_id", "description", "school", "module", "public")
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT ("name") DO NOTHING`,
+        [
+          group.name,
+          userRes.rows[0].id,
+          group.description,
+          group.school,
+          group.module,
+          group.public,
+        ]
+>>>>>>> origin/main
       );
     }
   }
@@ -482,9 +506,22 @@ async function seed() {
     if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
 
       await pool.query(
+<<<<<<< HEAD
         `INSERT INTO "GroupDiscussions" ("group_id", "user_id", "message")
          VALUES ($1, $2, $3)`,
         [groupRes.rows[0].id, userRes.rows[0].id, discussion.message],
+=======
+        `INSERT INTO "GroupDiscussions"
+        ("group_id", "user_id", "channel_name", "message")
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT DO NOTHING`,
+        [
+          groupRes.rows[0].id,
+          userRes.rows[0].id,
+          discussion.channel_name,
+          discussion.message
+        ]
+>>>>>>> origin/main
       );
 
     }
@@ -492,8 +529,12 @@ async function seed() {
 
   console.log(`Inserted ${groupDiscussions.length} group discussions.`);
 
+<<<<<<< HEAD
   console.log('Seed completed successfully.');
   console.log(`Login: Alice/Bob password "${DEFAULT_PASSWORD}", Admin password "${ADMIN_PASSWORD}"`);
+=======
+
+>>>>>>> origin/main
 }
 
 

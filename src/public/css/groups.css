@@ -1,0 +1,264 @@
+/* For styles for Groups.html */
+
+* {
+  margin: 0;
+  box-sizing: border-box;
+}
+
+
+
+.map {
+  position: relative;
+  margin: 0;
+}
+
+.map-bg {
+  width: 100%;
+  display: block;
+}
+
+.map-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  
+}
+
+.star {
+  font-size: 42px;
+  position: absolute;
+  top: -40%;
+  left: -10%;
+}
+
+/* Responsive based on screen size */
+
+/* Default */
+.img-sizing-small {
+  width: 200px;
+  height: auto;
+}
+
+.img-sizing {
+  width: 300px;
+  height: auto;
+}
+
+.img-sizing-large {
+  width: 350px;
+  height: auto;
+}
+
+.btn-style {
+  background: #7d7d7d;
+  color: white;
+
+  border: 4px solid #000000;
+  padding: 14px 22px;
+
+  font-family: 'Press Start 2P';
+  font-size: 12px;
+  text-align: center;
+
+  box-shadow:
+    inset 0 4px 0 rgba(255,255,255,0.15),
+    inset 0 -4px 0 rgba(0,0,0,0.25),
+    0 6px 0 #1b103d;
+
+  border-radius: 8px;
+}
+
+/* Laptop */
+@media (max-width: 992px) {
+  img-sizing-small {
+    width: 100px;
+    height: auto;
+  }
+
+  .img-sizing {
+    width: 200px;
+    height: auto;
+  }
+
+  .img-sizing-large {
+    width: 250px;
+    height: auto;
+  }
+
+  .btn-style {
+    font-size: 8px;
+    padding: 10px 16px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .img-sizing-small {
+    width: 100px;
+    height: auto;
+  }
+
+  .img-sizing {
+    width: 150px;
+  }
+  
+  .img-sizing-large {
+    width: 200px;
+    height: auto;
+  }
+
+  .btn-style {
+    font-size: 6px;
+    padding: 8px 12px;
+  }
+}
+
+.school, .explanation {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Positioning schools images */
+.cls {
+  top: 5%;
+  left: 8%;
+}
+
+.mae {
+  top: 10%;
+  left: 40%;
+}
+
+.eee {
+  top: 10%;
+  left: 70%;
+}
+
+.sb {
+  top: 45%;
+  left: 31%;
+}
+
+.abe {
+  top: 50%;
+  left: 7%;
+}
+
+.sma {
+  top: 73%;
+  left: 25%;
+}
+
+.mad {
+  top: 40%;
+  left: 50%;
+}
+
+.soc {
+  top: 50%;
+  left: 72%;
+}
+
+.explanation {
+  top: 88%;
+  left: 1%;
+}
+
+
+
+/* Button styling */
+
+.btn-red {
+  background: #f67371;
+  border: 4px solid #e76c6a;
+}
+
+.btn-red:hover {
+  background-color: #f68280;
+  border: 4px solid #ff7674;
+}
+
+.btn-orange {
+  background: #ffa962;
+  border: 4px solid #e5985a;
+}
+
+.btn-orange:hover {
+  background-color: #ffb273;
+  border: 4px solid #ffaa65;
+}
+
+.btn-yellow {
+  background: #eece7c;
+  border: 4px solid #dabb6f;
+}
+
+.btn-yellow:hover {
+  background-color: #ffdc84;
+  border: 4px solid #f3d27d;
+
+}
+
+.btn-green {
+  background: #7bd282;
+  border: 4px solid #5eb462;
+}
+
+.btn-green:hover {
+  background-color: #87dc8b;
+  border: 4px solid #6cd071;
+}
+
+.btn-blue {
+  background: #46c9e0;
+  border: 4px solid #3abbd2;
+}
+
+.btn-blue:hover {
+  background-color: #53d8f0;
+  border: 4px solid #42cfe8;
+}
+
+.btn-purple {
+  background: #ca91ff;
+  border: 4px solid #b280e0;
+}
+
+.btn-purple:hover {
+  background-color: #d5a9ff;
+  border: 4px solid #c78ffc;
+}
+
+.btn-indigo {
+  background: #7577ff;
+  border: 4px solid #6a6cf4;
+}
+
+.btn-indigo:hover {
+  background-color: #8c8efc;
+  border: 4px solid #787aed;
+}
+
+.btn-pink {
+  background: #eba0d3;
+  border: 4px solid #df7ec1;
+}
+
+.btn-pink:hover {
+  background-color: #ffaae4;
+  border: 4px solid #e68fca;
+}
+
+.btn-light {
+  background: #bfbfbf;
+  border: 4px solid #b1b1b1;
+  position: relative;
+
+}
+
+.btn-light:hover {
+  background-color: #c6c6c6;
+  border: 4px solid #c1c1c1;
+}
