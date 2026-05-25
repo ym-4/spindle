@@ -1,5 +1,4 @@
 const express = require('express');
-<<<<<<< HEAD
 const createError = require('http-errors');
 const path = require('path');
 const fs = require('fs');
@@ -225,10 +224,6 @@ router.get('/admin/users', authenticateJWT, requireAdmin, async (req, res, next)
   }
 });
 
-module.exports = router;
-=======
-const router = express.Router();
-
 //////////////////////////////////////////////////////
 // TOKEN PRE-GENERATION
 //////////////////////////////////////////////////////
@@ -296,4 +291,3 @@ router.post('/hash', (req, res) => {
 });
 
 module.exports = router;
->>>>>>> origin/main
