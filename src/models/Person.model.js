@@ -20,7 +20,7 @@ module.exports.getPersonByName = async function getPersonByName(data) {
   const { rows } = await pool.query(
     'SELECT * FROM "Person" WHERE name = $1', VALUES);
   return rows;
-};
+}
 
 // GET PERSON BY EMAIL
 module.exports.getPersonByEmail = async function getPersonByEmail(data) {
