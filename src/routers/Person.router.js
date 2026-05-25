@@ -33,7 +33,6 @@ router.get('/:id', (req, res, next) => {
     .catch(next);
 });
 
-
 // Creates new person 
 // Errors handled: same name or same email
 // Request: name, email, bio, password
@@ -83,7 +82,6 @@ router.post('/', (req, res, next) => {
       res.status(500).json(error);
     });
 });
-
 
 ///////////////////////////////////////////////
 // LOGIN 

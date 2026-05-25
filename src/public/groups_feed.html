@@ -20,6 +20,7 @@
     <!-- JS files -->
     <script src="js/queryCmds.js"></script>
     <script src="/js/userNavBarToggle.js"></script>
+    <script src="js/groupsFeed.js" defer></script>
 
     <title>Groups feed</title>
 </head>
@@ -280,7 +281,7 @@
 
                             <!-- CHAT HEADER -->
                             <div class="card-header chat-header">
-                                <strong># general</strong>
+                                <strong id="channelHeader"># general</strong>
                             </div>
 
                             <!-- MESSAGES -->
@@ -288,7 +289,7 @@
                                 
 
                                 <!-- messages -->
-                                <div class="chat-messages">
+                                <div class="chat-messages" id="message-container">
                                  
                                     <div class="chat-divider"><span> 20 May 2026 </span></div>
 
@@ -356,7 +357,7 @@
 
                             <!-- INPUT -->
                             <div class="card-footer bg-white">
-                                <div class="input-group">
+                                <div class="input-group" id="messageInput">
                                     <input type="text" class="form-control" placeholder="Message #general...">
                                     <button class="btn" id="sendChatBtn">
                                         <i class="bi bi-send"></i>
@@ -377,7 +378,7 @@
                                 <h6 class="fw-bold mb-3">Channels</h6>
 
                                 <!-- CHANNEL LIST -->
-                                <div class="list-group list-group-flush">
+                                <div class="list-group list-group-flush" id="channel-container">
 
                                     <a href="#" class="list-group-item list-group-item-action active d-flex align-items-center channel-color" id="generalChannel">
                                         <span class="me-2">#</span> general

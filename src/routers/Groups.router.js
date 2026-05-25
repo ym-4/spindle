@@ -455,9 +455,6 @@ router.post('/messages/send/:user_id', (req, res, next) => {
 
 });
 
-
-// CHECK THAT CHANNEL NAME DOESN"T ALREADY EXIST
-
 // Create new channel (Only Admin)
 // Request: group_id, channel_name
 router.post('/messages/channel/:user_id', (req, res, next) => {
