@@ -27,7 +27,6 @@ CREATE TABLE "Person" (
   "id" SERIAL NOT NULL,
   "email" TEXT NOT NULL,
   "name" TEXT NOT NULL,
-<<<<<<< HEAD
   "display_name" TEXT,
   "avatar" TEXT,
   "profile_image" TEXT,
@@ -38,10 +37,6 @@ CREATE TABLE "Person" (
   "is_active" BOOLEAN NOT NULL DEFAULT TRUE,
   "deleted_at" TIMESTAMP,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-=======
-  "bio" TEXT,
-  "hashed_password" TEXT NOT NULL DEFAULT '1234', 
->>>>>>> origin/main
   CONSTRAINT "Person_pkey" PRIMARY KEY ("id")
 );
 
@@ -207,13 +202,20 @@ CREATE TABLE "GroupDiscussions" (
 
 CREATE TABLE "GroupFiles" (
   "id" SERIAL NOT NULL,
-<<<<<<< HEAD
   "user_id" INT NOT NULL,
   "message" TEXT NOT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "ChatroomMessages_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+  "group_id" INT NOT NULL,
+  "description" TEXT NOT NULL,
+  "file_path" TEXT NOT NULL,
+  CONSTRAINT "GroupFiles_pkey" PRIMARY KEY ("id"), 
+  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
 );
+
+---------------------------------------------------------------------------------------
+--                                  USER
+-- -------------------------------------------------------------------------------------
+
 
 CREATE TABLE "UserSettings" (
   "user_id" INT NOT NULL,
@@ -260,20 +262,11 @@ CREATE TABLE "UserPaymentDetails" (
   CONSTRAINT "UserPaymentDetails_pkey" PRIMARY KEY ("user_id"),
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
-=======
-  "group_id" INT NOT NULL,
-  "creator_id" INT NOT NULL,
-  "description" TEXT NOT NULL,
-  "file_path" TEXT NOT NULL,
-  CONSTRAINT "GroupFiles_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
-);
+
 
 -- -------------------------------------------------------------------------------------
 --                                  Marketplace Items
 -- -------------------------------------------------------------------------------------
->>>>>>> origin/main
 
 CREATE TABLE "MarketplaceItems" (
   "id" SERIAL NOT NULL,
@@ -332,7 +325,6 @@ CREATE TABLE "UserFriends" (
   FOREIGN KEY ("friend_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
-<<<<<<< HEAD
 -- Direct personal messages between users (WhatsApp-style PMs)
 CREATE TABLE "PersonalMessages" (
   "id" SERIAL NOT NULL,
@@ -407,23 +399,11 @@ CREATE TABLE "Stories" (
   "caption" TEXT DEFAULT '',
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "expires_at" TIMESTAMP NOT NULL,
-  CONSTRAINT "Stories_pkey" PRIMARY KEY ("id"),
-=======
+  CONSTRAINT "Stories_pkey" PRIMARY KEY ("id")
+);
 -- -------------------------------------------------------------------------------------
 --                             Other (for later sprints)
 -- -------------------------------------------------------------------------------------
-
-CREATE TABLE "PersonalMessages" (
-  "id" SERIAL NOT NULL,
-  "sender_id" INT NOT NULL,
-  "receiver_id" INT NOT NULL,
-  "message" TEXT NOT NULL, 
-  "is_read" BOOLEAN NOT NULL DEFAULT FALSE, 
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  CONSTRAINT "PersonalMessages_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("sender_id") REFERENCES "Person"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("receiver_id") REFERENCES "Person"("id") ON DELETE CASCADE
-);
 
 CREATE TABLE "Timetable" (
   "id" SERIAL NOT NULL, 
@@ -509,7 +489,6 @@ CREATE TABLE "QuizAttempts" (
   "attempted_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "QuizAttempts_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("quiz_id") REFERENCES "Quizzes"("id") ON DELETE CASCADE, 
->>>>>>> origin/main
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 

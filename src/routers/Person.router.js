@@ -1,11 +1,4 @@
 const express = require('express');
-<<<<<<< HEAD
-const createError = require('http-errors');
-const { getAllPersons, getPersonByID } = require('../models/Person.model');
-
-const router = express.Router();
-
-=======
 const router = express.Router();
 
 const {
@@ -23,14 +16,12 @@ const bcryptMiddleware = require('../middlewares/bcryptMiddleware');
 const jwtMiddleware = require('../middlewares/jwtMiddleware');
 
 // GET ALL PERSONS
->>>>>>> origin/main
 router.get('/', (req, res, next) => {
   getAllPersons()
     .then((results) => res.status(200).json(results))
     .catch(next);
 });
 
-<<<<<<< HEAD
 router.get('/:id', (req, res, next) => {
   const id = Number.parseInt(req.params.id, 10);
   if (Number.isNaN(id)) {
@@ -48,18 +39,6 @@ router.get('/:id', (req, res, next) => {
 });
 
 module.exports = router;
-=======
-
-// GET PERSON BY ID
-router.get('/:id', (req, res, next) => {
-  const data = { 
-    id: req.params.id 
-  };
-  getPersonByID(data)
-    .then((results) => res.status(200).json(results))
-    .catch(next);
-});
-
 
 // Creates new person 
 // Errors handled: same name or same email
@@ -192,4 +171,3 @@ router.post('/register',
 );
 
 module.exports = router;
->>>>>>> origin/main
