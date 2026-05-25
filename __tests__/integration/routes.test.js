@@ -8,7 +8,17 @@ const pool = require('../../src/models/db');
 
 beforeEach(async () => {
   // Clean slate for every test
+  await pool.query('DELETE FROM "Notifications"');
+  await pool.query('DELETE FROM "Stories"');
+  await pool.query('DELETE FROM "MessageReadState"');
+  await pool.query('DELETE FROM "MessageReactions"');
+  await pool.query('DELETE FROM "CallLogs"');
   await pool.query('DELETE FROM "PersonalMessages"');
+  await pool.query('DELETE FROM "FriendRequests"');
+  await pool.query('DELETE FROM "UserFriends"');
+  await pool.query('DELETE FROM "EmailVerificationCodes"');
+  await pool.query('DELETE FROM "TrustedDevices"');
+  await pool.query('DELETE FROM "UserSessions"');
   await pool.query('DELETE FROM "Something"');
   await pool.query('DELETE FROM "Person"');
 });
@@ -31,6 +41,47 @@ async function seedPersons() {
 
 async function seedSomethings() {
   await pool.query(`INSERT INTO "Something" ("name") VALUES ('Seed 1'),('Seed 2')`);
+}
+
+async function registerAndVerify(name, email, password = 'secret') {
+  const reg = await request(app).post('/auth/register').send({ name, email, password });
+  const verify = await request(app).post('/auth/verify-email').send({
+    email,
+    code: reg.body.previewCode,
+  });
+  return { user: verify.body.user, token: verify.body.token };
+}
+
+async function loginAndVerify(username, password, rememberMe = false) {
+  const login = await request(app).post('/auth/login').send({ username, password });
+  if (login.body.needs2FA) {
+    const verify = await request(app).post('/auth/verify-login').send({
+      email: login.body.email,
+      code: login.body.previewCode,
+      remember_me: rememberMe,
+    });
+    return {
+      user: verify.body.user,
+      token: verify.body.token,
+      remember_token: verify.body.remember_token,
+    };
+  }
+  return { user: login.body.user, token: login.body.token };
+}
+
+async function makeFriends(alice, bob) {
+  await request(app)
+    .post('/friends/request')
+    .set('Authorization', `Bearer ${alice.token}`)
+    .send({ receiver_id: bob.user.id });
+  const reqs = await request(app)
+    .get('/friends/requests?tab=received')
+    .set('Authorization', `Bearer ${bob.token}`);
+  const requestId = reqs.body.requests[0].request_id;
+  await request(app)
+    .post('/friends/accept')
+    .set('Authorization', `Bearer ${bob.token}`)
+    .send({ request_id: requestId });
 }
 
 // ─────────────────────────────────────────────────────────
@@ -203,7 +254,7 @@ describe('DELETE /somethings/:id', () => {
 // Auth
 // ─────────────────────────────────────────────────────────
 describe('POST /auth/register', () => {
-  test('should register a new user and return a JWT', async () => {
+  test('should register and require email verification', async () => {
     const res = await request(app).post('/auth/register').send({
       name: 'testuser',
       email: 'test@example.com',
@@ -211,15 +262,16 @@ describe('POST /auth/register', () => {
     });
 
     expect(res.status).toBe(201);
-    expect(res.body.user).toMatchObject({
-      name: 'testuser',
+    expect(res.body.needsVerification).toBe(true);
+    expect(res.body.previewCode).toMatch(/^\d{6}$/);
+
+    const verify = await request(app).post('/auth/verify-email').send({
       email: 'test@example.com',
-      role: 'user',
+      code: res.body.previewCode,
     });
-    expect(res.body.user).toHaveProperty('id');
-    expect(res.body.user).not.toHaveProperty('hashed_password');
-    expect(res.body).toHaveProperty('token');
-    expect(typeof res.body.token).toBe('string');
+    expect(verify.status).toBe(200);
+    expect(verify.body.user.name).toBe('testuser');
+    expect(verify.body).toHaveProperty('token');
   });
 
   test('should return 409 when username is taken', async () => {
@@ -241,30 +293,47 @@ describe('POST /auth/register', () => {
 });
 
 describe('POST /auth/login', () => {
-  test('should log in with valid credentials', async () => {
-    await request(app).post('/auth/register').send({
-      name: 'loginuser',
-      email: 'login@example.com',
-      password: 'mypass',
-    });
+  test('should require 2FA then log in with valid credentials', async () => {
+    await registerAndVerify('loginuser', 'login@example.com', 'mypass');
 
-    const res = await request(app).post('/auth/login').send({
+    const step1 = await request(app).post('/auth/login').send({
       username: 'loginuser',
       password: 'mypass',
     });
 
+    expect(step1.status).toBe(200);
+    expect(step1.body.needs2FA).toBe(true);
+    expect(step1.body.previewCode).toMatch(/^\d{6}$/);
+
+    const step2 = await request(app).post('/auth/verify-login').send({
+      email: 'login@example.com',
+      code: step1.body.previewCode,
+    });
+
+    expect(step2.status).toBe(200);
+    expect(step2.body.user.name).toBe('loginuser');
+    expect(step2.body.user.role).toBe('user');
+    expect(step2.body).toHaveProperty('token');
+  });
+
+  test('should skip 2FA when remember token is valid', async () => {
+    await registerAndVerify('rememberuser', 'remember@example.com', 'mypass');
+    const first = await loginAndVerify('rememberuser', 'mypass', true);
+    expect(first.remember_token).toBeTruthy();
+
+    const res = await request(app).post('/auth/login').send({
+      username: 'rememberuser',
+      password: 'mypass',
+      remember_token: first.remember_token,
+    });
+
     expect(res.status).toBe(200);
-    expect(res.body.user.name).toBe('loginuser');
-    expect(res.body.user.role).toBe('user');
     expect(res.body).toHaveProperty('token');
+    expect(res.body.needs2FA).toBeUndefined();
   });
 
   test('should return 401 for invalid password', async () => {
-    await request(app).post('/auth/register').send({
-      name: 'badlogin',
-      email: 'badlogin@example.com',
-      password: 'correct',
-    });
+    await registerAndVerify('badlogin', 'badlogin@example.com', 'correct');
 
     const res = await request(app).post('/auth/login').send({
       username: 'badlogin',
@@ -278,12 +347,7 @@ describe('POST /auth/login', () => {
 
 describe('GET /auth/me', () => {
   test('should return profile with stats when JWT is valid', async () => {
-    const registerRes = await request(app).post('/auth/register').send({
-      name: 'profileuser',
-      email: 'profile@example.com',
-      password: 'secret',
-    });
-    const token = registerRes.body.token;
+    const { token } = await registerAndVerify('profileuser', 'profile@example.com');
 
     const res = await request(app)
       .get('/auth/me')
@@ -314,8 +378,8 @@ describe('GET /auth/admin/users', () => {
   async function seedAdmin() {
     const hashed = hashPassword('adminpass');
     await pool.query(
-      `INSERT INTO "Person" (email, name, hashed_password, role)
-       VALUES ('admin@test.com', 'TestAdmin', $1, 'admin')`,
+      `INSERT INTO "Person" (email, name, hashed_password, role, email_verified)
+       VALUES ('admin@test.com', 'TestAdmin', $1, 'admin', TRUE)`,
       [hashed],
     );
   }
@@ -337,15 +401,11 @@ describe('GET /auth/admin/users', () => {
   });
 
   test('should return 403 for regular users', async () => {
-    const registerRes = await request(app).post('/auth/register').send({
-      name: 'regularuser',
-      email: 'regular@example.com',
-      password: 'secret',
-    });
+    const { token } = await registerAndVerify('regularuser', 'regular@example.com');
 
     const res = await request(app)
       .get('/auth/admin/users')
-      .set('Authorization', `Bearer ${registerRes.body.token}`);
+      .set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(403);
     expect(res.body.error).toMatch(/admin/i);
@@ -356,18 +416,10 @@ describe('GET /auth/admin/users', () => {
 // Personal messages
 // ─────────────────────────────────────────────────────────
 describe('Personal messages', () => {
-  async function registerUser(name, email) {
-    const res = await request(app).post('/auth/register').send({
-      name,
-      email,
-      password: 'secret',
-    });
-    return { user: res.body.user, token: res.body.token };
-  }
-
   test('user A can send a message and sees it as sent; user B sees it as received', async () => {
-    const alice = await registerUser('AliceChat', 'alicechat@example.com');
-    const bob = await registerUser('BobChat', 'bobchat@example.com');
+    const alice = await registerAndVerify('AliceChat', 'alicechat@example.com');
+    const bob = await registerAndVerify('BobChat', 'bobchat@example.com');
+    await makeFriends(alice, bob);
 
     const sendRes = await request(app)
       .post('/messages')
@@ -402,8 +454,9 @@ describe('Personal messages', () => {
   });
 
   test('both users can exchange multiple messages in order', async () => {
-    const alice = await registerUser('MsgAlice', 'msgalice@example.com');
-    const bob = await registerUser('MsgBob', 'msgbob@example.com');
+    const alice = await registerAndVerify('MsgAlice', 'msgalice@example.com');
+    const bob = await registerAndVerify('MsgBob', 'msgbob@example.com');
+    await makeFriends(alice, bob);
 
     await request(app)
       .post('/messages')
@@ -427,7 +480,7 @@ describe('Personal messages', () => {
   });
 
   test('should return 400 when messaging yourself', async () => {
-    const user = await registerUser('SoloChat', 'solochat@example.com');
+    const user = await registerAndVerify('SoloChat', 'solochat@example.com');
 
     const res = await request(app)
       .post('/messages')
@@ -445,9 +498,10 @@ describe('Personal messages', () => {
     expect(res.body).toHaveProperty('error');
   });
 
-  test('contacts list excludes the logged-in user', async () => {
-    const alice = await registerUser('ContactAlice', 'contactalice@example.com');
-    await registerUser('ContactBob', 'contactbob@example.com');
+  test('contacts list shows friends only', async () => {
+    const alice = await registerAndVerify('ContactAlice', 'contactalice@example.com');
+    const bob = await registerAndVerify('ContactBob', 'contactbob@example.com');
+    await makeFriends(alice, bob);
 
     const res = await request(app)
       .get('/messages/contacts')
@@ -460,18 +514,9 @@ describe('Personal messages', () => {
 });
 
 // ─────────────────────────────────────────────────────────
-// Profile features (settings, friends, posts, groups, chatroom)
+// Profile features (settings, friends, posts, groups)
 // ─────────────────────────────────────────────────────────
 describe('Profile features', () => {
-  async function registerUser(name, email) {
-    const res = await request(app).post('/auth/register').send({
-      name,
-      email,
-      password: 'secret',
-    });
-    return { user: res.body.user, token: res.body.token };
-  }
-
   async function insertPost(userId, title) {
     const { rows } = await pool.query(
       `INSERT INTO "Posts" (user_id, title, category, content)
@@ -482,10 +527,10 @@ describe('Profile features', () => {
   }
 
   test('GET/PUT settings stores personal info', async () => {
-    const user = await registerUser('SettingsUser', 'settings@example.com');
+    const user = await registerAndVerify('SettingsUser', 'settings@example.com');
 
     const putRes = await request(app)
-      .put('/profile/settings')
+      .put('/profile/settings/account')
       .set('Authorization', `Bearer ${user.token}`)
       .send({ bio: 'Hello campus', campus: 'SP', phone: '80001111' });
 
@@ -502,7 +547,7 @@ describe('Profile features', () => {
   });
 
   test('GET/PUT payment stores marketplace payment details', async () => {
-    const user = await registerUser('PayUser', 'pay@example.com');
+    const user = await registerAndVerify('PayUser', 'pay@example.com');
 
     const putRes = await request(app)
       .put('/profile/payment')
@@ -517,29 +562,74 @@ describe('Profile features', () => {
     });
   });
 
-  test('can add and remove friends', async () => {
-    const alice = await registerUser('FriendAlice', 'falice@example.com');
-    const bob = await registerUser('FriendBob', 'fbob@example.com');
+  test('GET /friends/search finds users and supports add request', async () => {
+    const alice = await registerAndVerify('SearchAlice', 'searchalice@example.com');
+    const bob = await registerAndVerify('SearchBob', 'searchbob@example.com');
+
+    const searchRes = await request(app)
+      .get('/friends/search?q=SearchBob')
+      .set('Authorization', `Bearer ${alice.token}`);
+
+    expect(searchRes.status).toBe(200);
+    expect(searchRes.body.users.length).toBeGreaterThanOrEqual(1);
+    expect(searchRes.body.users[0].name).toBe('SearchBob');
+    expect(searchRes.body.users[0].relationship).toBe('none');
 
     const addRes = await request(app)
-      .post('/profile/friends')
+      .post('/friends/request')
       .set('Authorization', `Bearer ${alice.token}`)
-      .send({ friendId: bob.user.id });
+      .send({ receiver_id: bob.user.id });
 
     expect(addRes.status).toBe(201);
-    expect(addRes.body.friends.some((f) => f.id === bob.user.id)).toBe(true);
+
+    const searchAgain = await request(app)
+      .get('/friends/search?q=SearchBob')
+      .set('Authorization', `Bearer ${alice.token}`);
+
+    expect(searchAgain.body.users[0].relationship).toBe('pending_sent');
+  });
+
+  test('can send, accept, and unfriend via friends API', async () => {
+    const alice = await registerAndVerify('FriendAlice', 'falice@example.com');
+    const bob = await registerAndVerify('FriendBob', 'fbob@example.com');
+
+    const addRes = await request(app)
+      .post('/friends/request')
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ receiver_id: bob.user.id });
+
+    expect(addRes.status).toBe(201);
+
+    const reqs = await request(app)
+      .get('/friends/requests?tab=received')
+      .set('Authorization', `Bearer ${bob.token}`);
+    const requestId = reqs.body.requests[0].request_id;
+
+    await request(app)
+      .post('/friends/accept')
+      .set('Authorization', `Bearer ${bob.token}`)
+      .send({ request_id: requestId });
+
+    const listRes = await request(app)
+      .get('/friends')
+      .set('Authorization', `Bearer ${alice.token}`);
+    expect(listRes.body.friends.some((f) => f.id === bob.user.id)).toBe(true);
 
     const removeRes = await request(app)
-      .delete(`/profile/friends/${bob.user.id}`)
+      .delete(`/friends/${bob.user.id}`)
       .set('Authorization', `Bearer ${alice.token}`);
 
     expect(removeRes.status).toBe(200);
-    expect(removeRes.body.friends.some((f) => f.id === bob.user.id)).toBe(false);
+
+    const afterRes = await request(app)
+      .get('/friends')
+      .set('Authorization', `Bearer ${alice.token}`);
+    expect(afterRes.body.friends.some((f) => f.id === bob.user.id)).toBe(false);
   });
 
   test('can save and unsave posts; list saved posts', async () => {
-    const alice = await registerUser('SaveAlice', 'savealice@example.com');
-    const bob = await registerUser('SaveBob', 'savebob@example.com');
+    const alice = await registerAndVerify('SaveAlice', 'savealice@example.com');
+    const bob = await registerAndVerify('SaveBob', 'savebob@example.com');
     const postId = await insertPost(bob.user.id, 'Post to save');
 
     await request(app)
@@ -566,7 +656,7 @@ describe('Profile features', () => {
   });
 
   test('post history returns user posts', async () => {
-    const user = await registerUser('HistoryUser', 'history@example.com');
+    const user = await registerAndVerify('HistoryUser', 'history@example.com');
     await insertPost(user.user.id, 'My wall post');
 
     const res = await request(app)
@@ -579,7 +669,7 @@ describe('Profile features', () => {
   });
 
   test('lists joined study groups', async () => {
-    const alice = await registerUser('GroupAlice', 'galice@example.com');
+    const alice = await registerAndVerify('GroupAlice', 'galice@example.com');
     const { rows } = await pool.query(
       `INSERT INTO "Groups" (name, creator_id, description, school, module)
        VALUES ('Test Group', $1, 'Desc', 'SP', 'MOD') RETURNING id`,
@@ -599,26 +689,8 @@ describe('Profile features', () => {
     expect(res.body.groups[0].name).toBe('Test Group');
   });
 
-  test('chatroom messages can be posted and listed', async () => {
-    const user = await registerUser('ChatUser', 'chat@example.com');
-
-    const postRes = await request(app)
-      .post('/profile/chatroom')
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({ message: 'Hello chatroom!' });
-
-    expect(postRes.status).toBe(201);
-
-    const listRes = await request(app)
-      .get('/profile/chatroom')
-      .set('Authorization', `Bearer ${user.token}`);
-
-    expect(listRes.status).toBe(200);
-    expect(listRes.body.messages.some((m) => m.message === 'Hello chatroom!')).toBe(true);
-  });
-
   test('profile endpoints require authentication', async () => {
-    const res = await request(app).get('/profile/friends');
+    const res = await request(app).get('/friends');
     expect(res.status).toBe(401);
   });
 });

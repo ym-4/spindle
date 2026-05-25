@@ -14,39 +14,110 @@ async function ensurePaymentRow(userId) {
   );
 }
 
-module.exports.getSettings = async function getSettings(userId) {
+module.exports.getAllSettings = async function getAllSettings(userId) {
   await ensureSettingsRow(userId);
+  await ensurePaymentRow(userId);
   const { rows } = await pool.query(
-    `SELECT p.id, p.name, p.email, p.avatar,
-            COALESCE(s.bio, '') AS bio,
-            COALESCE(s.phone, '') AS phone,
-            COALESCE(s.campus, '') AS campus
+    `SELECT p.id, p.name, p.email, p.display_name, p.avatar, p.profile_image, p.bio,
+            s.phone, s.campus, s.language, s.timezone,
+            s.two_factor_enabled, s.login_notifications,
+            s.notify_email, s.notify_product, s.notify_security, s.notify_frequency,
+            s.theme, s.compact_mode, s.font_size,
+            s.public_profile, s.activity_tracking, s.cookie_preferences,
+            pay.billing_name, pay.payment_method, pay.card_last4
      FROM "Person" p
      LEFT JOIN "UserSettings" s ON s.user_id = p.id
+     LEFT JOIN "UserPaymentDetails" pay ON pay.user_id = p.id
      WHERE p.id = $1`,
     [userId],
   );
   return rows[0] ?? null;
 };
 
-module.exports.updateSettings = async function updateSettings(userId, { name, avatar, bio, phone, campus }) {
-  if (name?.trim()) {
-    await pool.query(`UPDATE "Person" SET name = $1 WHERE id = $2`, [name.trim(), userId]);
+module.exports.getSettings = module.exports.getAllSettings;
+
+module.exports.updateAccountSettings = async function updateAccountSettings(userId, data) {
+  if (data.display_name !== undefined) {
+    await pool.query(`UPDATE "Person" SET display_name = $1 WHERE id = $2`, [
+      data.display_name?.trim() || null,
+      userId,
+    ]);
   }
-  if (avatar !== undefined) {
-    await pool.query(`UPDATE "Person" SET avatar = $1 WHERE id = $2`, [avatar?.trim() || null, userId]);
+  if (data.email?.trim()) {
+    await pool.query(`UPDATE "Person" SET email = $1 WHERE id = $2`, [data.email.trim(), userId]);
+  }
+  if (data.bio !== undefined) {
+    await pool.query(`UPDATE "Person" SET bio = $1 WHERE id = $2`, [data.bio, userId]);
   }
   await ensureSettingsRow(userId);
   await pool.query(
     `UPDATE "UserSettings"
-     SET bio = COALESCE($1, bio),
-         phone = COALESCE($2, phone),
-         campus = COALESCE($3, campus)
-     WHERE user_id = $4`,
-    [bio ?? null, phone ?? null, campus ?? null, userId],
+     SET phone = COALESCE($1, phone), campus = COALESCE($2, campus),
+         language = COALESCE($3, language), timezone = COALESCE($4, timezone)
+     WHERE user_id = $5`,
+    [data.phone ?? null, data.campus ?? null, data.language ?? null, data.timezone ?? null, userId],
   );
-  return module.exports.getSettings(userId);
+  return module.exports.getAllSettings(userId);
 };
+
+module.exports.updateSecuritySettings = async function updateSecuritySettings(userId, data) {
+  await ensureSettingsRow(userId);
+  await pool.query(
+    `UPDATE "UserSettings"
+     SET two_factor_enabled = COALESCE($1, two_factor_enabled),
+         login_notifications = COALESCE($2, login_notifications)
+     WHERE user_id = $3`,
+    [data.two_factor_enabled ?? null, data.login_notifications ?? null, userId],
+  );
+  return module.exports.getAllSettings(userId);
+};
+
+module.exports.updateNotificationSettings = async function updateNotificationSettings(userId, data) {
+  await ensureSettingsRow(userId);
+  await pool.query(
+    `UPDATE "UserSettings"
+     SET notify_email = COALESCE($1, notify_email),
+         notify_product = COALESCE($2, notify_product),
+         notify_security = COALESCE($3, notify_security),
+         notify_frequency = COALESCE($4, notify_frequency)
+     WHERE user_id = $5`,
+    [
+      data.notify_email ?? null,
+      data.notify_product ?? null,
+      data.notify_security ?? null,
+      data.notify_frequency ?? null,
+      userId,
+    ],
+  );
+  return module.exports.getAllSettings(userId);
+};
+
+module.exports.updateAppearanceSettings = async function updateAppearanceSettings(userId, data) {
+  await ensureSettingsRow(userId);
+  await pool.query(
+    `UPDATE "UserSettings"
+     SET theme = COALESCE($1, theme), compact_mode = COALESCE($2, compact_mode),
+         font_size = COALESCE($3, font_size)
+     WHERE user_id = $4`,
+    [data.theme ?? null, data.compact_mode ?? null, data.font_size ?? null, userId],
+  );
+  return module.exports.getAllSettings(userId);
+};
+
+module.exports.updatePrivacySettings = async function updatePrivacySettings(userId, data) {
+  await ensureSettingsRow(userId);
+  await pool.query(
+    `UPDATE "UserSettings"
+     SET public_profile = COALESCE($1, public_profile),
+         activity_tracking = COALESCE($2, activity_tracking),
+         cookie_preferences = COALESCE($3, cookie_preferences)
+     WHERE user_id = $4`,
+    [data.public_profile ?? null, data.activity_tracking ?? null, data.cookie_preferences ?? null, userId],
+  );
+  return module.exports.getAllSettings(userId);
+};
+
+module.exports.updateSettings = module.exports.updateAccountSettings;
 
 module.exports.getPaymentDetails = async function getPaymentDetails(userId) {
   await ensurePaymentRow(userId);
@@ -75,47 +146,31 @@ module.exports.updatePaymentDetails = async function updatePaymentDetails(
   return rows[0];
 };
 
-module.exports.listFriends = async function listFriends(userId) {
+module.exports.listSessions = async function listSessions(userId) {
   const { rows } = await pool.query(
-    `SELECT p.id, p.name, p.avatar
-     FROM "UserFriends" uf
-     JOIN "Person" p ON p.id = uf.friend_id
-     WHERE uf.user_id = $1
-     ORDER BY p.name`,
+    `SELECT id, device_label, user_agent, ip_address, created_at, last_active
+     FROM "UserSessions" WHERE user_id = $1 ORDER BY last_active DESC`,
     [userId],
   );
   return rows;
 };
 
-module.exports.listFriendCandidates = async function listFriendCandidates(userId) {
-  const { rows } = await pool.query(
-    `SELECT p.id, p.name, p.avatar
-     FROM "Person" p
-     WHERE p.id != $1
-       AND p.role = 'user'
-       AND NOT EXISTS (
-         SELECT 1 FROM "UserFriends" uf
-         WHERE uf.user_id = $1 AND uf.friend_id = p.id
-       )
-     ORDER BY p.name`,
-    [userId],
-  );
-  return rows;
-};
-
-module.exports.addFriend = async function addFriend(userId, friendId) {
-  await pool.query(
-    `INSERT INTO "UserFriends" (user_id, friend_id) VALUES ($1, $2)`,
-    [userId, friendId],
-  );
-};
-
-module.exports.removeFriend = async function removeFriend(userId, friendId) {
+module.exports.revokeSession = async function revokeSession(userId, sessionId) {
   const { rowCount } = await pool.query(
-    `DELETE FROM "UserFriends" WHERE user_id = $1 AND friend_id = $2`,
-    [userId, friendId],
+    `DELETE FROM "UserSessions" WHERE user_id = $1 AND id = $2`,
+    [userId, sessionId],
   );
   return rowCount > 0;
+};
+
+module.exports.exportUserData = async function exportUserData(userId) {
+  const profile = await module.exports.getAllSettings(userId);
+  const { rows: posts } = await pool.query(`SELECT * FROM "Posts" WHERE user_id = $1`, [userId]);
+  const { rows: friends } = await pool.query(
+    `SELECT p.name, p.email FROM "UserFriends" uf JOIN "Person" p ON p.id = uf.friend_id WHERE uf.user_id = $1`,
+    [userId],
+  );
+  return { exported_at: new Date().toISOString(), profile, posts, friends };
 };
 
 module.exports.listSavedPosts = async function listSavedPosts(userId) {
@@ -169,33 +224,6 @@ module.exports.listJoinedGroups = async function listJoinedGroups(userId) {
     [userId],
   );
   return rows;
-};
-
-module.exports.listChatroomMessages = async function listChatroomMessages(limit = 50) {
-  const { rows } = await pool.query(
-    `SELECT cm.id, cm.message, cm.created_at, p.id AS user_id, p.name AS user_name
-     FROM "ChatroomMessages" cm
-     JOIN "Person" p ON p.id = cm.user_id
-     ORDER BY cm.created_at DESC
-     LIMIT $1`,
-    [limit],
-  );
-  return rows.reverse();
-};
-
-module.exports.postChatroomMessage = async function postChatroomMessage(userId, message) {
-  const { rows } = await pool.query(
-    `INSERT INTO "ChatroomMessages" (user_id, message)
-     VALUES ($1, $2)
-     RETURNING id, user_id, message, created_at`,
-    [userId, message],
-  );
-  const row = rows[0];
-  const userResult = await pool.query(`SELECT name FROM "Person" WHERE id = $1`, [userId]);
-  return {
-    ...row,
-    user_name: userResult.rows[0]?.name ?? 'Unknown',
-  };
 };
 
 module.exports.findPersonById = async function findPersonById(userId) {

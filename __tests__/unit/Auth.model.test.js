@@ -33,9 +33,13 @@ describe('Auth.model - authenticate', () => {
           id: 1,
           name: 'Alice',
           email: 'alice@example.com',
+          display_name: 'Alice',
           avatar: null,
+          profile_image: null,
           hashed_password: hashed,
           role: 'user',
+          email_verified: true,
+          is_active: true,
         },
       ],
     });
@@ -46,8 +50,11 @@ describe('Auth.model - authenticate', () => {
       id: 1,
       name: 'Alice',
       email: 'alice@example.com',
+      display_name: 'Alice',
       avatar: null,
+      profile_image: null,
       role: 'user',
+      email_verified: true,
     });
   });
 

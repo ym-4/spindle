@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Status — Campus Hub</title>
+    <link rel="stylesheet" href="css/wa.css" />
+    <script src="js/api.js"></script>
+    <script src="js/page-guard.js" data-require-login data-return="stories.html"></script>
+  </head>
+  <body class="wa-body" data-wa-page="stories">
+    <div class="wa-app">
+      <div id="waHeaderSlot"></div>
+      <main style="flex: 1; overflow-y: auto">
+        <section class="wa-form-section">
+          <h3 style="margin-top: 0">Add to your status</h3>
+          <p style="font-size: 0.85rem; color: var(--wa-muted)">Friends see this for 24 hours.</p>
+          <form id="storyForm">
+            <label>Photo<input type="file" id="storyFile" accept="image/*" required /></label>
+            <label>Caption<input type="text" id="storyCaption" maxlength="200" placeholder="What's happening?" /></label>
+            <button type="submit" class="wa-btn">Post status</button>
+          </form>
+        </section>
+        <div id="storiesGrid" class="wa-stories-grid"></div>
+        <p id="storiesEmpty" class="wa-empty hidden">No status updates yet.</p>
+      </main>
+      <div id="waNavSlot"></div>
+    </div>
+    <script src="js/wa-nav.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/stories.js"></script>
+  </body>
+</html>

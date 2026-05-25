@@ -8,19 +8,19 @@ const personRouter = require('./routers/Person.router');
 const authRouter = require('./routers/Auth.router');
 const messageRouter = require('./routers/Message.router');
 const profileRouter = require('./routers/Profile.router');
+const friendsRouter = require('./routers/Friends.router');
+const notificationsRouter = require('./routers/Notifications.router');
+const storiesRouter = require('./routers/Stories.router');
+const callsRouter = require('./routers/Calls.router');
 
 const app = express();
 
-// Allow Live Server (port 5500) to call the API while Express runs on PORT
+// Allow Live Server / local dev frontends to call the API on another port
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  const liveServerOrigins = [
-    'http://127.0.0.1:5500',
-    'http://localhost:5500',
-    'http://127.0.0.1:5501',
-    'http://localhost:5501',
-  ];
-  if (origin && liveServerOrigins.includes(origin)) {
+  const isLocalDev =
+    origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  if (isLocalDev) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -46,6 +46,10 @@ app.use('/persons', personRouter);
 app.use('/auth', authRouter);
 app.use('/messages', messageRouter);
 app.use('/profile', profileRouter);
+app.use('/friends', friendsRouter);
+app.use('/notifications', notificationsRouter);
+app.use('/stories', storiesRouter);
+app.use('/calls', callsRouter);
 
 // 404 handler — if no route above matched the request,
 // create a 404 error and pass it to the error handler below.
