@@ -1,6 +1,10 @@
+// Marcus here, Im getting this weird CORS error, idk why but I added something to the app.js as I literally cannot run my code without it.
+
+const cors = require('cors'); // Might remove later
 const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
+
 
 // Import route handlers
 const somethingRouter = require('./routers/Something.router');
@@ -9,8 +13,12 @@ const postsRouter = require('./routers/Posts.router');
 const postCommentsRouter = require('./routers/PostComments.router');
 const searchRouter = require('./routers/Search.router');
 const groupRouter = require('./routers/Groups.router');
+const marketplaceRouter = require('./routers/Marketplace.router')
+
+const authRouter = require('./routers/Auth.router');
 
 const app = express();
+app.use(cors()); // Might remove later
 
 // Parse incoming JSON request bodies (e.g. from POST/PUT requests)
 app.use(express.json());
@@ -21,6 +29,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Browsers automatically request /favicon.ico — return 204 (no content) to avoid 404 noise.
 app.get('/favicon.ico', (req, res) => res.status(204).end());
+app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => res.status(204).end());
 
 app.use('/somethings', somethingRouter);
 app.use('/persons', personRouter);
@@ -28,12 +37,14 @@ app.use('/posts', postsRouter);
 app.use('/comments', postCommentsRouter);
 app.use('/search', searchRouter);
 app.use('/groups', groupRouter);
+app.use('/marketplace', marketplaceRouter);
 
 // 404 handler — if no route above matched the request,
 // create a 404 error and pass it to the error handler below.
 app.use((req, res, next) => {
   next(createError(404, `Unknown resource ${req.method} ${req.originalUrl}`));
 });
+
 
 // Global error handler — catches all errors thrown or passed via next(err).
 // Sends a consistent JSON response instead of Express's default HTML error page.
