@@ -25,6 +25,9 @@ const persons = [
   { email: 'yvonne@example.com', name: 'Yvonne' },
   { email: 'zara@example.com', name: 'Zara' },
   { email: 'leo@example.com', name: 'Leo' },
+  { email: 'beni@example.com', name: 'Beni' },
+  { email: 'emataso@example.com', name: 'Emataso' },
+  { email: 'hinano@example.com', name: 'Hinano' },
 ];
 
 const somethings = [{ name: 'Seed 1' }, { name: 'Seed 2' }];

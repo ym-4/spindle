@@ -4,6 +4,15 @@ body {
   font-family: Arial, sans-serif;
 }
 
+.main-container {
+  padding-top: 0 !important;
+}
+
+main {
+  background-color: #f0f2f5;
+  padding-top: 1rem !important;
+}
+
 /* ----------------------------------------------------------------------
                             Header
  ---------------------------------------------------------------------- */
@@ -57,6 +66,18 @@ body {
   margin-top: 40px;
 }
 
+#content-area {
+    flex: 1;
+    padding: 0 2rem;
+}
+
+#add-btn {
+  bottom: 30px; 
+  right: 30px; 
+  width: 60px; 
+  height: 60px;
+}
+
 /* ----------------------------------------------------------------------
                             Arrow buttons
  ---------------------------------------------------------------------- */
@@ -86,6 +107,11 @@ body {
   box-shadow: 0 0 0 #000000;
 }
 
+.back-btn {
+  font-size: 24px;
+  padding: 0px 12px;
+  color: rgb(10, 149, 241);
+}
 
 
 /* ----------------------------------------------------------------------
