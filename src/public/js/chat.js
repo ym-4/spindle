@@ -1,0 +1,926 @@
+let currentUserId = null;
+let selectedPeerId = null;
+let selectedPeerName = '';
+let peerConnection = null;
+let localStream = null;
+let isCaller = false;
+let activeCallType = 'voice';
+let callState = 'idle';
+let activeCallId = null;
+let incomingCallerId = null;
+let incomingCallerName = '';
+let callStartedAt = null;
+let isMicMuted = false;
+let msgMenuTargetId = null;
+
+const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+
+function esc(t) {
+  const d = document.createElement('div');
+  d.textContent = t ?? '';
+  return d.innerHTML;
+}
+
+function newCallId() {
+  return `c-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function avatarHtml(u, size = '') {
+  const initials = (u.avatar || u.name || '?').slice(0, 2).toUpperCase();
+  if (u.profile_image) {
+    return `<div class="wa-avatar ${size}"><img src="${mediaUrl(u.profile_image)}" alt="" /></div>`;
+  }
+  return `<div class="wa-avatar ${size}">${esc(initials)}</div>`;
+}
+
+function setCallUiMode(mode) {
+  const overlay = document.getElementById('callOverlay');
+  const incoming = document.getElementById('callIncomingActions');
+  const active = document.getElementById('callActiveControls');
+  const ended = document.getElementById('callEndedActions');
+  const cancel = document.getElementById('btnCancelRinging');
+  const videos = document.getElementById('callVideoWrap');
+  overlay.classList.remove('hidden');
+  incoming.classList.add('hidden');
+  active.classList.add('hidden');
+  ended.classList.add('hidden');
+  cancel.classList.add('hidden');
+  videos.classList.add('hidden');
+  if (mode === 'incoming') incoming.classList.remove('hidden');
+  if (mode === 'outgoing') cancel.classList.remove('hidden');
+  if (mode === 'active') {
+    active.classList.remove('hidden');
+    videos.classList.remove('hidden');
+  }
+  if (mode === 'ended') ended.classList.remove('hidden');
+}
+
+async function logCallEntry(peerId, status, direction, durationSec = 0) {
+  if (!peerId) return;
+  try {
+    await authFetch('/calls/logs', {
+      method: 'POST',
+      body: JSON.stringify({
+        peer_id: peerId,
+        call_type: activeCallType,
+        status,
+        direction,
+        duration_sec: durationSec,
+      }),
+    });
+    loadCallLogs();
+  } catch {
+    /* ignore */
+  }
+}
+
+function renderBubbleContent(msg) {
+  const deleted = !!msg.deleted_at;
+  const body = deleted ? '[Message deleted]' : esc(msg.body);
+  const edited = msg.edited_at && !deleted ? ' <small class="wa-edited">edited</small>' : '';
+  const reactions = (msg.reactions || [])
+    .filter((r) => r && r.emoji)
+    .map((r) => `<span class="wa-reaction-chip">${r.emoji}</span>`)
+    .join('');
+  return `${body}${edited}<div class="wa-bubble-reactions">${reactions}</div><time>${new Date(msg.created_at).toLocaleTimeString()}</time>`;
+}
+
+function buildBubbleRow(msg) {
+  const out = msg.sender_id === currentUserId;
+  const row = document.createElement('div');
+  row.className = `wa-bubble-row ${out ? 'wa-bubble-row--out' : 'wa-bubble-row--in'}`;
+  row.dataset.msgId = msg.id;
+
+  const bubble = document.createElement('div');
+  bubble.className = `wa-bubble ${out ? 'wa-bubble--out' : 'wa-bubble--in'}`;
+  bubble.innerHTML = renderBubbleContent(msg);
+  row.appendChild(bubble);
+
+  if (out && !msg.deleted_at) {
+    const menuBtn = document.createElement('button');
+    menuBtn.type = 'button';
+    menuBtn.className = 'wa-bubble-menu-btn';
+    menuBtn.setAttribute('aria-label', 'Message options');
+    menuBtn.textContent = '⋮';
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openMsgMenuForMessage(msg, menuBtn);
+    });
+    row.appendChild(menuBtn);
+  }
+
+  bubble.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    openMsgMenuForMessage(msg, bubble);
+  });
+
+  return row;
+}
+
+function appendBubble(msg) {
+  const box = document.getElementById('chatMessages');
+  const empty = box.querySelector('.wa-empty');
+  if (empty) empty.remove();
+  box.appendChild(buildBubbleRow(msg));
+  box.scrollTop = box.scrollHeight;
+}
+
+function updateBubbleInDom(msg) {
+  const row = document.querySelector(`.wa-bubble-row[data-msg-id="${msg.id}"]`);
+  if (!row) return;
+  const bubble = row.querySelector('.wa-bubble');
+  if (bubble) bubble.innerHTML = renderBubbleContent(msg);
+  const oldBtn = row.querySelector('.wa-bubble-menu-btn');
+  if (msg.deleted_at && oldBtn) oldBtn.remove();
+  if (msg.sender_id === currentUserId && !msg.deleted_at && !oldBtn) {
+    const menuBtn = document.createElement('button');
+    menuBtn.type = 'button';
+    menuBtn.className = 'wa-bubble-menu-btn';
+    menuBtn.textContent = '⋮';
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openMsgMenuForMessage(msg, menuBtn);
+    });
+    row.appendChild(menuBtn);
+  }
+}
+
+function formatPreview(text, max = 36) {
+  const t = (text || '').trim();
+  if (!t) return '';
+  return t.length > max ? `${t.slice(0, max)}…` : t;
+}
+
+function unreadBadgeHtml(count) {
+  if (!count || count < 1) return '';
+  const label = count > 99 ? '99+' : String(count);
+  return `<span class="wa-chat-unread" aria-label="${label} unread">${label}</span>`;
+}
+
+function setChatView(open) {
+  document.getElementById('chatEmpty').classList.toggle('is-hidden', open);
+  document.getElementById('chatActive').classList.toggle('is-open', open);
+}
+
+async function loadContacts() {
+  const list = document.getElementById('chatContactList');
+  if (!list) return;
+  try {
+    const { contacts } = await authFetch('/messages/contacts');
+    if (contacts.length === 0) {
+      list.innerHTML =
+        '<li class="wa-list-empty" style="padding:1rem">No friends yet — use the <strong>Friends</strong> tab to search and add people.</li>';
+      return;
+    }
+    list.innerHTML = contacts
+      .map((c) => {
+        const preview = formatPreview(c.last_message);
+        const previewHtml = preview
+          ? `<span class="wa-chat-preview">${esc(preview)}</span>`
+          : '<span class="wa-chat-preview">Tap to chat</span>';
+        return `
+    <li class="wa-list-item ${c.id === selectedPeerId ? 'active' : ''} ${c.unread_count > 0 ? 'has-unread' : ''}" data-id="${c.id}" data-name="${esc(c.display_name || c.name)}">
+      ${avatarHtml(c)}
+      <div class="wa-list-body">
+        <strong>${esc(c.display_name || c.name)}</strong>
+        ${previewHtml}
+      </div>
+      ${unreadBadgeHtml(c.unread_count)}
+    </li>`;
+      })
+      .join('');
+    updateChatsTabBadge(contacts);
+    list.querySelectorAll('.wa-list-item').forEach((el) => {
+      el.addEventListener('click', () => openChat(Number(el.dataset.id), el.dataset.name));
+    });
+  } catch (err) {
+    list.innerHTML = `<li class="wa-list-empty">${esc(err.message)}</li>`;
+    showToast(err.message, true);
+  }
+}
+
+function updateChatsTabBadge(contacts) {
+  const tab = document.querySelector('[data-side="chats"]');
+  if (!tab) return;
+  const total = (contacts || []).reduce((sum, c) => sum + (c.unread_count || 0), 0);
+  const old = tab.querySelector('.wa-tab-unread');
+  if (old) old.remove();
+  if (total > 0) {
+    const span = document.createElement('span');
+    span.className = 'wa-tab-unread';
+    span.textContent = total > 99 ? '99+' : String(total);
+    tab.appendChild(span);
+  }
+}
+
+async function openChat(userId, name) {
+  selectedPeerId = userId;
+  selectedPeerName = name;
+  setChatView(true);
+  document.getElementById('chatHeaderName').textContent = name;
+  document.getElementById('chatHeaderAvatar').innerHTML = avatarHtml({ name }).trim();
+  document.getElementById('chatMessages').innerHTML = '<p class="wa-empty">Loading…</p>';
+  document.querySelectorAll('#chatContactList .wa-list-item').forEach((el) => {
+    const isActive = Number(el.dataset.id) === userId;
+    el.classList.toggle('active', isActive);
+    if (isActive) {
+      el.classList.remove('has-unread');
+      el.querySelector('.wa-chat-unread')?.remove();
+    }
+  });
+  try {
+    const data = await authFetch(`/messages/with/${userId}`);
+    document.getElementById('chatMessages').innerHTML = '';
+    data.messages.forEach(appendBubble);
+    if (data.messages.length === 0) {
+      document.getElementById('chatMessages').innerHTML =
+        '<p class="wa-empty">No messages yet — say hi!</p>';
+    }
+    loadContacts();
+  } catch (err) {
+    document.getElementById('chatMessages').innerHTML = `<p class="wa-empty">${esc(err.message)}</p>`;
+    showToast(err.message, true);
+  }
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const body = input.value.trim();
+  if (!body || !selectedPeerId) return;
+  input.value = '';
+  try {
+    const res = await sendChatMessage(selectedPeerId, body);
+    if (res?.message) appendBubble(res.message);
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+function openMsgMenuForMessage(msg, anchorOrEvent) {
+  msgMenuTargetId = msg.id;
+  window.__msgMenuTarget = msg;
+  const menu = document.getElementById('msgMenu');
+  const isOwn = msg.sender_id === currentUserId && !msg.deleted_at;
+  menu.querySelector('[data-action="edit"]').style.display = isOwn ? '' : 'none';
+  menu.querySelector('[data-action="delete"]').style.display = isOwn ? '' : 'none';
+
+  let x;
+  let y;
+  if (anchorOrEvent?.clientX != null) {
+    x = anchorOrEvent.clientX;
+    y = anchorOrEvent.clientY;
+  } else if (anchorOrEvent?.getBoundingClientRect) {
+    const r = anchorOrEvent.getBoundingClientRect();
+    x = r.left;
+    y = r.bottom + 4;
+  } else {
+    x = window.innerWidth / 2;
+    y = window.innerHeight / 2;
+  }
+  menu.style.left = `${Math.min(x, window.innerWidth - 200)}px`;
+  menu.style.top = `${Math.min(y, window.innerHeight - 220)}px`;
+  menu.classList.remove('hidden');
+}
+
+function closeMsgMenu() {
+  document.getElementById('msgMenu')?.classList.add('hidden');
+  msgMenuTargetId = null;
+}
+
+async function editMessagePrompt(msg) {
+  const next = prompt('Edit message:', msg.body);
+  if (next === null || !next.trim()) return;
+  try {
+    const { message } = await authFetch(`/messages/${msg.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ body: next.trim() }),
+    });
+    updateBubbleInDom({ ...message, reactions: msg.reactions || [] });
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+function bindMsgMenu() {
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#msgMenu')) closeMsgMenu();
+  });
+  document.getElementById('msgMenu')?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action], [data-emoji]');
+    if (!btn || !msgMenuTargetId) return;
+    const id = msgMenuTargetId;
+    closeMsgMenu();
+    if (btn.dataset.emoji) {
+      try {
+        const { reactions } = await authFetch(`/messages/${id}/reactions`, {
+          method: 'POST',
+          body: JSON.stringify({ emoji: btn.dataset.emoji }),
+        });
+        const el = document.querySelector(`.wa-bubble-row[data-msg-id="${id}"]`);
+        if (el) {
+          const chips = reactions.map((r) => `<span class="wa-reaction-chip">${r.emoji}</span>`).join('');
+          let row = el.querySelector('.wa-bubble-reactions');
+          if (!row) {
+            row = document.createElement('div');
+            row.className = 'wa-bubble-reactions';
+            el.querySelector('time')?.before(row);
+          }
+          row.innerHTML = chips;
+        }
+      } catch (err) {
+        showToast(err.message, true);
+      }
+      return;
+    }
+    const msg = window.__msgMenuTarget || { id, body: '', sender_id: currentUserId };
+    const bubble = document.querySelector(`.wa-bubble-row[data-msg-id="${id}"] .wa-bubble`);
+    const text =
+      msg.body ||
+      bubble?.textContent?.replace(/edited/gi, '').trim() ||
+      '';
+    if (btn.dataset.action === 'copy') {
+      await navigator.clipboard.writeText(text.replace('[Message deleted]', '').trim());
+      showToast('Copied');
+    } else if (btn.dataset.action === 'edit') {
+      editMessagePrompt(msg);
+    } else if (btn.dataset.action === 'delete') {
+      if (!confirm('Delete this message?')) return;
+      try {
+        const { message } = await authFetch(`/messages/${id}`, { method: 'DELETE' });
+        updateBubbleInDom(message);
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+  });
+}
+
+/* Friends panel */
+let searchTimer = null;
+
+function friendActionButton(u) {
+  if (u.relationship === 'friends') {
+    return '<span class="wa-rel-badge wa-rel-badge--friends">Friends</span>';
+  }
+  if (u.relationship === 'pending_sent') {
+    return '<span class="wa-rel-badge">Request sent</span>';
+  }
+  if (u.relationship === 'pending_received' && u.request_id) {
+    return `<button type="button" class="wa-btn wa-btn--small" data-accept="${u.request_id}">Accept</button>`;
+  }
+  if (u.relationship === 'none') {
+    return `<button type="button" class="wa-btn wa-btn--small" data-add="${u.id}">Add</button>`;
+  }
+  return '';
+}
+
+function bindFindPeopleActions() {
+  const list = document.getElementById('findPeopleList');
+  list.querySelectorAll('[data-add]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      try {
+        await authFetch('/friends/request', {
+          method: 'POST',
+          body: JSON.stringify({ receiver_id: Number(b.dataset.add) }),
+        });
+        showToast('Friend request sent');
+        searchUsers(document.getElementById('friendSearch').value);
+        loadRequests();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }),
+  );
+  list.querySelectorAll('[data-accept]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      try {
+        await authFetch('/friends/accept', {
+          method: 'POST',
+          body: JSON.stringify({ request_id: Number(b.dataset.accept) }),
+        });
+        showToast('Friend added!');
+        loadContacts();
+        searchUsers(document.getElementById('friendSearch').value);
+        loadRequests();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }),
+  );
+}
+
+async function searchUsers(q) {
+  const list = document.getElementById('findPeopleList');
+  const hint = document.getElementById('friendSearchHint');
+  if (!list) return;
+
+  const query = q.trim();
+  if (!query) {
+    list.innerHTML = '';
+    if (hint) {
+      hint.textContent = 'Type a name (e.g. Alice) then tap Add';
+      hint.classList.remove('wa-search-hint--error');
+    }
+    return;
+  }
+
+  if (hint) hint.textContent = 'Searching…';
+  list.innerHTML = '<li class="wa-list-empty">Searching…</li>';
+
+  try {
+    const { users } = await authFetch(`/friends/search?q=${encodeURIComponent(query)}`);
+    if (users.length === 0) {
+      list.innerHTML = '<li class="wa-list-empty">No users found — try another name</li>';
+      if (hint) {
+        hint.textContent = `No match for "${query}"`;
+        hint.classList.remove('wa-search-hint--error');
+      }
+      return;
+    }
+    list.innerHTML = users
+      .map(
+        (u) => `
+      <li class="wa-list-item">
+        ${avatarHtml(u)}
+        <div class="wa-list-body">
+          <strong>${esc(u.display_name || u.name)}</strong>
+          <span>@${esc(u.name)}</span>
+        </div>
+        ${friendActionButton(u)}
+      </li>`,
+      )
+      .join('');
+    if (hint) {
+      hint.textContent = `${users.length} result(s) — tap Add to send a request`;
+      hint.classList.remove('wa-search-hint--error');
+    }
+    bindFindPeopleActions();
+  } catch (err) {
+    list.innerHTML = `<li class="wa-list-empty">${esc(err.message)}</li>`;
+    if (hint) {
+      hint.textContent = err.message;
+      hint.classList.add('wa-search-hint--error');
+    }
+  }
+}
+
+let friendReqTab = 'received';
+
+async function loadRequests() {
+  const list = document.getElementById('friendRequestsList');
+  if (!list) return;
+  try {
+    const { requests } = await authFetch(`/friends/requests?tab=${friendReqTab}`);
+    const isReceived = friendReqTab === 'received';
+    list.innerHTML =
+      requests.length === 0
+        ? '<li class="wa-list-empty">No requests</li>'
+        : requests
+            .map((r) => {
+              const actions = isReceived
+                ? `<button class="wa-btn wa-btn--small" data-accept="${r.request_id}">Accept</button>
+                 <button class="wa-btn wa-btn--ghost wa-btn--small" data-decline="${r.request_id}">Decline</button>`
+                : `<button class="wa-btn wa-btn--ghost wa-btn--small" data-decline="${r.request_id}">Cancel</button>`;
+              return `<li class="wa-list-item">${avatarHtml(r.user)}<div class="wa-list-body"><strong>${esc(r.user.display_name || r.user.name)}</strong></div>${actions}</li>`;
+            })
+            .join('');
+    list.querySelectorAll('[data-accept]').forEach((b) =>
+      b.addEventListener('click', async () => {
+        try {
+          await authFetch('/friends/accept', {
+            method: 'POST',
+            body: JSON.stringify({ request_id: Number(b.dataset.accept) }),
+          });
+          loadContacts();
+          loadRequests();
+          const q = document.getElementById('friendSearch')?.value?.trim();
+          if (q) searchUsers(q);
+          showToast('Friend accepted');
+        } catch (err) {
+          showToast(err.message, true);
+        }
+      }),
+    );
+    list.querySelectorAll('[data-decline]').forEach((b) =>
+      b.addEventListener('click', async () => {
+        try {
+          await authFetch('/friends/decline', {
+            method: 'POST',
+            body: JSON.stringify({ request_id: Number(b.dataset.decline) }),
+          });
+          loadRequests();
+        } catch (err) {
+          showToast(err.message, true);
+        }
+      }),
+    );
+  } catch (err) {
+    list.innerHTML = `<li class="wa-list-empty">${esc(err.message)}</li>`;
+  }
+}
+
+async function loadCallLogs() {
+  const list = document.getElementById('callLogList');
+  if (!list) return;
+  try {
+    const { logs } = await authFetch('/calls/logs');
+    if (logs.length === 0) {
+      list.innerHTML = '<li class="wa-list-empty">No calls yet</li>';
+      return;
+    }
+    const icon = { completed: '✓', missed: '↩', declined: '✕', cancelled: '—', busy: '⏸' };
+    list.innerHTML = logs
+      .map((l) => {
+        const dir = l.direction === 'outgoing' ? 'Outgoing' : 'Incoming';
+        const st = l.status === 'missed' ? 'Missed' : l.status;
+        return `<li class="wa-list-item wa-call-log-item" data-peer="${l.peer_id}" data-name="${esc(l.peer_name)}">
+          <div class="wa-list-body">
+            <strong>${icon[l.status] || '•'} ${esc(l.peer_name)}</strong>
+            <span>${dir} ${l.call_type} · ${st} · ${new Date(l.created_at).toLocaleString()}</span>
+          </div>
+        </li>`;
+      })
+      .join('');
+    list.querySelectorAll('.wa-call-log-item').forEach((el) => {
+      el.addEventListener('click', () => openChat(Number(el.dataset.peer), el.dataset.name));
+    });
+  } catch {
+    list.innerHTML = '<li class="wa-list-empty">Could not load calls</li>';
+  }
+}
+
+/* WebRTC — only after accept */
+async function ensurePeerConnection() {
+  if (peerConnection) return peerConnection;
+  peerConnection = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+  peerConnection.onicecandidate = (e) => {
+    if (e.candidate && selectedPeerId && activeCallId) {
+      sendCallSignal(selectedPeerId, { type: 'ice', candidate: e.candidate }, activeCallType, activeCallId);
+    }
+  };
+  peerConnection.ontrack = (e) => {
+    document.getElementById('remoteVideo').srcObject = e.streams[0];
+  };
+  peerConnection.onconnectionstatechange = () => {
+    const st = peerConnection?.connectionState;
+    if (st === 'connected') {
+      callStartedAt = Date.now();
+      document.getElementById('callStatus').textContent = `On call with ${selectedPeerName}`;
+    }
+  };
+  return peerConnection;
+}
+
+async function attachLocalMedia(video) {
+  localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video });
+  document.getElementById('localVideo').srcObject = localStream;
+  document.getElementById('localVideo').style.display = video ? 'block' : 'none';
+  const pc = await ensurePeerConnection();
+  localStream.getTracks().forEach((t) => pc.addTrack(t, localStream));
+  isMicMuted = false;
+  isCamOff = !video;
+  document.getElementById('btnMute').textContent = '🎤';
+}
+
+async function beginCallerMedia() {
+  try {
+    await attachLocalMedia(activeCallType === 'video');
+    const pc = peerConnection;
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    sendCallSignal(selectedPeerId, { type: 'offer', sdp: offer, callType: activeCallType }, activeCallType, activeCallId);
+    callState = 'active';
+    setCallUiMode('active');
+    document.getElementById('callSubstatus').textContent = '';
+  } catch (err) {
+    showToast(err.message || 'Camera/mic required', true);
+    hangUpCall('cancelled');
+  }
+}
+
+async function startCall(video = false) {
+  if (!selectedPeerId) {
+    showToast('Select a chat first', true);
+    return;
+  }
+  if (callState !== 'idle') {
+    showToast('You are already in a call', true);
+    return;
+  }
+  activeCallType = video ? 'video' : 'voice';
+  isCaller = true;
+  activeCallId = newCallId();
+  callState = 'outgoing';
+  setCallUiMode('outgoing');
+  document.getElementById('callStatus').textContent = `Calling ${selectedPeerName}…`;
+  document.getElementById('callSubstatus').textContent = 'Waiting for them to accept…';
+  sendCallInvite(selectedPeerId, activeCallId, activeCallType);
+}
+
+function showIncomingCall(data) {
+  incomingCallerId = data.fromUserId;
+  incomingCallerName = data.callerName || 'Someone';
+  activeCallId = data.callId;
+  activeCallType = data.callType || 'voice';
+  isCaller = false;
+  selectedPeerId = incomingCallerId;
+  selectedPeerName = incomingCallerName;
+  callState = 'incoming';
+  setCallUiMode('incoming');
+  document.getElementById('callStatus').textContent = `Incoming ${activeCallType} call`;
+  document.getElementById('callSubstatus').textContent = incomingCallerName;
+}
+
+async function acceptIncomingCall() {
+  if (callState !== 'incoming' || !incomingCallerId) return;
+  sendCallAccept(incomingCallerId, activeCallId);
+  callState = 'connecting';
+  document.getElementById('callStatus').textContent = 'Connecting…';
+  document.getElementById('callSubstatus').textContent = 'Waiting for caller…';
+  setCallUiMode('outgoing');
+  document.getElementById('btnCancelRinging').classList.add('hidden');
+}
+
+function declineIncomingCall() {
+  if (callState !== 'incoming' || !incomingCallerId) return;
+  sendCallDecline(incomingCallerId, activeCallId);
+  logCallEntry(incomingCallerId, 'declined', 'incoming');
+  endCallLocal();
+}
+
+function showCallEndedUi(message, showCallBack = true) {
+  callState = 'ended';
+  setCallUiMode('ended');
+  document.getElementById('callStatus').textContent = message;
+  document.getElementById('callSubstatus').textContent = '';
+  document.getElementById('btnCallBack').classList.toggle('hidden', !showCallBack);
+}
+
+function dismissCallEnded() {
+  endCallLocal();
+}
+
+function callBackFromDeclined() {
+  const peer = selectedPeerId;
+  const video = activeCallType === 'video';
+  endCallLocal();
+  if (peer) {
+    selectedPeerId = peer;
+    startCall(video);
+  }
+}
+
+function cancelOutgoingCall() {
+  if (callState === 'outgoing' && selectedPeerId) {
+    sendCallCancel(selectedPeerId, activeCallId);
+    logCallEntry(selectedPeerId, 'cancelled', 'outgoing');
+  }
+  endCallLocal();
+}
+
+async function handleCallSignal(data) {
+  const from = data.fromUserId;
+  if (!from || callState === 'idle' && data.signal?.type !== 'offer') return;
+
+  if (data.signal?.type === 'offer') {
+    if (callState !== 'connecting' && callState !== 'incoming' && callState !== 'active') return;
+    selectedPeerId = from;
+    try {
+      await attachLocalMedia(activeCallType === 'video');
+      const pc = await ensurePeerConnection();
+      await pc.setRemoteDescription(new RTCSessionDescription(data.signal.sdp));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      sendCallSignal(from, { type: 'answer', sdp: answer }, activeCallType, activeCallId);
+      callState = 'active';
+      setCallUiMode('active');
+      document.getElementById('callStatus').textContent = `On call with ${selectedPeerName}`;
+    } catch (err) {
+      showToast('Could not connect call', true);
+      hangUpCall('declined');
+    }
+  } else if (data.signal?.type === 'answer' && peerConnection) {
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal.sdp));
+    callState = 'active';
+    setCallUiMode('active');
+  } else if (data.signal?.type === 'ice' && data.signal.candidate && peerConnection) {
+    try {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(data.signal.candidate));
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+function toggleMute() {
+  if (!localStream) return;
+  isMicMuted = !isMicMuted;
+  localStream.getAudioTracks().forEach((t) => {
+    t.enabled = !isMicMuted;
+  });
+  document.getElementById('btnMute').textContent = isMicMuted ? '🔇' : '🎤';
+}
+
+function toggleVideo() {
+  if (!localStream) return;
+  isCamOff = !isCamOff;
+  localStream.getVideoTracks().forEach((t) => {
+    t.enabled = !isCamOff;
+  });
+  document.getElementById('btnToggleVideo').textContent = isCamOff ? '📷' : '📹';
+  document.getElementById('localVideo').style.display = isCamOff ? 'none' : 'block';
+}
+
+function endCallLocal() {
+  callState = 'idle';
+  activeCallId = null;
+  incomingCallerId = null;
+  document.getElementById('callOverlay').classList.add('hidden');
+  if (localStream) {
+    localStream.getTracks().forEach((t) => t.stop());
+    localStream = null;
+  }
+  if (peerConnection) {
+    peerConnection.close();
+    peerConnection = null;
+  }
+  document.getElementById('localVideo').srcObject = null;
+  document.getElementById('remoteVideo').srcObject = null;
+}
+
+function hangUpCall(logStatus = 'completed') {
+  const peer = selectedPeerId;
+  const duration = callStartedAt ? Math.floor((Date.now() - callStartedAt) / 1000) : 0;
+  if (peer && activeCallId) endCall(peer, activeCallId);
+  if (peer && logStatus && callState === 'active') {
+    logCallEntry(peer, logStatus, isCaller ? 'outgoing' : 'incoming', duration);
+  }
+  endCallLocal();
+}
+
+function switchSidePanel(side) {
+  document.querySelectorAll('[data-side]').forEach((b) => b.classList.toggle('active', b.dataset.side === side));
+  document.getElementById('panelChats').classList.toggle('is-active', side === 'chats');
+  document.getElementById('panelCalls').classList.toggle('is-active', side === 'calls');
+  document.getElementById('panelFriends').classList.toggle('is-active', side === 'friends');
+  if (side === 'friends') {
+    loadRequests();
+    const q = document.getElementById('friendSearch')?.value?.trim();
+    if (q) searchUsers(q);
+  }
+  if (side === 'calls') loadCallLogs();
+}
+
+function setupSidebarTabs() {
+  document.querySelectorAll('[data-side]').forEach((btn) => {
+    btn.addEventListener('click', () => switchSidePanel(btn.dataset.side));
+  });
+  document.querySelectorAll('[data-req-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      friendReqTab = btn.dataset.reqTab;
+      document.querySelectorAll('[data-req-tab]').forEach((b) => b.classList.toggle('active', b === btn));
+      loadRequests();
+    });
+  });
+}
+
+function bindCallUi() {
+  document.getElementById('btnAcceptCall')?.addEventListener('click', acceptIncomingCall);
+  document.getElementById('btnDeclineCall')?.addEventListener('click', declineIncomingCall);
+  document.getElementById('btnCancelRinging')?.addEventListener('click', cancelOutgoingCall);
+  document.getElementById('btnEndCall')?.addEventListener('click', () => hangUpCall('completed'));
+  document.getElementById('btnMute')?.addEventListener('click', toggleMute);
+  document.getElementById('btnToggleVideo')?.addEventListener('click', toggleVideo);
+  document.getElementById('btnCallDismiss')?.addEventListener('click', dismissCallEnded);
+  document.getElementById('btnCallBack')?.addEventListener('click', callBackFromDeclined);
+}
+
+async function initChat() {
+  const user = getStoredUser();
+  if (!user || !isLoggedIn()) {
+    redirectToLogin('chat.html');
+    return;
+  }
+  currentUserId = user?.id;
+  injectWaHeader('Chats');
+  injectWaNav('chat');
+  connectSocket();
+  refreshNotifBadge();
+  onWs('notification', () => refreshNotifBadge());
+  onWs('friend:refresh', () => {
+    loadRequests();
+    loadContacts();
+    const q = document.getElementById('friendSearch')?.value?.trim();
+    if (q) searchUsers(q);
+  });
+  setChatView(false);
+  setupSidebarTabs();
+  bindCallUi();
+  bindMsgMenu();
+
+  document.getElementById('friendSearch')?.addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => searchUsers(e.target.value), 300);
+  });
+  document.getElementById('chatForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendMessage();
+  });
+  document.getElementById('btnSend')?.addEventListener('click', sendMessage);
+  document.getElementById('btnVoiceCall')?.addEventListener('click', () => startCall(false));
+  document.getElementById('btnVideoCall')?.addEventListener('click', () => startCall(true));
+
+  await loadContacts();
+  loadRequests();
+  loadCallLogs();
+
+  onWs('message', (data) => {
+    const m = data.message;
+    if (!m) return;
+    const peerId = m.sender_id === currentUserId ? m.recipient_id : m.sender_id;
+    const inThread = peerId === selectedPeerId;
+    if (inThread) appendBubble(m);
+    loadContacts();
+  });
+
+  onWs('message:update', (data) => {
+    if (data.message) updateBubbleInDom(data.message);
+  });
+
+  onWs('message:reaction', (data) => {
+    const el = document.querySelector(`.wa-bubble-row[data-msg-id="${data.messageId}"]`);
+    if (!el || !data.reactions) return;
+    let row = el.querySelector('.wa-bubble-reactions');
+    if (!row) {
+      row = document.createElement('div');
+      row.className = 'wa-bubble-reactions';
+      el.querySelector('time')?.before(row);
+    }
+    row.innerHTML = data.reactions.map((r) => `<span class="wa-reaction-chip">${r.emoji}</span>`).join('');
+  });
+
+  onWs('call:invite', (data) => {
+    if (callState !== 'idle') {
+      sendCallBusy(data.fromUserId, data.callId);
+      return;
+    }
+    showIncomingCall(data);
+  });
+
+  onWs('call:accept', (data) => {
+    if (callState === 'outgoing' && data.callId === activeCallId) {
+      document.getElementById('callSubstatus').textContent = 'Connected — starting…';
+      beginCallerMedia();
+    }
+  });
+
+  onWs('call:decline', (data) => {
+    if (data.callId !== activeCallId) return;
+    logCallEntry(selectedPeerId, 'declined', isCaller ? 'outgoing' : 'incoming');
+    showCallEndedUi('Call declined', isCaller);
+  });
+
+  onWs('call:busy', () => {
+    showToast('They are on another call', true);
+    logCallEntry(selectedPeerId, 'busy', 'outgoing');
+    endCallLocal();
+  });
+
+  onWs('call:cancel', () => {
+    logCallEntry(incomingCallerId || selectedPeerId, 'missed', 'incoming');
+    endCallLocal();
+  });
+
+  onWs('call:signal', handleCallSignal);
+  onWs('call:end', () => {
+    if (callState === 'active') hangUpCall('completed');
+    else endCallLocal();
+  });
+
+  window.addEventListener('ws-message', (e) => {
+    if (e.detail?.type === 'call:end') {
+      if (callState === 'active') hangUpCall('completed');
+      else endCallLocal();
+    }
+  });
+
+  const params = new URLSearchParams(location.search);
+  if (params.get('tab') === 'friends' || params.get('tab') === 'requests') {
+    switchSidePanel('friends');
+    if (params.get('requests') === 'sent') {
+      friendReqTab = 'sent';
+      document.querySelector('[data-req-tab="sent"]')?.classList.add('active');
+      document.querySelector('[data-req-tab="received"]')?.classList.remove('active');
+      loadRequests();
+    }
+  }
+  if (params.get('tab') === 'calls') switchSidePanel('calls');
+  const openUser = params.get('user');
+  if (openUser) {
+    const { contacts } = await authFetch('/messages/contacts');
+    const c = contacts.find((x) => x.id === Number(openUser));
+    if (c) openChat(c.id, c.display_name || c.name);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initChat);
