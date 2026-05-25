@@ -29,6 +29,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Browsers automatically request /favicon.ico — return 204 (no content) to avoid 404 noise.
 app.get('/favicon.ico', (req, res) => res.status(204).end());
+app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => res.status(204).end());
 
 app.use('/somethings', somethingRouter);
 app.use('/persons', personRouter);

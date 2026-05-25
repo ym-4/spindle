@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Posts - Spindle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/posts.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container-fluid px-0 d-flex align-items-center">
+            <a class="navbar-brand" href="index.html">
+                <img src="./images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo">
+                <span class="brand-name">spindle</span>
+            </a>
+            <div class="navbar-search">
+                <input class="form-control" type="search" placeholder="Search posts, groups, items..." aria-label="Search">
+            </div>
+            <div class="navbar-right">
+                <a href="#" class="notif-bell" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                </a>
+                <a href="login.html" class="btn-navbar-login d-none" id="loginButton">Log In</a>
+                <a href="register.html" class="btn-navbar-signup d-none" id="registerButton">Sign Up</a>
+                <a href="profile.html" class="btn-navbar-profile d-none" id="profileButton">
+                    <i class="fas fa-user-circle"></i> Profile
+                </a>
+                <button class="btn-navbar-logout d-none" id="logoutButton">Log Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <a href="index.html" class="sidebar-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="groups.html" class="sidebar-item">
+                <i class="fas fa-users"></i>
+                <span>Study Groups</span>
+            </a>
+            <a href="marketplace.html" class="sidebar-item">
+                <i class="fas fa-store"></i>
+                <span>Marketplace</span>
+            </a>
+            <a href="profile.html" class="sidebar-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            <div class="sidebar-divider"></div>
+            <a href="saved.html" class="sidebar-item active">
+                <i class="fas fa-bookmark"></i>
+                <span>Saved</span>
+            </a>
+            <div class="sidebar-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content-area">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="fas fa-bookmark" style="color:var(--primary-color); font-size:1.2rem;"></i>
+                <h5 class="mb-0 fw-bold">Saved Posts</h5>
+            </div>
+
+            <!-- Posts injected here by saved.js -->
+            <div id="savedContainer">
+                <div class="post-card text-center py-4 text-muted">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    Loading...
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside class="right-sidebar">
+            <div class="card">
+                <div class="card-header">Quick Links</div>
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-question-circle me-2"></i> Help Center
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-shield-alt me-2"></i> Privacy
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-book me-2"></i> Guidelines
+                    </a>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Confirm delete modal -->
+    <div id="confirmOverlay" class="auth-overlay d-none">
+        <div class="auth-popup-card" style="max-width:360px;">
+            <h2 id="confirmTitle" style="font-size:1.2rem;">Are you sure?</h2>
+            <p class="auth-popup-sub" id="confirmMessage">This action cannot be undone.</p>
+            <div class="auth-popup-actions">
+                <button class="auth-popup-btn secondary" id="confirmCancelBtn">Cancel</button>
+                <button class="auth-popup-btn" id="confirmOkBtn" style="background:var(--danger-color);border-color:var(--danger-color);">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/queryCmds.js"></script>
+    <script src="/js/getCurrentURL.js"></script>
+    <script src="/js/userNavBarToggle.js"></script>
+    <script src="/js/saved.js"></script>
+</body>
+</html>

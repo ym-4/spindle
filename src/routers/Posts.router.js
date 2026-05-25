@@ -9,7 +9,7 @@ const {
   getSavedByUserID,
   insertSaved,
   deleteSavedByID,
-  getReactionByPostID,
+  getReactionByUserID,
   insertLike,
   updateReaction,
   deleteReaction
@@ -46,7 +46,6 @@ router.get('/tag/:category', (req, res, next) => {
     .catch(next);
 });
 
-
 // Creates new post 
 router.post('/', (req, res, next) => {
   // missing required information
@@ -81,7 +80,8 @@ router.put('/:id', (req, res, next) => {
   const data = {
     id: req.params.id,
     title: req.body.title,
-    content: req.body.content
+    content: req.body.content,
+    category: req.body.category
   }
 
   updatePostByID(data)
@@ -171,13 +171,12 @@ router.delete('/saved/:id', (req, res, next) => {
 });
 
 // likes n dislikes
-// Get reaction by post_id
-router.get('/reaction/:post_id', (req, res, next) => {
+// Get reaction by user
+router.get('/reaction/:user_id', (req, res, next) => {
   const data = {
-    post_id: req.params.post_id,
-    user_id: req.body.user_id
+    user_id: req.params.user_id
   }
-  getReactionByPostID(data)
+  getReactionByUserID(data)
     .then((post) => res.status(200).json(post))
     .catch(next);
 });

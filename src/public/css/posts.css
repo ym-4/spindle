@@ -436,6 +436,89 @@ body {
     transition: background-color 0.2s;
 }
 
+.modern-post-modal {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.modern-post-modal .modal-header,
+.modern-post-modal .modal-footer {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+.modern-post-modal .modal-body {
+    padding: 0 1.5rem 1.5rem;
+}
+
+.post-title-input {
+    border: none;
+    box-shadow: none !important;
+    font-size: 1.8rem;
+    font-weight: 700;
+    padding: 0;
+    background: transparent;
+}
+
+.post-title-input::placeholder {
+    color: #999;
+    font-weight: 700;
+}
+
+.post-content-input {
+    border: none;
+    resize: none;
+    box-shadow: none !important;
+    background: transparent;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    padding: 0;
+    min-height: 240px;
+}
+
+.post-content-input::placeholder {
+    color: #888;
+}
+
+.post-meta-section {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+.subtle-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+    font-weight: 700;
+}
+
+.modern-select {
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: #fafafa;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.95rem;
+}
+
+.modern-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.15rem rgba(224, 32, 32, 0.12);
+}
+
+.modern-post-modal .btn-primary {
+    border-radius: 999px;
+    padding-inline: 1.4rem;
+}
+
+.modern-post-modal .btn-light {
+    border-radius: 999px;
+    background: #f3f4f6;
+    border: none;
+}
+
 .create-post-option:hover { background-color: var(--hover-bg); }
 .create-post-option i { margin-right: 0.5rem; }
 
@@ -569,6 +652,158 @@ body {
     border-bottom: 3px solid var(--primary-color);
     color: var(--primary-color);
     background-color: transparent;
+}
+
+/* Confirm delete popup */
+#confirmOverlay .auth-popup-card {
+    max-width: 360px;
+}
+
+#confirmOkBtn {
+    background: var(--danger-color) !important;
+    border-color: var(--danger-color) !important;
+}
+
+#confirmOkBtn:hover {
+    background: #b02a37 !important;
+    border-color: #b02a37 !important;
+}
+#confirmOkBtn:hover {
+    background: #b02a37 !important;
+    border-color: #b02a37 !important;
+}
+
+/* login required popup*/
+.auth-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+}
+
+.auth-popup-card {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    border-radius: 16px;
+    padding: 2.2rem;
+    position: relative;
+    border: 1px solid var(--border);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    animation: popupFade 0.2s ease;
+    text-align: left;
+}
+
+@keyframes popupFade {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.auth-popup-close {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    border: none;
+    background: none;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.auth-popup-close:hover {
+    color: var(--text-primary);
+}
+
+.auth-popup-logo {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    margin-bottom: 0.75rem;
+    display: block;
+    margin-inline: auto;
+}
+
+.auth-popup-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.auth-popup-sub {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.auth-popup-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.auth-popup-btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.auth-popup-btn.primary {
+    background: var(--primary);
+    color: white;
+}
+
+.auth-popup-btn.primary:hover {
+    background: var(--primary-hover);
+    color: white;
+}
+
+.auth-popup-btn.secondary {
+    background: #f3f4f6;
+    color: var(--text-primary);
+}
+
+.auth-popup-btn.secondary:hover {
+    background: #e5e7eb;
+    color: var(--text-primary);
+}
+
+.auth-popup-btn.primary {
+    background: red;
+    color: rgb(255, 255, 255);
+}
+
+.auth-popup-btn.primary:hover {
+    background: var(--primary-hover);
+}
+
+.auth-popup-btn.secondary {
+    background: #f3f4f6;
+    color: var(--text-primary);
+}
+
+.auth-popup-btn.secondary:hover {
+    background: #e5e7eb;
 }
 
 /* ── Comments ────────────────────────────────────────────── */
