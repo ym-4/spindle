@@ -3,9 +3,12 @@
 //  Comments: GET /comments/:post_id, POST /comments/:post_id, PUT /comments/:id, DELETE /comments/:id
 //  creator: PUT /posts/:id, DELETE /posts/:id
 
+const API_BASE = currentUrl;
 const COMMENTS_BASE = `${currentUrl}/comments`;
 
 document.addEventListener('DOMContentLoaded', () => {
+  loadYourGroups();
+
   const params  = new URLSearchParams(window.location.search);
   const postId  = params.get('id');
   const editMode = params.get('edit') === 'true';
@@ -25,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
 });
 
 const REACTIONS_BASE = `${currentUrl}/posts`;
@@ -457,23 +461,26 @@ function appendCommentToDOM(comment, postId) {
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
   const isOwner = loggedInUserId && parseInt(comment.user_id) === loggedInUserId;
 
-  // Conditional menu options based on ownership
-  const menuOptions = isOwner ? `
-    <li>
-      <button class="dropdown-item edit-comment-btn" data-comment-id="${comment.id}">
-        <i class="fas fa-pen me-2"></i>Edit
-      </button>
-    </li>
-    <li>
-      <button class="dropdown-item text-danger delete-comment-btn" data-comment-id="${comment.id}">
-        <i class="fas fa-trash-alt me-2"></i>Delete
-      </button>
-    </li>` : `
+  // Conditional menu options based on userid
+  const menuOptions = `
     <li>
       <button class="dropdown-item report-comment-btn" data-comment-id="${comment.id}">
         <i class="fas fa-flag me-2"></i>Report
       </button>
-    </li>`;
+    </li>
+    ${isOwner ? `
+      <li>
+        <button class="dropdown-item edit-comment-btn" data-comment-id="${comment.id}">
+          <i class="fas fa-pen me-2"></i>Edit
+        </button>
+      </li>
+      <li>
+        <button class="dropdown-item text-danger delete-comment-btn" data-comment-id="${comment.id}">
+          <i class="fas fa-trash-alt me-2"></i>Delete
+        </button>
+      </li>
+    ` : ''}
+  `;
 
   const el = document.createElement('div');
   el.className = 'comment-item';
@@ -537,13 +544,20 @@ function appendCommentToDOM(comment, postId) {
     });
   }
 
-  // Report button (non-owner only)
+  // Report button
   const reportBtn = el.querySelector('.report-comment-btn');
   if (reportBtn) {
     reportBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      alert('Report functionality will be implemented soon.');
-      // TODO: Implement report functionality
+
+      const token = localStorage.getItem('token');
+      // signed out
+      if (!token) {
+        showLoginRequiredModal();
+        return;
+      }
+      // signed in
+      alert('Report functionality WIP.');
     });
   }
 
@@ -848,4 +862,62 @@ function showError(message) {
         <a href="index.html" class="btn btn-outline-secondary btn-sm">Back to Feed</a>
       </div>
     </div>`;
+}
+
+function loadYourGroups() {
+  const userId = localStorage.getItem('loggedInUserId');
+  if (!userId) return;
+
+  fetchMethod(`${API_BASE}/groups/creator/${userId}`, (status, data) => {
+    if (status !== 200) return;
+
+    renderYourGroups(data || []);
+  });
+}
+
+function renderYourGroups(groups) {
+  const container = document.getElementById('yourGroupsContainer');
+
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (!groups.length) {
+    container.innerHTML = `
+      <div class="sidebar-item text-muted">
+        <span>No groups yet</span>
+      </div>
+    `;
+    return;
+  }
+
+  groups.forEach(group => {
+    const item = document.createElement('a');
+
+    item.href = `study-groups.html?id=${group.id}`;
+    item.className = 'sidebar-item';
+
+    item.innerHTML = `
+      <i class="fas fa-circle"
+         style="font-size:0.5rem; color:#1877f2;">
+      </i>
+
+      <span>${escapeHtml(group.name)}</span>
+    `;
+
+    container.appendChild(item);
+  });
+
+  // See all groups button
+  const seeAll = document.createElement('a');
+
+  seeAll.href = 'groups.html';
+  seeAll.className = 'sidebar-item';
+
+  seeAll.innerHTML = `
+    <i class="fas fa-plus-circle"></i>
+    <span>See all groups</span>
+  `;
+
+  container.appendChild(seeAll);
 }

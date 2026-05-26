@@ -59,7 +59,10 @@ insertComments(data)
 });
 
 // Update Comments (owner only) 
-router.put('/:id', (req, res, next) => {
+router.put('/:id', 
+  jwtMiddleware.verifyToken,
+  (req, res, next) => {
+  
   const data = {
     id: req.params.id,
     user_id: res.locals.userId,
@@ -80,9 +83,13 @@ router.put('/:id', (req, res, next) => {
 });
 
 // delete Comments (owner only)
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', 
+  jwtMiddleware.verifyToken,
+  (req, res, next) => {
+    
    const data = {
-    id: req.params.id
+    id: req.params.id,
+    user_id: res.locals.userId
   }
   deleteCommentsByID(data)
     .then((results) => {

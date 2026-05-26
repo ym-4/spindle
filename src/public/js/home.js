@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadPosts();
   });
 
+  loadYourGroups();
+
   setupCategoryTabs();
   setupCreatePost();
   setupSearch();
@@ -635,4 +637,62 @@ function protectCreatePostUI() {
       modal.show();
     });
   });
+}
+
+function loadYourGroups() {
+  const userId = localStorage.getItem('loggedInUserId');
+  if (!userId) return;
+
+  fetchMethod(`${API_BASE}/groups/creator/${userId}`, (status, data) => {
+    if (status !== 200) return;
+
+    renderYourGroups(data || []);
+  });
+}
+
+function renderYourGroups(groups) {
+  const container = document.getElementById('yourGroupsContainer');
+
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (!groups.length) {
+    container.innerHTML = `
+      <div class="sidebar-item text-muted">
+        <span>No groups yet</span>
+      </div>
+    `;
+    return;
+  }
+
+  groups.forEach(group => {
+    const item = document.createElement('a');
+
+    item.href = `study-groups.html?id=${group.id}`;
+    item.className = 'sidebar-item';
+
+    item.innerHTML = `
+      <i class="fas fa-circle"
+         style="font-size:0.5rem; color:#1877f2;">
+      </i>
+
+      <span>${escapeHtml(group.name)}</span>
+    `;
+
+    container.appendChild(item);
+  });
+
+  // See all groups button
+  const seeAll = document.createElement('a');
+
+  seeAll.href = 'groups.html';
+  seeAll.className = 'sidebar-item';
+
+  seeAll.innerHTML = `
+    <i class="fas fa-plus-circle"></i>
+    <span>See all groups</span>
+  `;
+
+  container.appendChild(seeAll);
 }
