@@ -27,7 +27,10 @@ function addListing(seller_id, id, name, description, price) {
     </div>
   `;
 
-  card.querySelector(".add-to-cart-btn").addEventListener("click", () => addToCart(seller_id, id)); 
+  card.querySelector(".add-to-cart-btn").addEventListener("click", () => {
+    let amount = card.querySelector(".qty-input").value;
+    addToCart(seller_id, id, localStorage.loggedInUserId, amount);
+  });
   container.appendChild(card);
 }
 
@@ -44,4 +47,67 @@ async function loadListings() {
   });
 }
 
-loadListings();
+function addCartItem(seller_id, id, name, description, price, quantity = 1) {
+  const container = document.querySelector('.cart-container');
+  const card = document.createElement('div');
+  card.setAttribute('data-seller-id', seller_id);
+  card.setAttribute('data-id', id);
+  card.innerHTML = `
+    <div class="card mb-3">
+      <div class="row g-0 align-items-center">
+        <div class="col-md-3">
+          <img src="https://placehold.co/150x120" class="img-fluid rounded-start" alt="${name}" />
+        </div>
+        <div class="col-md-6">
+          <div class="card-body">
+            <h5 class="card-title">${name}</h5>
+            <p class="card-text text-muted">${description}</p>
+            <p class="card-price fw-bold">$${Number(price).toFixed(2)}</p>
+          </div>
+        </div>
+        <div class="col-md-3 text-center">
+          <button class="btn btn-outline-danger btn-sm remove-btn">Remove</button>
+          <div class="input-group justify-content-center mt-3">
+            <input type="number" class="form-control text-center qty-input"
+              value="1" min="1" max="99" style="max-width: 60px;" />
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.appendChild(card);
+  updateSummary();
+}
+
+function updateSummary() {
+  const inputs = document.querySelectorAll('.card-price');
+  let subtotal = 0;
+
+  inputs.forEach(card => {
+    const price = parseFloat(card.textContent.replace('$', ''));
+    subtotal += price
+  });
+
+  document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('total').textContent = `$${subtotal.toFixed(2)}`;
+}
+
+async function loadCart() {
+  fetchMethod("http://localhost:3000/marketplace", (status, data) => {
+    if (status === 200) {
+      data.forEach(item => {
+        addCartItem(item.seller_id, item.id, item.name, item.description, item.price, item.quantity);
+      });
+    } else {
+      console.error("Failed to load cart:", status, data);
+    }
+  });
+}
+
+// Insert the correct items based on the name of the document ;-D
+if (document.title == "Marketplace") {
+  loadListings();
+} else if (document.title == "Cart") {
+  loadCart();
+}
