@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Rajdhani:wght@400;500;600&display=swap');
 
 :root {
@@ -1507,11 +1506,17 @@ body.auth-body {
     grid-row: auto;
   }
 }
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+:root {
+    --primary: #e02020;
+    --primary-hover: #c41a1a;
+    --bg: #f0f2f5;
+    --card-bg: #ffffff;
+    --text-primary: #1c1c1c;
+    --text-secondary: #65676b;
+    --border: #e4e6eb;
+    --input-bg: #f7f8fa;
+    --error: #dc3545;
+    --success: #28a745;
 }
 
 body.auth-body {
@@ -3382,5 +3387,3 @@ body {
         max-width: 100%;
     }
 }
->>>>>>> origin/main
-
