@@ -265,3 +265,49 @@ main {
 .chat-divider span {
     padding: 0 10px;
 }
+
+
+
+/* -------------------------------------------------------------- */
+/*                             MODAL                              */
+/* -------------------------------------------------------------- */
+
+/* Modal */
+.modal-content {
+    background: #ffffff;
+}
+
+.message-preview {
+    background: #f5f7fb;
+    border: 1px solid #e9edf5;
+}
+
+#editMessageInput {
+    border: 1px solid #dfe5ee;
+    resize: none;
+    padding: 14px;
+    font-size: 0.95rem;
+}
+
+#editMessageInput:focus {
+    box-shadow: none;
+    border-color: #6c63ff;
+}
+
+#saveMessageBtn {
+    background: linear-gradient(135deg, #6c63ff, #5a54d1);
+    border: none;
+}
+
+#saveMessageBtn:hover {
+    opacity: 0.9;
+}
+
+#deleteMessageBtn {
+    background: #ff4d6d;
+    border: none;
+}
+
+#deleteMessageBtn:hover {
+    background: #e6395d;
+}

@@ -9,7 +9,7 @@ let users;
 let channels; 
 // Store current channel name
 let currChannel;
-// Store current channel messages
+
 
 /*  Sample data 
     channel_name: "general"
@@ -22,6 +22,11 @@ let currChannel;
 
 // Stores the current channel messages
 let currChannelMessages;
+//
+
+
+// Stores current message clicked
+let message;
 
 // HTML Templates
 
@@ -69,7 +74,7 @@ let currChannelMessages;
 /*
     <div class="card-footer bg-white">
         <div class="input-group">
-            <input type="text" class="form-control" placeholder="Message #general...">
+            <input type="text" class="form-control" placeholder="Message #general..." id="messageInput">
             <button class="btn" id="sendChatBtn">
                 <i class="bi bi-send"></i>
             </button>
@@ -102,7 +107,9 @@ window.addEventListener("DOMContentLoaded", async () => {
         displayChannelMessages(currChannelMessages);
 
         // Add event listeners
-        await addEventListenerToChannels(channels);
+        addEventListenerToChannels(channels);
+        addEventListenerToSendMessageButton();
+        addEventListenerToMessages();
 
     } catch (err) {
         console.error(err);
@@ -118,8 +125,6 @@ window.addEventListener("DOMContentLoaded", async () => {
 // -------------------------------------------------------------------------------------
 
 async function handleChannelClicked() {
-    // NOT DONE
-
     // Get channel name from id
     const channelName = event.currentTarget.id;
 
@@ -131,7 +136,84 @@ async function handleChannelClicked() {
         await changeChannel(channelName);
     }
 
-    console.log("channel clicked")
+    console.log("channel clicked");
+}
+
+async function handleSendMessageClicked() {
+    // Get channel name from id
+    const message = document.getElementById("messageInput").value.trim();
+
+    // Check if there is anything in the message 
+    // If there is something send message
+    if (message != undefined && message != '') {
+        await createGroupDiscussionMessage(message);
+    
+        // Refresh with new message
+        await refreshChannelAndChat(currChannel);
+
+        console.log("message sent");
+
+    } else {
+        console.log("no message sent");
+    }
+}
+
+async function handleMessageClicked() {
+    
+    const messageId = event.currentTarget.id;
+    message = currChannelMessages.find(message => message.id == messageId);
+
+    // Check that message clicked is users
+    // User sent the message (let user see modal that shows message options (edit/delete))
+    if (message.user_id == userId) {
+        // Show modal
+        displayMessageOptionsModal(message);
+        
+        // Add event listener
+        addEventListenerToMessageOptionsButton();
+
+    } else {
+        return;
+    }
+    
+    console.log('message clicked');
+
+}
+
+// Edits message
+async function handleSaveMessageButton() {
+    console.log("messagesfdsfd", message);
+    console.log("save message button clicked");
+
+    const newMessage = document.getElementById("editMessageInput").value.trim();
+    
+    // Check that new message is not empty 
+    if (newMessage == '') {
+
+        const modalElement = document.getElementById("messageModal");
+        const modal = new bootstrap.Modal(modalElement);
+        
+        // Close modal
+        modal.hide();
+
+        // change to toast 
+        alert("new message cannot be empty")
+
+    } else {
+        // Update message
+        updateGroupDiscussionMessage(message.id, newMessage);
+
+        // Refresh to show new message
+        refreshChannelAndChat(currChannel);
+
+    }
+
+}
+
+// Deletes message
+async function handleDeleteMessageButton(message) {
+    console.log("delete message button clicked");
+
 }
 
 // -------------------------------------------------------------------------------------
@@ -170,9 +252,9 @@ function displayChannelMessages(messages) {
     document.getElementById("channelHeader").innerText = `# ${currChannel}`;
     
     
-    document.getElementById("messageInput").innerHTML = 
+    document.getElementById("messageDiv").innerHTML = 
     `
-        <input type="text" class="form-control" placeholder="Message #${currChannel}...">
+        <input type="text" class="form-control" placeholder="Message #${currChannel}..." id="messageInput">
         <button class="btn" id="sendChatBtn">
             <i class="bi bi-send"></i>
         </button>
@@ -230,7 +312,7 @@ function displayChannelMessages(messages) {
                     </small>
                 </div>
 
-                <div class="bubble">
+                <div class="bubble" id="${currMessage.id}">
                     ${currMessage.message}
                 </div>
 
@@ -239,6 +321,21 @@ function displayChannelMessages(messages) {
     }
 
     messageContainer.innerHTML = tempHTML;
+}
+
+function displayMessageOptionsModal(message) {
+
+    document.getElementById("modalMessageText").innerText = message.message;
+
+    document.getElementById("editMessageInput").value = message.message;
+    
+    const modalElement = document.getElementById("messageModal");
+
+    const modal = new bootstrap.Modal(modalElement);
+
+    // Show modal
+    modal.show();
+
 }
 
 
@@ -544,15 +641,39 @@ async function deleteGroupDiscussionChannel() {
 }
 
 // -------------------------------------------------------------------------------------
-//                            Other Functions  
+//                          Add Event Listener Functions  
 // -------------------------------------------------------------------------------------
 
-async function addEventListenerToChannels(channels) {
+function addEventListenerToChannels(channels) {
     channels.forEach(channel => {
         document.getElementById(channel).removeEventListener("click", handleChannelClicked); 
         document.getElementById(channel).addEventListener("click", handleChannelClicked);
     })
 }
+
+function addEventListenerToSendMessageButton() {
+    document.getElementById("sendChatBtn").removeEventListener("click", handleSendMessageClicked); 
+    document.getElementById("sendChatBtn").addEventListener("click", handleSendMessageClicked);
+}
+
+function addEventListenerToMessages() {
+    currChannelMessages.forEach(message => {
+        document.getElementById(message.id).removeEventListener("click", handleMessageClicked);
+        document.getElementById(message.id).addEventListener("click", handleMessageClicked);
+    })
+}
+
+function addEventListenerToMessageOptionsButton() {
+    document.getElementById("saveMessageBtn").removeEventListener("click", handleSaveMessageButton);
+    document.getElementById("saveMessageBtn").addEventListener("click", handleSaveMessageButton);
+
+    document.getElementById("deleteMessageBtn").removeEventListener("click", handleDeleteMessageButton);
+    document.getElementById("deleteMessageBtn").addEventListener("click", handleDeleteMessageButton);
+}
+
+// -------------------------------------------------------------------------------------
+//                            Other Functions  
+// -------------------------------------------------------------------------------------
 
 async function changeChannel(newChannelName) {
     currChannel = newChannelName;
@@ -568,5 +689,29 @@ async function changeChannel(newChannelName) {
 
     // add event listeners again 
     addEventListenerToChannels(channels);
+    addEventListenerToSendMessageButton();
+    addEventListenerToMessages();
+}
+
+// Refresh chat and channels
+async function refreshChannelAndChat(channelName) {
+    currChannel = channelName;
+
+    // Fetch channels
+    await fetchGroupChannels();
+
+    // Fetch messages from that channel
+    await fetchGroupDiscussionByChannel(currChannel);
+
+    // Update channel sidebar 
+    displayChannelSidebar(channels);
+
+    // Display messages from that channel
+    displayChannelMessages(currChannelMessages);
+
+    // add event listeners again 
+    addEventListenerToChannels(channels);
+    addEventListenerToSendMessageButton();
+    addEventListenerToMessages();
 
 }

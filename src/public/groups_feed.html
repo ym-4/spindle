@@ -357,7 +357,7 @@
 
                             <!-- INPUT -->
                             <div class="card-footer bg-white">
-                                <div class="input-group" id="messageInput">
+                                <div class="input-group" id="messageDiv">
                                     <input type="text" class="form-control" placeholder="Message #general...">
                                     <button class="btn" id="sendChatBtn">
                                         <i class="bi bi-send"></i>
@@ -418,6 +418,89 @@
 
 
     </div>
-    
+        <!-- Message Options Modal -->
+    <div class="modal fade" id="messageModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <!-- Header -->
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold">
+                            Message Options
+                        </h5>
+                        <small class="text-muted">
+                            Edit or delete your message
+                        </small>
+                    </div>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body pt-3">
+
+                    <!-- Preview -->
+                    <div class="message-preview p-3 rounded-4 mb-3">
+                        <small class="text-muted d-block mb-1">
+                            Current message
+                        </small>
+
+                        <div id="modalMessageText" class="fw-medium">
+                            Hello world
+                        </div>
+                    </div>
+
+                    <!-- Edit Input -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Edit message
+                        </label>
+
+                        <textarea 
+                            class="form-control rounded-4"
+                            rows="4"
+                            id="editMessageInput"
+                            placeholder="Edit your message..."
+                        ></textarea>
+                    </div>
+
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer border-0 d-flex justify-content-between">
+
+                    <button 
+                        class="btn btn-danger rounded-pill px-4"
+                        id="deleteMessageBtn"
+                    >
+                        <i class="bi bi-trash3 me-1"></i>
+                        Delete
+                    </button>
+
+                    <div class="d-flex gap-2">
+                        <button 
+                            class="btn btn-light rounded-pill px-4"
+                            data-bs-dismiss="modal"
+                        >
+                            Cancel
+                        </button>
+
+                        <button 
+                            class="btn btn-primary rounded-pill px-4"
+                            id="saveMessageBtn"
+                        >
+                            <i class="bi bi-check2 me-1"></i>
+                            Save Changes
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
 </body>
 </html>
