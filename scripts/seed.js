@@ -1,8 +1,14 @@
 const { Pool } = require('pg');
+const { hashPassword } = require('../src/models/Auth.model');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
+
+const DEFAULT_PASSWORD = 'password123';
+const ADMIN_PASSWORD = 'admin123';
+const hashedDefaultPassword = hashPassword(DEFAULT_PASSWORD);
+const hashedAdminPassword = hashPassword(ADMIN_PASSWORD);
 
 const persons = [
   { email: 'alice@example.com', name: 'Alice' },
@@ -297,6 +303,42 @@ async function seed() {
   }
   console.log(`Inserted ${somethings.length} somethings.`);
 
+  // Auth-ready users (hashed passwords + verified email for login)
+  await pool.query(
+    `INSERT INTO "Person" (email, name, hashed_password, role, email_verified)
+     VALUES ('admin@campushub.sp', 'Admin', $1, 'admin', TRUE)
+     ON CONFLICT (email) DO UPDATE SET hashed_password = EXCLUDED.hashed_password, role = 'admin', email_verified = TRUE`,
+    [hashedAdminPassword],
+  );
+  await pool.query(
+    `UPDATE "Person" SET hashed_password = $1, email_verified = TRUE, role = 'user'
+     WHERE email != 'admin@campushub.sp'`,
+    [hashedDefaultPassword],
+  );
+  console.log('Set passwords (password123) and verified emails for all users.');
+
+  const aliceRes = await pool.query(`SELECT id FROM "Person" WHERE email = 'alice@example.com'`);
+  const bobRes = await pool.query(`SELECT id FROM "Person" WHERE email = 'bob@example.com'`);
+  const aliceId = aliceRes.rows[0]?.id;
+  const bobId = bobRes.rows[0]?.id;
+  if (aliceId && bobId) {
+    await pool.query(
+      `INSERT INTO "FriendRequests" (sender_id, receiver_id, status) VALUES ($1, $2, 'accepted')
+       ON CONFLICT (sender_id, receiver_id) DO UPDATE SET status = 'accepted'`,
+      [aliceId, bobId],
+    );
+    await pool.query(
+      `INSERT INTO "UserFriends" (user_id, friend_id) VALUES ($1, $2), ($2, $1) ON CONFLICT DO NOTHING`,
+      [aliceId, bobId],
+    );
+    await pool.query(
+      `INSERT INTO "PersonalMessages" (sender_id, recipient_id, body) VALUES ($1, $2, 'Hey Bob! Want to study together?')`,
+      [aliceId, bobId],
+    );
+    console.log('Seeded Alice/Bob friendship and sample message.');
+  }
+
+  // Discussion board extras
   console.log('Seed data inserted successfully.');
 
   // homepg function
@@ -345,7 +387,7 @@ async function seed() {
       await pool.query(
         `INSERT INTO "PostReactions" ("post_id", "user_id", "reaction_type")
          VALUES ($1, $2, $3)
-         ON CONFLICT DO NOTHING`,
+         ON CONFLICT ("post_id", "user_id") DO NOTHING`,
         [postRes.rows[0].id, userRes.rows[0].id, reaction.reactionType],
       );
     }
@@ -394,17 +436,9 @@ async function seed() {
 
     if (userRes.rows.length > 0) {
       await pool.query(
-        `INSERT INTO "Groups" ("name", "creator_id", "description", "school", "module", "public")
-        VALUES ($1, $2, $3, $4, $5, $6)
-        ON CONFLICT ("name") DO NOTHING`,
-        [
-          group.name,
-          userRes.rows[0].id,
-          group.description,
-          group.school,
-          group.module,
-          group.public,
-        ]
+        `INSERT INTO "Groups" ("name", "creator_id", "description", "school", "module")
+         VALUES ($1, $2, $3, $4, $5)`,
+        [group.name, userRes.rows[0].id, group.description, group.school, group.module],
       );
     }
   }
@@ -468,8 +502,10 @@ async function seed() {
 
   console.log(`Inserted ${groupDiscussions.length} group discussions.`);
 
-
+  console.log('Seed completed successfully.');
+  console.log(`Login: Alice/Bob password "${DEFAULT_PASSWORD}", Admin password "${ADMIN_PASSWORD}"`);
 }
+
 
 seed()
   .then(() => pool.end())

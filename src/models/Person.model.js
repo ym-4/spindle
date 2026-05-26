@@ -1,8 +1,9 @@
 const pool = require('./db');
 
-// GET ALL PERSONS
 module.exports.getAllPersons = async function getAllPersons() {
-  const { rows } = await pool.query('SELECT * FROM "Person"');
+  const { rows } = await pool.query(
+    'SELECT id, email, name, avatar FROM "Person"',
+  );
   return rows;
 };
 
@@ -10,7 +11,7 @@ module.exports.getAllPersons = async function getAllPersons() {
 module.exports.getPersonByID = async function getPersonByID(data) {
   const VALUES = [data.id];
   const { rows } = await pool.query(
-    'SELECT * FROM "Person" WHERE id = $1', VALUES);
+    'SELECT id, email, name, avatar FROM "Person" WHERE id = $1', VALUES);
   return rows;
 };
 
@@ -18,7 +19,7 @@ module.exports.getPersonByID = async function getPersonByID(data) {
 module.exports.getPersonByName = async function getPersonByName(data) {
   const VALUES = [data.name];
   const { rows } = await pool.query(
-    'SELECT * FROM "Person" WHERE name = $1', VALUES);
+    'SELECT id, email, name, avatar FROM "Person" WHERE name = $1', VALUES);
   return rows;
 }
 
@@ -26,7 +27,7 @@ module.exports.getPersonByName = async function getPersonByName(data) {
 module.exports.getPersonByEmail = async function getPersonByEmail(data) {
   const VALUES = [data.email];
   const { rows } = await pool.query(
-    'SELECT * FROM "Person" WHERE email = $1', VALUES);
+    'SELECT id, email, name, avatar FROM "Person" WHERE email = $1', VALUES);
   return rows;
 };
 
@@ -43,7 +44,7 @@ module.exports.insertPerson = async function insertPerson(data) {
 module.exports.login = async function login(data) {
   const VALUES = [data.name];
   const { rows } = await pool.query(
-    'SELECT * FROM "Person" WHERE name = $1', VALUES);
+    'SELECT id, email, name, avatar FROM "Person" WHERE name = $1', VALUES);
   return rows;
 };
 
@@ -53,7 +54,7 @@ module.exports.login = async function login(data) {
 module.exports.readUserByEmailAndUsername =
 async function readUserByEmailAndUsername(data) {
   const VALUES = [data.email, data.name];
-  const { rows } = await pool.query(`SELECT * FROM "Person" WHERE email = $1 OR name = $2`, VALUES);
+  const { rows } = await pool.query(`SELECT id, email, name, avatar FROM "Person" WHERE email = $1 OR name = $2`, VALUES);
   return rows;
 };
 
