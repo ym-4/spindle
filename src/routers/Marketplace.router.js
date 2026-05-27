@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createItem, getAllItems, updateItem, deleteItem } = require('../models/Marketplace.model');
+const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById } = require('../models/Marketplace.model');
 
 // Create a new item
 router.post('/', (req, res, next) => {
@@ -13,6 +13,13 @@ router.post('/', (req, res, next) => {
 // Retrieve all items
 router.get('/', (req, res, next) => {
   getAllItems()
+    .then((items) => res.status(200).json(items))
+    .catch(next);
+});
+
+// Retrieve items by user id
+router.get('/:id', (req, res, next) => {
+  getAllItemsById(req.params.id)
     .then((items) => res.status(200).json(items))
     .catch(next);
 });

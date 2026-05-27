@@ -1,10 +1,10 @@
 const pool = require('./db');
 
 // POST to user cart
-module.exports.addToCart = async function addToCart(seller_id, user_id, item_id, amount) {
+module.exports.addToCart = async function addToCart(data) {
   const { rows } = await pool.query(
-    'INSERT INTO "UserCart" (seller_id, user_id, item_id, amount) VALUES ($1, $2, $3, $4)RETURNING *',
-    [seller_id, user_id, item_id, amount]
+    'INSERT INTO "UserCart" (seller_id, user_id, item_id, amount) VALUES ($1, $2, $3, $4) RETURNING *',
+    [data.seller_id, data.user_id, data.item_id, data.amount]
   );
   return rows[0];
 };
@@ -15,4 +15,8 @@ module.exports.getAllUserCartItems = async function getAllItems() {
   return rows;
 };
 
-
+// GET ALL cart items from user by Id
+module.exports.getAllUserCartItemsById = async function getAllItemsById(id) {
+  const { rows } = await pool.query(`SELECT * FROM "UserCart" WHERE "user_id" = ${id}`);
+  return rows;
+};

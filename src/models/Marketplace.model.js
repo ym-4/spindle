@@ -8,9 +8,16 @@ module.exports.createItem = async function createItem(seller_id, name, descripti
   return rows[0];
 };
 
+// GET ALL items
 module.exports.getAllItems = async function getAllItems() {
   const { rows } = await pool.query('SELECT * FROM "MarketplaceItems"');
   return rows;
+};
+
+// GET items by id
+module.exports.getAllItemsById = async function getAllItemsById(id) {
+  const { rows } = await pool.query(`SELECT * FROM "MarketplaceItems" WHERE "id" = ${id}`);
+  return rows[0];
 };
 
 module.exports.updateItem = async function updateItem(id, data) {

@@ -86,7 +86,7 @@ function updateSummary() {
 
   inputs.forEach(card => {
     const price = parseFloat(card.textContent.replace('$', ''));
-    subtotal += price
+    subtotal += price;
   });
 
   document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
@@ -94,10 +94,14 @@ function updateSummary() {
 }
 
 async function loadCart() {
-  fetchMethod("http://localhost:3000/marketplace", (status, data) => {
+  fetchMethod(`http://localhost:3000/cart/${localStorage.loggedInUserId}`, (status, data) => {
     if (status === 200) {
       data.forEach(item => {
-        addCartItem(item.seller_id, item.id, item.name, item.description, item.price, item.quantity);
+        fetchMethod(`http://localhost:3000/marketplace/${item.item_id}`, (cartStatus, cartData) => {
+          if (status == 200) {
+            addCartItem(cartData.seller_id, cartData.id, cartData.name, cartData.description, cartData.price, cartData.quantity)
+          }
+        }, "GET");
       });
     } else {
       console.error("Failed to load cart:", status, data);
