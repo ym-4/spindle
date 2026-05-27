@@ -1,6 +1,7 @@
 //  Spindle — Home Page
 
 const API_BASE = currentUrl;
+let uploadedAttachmentUrl = null;
 
 let currentCategory = 'all';
 let savedPostIds = new Set(); 
@@ -19,6 +20,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupSearch();
   setupAuthPopup();
   protectCreatePostUI();
+
+  setupAttachmentUpload();
 });
 
 // Load saved post IDs 
@@ -201,7 +204,18 @@ function buildPostCard(post) {
 
     <span class="post-category ${getCategoryClass(post.category)}">${getCategoryLabel(post.category)}</span>
 
-    <div class="post-content">${escapeHtml(post.content)}</div>
+    <div class="post-content">
+      ${escapeHtml(post.content)}
+    </div>
+    ${post.attachment_url ? `
+      <div class="post-image-container mt-2">
+        <img
+          src="${post.attachment_url}"
+          class="img-fluid rounded post-image"
+          alt="Post attachment"
+        >
+      </div>
+    ` : ''}
 
     <div class="post-actions">
       <button class="post-action-btn like-btn" data-post-id="${post.id}">
@@ -452,7 +466,7 @@ function setupCreatePost() {
         submitBtn.disabled = false;
         showModalError(data.message || 'Failed to create post. Please try again.');
       }
-    }, 'POST', { user_id, title, category, content }, token);
+    }, 'POST', { user_id, title, category, content, attachment_url: uploadedAttachmentUrl }, token);
   });
 }
 
@@ -593,6 +607,14 @@ function clearCreatePostForm() {
   document.getElementById('postCategory').value = 'confession';
   document.getElementById('postAs').value = 'Your Name';
   document.getElementById('submitPostBtn').disabled = true;
+
+  uploadedAttachmentUrl = null;
+
+  const preview = document.getElementById('attachmentPreviewContainer');
+  if (preview) preview.innerHTML = '';
+
+  const attachmentInput = document.getElementById('postAttachment');
+  if (attachmentInput) attachmentInput.value = '';
 }
 
 function isLoggedIn() { return !!localStorage.getItem('token'); }
@@ -695,4 +717,43 @@ function renderYourGroups(groups) {
   `;
 
   container.appendChild(seeAll);
+}
+
+function setupAttachmentUpload() {
+  const input = document.getElementById('postAttachment');
+  const previewContainer = document.getElementById('attachmentPreviewContainer');
+
+  if (!input) return;
+
+  input.addEventListener('change', () => {
+    const file = input.files[0];
+
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be under 5MB.');
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      uploadedAttachmentUrl = e.target.result;
+
+      previewContainer.innerHTML = `
+        <img
+          src="${uploadedAttachmentUrl}"
+          style="
+            max-width:120px;
+            max-height:120px;
+            border-radius:12px;
+            object-fit:cover;
+          "
+        >
+      `;
+    };
+
+    reader.readAsDataURL(file);
+  });
 }

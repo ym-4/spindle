@@ -44,6 +44,7 @@ CREATE TABLE "Posts" (
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
   "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "content" TEXT NOT NULL,
+  "attachment_url" TEXT,
   CONSTRAINT "Posts_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );

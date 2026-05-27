@@ -1,4 +1,6 @@
 const express = require('express');
+const upload = require('../middlewares/upload');
+
 const { 
   getAllPost, 
   getPostByID, 
@@ -47,7 +49,7 @@ router.get('/tag/:category', (req, res, next) => {
 });
 
 // Creates new post 
-router.post('/', (req, res, next) => {
+router.post('/', upload.single('attachment'), (req, res, next) => {
   // missing required information
   if (req.body == undefined  || req.body.user_id == undefined || req.body.title == undefined || req.body.category == undefined || req.body.content == undefined) {
     res.status(400).json({"message": "Error: user_id, title, category or content is undefined"});
@@ -57,7 +59,8 @@ router.post('/', (req, res, next) => {
     user_id: req.body.user_id,
     title: req.body.title, 
     category: req.body.category, 
-    content: req.body.content
+    content: req.body.content,
+    attachment_url: req.body.attachment_url || null
   }
 
 // create post
@@ -67,7 +70,8 @@ insertPost(data)
         "user_id": data.user_id,
         "title": data.title, 
         "category": data.category,
-        "content": data.content 
+        "content": data.content,
+        "attachment_url": data.attachment_url
     }))
     .catch((error) => {
         console.error("Error insertPost: " + error);
