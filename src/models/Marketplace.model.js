@@ -29,12 +29,5 @@ module.exports.deleteItem = async function deleteItem(id) {
   return rows[0];
 };
 
-module.exports.addItemToCart = async function addItemToCart(id, data) {
-  const { rows } = await pool.query(
-    'INSERT INTO "UserCart" ("seller_id", "item_id", "amount") VALUES ($1, $2, $3, $4) WHERE "id" = $4 RETURNING *',
-    [data.seller_id, data.item_id, data.amount, id]
-  );
-  return rows[0];
-}
 
 

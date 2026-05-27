@@ -40,4 +40,12 @@ router.delete('/:id', (req, res, next) => {
     .catch(next);
 });
 
+// Add item to cart
+router.post('/add', (req, res, next) => {
+  const { seller_id, name, description, price } = req.body;
+  createItem(seller_id, name, description, price)
+    .then((item) => res.status(201).json(item))
+    .catch(next);
+});
+
 module.exports = router;
