@@ -1,16 +1,46 @@
-
 // Global variables
 let school; 
 let userId;
 let groupId;
+let fullSchoolName = [
+    { id: "cls", name: "Chemical and Life Sciences", code: "CLS" },
+    { id: "mae", name: "Mechanical & Aeronautical Engineering", code: "MAE" },
+    { id: "eee", name: "Electrical and Electronic Engineering", code: "EEE" },
+    { id: "abe", name: "Architecture and The Built Environment", code: "ABE" },
+    { id: "sb", name: "School of Business", code: "SB" },
+    { id: "mad", name: "Media, Arts & Design", code: "MAD" },
+    { id: "soc", name: "School of Computing", code: "SOC" },
+    { id: "sma", name: "Singapore Maritime Academy", code: "SMA" }
+];
+
 // Stores all user data (id, email, name, avatar)
 let users; 
 // Stores channel names
 let channels; 
 // Store current channel name
 let currChannel;
+// Store current group data
+let group;
+/* Sample data
+    creator_id: 1
+    description: "A group for SOC students to revise and share notes."
+    id: 1
+    module: "CS1010"
+    name: "SOC Study Buddies"
+    public: true
+    school: "SOC"
+*/
 
+// Store group members
+let members;
+/*
+    group_id
+    role
+    user_id
+*/
 
+// Stores the current channel messages
+let currChannelMessages;
 /*  Sample data 
     channel_name: "general"
     created_at: "2026-05-25T13:24:54.620Z"
@@ -19,10 +49,6 @@ let currChannel;
     message: "Anyone understands recursion for CS1010?"
     user_id: 2
 */
-
-// Stores the current channel messages
-let currChannelMessages;
-//
 
 
 // Stores current message clicked
@@ -82,6 +108,14 @@ let message;
     </div>
 */
 
+// Admin member 
+/*
+    <div class="d-flex align-items-center mb-2">
+        <img src="images/Groups_profile_2.png" class="rounded-circle me-2" width="30" height="30">
+        <span>Alex</span>
+    </div>
+*/
+
 window.addEventListener("DOMContentLoaded", async () => {
     // Get stored school
     school = localStorage.getItem("school");
@@ -94,6 +128,10 @@ window.addEventListener("DOMContentLoaded", async () => {
         // Fetch data
         // Fetches group channels
         await fetchGroupChannels();
+        // Fetch group details
+        await fetchGroupByGroupId();
+        // Fetch group members
+        await fetchGroupMembers();
 
         // Fetch user data 
         await fetchAllUsers();
@@ -105,7 +143,9 @@ window.addEventListener("DOMContentLoaded", async () => {
         // Display data 
         displayChannelSidebar(channels);
         displayChannelMessages(currChannelMessages);
-
+        displayGroupDetails();
+        displayAdmins();
+        
         // Add event listeners
         addEventListenerToChannels(channels);
         addEventListenerToSendMessageButton();
@@ -182,7 +222,6 @@ async function handleMessageClicked() {
 
 // Edits message
 async function handleSaveMessageButton() {
-    console.log("messagesfdsfd", message);
     console.log("save message button clicked");
 
     const newMessage = document.getElementById("editMessageInput").value.trim();
@@ -190,29 +229,38 @@ async function handleSaveMessageButton() {
     // Check that new message is not empty 
     if (newMessage == '') {
 
-        const modalElement = document.getElementById("messageModal");
-        const modal = new bootstrap.Modal(modalElement);
-        
-        // Close modal
-        modal.hide();
-
         // change to toast 
         alert("new message cannot be empty")
 
     } else {
         // Update message
-        updateGroupDiscussionMessage(message.id, newMessage);
+        await updateGroupDiscussionMessage(message.id, newMessage);
 
         // Refresh to show new message
-        refreshChannelAndChat(currChannel);
+        await refreshChannelAndChat(currChannel);
 
     }
 
 }
 
 // Deletes message
-async function handleDeleteMessageButton(message) {
+async function handleDeleteMessageButton() {
     console.log("delete message button clicked");
+
+    // MAYBE ADD CONFIRMATION FOR DELETION
+    // Delete message
+    await deleteGroupDiscussionMessage(message.id);
+
+    const modalElement = document.getElementById("messageModal");
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    
+    // Close modal
+    if (modal) {
+        modal.hide();
+    }
+
+    // Refresh to delete message
+    await refreshChannelAndChat(currChannel);
 
 }
 
@@ -295,12 +343,23 @@ function displayChannelMessages(messages) {
         const isUsers = Number(currMessage.user_id) === Number(userId);
 
         const currUser = users.find(user => user.id == currMessage.user_id);
+        
+        let role = "user";
+        let userMember = members.find(member => member.user_id === currMessage.user_id);
+
+        if (userMember.role == "admin") {
+            role = "admin"
+        } 
+
+        if (currMessage.user_id === group.creator_id) {
+            role = "creator"
+        }
 
         tempHTML += `
             <div class="msg ${isUsers ? 'msg-right' : 'msg-left'}">
 
                 <div class="meta">
-                    <b class="name">
+                    <b class="name ${role}">
                         ${isUsers ? 'You' : currUser.name || 'User'}
                     </b>
 
@@ -338,6 +397,63 @@ function displayMessageOptionsModal(message) {
 
 }
 
+function displayMembers() {
+    // NOT DONE 
+    
+}
+
+function displayAdmins() {
+
+    let adminContainer = document.getElementById("adminContainer")
+    let tempHTML = '';
+
+    let adminList = members.filter(member => member.role === "admin");
+
+    for (let i = 0; i < adminList.length; i++) {
+        let currAdminId = adminList[i].user_id;
+
+        let currAdmin = users.find(user => user.id === currAdminId);
+
+        if (currAdminId === group.creator_id) {
+            tempHTML += `
+                <div class="d-flex align-items-center mb-2">
+                    <img src="images/Groups_profile_2.png" class="rounded-circle me-2" width="30" height="30">
+                    <span class="me-3">${currAdmin.name}</span>
+                    <span class="badge rounded-pill px-3 py-2" style="background-color: #d1aa0c">
+                        <i class="bi bi-star-fill me-1"></i>
+                        Creator
+                    </span>
+                </div>
+            `;
+        } else {
+            tempHTML += `
+                <div class="d-flex align-items-center mb-2">
+                    <img src="images/Groups_profile_2.png" class="rounded-circle me-2" width="30" height="30">
+                    <span class="me-3">${currAdmin.name}</span>
+                    <span class="badge rounded-pill px-3 py-2" style="background-color: #d10c0c">
+                        Admin
+                    </span>
+                </div>
+            `;
+        }
+    }
+
+    adminContainer.innerHTML = tempHTML;
+
+}
+
+function displayGroupDetails() {
+
+    const schoolObj = fullSchoolName.find(school => school.code === group.school);
+
+    document.getElementById("bannerGroupName").innerText = group.name;
+    document.getElementById("bannerGroupDetails").innerText = `${group.module} • ${schoolObj.name} • ${members.length} members`;
+
+    document.getElementById("groupInfoDescription").innerText = group.description;
+    document.getElementById("groupInfoModule").innerText = group.module;
+    document.getElementById("groupInfoMemberCount").innerText = members.length;
+    document.getElementById("groupInfoPublicity").innerText = group.public ? "Public" : "Private";
+}
 
 // -------------------------------------------------------------------------------------
 //                              Fetch Functions  
@@ -369,7 +485,7 @@ async function fetchGroupChannels() {
     });
 }
 
-// fetch messages by channel
+// Fetch messages by channel
 async function fetchGroupDiscussionByChannel(channel_name) {
    return new Promise((resolve, reject) => {
         const url = `http://localhost:3000/groups/messages/channel/${groupId}/${channel_name}`;
@@ -442,6 +558,56 @@ async function fetchAllUsers() {
     });
 }
 
+// Fetch group details
+async function fetchGroupByGroupId() {
+   return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/group/${groupId}`;
+
+        const callback = (responseStatus, responseData) => {
+            console.log("fetchGroupByGroupId", responseData);
+
+            if (responseStatus == 200) {
+                group = responseData[0];
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './login.html';
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback);
+    });
+}
+
+// Fetch group members
+async function fetchGroupMembers() {
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/joined/${groupId}`;
+
+        const callback = (responseStatus, responseData) => {
+            console.log("fetchGroupMembers", responseData);
+
+            if (responseStatus == 200) {
+                members = responseData;
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './login.html';
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback);
+    });
+}
+
 // -------------------------------------------------------------------------------------
 //                         Create/Update/Delete Functions  
 // -------------------------------------------------------------------------------------
@@ -483,7 +649,7 @@ async function createGroupDiscussionChannel(channel_name) {
                 })
 
             // User has no permissions
-            } else if (responseStatus = 403) {
+            } else if (responseStatus == 403) {
                 reject({
                     "type": "forbidden",
                     "message": "User is not an admin"
@@ -530,7 +696,7 @@ async function createGroupDiscussionMessage(message) {
                 })
 
             // User has no permissions
-            } else if (responseStatus = 403) {
+            } else if (responseStatus == 403) {
                 reject({
                     "type": "forbidden",
                     "message": "User is not a group member"
@@ -576,7 +742,7 @@ async function updateGroupDiscussionMessage(messageId, newMessage) {
                 })
 
             // User has no permissions
-            } else if (responseStatus = 403) {
+            } else if (responseStatus == 403) {
                 reject({
                     "type": "forbidden",
                     "message": "User did not send this message"
@@ -595,7 +761,7 @@ async function updateGroupDiscussionMessage(messageId, newMessage) {
 async function deleteGroupDiscussionMessage(messageId) {
 
     return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/messages/delete/${userId}}`;
+        const url = `http://localhost:3000/groups/messages/delete/${userId}`;
 
         const data = {
             id: messageId
@@ -631,13 +797,14 @@ async function deleteGroupDiscussionMessage(messageId) {
             }
         };
 
-        fetchMethod(url, callback, "DELETE", requestData);
+        fetchMethod(url, callback, "DELETE", data);
 
     })
 }
 
 async function deleteGroupDiscussionChannel() {
     // BACKEND ROUTE NOT DONE
+    
 }
 
 // -------------------------------------------------------------------------------------
@@ -700,6 +867,12 @@ async function refreshChannelAndChat(channelName) {
     // Fetch channels
     await fetchGroupChannels();
 
+    // Fetch Group 
+    await fetchGroupMembers();
+
+    // Fetch Group members
+    await fetchGroupMembers();
+
     // Fetch messages from that channel
     await fetchGroupDiscussionByChannel(currChannel);
 
@@ -708,6 +881,13 @@ async function refreshChannelAndChat(channelName) {
 
     // Display messages from that channel
     displayChannelMessages(currChannelMessages);
+
+    // Display Group details 
+    displayGroupDetails();
+
+    // Display admins
+    displayAdmins();
+
 
     // add event listeners again 
     addEventListenerToChannels(channels);
