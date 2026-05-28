@@ -21,7 +21,7 @@ const app = express();
 app.use(cors()); // Might remove later
 
 // Parse incoming JSON request bodies (e.g. from POST/PUT requests)
-app.use(express.json());
+app.use(express.json({limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files (HTML, CSS, JS, images) from the 'public' folder.
@@ -40,7 +40,7 @@ app.use('/search', searchRouter);
 app.use('/groups', groupRouter);
 app.use('/marketplace', marketplaceRouter);
 
-app.use('/uploads', express.static('public/uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // 404 handler — if no route above matched the request,
 // create a 404 error and pass it to the error handler below.

@@ -454,19 +454,55 @@ function setupCreatePost() {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Posting...';
 
-    fetchMethod(`${API_BASE}/posts`, (status, data) => {
+    const formData = new FormData();
+
+    formData.append('user_id', user_id);
+    formData.append('title', title);
+    formData.append('category', category);
+    formData.append('content', content);
+
+    const attachmentInput = document.getElementById('postAttachment');
+
+    if (attachmentInput.files[0]) {
+      formData.append('attachment', attachmentInput.files[0]);
+    }
+
+    fetch(`${API_BASE}/posts`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    })
+    .then(async (response) => {
+      const data = await response.json();
+
       submitBtn.textContent = 'Post';
-      if (status === 201) {
-        bootstrap.Modal.getInstance(document.getElementById('createPostModal')).hide();
+
+      if (response.status === 201) {
+        bootstrap.Modal
+          .getInstance(document.getElementById('createPostModal'))
+          .hide();
+
         clearCreatePostForm();
         validateForm();
+
         if (currentCategory === 'all') loadPosts();
         else loadPostsByCategory(currentCategory);
+
       } else {
         submitBtn.disabled = false;
-        showModalError(data.message || 'Failed to create post. Please try again.');
+        showModalError(data.message || 'Failed to create post.');
       }
-    }, 'POST', { user_id, title, category, content, attachment_url: uploadedAttachmentUrl }, token);
+    })
+    .catch((err) => {
+      console.error(err);
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Post';
+
+      showModalError('Upload failed.');
+    });
   });
 }
 
@@ -739,11 +775,9 @@ function setupAttachmentUpload() {
     const reader = new FileReader();
 
     reader.onload = function (e) {
-      uploadedAttachmentUrl = e.target.result;
-
       previewContainer.innerHTML = `
         <img
-          src="${uploadedAttachmentUrl}"
+          src="${e.target.result}"
           style="
             max-width:120px;
             max-height:120px;

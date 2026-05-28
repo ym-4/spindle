@@ -174,11 +174,11 @@ module.exports.insertPost = async function insertPost(data) {
 
 // update post by ID (owner only)
 module.exports.updatePostByID = async function updatePostByID(data) {
-  const VALUES = [data.title, data.content, data.category, data.id];
+  const VALUES = [data.title, data.content, data.category, data.attachment_url, data.id];
+
   const { rows } = await pool.query(
-    'UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3 WHERE "id" = $4 RETURNING *',
-    VALUES
-  );
+    `UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4,"updated_at" = CURRENT_TIMESTAMP WHERE "id" = $5 RETURNING *`, VALUES);
+
   return rows[0];
 };
 

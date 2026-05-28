@@ -50,55 +50,69 @@ router.get('/tag/:category', (req, res, next) => {
 
 // Creates new post 
 router.post('/', upload.single('attachment'), (req, res, next) => {
-  // missing required information
-  if (req.body == undefined  || req.body.user_id == undefined || req.body.title == undefined || req.body.category == undefined || req.body.content == undefined) {
-    res.status(400).json({"message": "Error: user_id, title, category or content is undefined"});
+  if (
+    req.body == undefined || req.body.user_id == undefined || req.body.title == undefined || req.body.category == undefined || req.body.content == undefined) 
+  {
+    res.status(400).json({message: 'Error: user_id, title, category or content is undefined'});
     return;
   }
+
+  const attachmentUrl = req.file
+    ? `/uploads/${req.file.filename}`
+    : null;
+
   const data = {
     user_id: req.body.user_id,
-    title: req.body.title, 
-    category: req.body.category, 
+    title: req.body.title,
+    category: req.body.category,
     content: req.body.content,
-    attachment_url: req.body.attachment_url || null
-  }
+    attachment_url: attachmentUrl
+  };
 
-// create post
-insertPost(data)
+  insertPost(data)
     .then(results => res.status(201).json({
-        "id": results.id, 
-        "user_id": data.user_id,
-        "title": data.title, 
-        "category": data.category,
-        "content": data.content,
-        "attachment_url": data.attachment_url
+      id: results.id,
+      user_id: data.user_id,
+      title: data.title,
+      category: data.category,
+      content: data.content,
+      attachment_url: data.attachment_url
     }))
     .catch((error) => {
-        console.error("Error insertPost: " + error);
-        res.status(500).json(error);
-    })
+      console.error('Error insertPost:', error);
+      res.status(500).json(error);
+    });
 });
 
 // Update post (owner only) 
-router.put('/:id', (req, res, next) => {
+router.put('/:id', upload.single('attachment'), (req, res, next) => {
+  const attachmentUrl = req.file
+    ? `/uploads/${req.file.filename}`
+    : req.body.attachment_url || null;
+
   const data = {
     id: req.params.id,
     title: req.body.title,
     content: req.body.content,
-    category: req.body.category
-  }
+    category: req.body.category,
+    attachment_url: attachmentUrl
+  };
 
   updatePostByID(data)
     .then((results) => {
+
       if (!results) {
-        return res.status(404).json({ error: 'Post not found' });
+        return res.status(404).json({
+          error: 'Post not found'
+        });
       }
+
       res.status(200).json(results);
     })
     .catch((error) => {
-        console.error("Error updatePostByID: " + error);
-        res.status(500).json(error);
-    })
+      console.error('Error updatePostByID:', error);
+      res.status(500).json(error);
+    });
 });
 
 // delete post (owner only)

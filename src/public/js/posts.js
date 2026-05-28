@@ -222,6 +222,7 @@ function renderPost(post) {
 
       ${post.title ? `<div class="fw-bold mt-2 mb-1" style="font-size:1.05rem;">${escapeHtml(post.title)}</div>` : ''}
       <div class="post-content">${escapeHtml(post.content)}</div>
+      ${renderPostAttachment(post)}
 
       <div class="post-actions">
         <button 
@@ -252,7 +253,6 @@ function renderPost(post) {
 
     // save / unsave
     const saveBtn = document.querySelector('.save-post-btn');
-
     if (saveBtn) {
       saveBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -693,6 +693,66 @@ function getAuthorName(post) {
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function renderPostAttachment(post) {
+  if (!post.attachment_url) return '';
+
+  const fileUrl = post.attachment_url.toLowerCase();
+
+  // image extensions
+  const isImage =
+    fileUrl.endsWith('.png') ||
+    fileUrl.endsWith('.jpg') ||
+    fileUrl.endsWith('.jpeg') ||
+    fileUrl.endsWith('.gif') ||
+    fileUrl.endsWith('.webp');
+
+  // video extensions
+  const isVideo =
+    fileUrl.endsWith('.mp4') ||
+    fileUrl.endsWith('.webm') ||
+    fileUrl.endsWith('.mov');
+
+  if (isImage) {
+    return `
+      <div class="post-attachment mt-3">
+        <img
+          src="${post.attachment_url}"
+          alt="Post attachment"
+          class="img-fluid rounded"
+          style="width:100%; max-height:500px; object-fit:cover;"
+        >
+      </div>
+    `;
+  }
+
+  if (isVideo) {
+    return `
+      <div class="post-attachment mt-3">
+        <video
+          controls
+          class="w-100 rounded"
+          style="max-height:500px;"
+        >
+          <source src="${post.attachment_url}">
+        </video>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="post-attachment mt-3">
+      <a
+        href="${post.attachment_url}"
+        target="_blank"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        <i class="fas fa-paperclip me-2"></i>
+        Open attachment
+      </a>
+    </div>
+  `;
 }
 
 //reactions
