@@ -98,7 +98,7 @@
             <!-- Create Post Box -->
             <div class="create-post-box">
                 <div class="create-post-input">
-                    <div class="post-avatar">U</div>
+                    <div class="post-avatar" id="createPostAvatar">&#x1F43C;</div>
                     <input type="text" placeholder="What's on your mind?" readonly style="cursor:pointer;">
                 </div>
                 <div class="create-post-options">
@@ -254,11 +254,12 @@
                                     Post as
                                 </label>
 
-                                <select class="form-select modern-select"
-                                        id="postAs">
-                                    <option value="Your Name">Your Name</option>
-                                    <option value="Anonymous">Anonymous</option>
-                                </select>
+                                <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="postAnonymous">
+                                <label class="form-check-label" for="postAnonymous">
+                                    Post anonymously
+                                </label>
+                                </div>
                             </div>
 
                         </div>

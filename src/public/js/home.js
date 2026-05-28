@@ -7,6 +7,7 @@ let currentCategory = 'all';
 let savedPostIds = new Set(); 
 
 document.addEventListener('DOMContentLoaded', async () => {
+  setupCreatePostAvatar();
   await loadUserReactions();
 
   loadSavedIds().then(() => {
@@ -134,17 +135,37 @@ function formatTimestamp(createdAt, updatedAt) {
 function getCategoryLabel(category) {
   return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[category] || category;
 }
+
 function getCategoryClass(category) {
   return { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[category] || '';
 }
+
 function getAvatarInitial(post) {
-  if (post.category === 'confession') return 'A';
-  if (post.author_name) return post.author_name.charAt(0).toUpperCase();
+  if (post.is_anonymous) return 'A';
+  if (post.author_name) {
+    return post.author_name.charAt(0).toUpperCase();
+  }
   return 'U';
 }
+
 function getAuthorName(post) {
-  if (post.category === 'confession') return 'Anonymous';
+  if (post.is_anonymous) {
+    return 'Anonymous';
+  }
   return post.author_name || `User ${post.user_id}`;
+}
+
+function setupCreatePostAvatar() {
+  const avatar = document.getElementById('createPostAvatar');
+
+  if (!avatar) return;
+
+  const displayName = localStorage.getItem('displayName');
+  if (displayName && displayName.trim()) {
+    avatar.textContent = displayName.charAt(0).toUpperCase();
+  } else {
+    avatar.textContent = '\uD83D\uDC3C';
+  }
 }
 
 // post card
@@ -448,6 +469,7 @@ function setupCreatePost() {
     const content  = contentInput.value.trim();
     const user_id  = localStorage.getItem('loggedInUserId');
     const token    = localStorage.getItem('token');
+    const isAnonymous = document.getElementById('postAnonymous').checked;
 
     if (!token) { window.location.href = 'login.html'; return; }
 
@@ -460,6 +482,7 @@ function setupCreatePost() {
     formData.append('title', title);
     formData.append('category', category);
     formData.append('content', content);
+    formData.append('is_anonymous', isAnonymous);
 
     const attachmentInput = document.getElementById('postAttachment');
 
@@ -506,6 +529,7 @@ function setupCreatePost() {
   });
 }
 
+// searchbar
 function setupSearch() {
   const input = document.getElementById('searchInput');
   if (!input) return;
@@ -562,6 +586,7 @@ function renderSearchResults(results, query) {
     else if (result.result_type === 'user') container.appendChild(buildUserResult(result));
   });
 }
+
 
 function buildGroupResult(group) {
   const el = document.createElement('div');
@@ -641,7 +666,7 @@ function clearCreatePostForm() {
   document.getElementById('postTitle').value = '';
   document.getElementById('postContent').value = '';
   document.getElementById('postCategory').value = 'confession';
-  document.getElementById('postAs').value = 'Your Name';
+  document.getElementById('postAnonymous').checked = false;
   document.getElementById('submitPostBtn').disabled = true;
 
   uploadedAttachmentUrl = null;

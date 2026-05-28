@@ -1,6 +1,9 @@
 const express = require('express');
 const upload = require('../middlewares/upload');
 
+const fs = require("fs");
+const path = require("path");
+
 const { 
   getAllPost, 
   getPostByID, 
@@ -66,7 +69,8 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
     title: req.body.title,
     category: req.body.category,
     content: req.body.content,
-    attachment_url: attachmentUrl
+    attachment_url: attachmentUrl,
+    is_anonymous: req.body.is_anonymous === 'true'
   };
 
   insertPost(data)
@@ -86,27 +90,56 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
 
 // Update post (owner only) 
 router.put('/:id', upload.single('attachment'), (req, res, next) => {
-  const attachmentUrl = req.file
-    ? `/uploads/${req.file.filename}`
-    : req.body.attachment_url || null;
+  let attachmentUrl = req.body.attachment_url || null;
 
-  const data = {
-    id: req.params.id,
-    title: req.body.title,
-    content: req.body.content,
-    category: req.body.category,
-    attachment_url: attachmentUrl
-  };
-
-  updatePostByID(data)
-    .then((results) => {
-
-      if (!results) {
+  getPostByID({ id: req.params.id })
+    .then((existingPost) => {
+      if (!existingPost) {
         return res.status(404).json({
           error: 'Post not found'
         });
       }
 
+      attachmentUrl = existingPost.attachment_url;
+
+      if (req.body.remove_attachment === 'true') {
+        if (existingPost.attachment_url) {
+          const oldPath = path.join(process.cwd(), 'src', 'public', existingPost.attachment_url.replace(/^\/+/, ''));
+
+          fs.unlink(oldPath, (err) => {
+            if (err) {
+              console.log('Old file delete skipped:', err.message);
+            }
+          });
+        }
+        attachmentUrl = null;
+      }
+      if (req.file) {
+        if (existingPost.attachment_url) {
+          const oldPath = path.join(process.cwd(), 'src', 'public', existingPost.attachment_url.replace(/^\/+/, ''));
+
+          fs.unlink(oldPath, (err) => {
+            if (err) {
+              console.log('Old file delete skipped:', err.message);
+            }
+          });
+        }
+        attachmentUrl = `/uploads/${req.file.filename}`;
+      }
+
+      const data = {
+        id: req.params.id,
+        title: req.body.title,
+        content: req.body.content,
+        category: req.body.category,
+        attachment_url: attachmentUrl
+      };
+      return updatePostByID(data);
+    })
+    .then((results) => {
+      if (!results) {
+        return res.status(404).json({error: 'Post not found'});
+      }
       res.status(200).json(results);
     })
     .catch((error) => {

@@ -108,8 +108,21 @@ function buildSavedPostCard(post, saveRow) {
     </div>
 
     <span class="post-category ${getCategoryClass(post.category)}">${getCategoryLabel(post.category)}</span>
-
     <div class="post-content">${escapeHtml(post.content)}</div>
+    ${post.attachment_url ? `
+      <div class="post-attachment mt-2">
+        ${
+          post.attachment_url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+            ? `
+              <img src="${currentUrl}${post.attachment_url}" alt="Post attachment" class="img-fluid rounded post-image">`
+            : `
+              <video controls class="img-fluid rounded post-video">
+                <source src="${currentUrl}${post.attachment_url}">
+              </video>
+            `
+        }
+      </div>
+    ` : ''}
 
     <div class="post-actions">
       <button class="post-action-btn like-btn" data-liked="false">

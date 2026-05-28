@@ -332,6 +332,39 @@ function renderPostEditMode(post) {
           placeholder="Post content">${escapeHtml(post.content || '')}</textarea>
       </div>
 
+      <div class="mb-3">
+        <label class="form-label fw-semibold">
+          Attachment
+        </label>
+        <!-- current attachment preview -->
+        <div id="currentAttachmentPreview" class="mb-2">
+          ${renderEditAttachmentPreview(post)}
+        </div>
+        <!-- upload new file -->
+        <input
+          type="file"
+          class="form-control"
+          id="editAttachment"
+          accept="image/*,video/*">
+        <!-- remove checkbox -->
+        ${
+          post.attachment_url
+            ? `
+              <div class="form-check mt-2">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="removeAttachment"
+                >
+                <label class="form-check-label" for="removeAttachment">
+                  Remove current attachment
+                </label>
+              </div>
+            `
+            : ''
+        }
+      </div>
+
       <div id="editError" class="alert alert-danger py-2 d-none"></div>
 
       <div class="d-flex gap-2 justify-content-end">
@@ -351,33 +384,87 @@ function renderPostEditMode(post) {
     const title    = document.getElementById('editTitle').value.trim();
     const content  = document.getElementById('editContent').value.trim();
     const category = document.getElementById('editCategory').value;
-    const errEl    = document.getElementById('editError');
 
-    if (!title)   { errEl.textContent = 'Title cannot be empty.';   errEl.classList.remove('d-none'); return; }
-    if (!content) { errEl.textContent = 'Content cannot be empty.'; errEl.classList.remove('d-none'); return; }
+    const attachmentInput = document.getElementById('editAttachment');
+
+    const removeAttachmentCheckbox =
+      document.getElementById('removeAttachment');
+
+    const errEl = document.getElementById('editError');
+
+    if (!title) {
+      errEl.textContent = 'Title cannot be empty.';
+      errEl.classList.remove('d-none');
+      return;
+    }
+
+    if (!content) {
+      errEl.textContent = 'Content cannot be empty.';
+      errEl.classList.remove('d-none');
+      return;
+    }
+
     errEl.classList.add('d-none');
 
     const token   = localStorage.getItem('token');
     const user_id = localStorage.getItem('loggedInUserId');
+
     const saveBtn = document.getElementById('saveEditBtn');
 
     saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
 
-    fetchMethod(`${currentUrl}/posts/${post.id}`, (status, data) => {
+    const formData = new FormData();
+    formData.append('user_id', user_id);
+    formData.append('title', title);
+    formData.append('content', content);
+    formData.append('category', category);
+
+    // new uploaded file
+    if (attachmentInput.files.length > 0) {
+      formData.append('attachment', attachmentInput.files[0]);
+    }
+    // remove current attachment
+    if (removeAttachmentCheckbox && removeAttachmentCheckbox.checked) {
+      formData.append('remove_attachment', 'true');
+    }
+
+    fetch(`${currentUrl}/posts/${post.id}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    })
+    .then(async (res) => {
+      const data = await res.json();
+
       saveBtn.disabled = false;
       saveBtn.textContent = 'Save changes';
 
-      if (status === 200) {
+      if (res.ok) {
         const url = new URL(window.location.href);
         url.searchParams.delete('edit');
+
         window.history.replaceState({}, '', url);
-        renderPost({ ...post, title, content, category, updated_at: new Date().toISOString() });
+        loadPost(post.id);
+
       } else {
-        errEl.textContent = data.message || 'Failed to save changes.';
+        errEl.textContent =
+          data.message || 'Failed to save changes.';
+
         errEl.classList.remove('d-none');
       }
-    }, 'PUT', { user_id, title, category, content }, token);
+    })
+    .catch((err) => {
+      console.error(err);
+
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save changes';
+
+      errEl.textContent = 'Something went wrong.';
+      errEl.classList.remove('d-none');
+    });
   });
 }
 
@@ -680,13 +767,17 @@ function getCategoryLabel(c) { return { confession: 'Confession', qna: 'Q&A', ge
 function getCategoryClass(c)  { return { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[c] || ''; }
 
 function getAvatarInitial(post) {
-  if (post.category === 'confession') return 'A';
-  if (post.author_name) return post.author_name.charAt(0).toUpperCase();
+  if (post.is_anonymous) return 'A';
+  if (post.author_name) {
+    return post.author_name.charAt(0).toUpperCase();
+  }
   return 'U';
 }
 
 function getAuthorName(post) {
-  if (post.category === 'confession') return 'Anonymous';
+  if (post.is_anonymous) {
+    return 'Anonymous';
+  }
   return post.author_name || `User ${post.user_id}`;
 }
 
@@ -752,6 +843,62 @@ function renderPostAttachment(post) {
         Open attachment
       </a>
     </div>
+  `;
+}
+
+function renderEditAttachmentPreview(post) {
+  if (!post.attachment_url) {
+    return `
+      <div class="text-muted small">
+        No attachment uploaded
+      </div>
+    `;
+  }
+
+  const fileUrl = post.attachment_url.toLowerCase();
+
+  const isImage =
+    fileUrl.endsWith('.png') ||
+    fileUrl.endsWith('.jpg') ||
+    fileUrl.endsWith('.jpeg') ||
+    fileUrl.endsWith('.gif') ||
+    fileUrl.endsWith('.webp');
+
+  const isVideo =
+    fileUrl.endsWith('.mp4') ||
+    fileUrl.endsWith('.webm') ||
+    fileUrl.endsWith('.mov');
+
+  if (isImage) {
+    return `
+      <img
+        src="${post.attachment_url}"
+        class="img-fluid rounded"
+        style="max-height:220px;"
+      >
+    `;
+  }
+
+  if (isVideo) {
+    return `
+      <video
+        controls
+        class="rounded"
+        style="max-height:220px; width:100%;"
+      >
+        <source src="${post.attachment_url}">
+      </video>
+    `;
+  }
+
+  return `
+    <a
+      href="${post.attachment_url}"
+      target="_blank"
+      class="btn btn-outline-secondary btn-sm"
+    >
+      Open current attachment
+    </a>
   `;
 }
 

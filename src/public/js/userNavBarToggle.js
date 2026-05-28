@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
   logoutButton.addEventListener('click', function () {
     localStorage.removeItem('token');
     localStorage.removeItem('loggedInUserId');
+    localStorage.removeItem('displayName');
     window.location.href = 'index.html';
   });
 });

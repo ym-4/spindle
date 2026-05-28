@@ -45,6 +45,7 @@ CREATE TABLE "Posts" (
   "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "content" TEXT NOT NULL,
   "attachment_url" TEXT,
+  "is_anonymous" BOOLEAN DEFAULT FALSE,
   CONSTRAINT "Posts_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );

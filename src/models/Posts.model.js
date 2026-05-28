@@ -12,6 +12,7 @@ module.exports.getAllPost = async function getAllPost() {
     p.attachment_url,
     p.created_at,
     p.updated_at,
+    p.is_anonymous,
     per.name AS author_name,
 
     COUNT(DISTINCT pc.id)::int AS comment_count,
@@ -64,6 +65,7 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.attachment_url,
       p.created_at,
       p.updated_at,
+      p.is_anonymous,
 
       per.name AS author_name,
 
@@ -117,6 +119,7 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.attachment_url,
       p.created_at,
       p.updated_at,
+      p.is_anonymous,
 
       per.name AS author_name,
 
@@ -167,8 +170,8 @@ module.exports.getPostByUserID = async function getPostByUserID(data) {
 
 // Create new post
 module.exports.insertPost = async function insertPost(data) {
-  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url];
-  const { rows } = await pool.query('INSERT INTO "Posts" (user_id, title, category, content, attachment_url) VALUES ($1, $2, $3, $4, $5) RETURNING id', VALUES);
+  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.is_anonymous];
+  const { rows } = await pool.query('INSERT INTO "Posts" (user_id, title, category, content, attachment_url, is_anonymous) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id', VALUES);
   return rows[0]; 
 }
 
