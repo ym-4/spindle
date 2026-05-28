@@ -20,3 +20,12 @@ module.exports.getAllUserCartItemsById = async function getAllItemsById(id) {
   const { rows } = await pool.query(`SELECT * FROM "UserCart" WHERE "user_id" = ${id}`);
   return rows;
 };
+
+// DELETE an item in a user cart by id
+module.exports.removeCartItem = async function removeCartItem(id, user_id) {
+  const { rows } = await pool.query(
+    'DELETE FROM "UserCart" WHERE "item_id" = $1 AND "user_id" = $2 RETURNING *',
+    [id, user_id]
+  );
+  return rows[0];
+};

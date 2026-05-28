@@ -76,6 +76,11 @@ function addCartItem(seller_id, id, name, description, price, quantity = 1) {
     </div>
   `;
 
+  card.querySelector(".remove-btn").addEventListener("click", () => {
+    removeFromCart(id, localStorage.loggedInUserId);
+    location.reload();
+  });
+
   container.appendChild(card);
   updateSummary();
 }

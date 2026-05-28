@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addToCart, getAllUserCartItems, getAllUserCartItemsById } = require('../models/Cart.model');
+const { addToCart, getAllUserCartItems, getAllUserCartItemsById, removeCartItem } = require('../models/Cart.model');
 
 // Retrieve all items
 router.get('/', (req, res, next) => {
@@ -33,6 +33,18 @@ router.post('/add/:user_id', (req, res, next) => {
 
   addToCart(data)
     .then((item) => res.status(201).json(item))
+    .catch(next);
+});
+
+// Remove item from cart
+router.delete('/remove/:id/:user_id', (req, res, next) => {
+  const id = Number(req.params.id);
+  const user_id = Number(req.params.user_id);
+  removeCartItem(id, user_id)
+    .then((item) => {
+      if (!item) return res.status(404).json({ error: 'Item not found' });
+      res.status(200).json(item);
+    })
     .catch(next);
 });
 
