@@ -21,6 +21,15 @@ module.exports.getAllUserCartItemsById = async function getAllItemsById(id) {
   return rows;
 };
 
+// UPDATE a cart item from user by id
+module.exports.updateCartItem = async function updateCartItem(data) {
+  const { rows } = await pool.query(
+    'UPDATE "UserCart" SET "amount" = $1 WHERE "item_id" = $2 AND "user_id" = $3 RETURNING *',
+    [data.new_amount, data.item_id, data.user_id],
+  );
+  return rows[0];
+};
+
 // DELETE an item in a user cart by id
 module.exports.removeCartItem = async function removeCartItem(id, user_id) {
   const { rows } = await pool.query(

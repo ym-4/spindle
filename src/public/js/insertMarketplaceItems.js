@@ -47,7 +47,7 @@ async function loadListings() {
   });
 }
 
-function addCartItem(seller_id, id, name, description, price, quantity = 1) {
+function addCartItem(seller_id, id, name, description, price, quantity) {
   const container = document.querySelector('.cart-container');
   const card = document.createElement('div');
   card.setAttribute('data-seller-id', seller_id);
@@ -67,9 +67,11 @@ function addCartItem(seller_id, id, name, description, price, quantity = 1) {
         </div>
         <div class="col-md-3 text-center">
           <button class="btn btn-outline-danger btn-sm remove-btn">Remove</button>
-          <div class="input-group justify-content-center mt-3">
-            <input type="number" class="form-control text-center qty-input"
-              value="1" min="1" max="99" style="max-width: 60px;" />
+          <button class="btn btn-outline-secondary btn-sm edit-btn d-block mt-2 mx-auto">Edit</button>
+          <div class="card-quantity-container">
+            <div class="input-group justify-content-center mt-3 card-quantity">
+              ${quantity}
+            </div>
           </div>
         </div>
       </div>
@@ -79,6 +81,27 @@ function addCartItem(seller_id, id, name, description, price, quantity = 1) {
   card.querySelector(".remove-btn").addEventListener("click", () => {
     removeFromCart(id, localStorage.loggedInUserId);
     location.reload();
+  });
+
+  card.querySelector('.edit-btn').addEventListener("click", () => {
+    const modal = document.getElementById("editCartModal");
+
+    // Pre-fill the quantity input with the current quantity
+    modal.querySelector("#editQuantity").value = quantity;
+
+    // Save button handler
+    modal.querySelector("#editSaveBtn").onclick = () => {
+      const newQuantity = parseInt(modal.querySelector("#editQuantity").value);
+      if (newQuantity < 1) return;
+
+      // TODO: call your update function here, e.g.:  
+      // updateCartItem(id, localStorage.loggedInUserId, newQuantity);
+
+      bootstrap.Modal.getInstance(modal).hide();
+      location.reload();
+    };
+
+    new bootstrap.Modal(modal).show();
   });
 
   container.appendChild(card);
@@ -91,7 +114,9 @@ function updateSummary() {
 
   inputs.forEach(card => {
     const price = parseFloat(card.textContent.replace('$', ''));
-    subtotal += price;
+    const quantity = Number(document.querySelector('.card-quantity').innerHTML);
+    console.log(quantity);
+    subtotal += price * quantity;
   });
 
   document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
@@ -104,7 +129,7 @@ async function loadCart() {
       data.forEach(item => {
         fetchMethod(`http://localhost:3000/marketplace/${item.item_id}`, (cartStatus, cartData) => {
           if (status == 200) {
-            addCartItem(cartData.seller_id, cartData.id, cartData.name, cartData.description, cartData.price, cartData.quantity)
+            addCartItem(cartData.seller_id, cartData.id, cartData.name, cartData.description, cartData.price, item.amount)
           }
         }, "GET");
       });
