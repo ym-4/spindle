@@ -7,7 +7,8 @@ const path = require("path");
 const { 
   getAllPost, 
   getPostByID, 
-  getPostByCategory, 
+  getPostByCategory,
+  getRelatedPosts, 
   insertPost,
   updatePostByID,
   deletePostByID,
@@ -17,7 +18,8 @@ const {
   getReactionByUserID,
   insertLike,
   updateReaction,
-  deleteReaction
+  deleteReaction,
+  insertReport
 } = require('../models/Posts.model');
 
 const router = express.Router();
@@ -48,6 +50,18 @@ router.get('/tag/:category', (req, res, next) => {
 
   getPostByCategory(data)
     .then((post) => res.status(200).json(post))
+    .catch(next);
+});
+
+// Get 3 random related posts
+router.get('/related/:category/:id', (req, res, next) => {
+  const data = {
+    category: req.params.category,
+    id: req.params.id
+  };
+
+  getRelatedPosts(data)
+    .then((posts) => res.status(200).json(posts))
     .catch(next);
 });
 
@@ -297,6 +311,30 @@ router.delete('/reaction/:id', (req, res, next) => {
         console.error("Error deleteReaction: " + error);
         res.status(500).json(error);
     })
+});
+
+// Report a post
+router.post('/:id/report', (req, res, next) => {
+  if (!req.body.user_id || !req.body.reason) {
+    return res.status(400).json({ message: 'user_id and reason not found.' });
+  }
+
+  const data = {
+    post_id: req.params.id,
+    user_id: req.body.user_id,
+    reason:  req.body.reason
+  };
+
+  insertReport(data)
+    .then((result) => res.status(201).json(result))
+    .catch((error) => {
+      // Unique constraint violation if user already reported this post
+      if (error.code === '23505') {
+        return res.status(409).json({ message: 'You have already reported this post.' });
+      }
+      console.error('Error insertReport:', error);
+      res.status(500).json({ message: 'Failed to submit report.' });
+    });
 });
 
 module.exports = router;

@@ -110,8 +110,7 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
   const VALUES = [data.category];
 
   const { rows } = await pool.query(`
-    SELECT 
-      p.id,
+    SELECT p.id,
       p.user_id,
       p.title,
       p.category,
@@ -158,6 +157,21 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
     ORDER BY p.created_at DESC
   `, VALUES);
 
+  return rows;
+};
+
+// GET related posts (3 random post form the same category)
+module.exports.getRelatedPosts = async function getRelatedPosts(data) {
+  const VALUES = [data.category, data.id];
+
+  const { rows } = await pool.query(
+    `SELECT p.id, p.title, p.category, p.is_anonymous, u.name AS author_name,
+      (SELECT COUNT(*) FROM "PostComments" pc WHERE pc.post_id = p.id) AS comment_count
+    FROM "Posts" p
+    LEFT JOIN "Person" u ON p.user_id = u.id
+    WHERE p.category = $1 AND p.id != $2
+    ORDER BY RANDOM()
+    LIMIT 3`, VALUES);
   return rows;
 };
 
@@ -246,3 +260,10 @@ module.exports.deleteReaction = async function deleteReaction(data) {
   const { rows } = await pool.query('DELETE FROM "PostReactions" WHERE "id" = $1 and "user_id" = $2 RETURNING *', VALUES);
   return rows[0];
 };
+
+// reporting a post
+module.exports.insertReport = async function insertReport(data) {
+  const VALUES = [data.post_id, data.user_id, data.reason];
+  const { rows } = await pool.query('INSERT INTO "Reports" (post_id, user_id, reason) VALUES ($1, $2, $3) RETURNING *', VALUES);
+  return rows[0]; 
+}

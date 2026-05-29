@@ -268,6 +268,10 @@ function buildPostCard(post) {
   });
 
   card.querySelector('.post-menu-btn').addEventListener('click', (e) => e.stopPropagation());
+  card.querySelector('.share-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    openShareDropdown(e.currentTarget, post.id);
+  });
   const likeBtn = card.querySelector('.like-btn');
   const dislikeBtn = card.querySelector('.dislike-btn');
 
@@ -316,7 +320,7 @@ function buildPostCard(post) {
         showAuthPopup();
         return;
       }
-      alert('Report functionality  WIP.');
+      openReportModal(post.id);
     });
   }
   
@@ -724,59 +728,74 @@ function protectCreatePostUI() {
 
 function loadYourGroups() {
   const userId = localStorage.getItem('loggedInUserId');
+  const section  = document.getElementById('yourGroupsSection');
+  const divider  = document.getElementById('yourGroupsDivider');
+
+  // signed out display
   if (!userId) return;
+
+  // signed in display
+  if (section) section.style.display = 'block';
+  if (divider) divider.style.display = 'block';
 
   fetchMethod(`${API_BASE}/groups/creator/${userId}`, (status, data) => {
     if (status !== 200) return;
-
     renderYourGroups(data || []);
   });
 }
 
 function renderYourGroups(groups) {
   const container = document.getElementById('yourGroupsContainer');
-
   if (!container) return;
 
   container.innerHTML = '';
 
   if (!groups.length) {
-    container.innerHTML = `
-      <div class="sidebar-item text-muted">
-        <span>No groups yet</span>
-      </div>
+    // no study groups yet
+    const emptyState = document.createElement('a');
+    emptyState.href      = 'groups.html';
+    emptyState.className = 'sidebar-item d-flex align-items-center text-decoration-none';
+    emptyState.style.cssText = `
+      border: 1.5px dashed var(--border-color);
+      border-radius: 10px;
+      margin: 0.25rem 0.5rem;
+      color: var(--text-secondary);
+      transition: border-color 0.2s, color 0.2s;
     `;
+    emptyState.innerHTML = `
+      <i class="fas fa-plus-circle me-2" style="font-size:1.2rem; color:var(--primary-color);"></i>
+      <span style="font-size:0.9rem; font-weight:600;">Join study groups</span>
+    `;
+    emptyState.addEventListener('mouseenter', () => {
+      emptyState.style.borderColor = 'var(--primary-color)';
+      emptyState.style.color       = 'var(--primary-color)';
+    });
+    emptyState.addEventListener('mouseleave', () => {
+      emptyState.style.borderColor = 'var(--border-color)';
+      emptyState.style.color       = 'var(--text-secondary)';
+    });
+    container.appendChild(emptyState);
     return;
   }
 
   groups.forEach(group => {
     const item = document.createElement('a');
-
-    item.href = `study-groups.html?id=${group.id}`;
+    item.href      = `groups.html?id=${group.id}`;
     item.className = 'sidebar-item';
-
     item.innerHTML = `
-      <i class="fas fa-circle"
-         style="font-size:0.5rem; color:#1877f2;">
-      </i>
-
+      <i class="fas fa-circle" style="font-size:0.5rem; color:#1877f2;"></i>
       <span>${escapeHtml(group.name)}</span>
     `;
-
     container.appendChild(item);
   });
 
-  // See all groups button
   const seeAll = document.createElement('a');
-
-  seeAll.href = 'groups.html';
+  seeAll.href      = 'groups.html';
   seeAll.className = 'sidebar-item';
-
   seeAll.innerHTML = `
     <i class="fas fa-plus-circle"></i>
     <span>See all groups</span>
   `;
-
   container.appendChild(seeAll);
 }
 
@@ -815,4 +834,166 @@ function setupAttachmentUpload() {
 
     reader.readAsDataURL(file);
   });
+}
+
+// Share dropdown
+let activeShareDropdown = null;
+
+function openShareDropdown(btn, postId) {
+  // Close any already-open dropdown
+  if (activeShareDropdown) {
+    activeShareDropdown.remove();
+    activeShareDropdown = null;
+  }
+
+  const postUrl = `${window.location.origin}/posts.html?id=${postId}`;
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'share-dropdown';
+  dropdown.innerHTML = `
+    <button class="share-dropdown-item" id="shareCopyLink">
+      <i class="fas fa-link"></i> Copy link
+    </button>
+    <button class="share-dropdown-item" id="shareWhatsApp">
+      <i class="fab fa-whatsapp"></i> Share via WhatsApp
+    </button>
+    <button class="share-dropdown-item" id="shareTelegram">
+      <i class="fab fa-telegram"></i> Share via Telegram
+    </button>
+  `;
+
+  btn.style.position = 'relative';
+  btn.appendChild(dropdown);
+  activeShareDropdown = dropdown;
+
+  // Copy link
+  dropdown.querySelector('#shareCopyLink').addEventListener('click', (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(postUrl).then(() => {
+      const btn = dropdown.querySelector('#shareCopyLink');
+      btn.innerHTML = `<i class="fas fa-check"></i> Copied!`;
+      btn.style.color = 'var(--secondary-color)';
+      setTimeout(() => closeShareDropdown(), 1200);
+    });
+  });
+
+  // WhatsApp
+  dropdown.querySelector('#shareWhatsApp').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.open(`https://wa.me/?text=${encodeURIComponent(postUrl)}`, '_blank');
+    closeShareDropdown();
+  });
+
+  // Telegram
+  dropdown.querySelector('#shareTelegram').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(postUrl)}`, '_blank');
+    closeShareDropdown();
+  });
+
+  setTimeout(() => {
+    document.addEventListener('click', closeShareDropdown, { once: true });
+  }, 0);
+}
+
+function closeShareDropdown() {
+  if (activeShareDropdown) {
+    activeShareDropdown.remove();
+    activeShareDropdown = null;
+  }
+}
+
+// Report modal
+function openReportModal(postId) {
+  const existing = document.getElementById('reportModalOverlay');
+  if (existing) existing.remove();
+
+  const reasons = [
+    { icon: 'fas fa-ban',              label: 'Spam or misleading' },
+    { icon: 'fas fa-exclamation-triangle', label: 'Harassment or bullying' },
+    { icon: 'fas fa-heart-broken',     label: 'Harmful or dangerous content' },
+    { icon: 'fas fa-user-slash',       label: 'Hate speech or discrimination' },
+    { icon: 'fas fa-copyright',        label: 'Intellectual property violation' },
+    { icon: 'fas fa-flag',             label: 'Other' },
+  ];
+
+  const overlay = document.createElement('div');
+  overlay.className = 'report-modal-overlay';
+  overlay.id = 'reportModalOverlay';
+
+  overlay.innerHTML = `
+    <div class="report-modal-card">
+      <h5>Report post</h5>
+      <p class="report-modal-sub">Why are you reporting this post?</p>
+      <div id="reportReasonsContainer">
+        ${reasons.map(r => `
+          <button class="report-reason-btn" data-reason="${r.label}">
+            <i class="${r.icon}"></i> ${r.label}
+          </button>
+        `).join('')}
+      </div>
+      <div id="reportThanks" style="display:none; text-align:center; padding:1rem 0;">
+        <i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i>
+        <div class="fw-bold">Thanks for your report</div>
+        <div class="text-muted small mt-1">We'll review this post and take action if needed.</div>
+      </div>
+      <div class="report-modal-actions">
+        <button class="btn btn-outline-secondary btn-sm" id="reportCancelBtn">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  // Reason buttons
+  overlay.querySelectorAll('.report-reason-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const token   = localStorage.getItem('token');
+      const user_id = localStorage.getItem('loggedInUserId');
+
+      fetchMethod(`${API_BASE}/posts/${postId}/report`, (status, data) => {
+        const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
+        const thanksEl         = overlay.querySelector('#reportThanks');
+        const cancelBtn        = overlay.querySelector('#reportCancelBtn');
+
+        reasonsContainer.style.display = 'none';
+        cancelBtn.textContent = 'Close';
+
+        if (status === 409) {
+          // Already reported
+          thanksEl.innerHTML = `
+            <i class="fas fa-info-circle fa-2x mb-2 d-block" style="color:var(--primary-color);"></i>
+            <div class="fw-bold">Already reported</div>
+            <div class="text-muted small mt-1">You've already submitted a report for this post.</div>
+          `;
+        } else {
+          thanksEl.innerHTML = `
+            <i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i>
+            <div class="fw-bold">Thanks for your report</div>
+            <div class="text-muted small mt-1">We'll review this post and take action if needed.</div>
+          `;
+        }
+
+        thanksEl.style.display = 'block';
+        setTimeout(() => closeReportModal(), 2500);
+
+      }, 'POST', { user_id, reason: btn.dataset.reason }, token);
+    });
+  });
+
+  // Cancel
+  overlay.querySelector('#reportCancelBtn').addEventListener('click', closeReportModal);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeReportModal();
+  });
+}
+
+function closeReportModal() {
+  const overlay = document.getElementById('reportModalOverlay');
+  if (overlay) {
+    overlay.remove();
+    document.body.style.overflow = '';
+  }
 }
