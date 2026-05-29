@@ -16,6 +16,7 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
 
     <!-- JS files -->
     <script src="js/queryCmds.js"></script>
@@ -140,11 +141,11 @@
 
                         <!-- RIGHT: Quick actions -->
                         <div class="d-flex gap-2">
-                            <button class="btn btn-light btn">
+                            <button class="btn btn-light btn" id="membersButton">
                                 <i class="bi bi-people"></i> Members
                             </button>
 
-                            <button class="btn btn-primary btn">
+                            <button class="btn btn-primary btn" id="leaveButton">
                                 Leave
                             </button>
                         </div>
@@ -380,7 +381,6 @@
 
                                 <!-- CHANNEL LIST -->
                                 <div class="list-group list-group-flush" id="channel-container">
-
                                     <a href="#" class="list-group-item list-group-item-action active d-flex align-items-center channel-color" id="generalChannel">
                                         <span class="me-2">#</span> general
                                     </a>
@@ -419,7 +419,8 @@
 
 
     </div>
-        <!-- Message Options Modal -->
+
+    <!-- Message Options Modal -->
     <div class="modal fade" id="messageModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
@@ -502,6 +503,142 @@
         </div>
     </div>
 
+    <!-- Create Channel Modal -->
+    <div class="modal fade" id="createChannelModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content channel-modal">
 
+            <!-- Header -->
+            <div class="modal-header border-0">
+                <div>
+                <h5 class="modal-title fw-bold">Create Channel</h5>
+                <small class="text-muted">Add a new space for discussions</small>
+                </div>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+
+                <label class="form-label">Channel Name</label>
+                <div class="input-group mb-3">
+                <span class="input-group-text">#</span>
+                <input type="text" class="form-control channel-input" id="channelNameInput"
+                        placeholder="e.g. announcements">
+                </div>
+                <!-- 
+                    <label class="form-label">Description (optional)</label>
+                    <textarea class="form-control channel-input" id="channelDescInput"
+                        rows="3" placeholder="What is this channel for?">
+                    </textarea> 
+                -->
+
+                <div class="form-check mt-3">
+                <input class="form-check-input" type="checkbox" id="isPrivateChannel">
+                <label class="form-check-label">
+                    Private channel (admins only) - does not work yet
+                </label>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-0 d-flex justify-content-between">
+
+                <button class="btn btn-light" data-bs-dismiss="modal" id="cancelCreateChannelModal">
+                    Cancel
+                </button>
+
+                <button class="btn btn-primary px-4" id="createNewChannelBtn">
+                    Create Channel
+                </button>
+
+            </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer">
+        <div id="groupsFeedToast" class="toast app-toast align-items-center text-white border-0" role="alert">
+            <div class="d-flex">
+            
+                <div class="toast-body d-flex align-items-center gap-2" id="toastBody">
+                    <!-- icon + message here -->
+                </div>
+
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OffCanvas -->
+    <div class="offcanvas offcanvas-end members-offcanvas" tabindex="-1" id="membersOffcanvas">
+    
+        <div class="offcanvas-header">
+            <div>
+            <h5 class="offcanvas-title fw-bold">Group Members</h5>
+            <small class="text-muted"><span id="memberCountOffcanvas">120</span> members in this group</small>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+
+        <div class="offcanvas-body">
+
+            <!-- Search -->
+            <input type="text" class="form-control mb-3 member-search" placeholder="Search members..." id="searchMemberInput">
+
+            <!-- Admin section -->
+            <h6 class="text-muted small fw-bold mb-2" id="adminHeaderOffcanvas">Admins</h6>
+
+            <div class="member-list mb-3" id="adminListOffcanvas">
+
+                <div class="member-card creator">
+                    <img src="images/Groups_profile_2.png">
+                    <div>
+                        <div class="name">Alice</div>
+                        <small>Creator</small>
+                    </div>
+                </div>
+
+                <div class="member-card admin">
+                    <img src="images/Groups_profile_2.png">
+                    <div>
+                        <div class="name">Beni</div>
+                        <small>Admin</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Members -->
+            <h6 class="text-muted small fw-bold mb-2" id="memberHeaderOffcanvas">Members</h6>
+
+            <div class="member-list" id="userListOffcanvas">
+
+                <div class="member-card">
+                    <img src="images/Groups_profile_1.png">
+                    <div>
+                        <div class="name">You</div>
+                        <small>User</small>
+                    </div>
+                </div>
+
+                <div class="member-card">
+                    <img src="images/Groups_profile_2.png">
+                    <div>
+                        <div class="name">Hinano</div>
+                        <small>User</small>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    
 </body>
 </html>
