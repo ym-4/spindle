@@ -474,7 +474,7 @@ function renderPostEditMode(post) {
     });
   });
 }
-
+// COMMENTS
 // Load comments
 function loadComments(postId) {
   const container = document.getElementById('commentsContainer');
@@ -494,7 +494,7 @@ function loadComments(postId) {
       const countEl = document.getElementById('commentCountBtn');
       if (countEl) countEl.textContent = comments.length;
       document.getElementById('totalCommentsLabel').textContent = `(${comments.length})`;
-      comments.forEach(comment => appendCommentToDOM(comment, postId));
+      comments.forEach(comment => appendCommentToDOM(comment, postId, comments));
     } else if (status === 200 && comments.length === 0) {
       showNoComments();
     } else {
@@ -543,8 +543,47 @@ function setupCommentSubmit(postId) {
 }
 
 //  Build comment 
-function appendCommentToDOM(comment, postId) {
+function appendCommentToDOM(comment, postId, allComments) {
+  if (comment.parent_comment_id) return;
+
   const container = document.getElementById('commentsContainer');
+  const el = buildCommentEl(comment, postId, false);
+  container.appendChild(el);
+
+  const replies = allComments.filter(
+    r => parseInt(r.parent_comment_id) === parseInt(comment.id)
+  );
+
+  if (replies.length === 0) return;
+
+  // show replies
+  const repliesWrapper = document.createElement('div');
+  repliesWrapper.className = 'replies-wrapper';
+  repliesWrapper.style.display = 'none';
+  replies.forEach(reply => {
+    repliesWrapper.appendChild(buildCommentEl(reply, postId, true, comment.id));
+  });
+
+  const toggleBtn = document.createElement('button');
+  toggleBtn.className = 'show-replies-btn';
+  toggleBtn.innerHTML = `
+    <i class="fas fa-chevron-down" style="font-size:0.7rem;"></i>
+    Show ${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}`;
+
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = repliesWrapper.style.display === 'none';
+    repliesWrapper.style.display = isHidden ? 'block' : 'none';
+    toggleBtn.innerHTML = isHidden
+      ? `<i class="fas fa-chevron-up" style="font-size:0.7rem;"></i> Hide replies`
+      : `<i class="fas fa-chevron-down" style="font-size:0.7rem;"></i> Show ${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}`;
+  });
+
+  container.appendChild(toggleBtn);
+  container.appendChild(repliesWrapper);
+}
+
+// comment box
+function buildCommentEl(comment, postId, isReply, rootParentId = null) {
   const { timeStr } = formatTimestamp(comment.created_at, null);
 
   const initial = comment.author_name
@@ -555,29 +594,26 @@ function appendCommentToDOM(comment, postId) {
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
   const isOwner = loggedInUserId && parseInt(comment.user_id) === loggedInUserId;
 
-  // Conditional menu options based on userid
   const menuOptions = `
     <li>
-      <button class="dropdown-item report-comment-btn" data-comment-id="${comment.id}">
+      <button class="dropdown-item report-comment-btn">
         <i class="fas fa-flag me-2"></i>Report
       </button>
     </li>
     ${isOwner ? `
       <li>
-        <button class="dropdown-item edit-comment-btn" data-comment-id="${comment.id}">
+        <button class="dropdown-item edit-comment-btn">
           <i class="fas fa-pen me-2"></i>Edit
         </button>
       </li>
       <li>
-        <button class="dropdown-item text-danger delete-comment-btn" data-comment-id="${comment.id}">
+        <button class="dropdown-item text-danger delete-comment-btn">
           <i class="fas fa-trash-alt me-2"></i>Delete
         </button>
-      </li>
-    ` : ''}
-  `;
+      </li>` : ''}`;
 
   const el = document.createElement('div');
-  el.className = 'comment-item';
+  el.className = isReply ? 'comment-item comment-reply' : 'comment-item';
   el.dataset.commentId = comment.id;
 
   el.innerHTML = `
@@ -591,81 +627,117 @@ function appendCommentToDOM(comment, postId) {
               <button class="btn btn-sm p-0 px-1 comment-menu-btn" data-bs-toggle="dropdown" style="line-height:1;">
                 <i class="fas fa-ellipsis-h" style="font-size:0.8rem; color:var(--text-secondary);"></i>
               </button>
-              <ul class="dropdown-menu dropdown-menu-end">
-                ${menuOptions}
-              </ul>
+              <ul class="dropdown-menu dropdown-menu-end">${menuOptions}</ul>
             </div>
           </div>
           <div class="comment-text-display">${escapeHtml(comment.content)}</div>
-          <div class="comment-edit-form" style="display: none;">
+          <div class="comment-edit-form" style="display:none;">
             <textarea class="form-control form-control-sm comment-edit-input" rows="2">${escapeHtml(comment.content)}</textarea>
             <div class="mt-2 d-flex gap-2">
               <button class="btn btn-sm btn-outline-secondary cancel-edit-comment-btn">Cancel</button>
-              <button class="btn btn-sm btn-primary save-edit-comment-btn" data-comment-id="${comment.id}">Save</button>
+              <button class="btn btn-sm btn-primary save-edit-comment-btn">Save</button>
             </div>
           </div>
           <div class="comment-actions">
             <button class="comment-action-link">Like</button>
-            <button class="comment-action-link">Reply</button>
+            <button class="comment-action-link reply-btn">Reply</button>
             <span class="comment-timestamp">${timeStr}</span>
           </div>
         </div>
       </div>
     </div>`;
 
-  // Event listeners
   el.querySelector('.comment-menu-btn').addEventListener('click', (e) => e.stopPropagation());
 
-  // Edit button (owner only)
-  const editBtn = el.querySelector('.edit-comment-btn');
-  if (editBtn) {
-    editBtn.addEventListener('click', (e) => {
+  if (isOwner) {
+    el.querySelector('.edit-comment-btn').addEventListener('click', (e) => {
       e.stopPropagation();
       enterEditMode(el);
     });
-  }
-
-  // Delete button (owner only)
-  const deleteBtn = el.querySelector('.delete-comment-btn');
-  if (deleteBtn) {
-    deleteBtn.addEventListener('click', (e) => {
+    el.querySelector('.delete-comment-btn').addEventListener('click', (e) => {
       e.stopPropagation();
-      showConfirm(
-        'Delete comment?',
-        'This will permanently remove your comment.',
-        () => deleteComment(comment.id, el, postId)
-      );
+      showConfirm('Delete comment?', 'This will permanently remove your comment.',
+        () => deleteComment(comment.id, el, postId));
     });
   }
 
-  // Report button
-  const reportBtn = el.querySelector('.report-comment-btn');
-  if (reportBtn) {
-    reportBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
+  el.querySelector('.report-comment-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const token = localStorage.getItem('token');
+    if (!token) { showLoginRequiredModal(); return; }
+    alert('Report functionality WIP.');
+  });
 
-      const token = localStorage.getItem('token');
-      // signed out
-      if (!token) {
-        showLoginRequiredModal();
-        return;
+  el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
+  el.querySelector('.save-edit-comment-btn').addEventListener('click', () => saveCommentEdit(comment.id, el));
+
+  // Reply button 
+  const replyBtn = el.querySelector('.reply-btn');
+  if (replyBtn) {
+    replyBtn.addEventListener('click', () => toggleReplyBox(el, comment, postId, rootParentId));
+  }
+
+  return el;
+}
+
+// comment replies
+function toggleReplyBox(commentEl, comment, postId, rootParentId) {
+  const existing = commentEl.querySelector('.reply-input-box');
+  if (existing) { existing.remove(); return; }
+
+  const token = localStorage.getItem('token');
+  if (!token) { showLoginRequiredModal(); return; }
+
+  const parentCommentId = rootParentId || comment.id;
+  const replyingToName = comment.author_name || 'User';
+
+  const replyBox = document.createElement('div');
+  replyBox.className = 'reply-input-box mt-2';
+  replyBox.innerHTML = `
+    <div class="d-flex gap-2 align-items-start">
+      <textarea class="form-control form-control-sm" rows="2"
+        placeholder="Write a reply..."></textarea>
+      <div class="d-flex flex-column gap-1">
+        <button class="btn btn-primary btn-sm submit-reply-btn">Reply</button>
+        <button class="btn btn-outline-secondary btn-sm cancel-reply-btn">Cancel</button>
+      </div>
+    </div>`;
+
+  const actionsEl = commentEl.querySelector('.comment-actions');
+  actionsEl.after(replyBox);
+  replyBox.querySelector('textarea').focus();
+  const textarea = replyBox.querySelector('textarea');
+    textarea.value = `@${replyingToName} `;
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+
+  replyBox.querySelector('.cancel-reply-btn').addEventListener('click', () => replyBox.remove());
+
+  replyBox.querySelector('.submit-reply-btn').addEventListener('click', () => {
+    const rawContent = replyBox.querySelector('textarea').value.trim();
+      if (!rawContent) return;
+      const mention = `@${replyingToName} `;
+      const content = rawContent.startsWith('@') ? rawContent : mention + rawContent;
+
+    const submitBtn = replyBox.querySelector('.submit-reply-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Posting...';
+
+    fetchMethod(`${COMMENTS_BASE}/${postId}`, (status, data) => {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Reply';
+
+      if (status === 201 || status === 200) {
+        replyBox.remove();
+        loadComments(postId);
+      } else {
+        alert(data.message || 'Failed to post reply.');
       }
-      // signed in
-      alert('Report functionality WIP.');
-    });
-  }
-
-  // Cancel edit button
-  el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => {
-    exitEditMode(el);
+    }, 'POST', {
+      content,
+      parent_comment_id: parentCommentId 
+    }, token);
   });
-
-  // Save edit button
-  el.querySelector('.save-edit-comment-btn').addEventListener('click', () => {
-    saveCommentEdit(comment.id, el);
-  });
-
-  container.appendChild(el);
 }
 
 // Enter edit mode for comment

@@ -1039,6 +1039,69 @@ body {
 
 .post-edited-tag { display: inline-block; margin-left: 0.5rem; }
 
+/* ── Nested comment replies ──────────────────────────────── */
+.comment-reply {
+    margin-left: 2.5rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--border-color);
+}
+
+.comment-reply .comment-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+}
+
+.reply-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.reply-btn:hover { color: var(--primary-color); }
+
+.reply-input-box {
+    margin-left: 2.5rem;
+    margin-top: 0.5rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--primary-color);
+}
+
+.reply-input-box textarea {
+    font-size: 0.9rem;
+    resize: none;
+}
+
+/* Show/hide replies */
+.show-replies-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.25rem 0;
+    margin-left: 3.25rem; 
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: opacity 0.2s;
+}
+
+.show-replies-btn:hover {
+    opacity: 0.75;
+}
+
+.replies-wrapper {
+    margin-bottom: 0.25rem;
+}
+
 /*  responsive  */
 @media (max-width: 1200px) { .right-sidebar { display: none; } }
 

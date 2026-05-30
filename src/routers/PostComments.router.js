@@ -33,30 +33,31 @@ router.get('/:post_id', (req, res, next) => {
 router.post('/:post_id', 
   jwtMiddleware.verifyToken, 
   (req, res, next) => {
-  // missing required information
-  if (req.body == undefined || req.params.post_id == undefined || req.body.content == undefined) {
-    res.status(400).json({"message": "Error: user_id, post_id or content is undefined"});
-    return;
-  }
-  const data = {
-    user_id: res.locals.userId,
-    post_id: req.params.post_id,
-    content: req.body.content
-  }
+    if (!req.body || !req.params.post_id || !req.body.content) {
+      return res.status(400).json({ message: 'Error: post_id or content is undefined' });
+    }
 
-// create Comments
-insertComments(data)
-    .then(results => res.status(201).json({
-        "id": results.id, 
-        "user_id": data.user_id,
-        "commented_on": data.post_id, 
-        "content": data.content 
-    }))
-    .catch((error) => {
-        console.error("Error insertComments: " + error);
+    const data = {
+      user_id: res.locals.userId,
+      post_id: req.params.post_id,
+      content: req.body.content,
+      parent_comment_id: req.body.parent_comment_id || null  
+    }
+
+    insertComments(data)
+      .then(results => res.status(201).json({
+        id: results.id, 
+        user_id: data.user_id,
+        commented_on: data.post_id, 
+        content: data.content,
+        parent_comment_id: data.parent_comment_id
+      }))
+      .catch((error) => {
+        console.error('Error insertComments: ' + error);
         res.status(500).json(error);
-    })
-});
+      });
+  }
+);
 
 // Update Comments (owner only) 
 router.put('/:id', 

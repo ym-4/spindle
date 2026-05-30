@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreatorID, getGroupsBySchool, insertGroup, 
+const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreatorID, getGroupsBySchool, getSuggestedGroups, insertGroup, 
 		updateGroupName, 
 		updateGroupDescription, deleteGroup, updateGroupPublicity, getGroupMemberByGroupID, 
 		getGroupMemberByUserID, insertGroupMember, updateMemberRoleToAdmin, updateMemberRoleToUser, 
@@ -245,6 +245,19 @@ router.put('/public/:group_id', (req, res, next) => {
 			
 		})
 		.catch(next);
+});
+
+
+// for home page
+// GET suggested groups (excludes groups user already belongs to)
+router.get('/suggested', (req, res, next) => {
+  const data = {
+    user_id: res.locals.userId || 0
+  };
+
+  getSuggestedGroups(data)
+    .then((groups) => res.status(200).json(groups))
+    .catch(next);
 });
 
 // ------------------------------------------------------------------
