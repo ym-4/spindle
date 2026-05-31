@@ -9,6 +9,13 @@ const path = require('path');
 // Import route handlers
 const somethingRouter = require('./routers/Something.router');
 const personRouter = require('./routers/Person.router');
+const authRouter = require('./routers/Auth.router');
+const messageRouter = require('./routers/Message.router');
+const profileRouter = require('./routers/Profile.router');
+const friendsRouter = require('./routers/Friends.router');
+const notificationsRouter = require('./routers/Notifications.router');
+const storiesRouter = require('./routers/Stories.router');
+const callsRouter = require('./routers/Calls.router');
 const postsRouter = require('./routers/Posts.router');
 const postCommentsRouter = require('./routers/PostComments.router');
 const searchRouter = require('./routers/Search.router');
@@ -16,10 +23,24 @@ const groupRouter = require('./routers/Groups.router');
 const marketplaceRouter = require('./routers/Marketplace.router');
 const cartRouter = require('./routers/Cart.router');
 
-const authRouter = require('./routers/Auth.router');
-
 const app = express();
 app.use(cors()); // Might remove later
+
+// Allow Live Server / local dev frontends to call the API on another port
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const isLocalDev =
+    origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  if (isLocalDev) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  }
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // Parse incoming JSON request bodies (e.g. from POST/PUT requests)
 app.use(express.json());
@@ -34,6 +55,13 @@ app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => res.s
 
 app.use('/somethings', somethingRouter);
 app.use('/persons', personRouter);
+app.use('/auth', authRouter);
+app.use('/messages', messageRouter);
+app.use('/profile', profileRouter);
+app.use('/friends', friendsRouter);
+app.use('/notifications', notificationsRouter);
+app.use('/stories', storiesRouter);
+app.use('/calls', callsRouter);
 app.use('/posts', postsRouter);
 app.use('/comments', postCommentsRouter);
 app.use('/search', searchRouter);
