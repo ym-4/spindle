@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 function setupHome() {
   const user = getStoredUser();
   const loggedIn = !!user && isLoggedIn();
@@ -29,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (isLoggedIn()) injectWaNav('home');
   setupHome();
 });
-=======
 //  Spindle — Home Page
 
 const API_BASE = currentUrl;
@@ -648,4 +646,3 @@ function protectCreatePostUI() {
     });
   });
 }
->>>>>>> origin/main

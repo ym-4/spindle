@@ -250,7 +250,7 @@ const groupDiscussions = [
   },
   {
     groupName: 'MAD Project Team',
-    userEmail: 'hinano@example.com',
+    userEmail: 'eve@example.com',
     channel_name: 'design',
     message: 'I created new Figma mockups for the dashboard.',
   },
