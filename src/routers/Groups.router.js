@@ -182,6 +182,39 @@ router.put('/description/:group_id', verifyToken, (req, res, next) => {
 	.catch(next);
 });
 
+// Update Group publicity (creator_id, public) (Can only be done by group's creator)
+router.put('/public/:group_id', verifyToken, (req, res, next) => {
+  if (req.body == undefined || req.body.creator_id == undefined || req.body.public == undefined) {
+    res.status(400).json({"message": "Error: public or creator_id is undefined"});
+    return;
+  } 
+
+	const data = {
+		group_id: req.params.group_id, 
+		creator_id: res.locals.userId,
+		public: req.body.public // true or false
+	}
+
+	// Get all groups where user is the creator
+	getGroupByCreatorID(data) 
+		.then(results => {
+			// user is the group's creator (see if any id matches with this group)
+			if (results.filter(group => group.id == data.group_id).length > 0) {
+				updateGroupPublicity(data)
+					.then(results => {
+						res.status(200).json(results[0]);
+					})
+					.catch(next);
+
+			} else {
+				res.status(403).json({"message": "Error: User is not the group's creator"});
+				return;
+			}
+			
+		})
+		.catch(next);
+});
+
 // Delete Group (creator_id) (Can only be done by the group's creator)
 router.delete('/:group_id', verifyToken, (req, res, next) => {
   if (req.body == undefined || req.body.creator_id == undefined) {
@@ -207,39 +240,6 @@ router.delete('/:group_id', verifyToken, (req, res, next) => {
 							res.status(204).send();
 						}
 
-					})
-					.catch(next);
-
-			} else {
-				res.status(403).json({"message": "Error: User is not the group's creator"});
-				return;
-			}
-			
-		})
-		.catch(next);
-});
-
-// Update Group publicity (creator_id, public) (Can only be done by group's creator)
-router.put('/public/:group_id', verifyToken, (req, res, next) => {
-  if (req.body == undefined || req.body.creator_id == undefined || req.body.public == undefined) {
-    res.status(400).json({"message": "Error: public or creator_id is undefined"});
-    return;
-  } 
-
-	const data = {
-		group_id: req.params.group_id, 
-		creator_id: res.locals.userId,
-		public: req.body.public // true or false
-	}
-
-	// Get all groups where user is the creator
-	getGroupByCreatorID(data) 
-		.then(results => {
-			// user is the group's creator (see if any id matches with this group)
-			if (results.filter(group => group.id == data.group_id).length > 0) {
-				updateGroupPublicity(data)
-					.then(results => {
-						res.status(200).json(results[0]);
 					})
 					.catch(next);
 

@@ -268,13 +268,11 @@ async function handleArrowButtonClick(btnID) {
 
     if (groups.length == 0) {
         popularGroupsContainer.innerHTML = "There are no groups currently, feel free to create one";
-        return; 
     }
 
     if (joinedGroups.length == 0) {
         joinedGroupsContainer.innerHTML = "There are no groups currently, feel free to join one";
-        return;
-    }
+    } 
 
     const cardsPerPage = 4;
     const maxPopularPage = Math.ceil(groups.length / cardsPerPage);
@@ -330,6 +328,8 @@ async function handleArrowButtonClick(btnID) {
         // ???
         console.log("arrow button error")
     }
+
+
 }
 
 async function handleAddButton(school) {
@@ -577,7 +577,7 @@ function displayGroups(groups, container, currPage) {
 
 
                 <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                    ${currGroup.description}
                 </p>
 
                 <div class="group-footer">
@@ -631,7 +631,7 @@ function displayJoinedGroups(groups, container, currPage) {
 
 
                 <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                    ${currGroup.description}
                 </p>
 
                 <div class="group-footer">

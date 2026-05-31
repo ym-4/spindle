@@ -1157,6 +1157,7 @@ async function deleteGroupDiscussionMessage(messageId) {
     })
 }
 
+// NOT DONE
 async function deleteGroupDiscussionChannel() {
     // BACKEND ROUTE NOT DONE
     
