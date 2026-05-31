@@ -18,7 +18,8 @@ module.exports.getAllSettings = async function getAllSettings(userId) {
   await ensureSettingsRow(userId);
   await ensurePaymentRow(userId);
   const { rows } = await pool.query(
-    `SELECT p.id, p.name, p.email, p.display_name, p.avatar, p.profile_image, p.bio,
+    `SELECT p.id, p.name, p.email, p.display_name, p.avatar, p.profile_image, p.cover_image, p.bio,
+            p.headline, p.location, p.skills, p.link_portfolio, p.link_github, p.link_linkedin,
             s.phone, s.campus, s.language, s.timezone,
             s.two_factor_enabled, s.login_notifications,
             s.notify_email, s.notify_product, s.notify_security, s.notify_frequency,

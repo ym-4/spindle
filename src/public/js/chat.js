@@ -169,7 +169,7 @@ async function loadContacts() {
     const { contacts } = await authFetch('/messages/contacts');
     if (contacts.length === 0) {
       list.innerHTML =
-        '<li class="wa-list-empty" style="padding:1rem">No friends yet — use the <strong>Friends</strong> tab to search and add people.</li>';
+        '<li class="wa-list-empty" style="padding:1rem">No friends yet — go to <a href="friends.html">Friends</a> to add people.</li>';
       return;
     }
     list.innerHTML = contacts
@@ -759,15 +759,13 @@ function hangUpCall(logStatus = 'completed') {
 }
 
 function switchSidePanel(side) {
-  document.querySelectorAll('[data-side]').forEach((b) => b.classList.toggle('active', b.dataset.side === side));
-  document.getElementById('panelChats').classList.toggle('is-active', side === 'chats');
-  document.getElementById('panelCalls').classList.toggle('is-active', side === 'calls');
-  document.getElementById('panelFriends').classList.toggle('is-active', side === 'friends');
   if (side === 'friends') {
-    loadRequests();
-    const q = document.getElementById('friendSearch')?.value?.trim();
-    if (q) searchUsers(q);
+    window.location.href = 'friends.html';
+    return;
   }
+  document.querySelectorAll('[data-side]').forEach((b) => b.classList.toggle('active', b.dataset.side === side));
+  document.getElementById('panelChats')?.classList.toggle('is-active', side === 'chats');
+  document.getElementById('panelCalls')?.classList.toggle('is-active', side === 'calls');
   if (side === 'calls') loadCallLogs();
 }
 
@@ -802,8 +800,8 @@ async function initChat() {
     return;
   }
   currentUserId = user?.id;
-  injectWaHeader('Chats');
-  injectWaNav('chat');
+  if (document.getElementById('waHeaderSlot')) injectWaHeader('Chats');
+  if (document.getElementById('waNavSlot')) injectWaNav('chat');
   connectSocket();
   refreshNotifBadge();
   onWs('notification', () => refreshNotifBadge());
@@ -906,13 +904,8 @@ async function initChat() {
 
   const params = new URLSearchParams(location.search);
   if (params.get('tab') === 'friends' || params.get('tab') === 'requests') {
-    switchSidePanel('friends');
-    if (params.get('requests') === 'sent') {
-      friendReqTab = 'sent';
-      document.querySelector('[data-req-tab="sent"]')?.classList.add('active');
-      document.querySelector('[data-req-tab="received"]')?.classList.remove('active');
-      loadRequests();
-    }
+    window.location.replace('friends.html');
+    return;
   }
   if (params.get('tab') === 'calls') switchSidePanel('calls');
   const openUser = params.get('user');

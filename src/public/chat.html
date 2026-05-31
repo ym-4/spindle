@@ -1,64 +1,73 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chats — Campus Hub</title>
+    <title>Chats — Spindle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/posts.css" />
     <link rel="stylesheet" href="css/wa.css" />
+    <link rel="stylesheet" href="css/chat-spindle.css" />
+    <link rel="stylesheet" href="css/spindle-notif.css" />
     <script src="js/api.js"></script>
-    <script src="js/page-guard.js" data-require-login data-return="chat.html"></script>
   </head>
-  <body class="wa-body wa-body--chat" data-wa-page="chat">
-    <div class="wa-app wa-app--fullscreen">
-      <div id="waHeaderSlot"></div>
-      <div class="wa-chat-shell">
-        <aside class="wa-sidebar" id="chatSidebar">
-          <div class="wa-sidebar-tabs">
-            <button type="button" data-side="chats" class="active">Chats</button>
-            <button type="button" data-side="calls">Calls</button>
-            <button type="button" data-side="friends">Friends</button>
-          </div>
-          <div id="panelChats" class="wa-side-panel is-active">
-            <ul id="chatContactList" class="wa-list"></ul>
-          </div>
-          <div id="panelCalls" class="wa-side-panel">
-            <p class="wa-side-label">Call history</p>
-            <ul id="callLogList" class="wa-list wa-list--section"></ul>
-          </div>
-          <div id="panelFriends" class="wa-side-panel">
-            <p class="wa-side-label">Find people</p>
-            <input type="search" id="friendSearch" class="wa-search" placeholder="Search by name or email…" autocomplete="off" />
-            <p id="friendSearchHint" class="wa-search-hint">Type a name (e.g. Alice) then tap Add</p>
-            <ul id="findPeopleList" class="wa-list wa-find-people"></ul>
-            <p class="wa-side-label">Friend requests</p>
-            <div class="wa-friend-req-tabs">
-              <button type="button" class="active" data-req-tab="received">Received</button>
-              <button type="button" data-req-tab="sent">Sent</button>
-            </div>
-            <ul id="friendRequestsList" class="wa-list wa-list--section"></ul>
-          </div>
-        </aside>
-        <section class="wa-main" id="chatMain">
-          <div id="chatEmpty" class="wa-empty-state">
-            <p>Select a friend to start chatting</p>
-            <p class="wa-empty-state__hint">Add friends in the Friends tab first</p>
-          </div>
-          <div id="chatActive" class="wa-chat-active">
-            <div class="wa-chat-header">
-              <div id="chatHeaderAvatar" class="wa-avatar"></div>
-              <div class="wa-chat-header__name"><strong id="chatHeaderName"></strong></div>
-              <button type="button" class="wa-icon-btn" id="btnVoiceCall" title="Voice call">📞</button>
-              <button type="button" class="wa-icon-btn" id="btnVideoCall" title="Video call">📹</button>
-            </div>
-            <div id="chatMessages" class="wa-messages"></div>
-            <form id="chatForm" class="wa-compose">
-              <input type="text" id="chatInput" placeholder="Type a message" maxlength="2000" autocomplete="off" />
-              <button type="submit" class="wa-btn">Send</button>
-            </form>
-          </div>
-        </section>
+  <body class="spindle-chat-page" data-page="chat">
+    <nav class="navbar">
+      <div class="container-fluid px-0 d-flex align-items-center">
+        <a class="navbar-brand" href="index.html">
+          <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
+          <span class="brand-name">spindle</span>
+        </a>
+        <div class="navbar-right">
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a href="profile.html" class="btn-navbar-profile" id="profileButton">
+            <i class="fas fa-user-circle"></i> Profile
+          </a>
+          <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+        </div>
       </div>
-      <div id="waNavSlot"></div>
+    </nav>
+
+    <div class="main-container">
+      <aside class="sidebar"></aside>
+
+      <main class="content-area">
+        <div class="wa-chat-shell">
+          <aside class="wa-sidebar" id="chatSidebar">
+            <div class="wa-sidebar-tabs">
+              <button type="button" data-side="chats" class="active">Chats</button>
+              <button type="button" data-side="calls">Calls</button>
+            </div>
+            <div id="panelChats" class="wa-side-panel is-active">
+              <ul id="chatContactList" class="wa-list"></ul>
+            </div>
+            <div id="panelCalls" class="wa-side-panel">
+              <p class="wa-side-label">Call history</p>
+              <ul id="callLogList" class="wa-list wa-list--section"></ul>
+            </div>
+          </aside>
+          <section class="wa-main" id="chatMain">
+            <div id="chatEmpty" class="wa-empty-state">
+              <p>Select a friend to start chatting</p>
+              <p class="wa-empty-state__hint">Add friends in the Friends tab first</p>
+            </div>
+            <div id="chatActive" class="wa-chat-active">
+              <div class="wa-chat-header">
+                <div id="chatHeaderAvatar" class="wa-avatar"></div>
+                <div class="wa-chat-header__name"><strong id="chatHeaderName"></strong></div>
+                <button type="button" class="wa-icon-btn" id="btnVoiceCall" title="Voice call">📞</button>
+                <button type="button" class="wa-icon-btn" id="btnVideoCall" title="Video call">📹</button>
+              </div>
+              <div id="chatMessages" class="wa-messages"></div>
+              <form id="chatForm" class="wa-compose">
+                <input type="text" id="chatInput" placeholder="Type a message" maxlength="2000" autocomplete="off" />
+                <button type="submit" class="wa-btn">Send</button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </main>
     </div>
 
     <div id="callOverlay" class="wa-call-overlay hidden">
@@ -101,7 +110,9 @@
 
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="js/userNavBarToggle.js"></script>
+    <script src="js/spindle-sidebar.js"></script>
+    <script src="js/spindle-page.js"></script>
     <script src="js/chat.js"></script>
   </body>
 </html>

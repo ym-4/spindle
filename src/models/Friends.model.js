@@ -6,6 +6,16 @@ function avatarColor(id) {
 }
 
 function formatUser(row, extra = {}) {
+  let skills = row.skills;
+  if (typeof skills === 'string') {
+    try {
+      skills = JSON.parse(skills);
+    } catch {
+      skills = [];
+    }
+  }
+  if (!Array.isArray(skills)) skills = [];
+
   return {
     id: row.id,
     name: row.name,
@@ -14,7 +24,14 @@ function formatUser(row, extra = {}) {
     email: row.email,
     avatar: row.avatar,
     profile_image: row.profile_image,
+    cover_image: row.cover_image || null,
     bio: row.bio || '',
+    headline: row.headline || '',
+    location: row.location || '',
+    skills,
+    link_portfolio: row.link_portfolio || '',
+    link_github: row.link_github || '',
+    link_linkedin: row.link_linkedin || '',
     avatar_color: avatarColor(row.id),
     ...extra,
   };
@@ -91,7 +108,8 @@ module.exports.searchUsers = async function searchUsers(viewerId, query) {
 
 module.exports.getPublicProfile = async function getPublicProfile(viewerId, targetId) {
   const { rows } = await pool.query(
-    `SELECT id, name, display_name, email, avatar, profile_image, bio, created_at
+    `SELECT id, name, display_name, email, avatar, profile_image, cover_image, bio,
+            headline, location, skills, link_portfolio, link_github, link_linkedin, created_at
      FROM "Person" WHERE id = $1 AND role = 'user' AND deleted_at IS NULL`,
     [targetId],
   );

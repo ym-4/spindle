@@ -1,0 +1,85 @@
+.settings-spindle-page .content-area {
+  padding: 1.25rem;
+  max-width: 720px;
+}
+
+.settings-spindle-page .settings-menu-card {
+  border: 1px solid #e4e6eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.settings-spindle-page .settings-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: none;
+  border-bottom: 1px solid #e4e6eb;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-spindle-page .settings-menu-item:hover {
+  background: #f7f8fa;
+}
+
+.settings-spindle-page .settings-menu-item:last-child {
+  border-bottom: none;
+}
+
+.settings-spindle-page .settings-menu-icon {
+  font-size: 1.25rem;
+  width: 2rem;
+  text-align: center;
+}
+
+.settings-spindle-page .settings-pane-card {
+  background: #fff;
+  border: 1px solid #e4e6eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.settings-spindle-page .settings-pane-card label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  color: #1c1c1c;
+}
+
+.settings-spindle-page .settings-pane-card input,
+.settings-spindle-page .settings-pane-card select,
+.settings-spindle-page .settings-pane-card textarea {
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e4e6eb;
+  border-radius: 8px;
+}
+
+.settings-spindle-page .wa-danger-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.settings-spindle-page .wa-danger-modal.hidden {
+  display: none !important;
+}
+
+.settings-spindle-page .wa-danger-modal__card {
+  background: #fff;
+  color: #1c1c1c;
+  padding: 1.5rem;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+}

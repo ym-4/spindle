@@ -9,7 +9,9 @@ const { authenticateJWT, requireAdmin } = require('../middleware/auth.middleware
 
 const router = express.Router();
 const uploadDir = path.join(__dirname, '../public/uploads/avatars');
+const coverDir = path.join(__dirname, '../public/uploads/covers');
 fs.mkdirSync(uploadDir, { recursive: true });
+fs.mkdirSync(coverDir, { recursive: true });
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -20,6 +22,23 @@ const upload = multer({
     },
   }),
   limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Only image files allowed.'));
+    }
+    cb(null, true);
+  },
+});
+
+const uploadCover = multer({
+  storage: multer.diskStorage({
+    destination: coverDir,
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname) || '.jpg';
+      cb(null, `cover-${req.user.id}${ext}`);
+    },
+  }),
+  limits: { fileSize: 8 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith('image/')) {
       return cb(new Error('Only image files allowed.'));
@@ -201,6 +220,26 @@ router.post('/avatar', authenticateJWT, upload.single('avatar'), async (req, res
     const imagePath = `/uploads/avatars/${req.file.filename}`;
     await Auth.updateProfileImage(req.user.id, imagePath);
     res.status(200).json({ profile_image: imagePath });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/cover', authenticateJWT, uploadCover.single('cover'), async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image uploaded.' });
+    const imagePath = `/uploads/covers/${req.file.filename}`;
+    await Auth.updateCoverImage(req.user.id, imagePath);
+    res.status(200).json({ cover_image: imagePath });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put('/profile', authenticateJWT, async (req, res, next) => {
+  try {
+    const profile = await Auth.updatePublicProfile(req.user.id, req.body ?? {});
+    res.status(200).json(profile);
   } catch (err) {
     next(err);
   }

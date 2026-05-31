@@ -2,12 +2,22 @@
 //  GET /posts/saved/:user_id  → display saved posts
 //  DELETE /posts/saved/:id    → unsave
 
-const API_BASE = currentUrl;
+function savedApiBase() {
+  if (typeof currentUrl !== 'undefined' && currentUrl) return currentUrl;
+  if (typeof getApiBase === 'function') {
+    const base = getApiBase();
+    if (base) return base;
+  }
+  return window.location.origin || '';
+}
 let savedRows = []; 
 
 document.addEventListener('DOMContentLoaded', () => {
-  const token  = localStorage.getItem('token');
-  const userId = localStorage.getItem('loggedInUserId');
+  const token = typeof getToken === 'function' ? getToken() : localStorage.getItem('token');
+  let userId = localStorage.getItem('loggedInUserId');
+  if (!userId && typeof getStoredUser === 'function') {
+    userId = getStoredUser()?.id;
+  }
 
   if (!token || !userId) {
     showLoginPrompt();
@@ -50,7 +60,7 @@ function loadSavedPosts(userId, token) {
       Loading saved posts...
     </div>`;
 
-  fetchMethod(`${API_BASE}/posts/saved/${userId}`, (status, data) => {
+  fetchMethod(`${savedApiBase()}/posts/saved/${userId}`, (status, data) => {
     if (status !== 200 || !Array.isArray(data) || data.length === 0) {
       showEmpty();
       return;
@@ -58,7 +68,7 @@ function loadSavedPosts(userId, token) {
 
     savedRows = data;
 
-    fetchMethod(`${API_BASE}/posts`, (pStatus, posts) => {
+    fetchMethod(`${savedApiBase()}/posts`, (pStatus, posts) => {
       if (pStatus !== 200) { showError(); return; }
 
       const savedPostIdSet = new Set(data.map(r => parseInt(r.post_id)));
@@ -161,7 +171,7 @@ function buildSavedPostCard(post, saveRow) {
 function unsavePost(saveRowId, cardEl) {
   const token = localStorage.getItem('token');
 
-  fetchMethod(`${API_BASE}/posts/saved/${saveRowId}`, (status) => {
+  fetchMethod(`${savedApiBase()}/posts/saved/${saveRowId}`, (status) => {
     if (status === 200) {
       cardEl.style.transition = 'opacity 0.2s';
       cardEl.style.opacity = '0';

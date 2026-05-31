@@ -192,6 +192,10 @@ async function loadFriendsList() {
 }
 
 async function openUserProfile(userId) {
+  if (!document.getElementById('userProfileModal')) {
+    window.location.href = `profile.html?id=${userId}`;
+    return;
+  }
   const modal = document.getElementById('userProfileModal');
   const body = document.getElementById('userProfileBody');
   if (!modal || !body) return;

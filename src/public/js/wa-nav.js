@@ -27,9 +27,11 @@ function injectWaNav(active) {
 function renderNotifBell() {
   const unread = window.__notifUnread || 0;
   const badge = unread > 0 ? `<span class="wa-bell-badge">${unread > 99 ? '99+' : unread}</span>` : '';
+  const spindle = document.querySelector('#spindleNotifSlot, .spindle-notif-slot');
+  const icon = spindle ? '<i class="fas fa-bell"></i>' : '🔔';
   return `
     <div class="wa-bell-wrap">
-      <button type="button" class="wa-bell-btn" id="waNotifBell" aria-label="Notifications">🔔${badge}</button>
+      <button type="button" class="wa-bell-btn" id="waNotifBell" aria-label="Notifications">${icon}${badge}</button>
       <div id="waNotifDropdown" class="wa-notif-dropdown hidden" role="menu">
         <div class="wa-notif-dropdown__head">
           <strong>Notifications</strong>
@@ -45,9 +47,24 @@ function injectHeaderActions(slotId = 'waHeaderSlot') {
   if (!slot || !isLoggedIn()) return;
   slot.innerHTML = `${renderNotifBell()}<button type="button" class="wa-btn wa-btn--ghost wa-btn--small" id="waHeaderLogout">Log out</button>`;
   bindNotificationBell();
+  refreshNotifBadge();
   document.getElementById('waHeaderLogout')?.addEventListener('click', () => {
     if (typeof handleLogout === 'function') handleLogout();
   });
+}
+
+/** Spindle navbar — notifications only (profile/logout stay in navbar). */
+function injectNotificationsOnly(slotId = 'spindleNotifSlot') {
+  const slot = document.getElementById(slotId);
+  if (!slot || !isLoggedIn()) return;
+  slot.classList.add('spindle-notif-slot');
+  slot.innerHTML = renderNotifBell();
+  bindNotificationBell();
+  refreshNotifBadge();
+  if (typeof connectSocket === 'function') {
+    connectSocket();
+    onWs('notification', () => refreshNotifBadge());
+  }
 }
 
 function injectWaHeader(title, opts = {}) {
@@ -132,7 +149,7 @@ async function loadNotifDropdown() {
         if (btn.dataset.type === 'message' && btn.dataset.ref) {
           window.location.href = `chat.html?user=${btn.dataset.ref}`;
         } else if (btn.dataset.type === 'friend_request') {
-          window.location.href = 'chat.html?tab=friends&requests=received';
+          window.location.href = 'friends.html';
         } else {
           loadNotifDropdown();
         }
@@ -163,8 +180,13 @@ function bindNotificationBell() {
 
   bell.addEventListener('click', (e) => {
     e.stopPropagation();
-    const open = dropdown.classList.toggle('hidden');
-    if (!open) loadNotifDropdown();
+    const isHidden = dropdown.classList.contains('hidden');
+    if (isHidden) {
+      dropdown.classList.remove('hidden');
+      loadNotifDropdown();
+    } else {
+      dropdown.classList.add('hidden');
+    }
   });
 
   document.getElementById('waNotifMarkAll')?.addEventListener('click', async (e) => {

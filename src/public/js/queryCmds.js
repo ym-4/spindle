@@ -26,11 +26,17 @@ function fetchMethod(url, callback, method = "GET", data = null, token = null) {
 
   fetch(url, options)
     .then((response) => {
-      if (response.status == 204) {
+      if (response.status === 204) {
         callback(response.status, {});
-      } else {
-        response.json().then((responseData) => callback(response.status, responseData));
+        return;
       }
+      return response.json().then(
+        (responseData) => callback(response.status, responseData),
+        () => callback(response.status, { message: 'Invalid server response.' }),
+      );
     })
-    .catch((error) => console.error(`Error from ${method} ${url}:`, error));
+    .catch((error) => {
+      console.error(`Error from ${method} ${url}:`, error);
+      callback(0, { message: 'Network error — is the server running?' });
+    });
 }

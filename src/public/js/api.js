@@ -28,26 +28,67 @@ function getApiBase() {
 
 const API_BASE = getApiBase();
 
-const TOKEN_KEY = 'pineappleToken';
+const TOKEN_KEY = 'token';
+const LEGACY_TOKEN_KEY = 'pineappleToken';
 const USER_KEY = 'pineappleUser';
+const USER_ID_KEY = 'loggedInUserId';
 const REMEMBER_KEY = 'campusRemember30';
 
 function getToken() {
-  return sessionStorage.getItem(TOKEN_KEY);
+  return (
+    localStorage.getItem(TOKEN_KEY) ||
+    localStorage.getItem(LEGACY_TOKEN_KEY) ||
+    sessionStorage.getItem(TOKEN_KEY) ||
+    sessionStorage.getItem(LEGACY_TOKEN_KEY)
+  );
+}
+
+function decodeJwtPayload(token) {
+  try {
+    const part = token.split('.')[1];
+    if (!part) return null;
+    const json = atob(part.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
 }
 
 function getStoredUser() {
   try {
-    const raw = sessionStorage.getItem(USER_KEY);
-    return raw ? JSON.parse(raw) : null;
+    const raw =
+      localStorage.getItem(USER_KEY) ||
+      sessionStorage.getItem(USER_KEY);
+    if (raw) return JSON.parse(raw);
+    const id = localStorage.getItem(USER_ID_KEY);
+    const token = getToken();
+    if (id && token) return { id: Number(id) };
+    if (token) {
+      const payload = decodeJwtPayload(token);
+      if (payload?.id) {
+        return {
+          id: payload.id,
+          name: payload.name,
+          email: payload.email,
+          role: payload.role,
+          avatar: payload.avatar ?? null,
+        };
+      }
+    }
+    return null;
   } catch {
     return null;
   }
 }
 
 function setAuth(user, token) {
-  sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-  sessionStorage.setItem(TOKEN_KEY, token);
+  const userJson = JSON.stringify(user);
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(USER_ID_KEY, String(user.id));
+  localStorage.setItem(USER_KEY, userJson);
+  localStorage.setItem(LEGACY_TOKEN_KEY, token);
+  sessionStorage.setItem(USER_KEY, userJson);
+  sessionStorage.setItem(LEGACY_TOKEN_KEY, token);
 }
 
 function getRememberToken() {
@@ -60,7 +101,12 @@ function setRememberToken(token) {
 }
 
 function clearAuth() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_ID_KEY);
+  localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
   sessionStorage.removeItem(USER_KEY);
+  sessionStorage.removeItem(LEGACY_TOKEN_KEY);
   sessionStorage.removeItem(TOKEN_KEY);
   setRememberToken(null);
 }
@@ -93,12 +139,12 @@ function getSafeReturnPath() {
 function getPostLoginRedirect(user) {
   const returnPath = getSafeReturnPath();
   if (returnPath === 'admin.html' && !isAdmin(user)) {
-    return 'chat.html';
+    return 'index.html';
   }
   if (returnPath) {
     return returnPath;
   }
-  return isAdmin(user) ? 'admin.html' : 'chat.html';
+  return isAdmin(user) ? 'admin.html' : 'index.html';
 }
 
 function getWsUrl() {
@@ -162,6 +208,24 @@ async function authFetch(path, options = {}) {
 function redirectAfterLogin(user) {
   window.location.href = getPostLoginRedirect(user);
 }
+
+/** Keep Spindle feed keys in sync if user logged in via Campus Hub auth only */
+(function syncSpindleAuthKeys() {
+  const token = getToken();
+  if (!token) return;
+  const user = getStoredUser();
+  if (user?.id) {
+    if (!localStorage.getItem(USER_ID_KEY)) {
+      localStorage.setItem(USER_ID_KEY, String(user.id));
+    }
+    if (!localStorage.getItem(TOKEN_KEY)) {
+      localStorage.setItem(TOKEN_KEY, token);
+    }
+    if (!localStorage.getItem(USER_KEY)) {
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+    }
+  }
+})();
 
 function updateNavForUser(user) {
   const guestActions = document.getElementById('navGuest');

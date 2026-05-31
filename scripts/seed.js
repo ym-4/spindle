@@ -336,6 +336,20 @@ async function seed() {
       [aliceId, bobId],
     );
     console.log('Seeded Alice/Bob friendship and sample message.');
+    await pool.query(
+      `UPDATE "Person" SET display_name = 'Alice', bio = $1, headline = $2, location = $3,
+       skills = $4::jsonb, link_github = $5, link_linkedin = $6
+       WHERE id = $7`,
+      [
+        'CS student at SP. I build study tools and love helping classmates with assignments.',
+        'Computer Science Student',
+        'Singapore',
+        JSON.stringify(['JavaScript', 'Python', 'Study Groups', 'UI Design']),
+        'alice-dev',
+        'alice-khan',
+        aliceId,
+      ],
+    );
   }
 
   // Discussion board extras
