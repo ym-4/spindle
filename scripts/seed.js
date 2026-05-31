@@ -1,8 +1,15 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
+const { hashPassword } = require('../src/models/Auth.model');
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
+
+const DEFAULT_PASSWORD = 'password123';
+const ADMIN_PASSWORD = 'admin123';
+const hashedDefaultPassword = hashPassword(DEFAULT_PASSWORD);
+const hashedAdminPassword = hashPassword(ADMIN_PASSWORD);
 
 const persons = [
   { email: 'alice@example.com', name: 'Alice'},
@@ -195,6 +202,155 @@ const marketplaceItems = [
   },
 ];
 
+// Seed data for groups
+// Example Groups 
+const groups = [
+  {
+    name: 'SOC Study Buddies',
+    creatorEmail: 'alice@example.com',
+    description: 'A group for SOC students to revise and share notes.',
+    school: 'SOC',
+    module: 'CS1010',
+    public: true,
+  },
+  {
+    name: 'MAD Project Team',
+    creatorEmail: 'bob@example.com',
+    description: 'Mobile App Development project collaboration group.',
+    school: 'MAD',
+    module: 'CP2106',
+    public: false,
+  },
+  {
+    name: 'EEE Circuit Masters',
+    creatorEmail: 'carol@example.com',
+    description: 'Discuss circuits, labs, and exam prep for EEE modules.',
+    school: 'EEE',
+    module: 'EE2020',
+    public: true,
+  },
+];
+
+// Example GroupMembers
+const groupMembers = [
+  // SOC group
+  { groupName: 'SOC Study Buddies', userEmail: 'alice@example.com', role: 'admin' },
+  { groupName: 'SOC Study Buddies', userEmail: 'bob@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'carol@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'beni@example.com', role: 'admin' },
+  { groupName: 'SOC Study Buddies', userEmail: 'emataso@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'hinano@example.com', role: 'user' },
+
+
+  // MAD group
+  { groupName: 'MAD Project Team', userEmail: 'bob@example.com', role: 'admin' },
+  { groupName: 'MAD Project Team', userEmail: 'dave@example.com', role: 'user' },
+  { groupName: 'MAD Project Team', userEmail: 'eve@example.com', role: 'user' },
+
+  // EEE group
+  { groupName: 'EEE Circuit Masters', userEmail: 'carol@example.com', role: 'admin' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'frank@example.com', role: 'user' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'grace@example.com', role: 'user' },
+];
+
+// Example Group Discussions
+const groupDiscussions = [
+  // SOC Study Buddies
+  {
+    groupName: 'SOC Study Buddies',
+    userEmail: 'alice@example.com',
+    channel_name: 'general',
+    message: 'Welcome everyone! Feel free to share your notes here.',
+  },
+  {
+    groupName: 'SOC Study Buddies',
+    userEmail: 'bob@example.com',
+    channel_name: 'general',
+    message: 'Anyone understands recursion for CS1010?',
+  },
+  {
+    groupName: 'SOC Study Buddies',
+    userEmail: 'beni@example.com',
+    channel_name: 'resources',
+    message: 'I uploaded last year’s practical exam solutions.',
+  },
+  {
+    groupName: 'SOC Study Buddies',
+    userEmail: 'beni@example.com',
+    channel_name: 'general',
+    message: 'When is the CA2 due?',
+  },
+
+  {
+    groupName: 'SOC Study Buddies',
+    userEmail: 'emataso@example.com',
+    channel_name: 'general',
+    message: 'Next week',
+  },
+
+  {
+    groupName: 'SOC Study Buddies',
+    userEmail: 'beni@example.com',
+    channel_name: 'general',
+    message: '😭',
+  },
+
+  {
+    groupName: 'SOC Study Buddies',
+    userEmail: 'hinano@example.com',
+    channel_name: 'general',
+    message: 'Hey, did you finish the assignment?',
+  },
+
+  {
+    groupName: 'SOC Study Buddies',
+    userEmail: 'alice@example.com', 
+    channel_name: 'general',
+    message: 'Yeah, I just submitted it 👍',
+  },
+
+  // MAD Project Team
+  {
+    groupName: 'MAD Project Team',
+    userEmail: 'dave@example.com',
+    channel_name: 'project',
+    message: 'Can we finalize the UI design by Friday?',
+  },
+  {
+    groupName: 'MAD Project Team',
+    userEmail: 'eve@example.com',
+    channel_name: 'general',
+    message: 'I will handle the frontend integration.',
+  },
+  {
+    groupName: 'MAD Project Team',
+    userEmail: 'eve@example.com',
+    channel_name: 'design',
+    message: 'I created new Figma mockups for the dashboard.',
+  },
+
+  // EEE Circuit Masters
+  {
+    groupName: 'EEE Circuit Masters',
+    userEmail: 'carol@example.com',
+    channel_name: 'labs',
+    message: 'Reminder: Lab report due next Monday.',
+  },
+  {
+    groupName: 'EEE Circuit Masters',
+    userEmail: 'frank@example.com',
+    channel_name: 'general',
+    message: 'Does anyone know how to solve Question 3?',
+  },
+  {
+    groupName: 'EEE Circuit Masters',
+    userEmail: 'emataso@example.com',
+    channel_name: 'exam-prep',
+    message: 'I made a summary sheet for the circuit formulas.',
+  },
+];
+
+
 async function seed() {
   console.log('Seeding data...');
 
@@ -223,6 +379,42 @@ async function seed() {
   }
   console.log(`Inserted ${somethings.length} somethings.`);
 
+  // Auth-ready users (hashed passwords + verified email for login)
+  await pool.query(
+    `INSERT INTO "Person" (email, name, hashed_password, role, email_verified)
+     VALUES ('admin@campushub.sp', 'Admin', $1, 'admin', TRUE)
+     ON CONFLICT (email) DO UPDATE SET hashed_password = EXCLUDED.hashed_password, role = 'admin', email_verified = TRUE`,
+    [hashedAdminPassword],
+  );
+  await pool.query(
+    `UPDATE "Person" SET hashed_password = $1, email_verified = TRUE, role = 'user'
+     WHERE email != 'admin@campushub.sp'`,
+    [hashedDefaultPassword],
+  );
+  console.log('Set passwords (password123) and verified emails for all users.');
+
+  const aliceRes = await pool.query(`SELECT id FROM "Person" WHERE email = 'alice@example.com'`);
+  const bobRes = await pool.query(`SELECT id FROM "Person" WHERE email = 'bob@example.com'`);
+  const aliceId = aliceRes.rows[0]?.id;
+  const bobId = bobRes.rows[0]?.id;
+  if (aliceId && bobId) {
+    await pool.query(
+      `INSERT INTO "FriendRequests" (sender_id, receiver_id, status) VALUES ($1, $2, 'accepted')
+       ON CONFLICT (sender_id, receiver_id) DO UPDATE SET status = 'accepted'`,
+      [aliceId, bobId],
+    );
+    await pool.query(
+      `INSERT INTO "UserFriends" (user_id, friend_id) VALUES ($1, $2), ($2, $1) ON CONFLICT DO NOTHING`,
+      [aliceId, bobId],
+    );
+    await pool.query(
+      `INSERT INTO "PersonalMessages" (sender_id, recipient_id, body) VALUES ($1, $2, 'Hey Bob! Want to study together?')`,
+      [aliceId, bobId],
+    );
+    console.log('Seeded Alice/Bob friendship and sample message.');
+  }
+
+  // Discussion board extras
   console.log('Seed data inserted successfully.');
 
   // homepg function
@@ -271,7 +463,7 @@ async function seed() {
       await pool.query(
         `INSERT INTO "PostReactions" ("post_id", "user_id", "reaction_type")
          VALUES ($1, $2, $3)
-         ON CONFLICT DO NOTHING`,
+         ON CONFLICT ("post_id", "user_id") DO NOTHING`,
         [postRes.rows[0].id, userRes.rows[0].id, reaction.reactionType],
       );
     }
@@ -352,7 +544,87 @@ async function seed() {
     }
   }
   console.log(`Inserted ${marketplaceItems.length} marketplace items.`);
+
+
+  // Insert groups
+  for (const group of groups) {
+    const userRes = await pool.query(
+      `SELECT id FROM "Person" WHERE email = $1`,
+      [group.creatorEmail]
+    );
+
+    if (userRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "Groups" ("name", "creator_id", "description", "school", "module")
+         VALUES ($1, $2, $3, $4, $5)`,
+        [group.name, userRes.rows[0].id, group.description, group.school, group.module],
+      );
+    }
+  }
+
+  console.log(`Inserted ${groups.length} groups.`);
+
+  // Insert group members
+  for (const member of groupMembers) {
+    const userRes = await pool.query(
+      `SELECT id FROM "Person" WHERE email = $1`,
+      [member.userEmail]
+    );
+
+    const groupRes = await pool.query(
+      `SELECT id FROM "Groups" WHERE name = $1`,
+      [member.groupName]
+    );
+
+    if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "GroupMembers" ("group_id", "user_id", "role")
+        VALUES ($1, $2, $3)
+        ON CONFLICT DO NOTHING`,
+        [groupRes.rows[0].id, userRes.rows[0].id, member.role]
+      );
+    }
+  }
+
+  console.log(`Inserted ${groupMembers.length} group members.`);
+
+  // Insert group discussions
+  for (const discussion of groupDiscussions) {
+
+    const userRes = await pool.query(
+      `SELECT id FROM "Person" WHERE email = $1`,
+      [discussion.userEmail]
+    );
+
+    const groupRes = await pool.query(
+      `SELECT id FROM "Groups" WHERE name = $1`,
+      [discussion.groupName]
+    );
+
+    if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
+
+      await pool.query(
+        `INSERT INTO "GroupDiscussions"
+        ("group_id", "user_id", "channel_name", "message")
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT DO NOTHING`,
+        [
+          groupRes.rows[0].id,
+          userRes.rows[0].id,
+          discussion.channel_name,
+          discussion.message
+        ]
+      );
+
+    }
+  }
+
+  console.log(`Inserted ${groupDiscussions.length} group discussions.`);
+
+  console.log('Seed completed successfully.');
+  console.log(`Login: Alice/Bob password "${DEFAULT_PASSWORD}", Admin password "${ADMIN_PASSWORD}"`);
 }
+
 
 seed()
   .then(() => pool.end())

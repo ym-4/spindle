@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chats — Campus Hub</title>
+    <link rel="stylesheet" href="css/wa.css" />
+    <script src="js/api.js"></script>
+    <script src="js/page-guard.js" data-require-login data-return="chat.html"></script>
+  </head>
+  <body class="wa-body wa-body--chat" data-wa-page="chat">
+    <div class="wa-app wa-app--fullscreen">
+      <div id="waHeaderSlot"></div>
+      <div class="wa-chat-shell">
+        <aside class="wa-sidebar" id="chatSidebar">
+          <div class="wa-sidebar-tabs">
+            <button type="button" data-side="chats" class="active">Chats</button>
+            <button type="button" data-side="calls">Calls</button>
+            <button type="button" data-side="friends">Friends</button>
+          </div>
+          <div id="panelChats" class="wa-side-panel is-active">
+            <ul id="chatContactList" class="wa-list"></ul>
+          </div>
+          <div id="panelCalls" class="wa-side-panel">
+            <p class="wa-side-label">Call history</p>
+            <ul id="callLogList" class="wa-list wa-list--section"></ul>
+          </div>
+          <div id="panelFriends" class="wa-side-panel">
+            <p class="wa-side-label">Find people</p>
+            <input type="search" id="friendSearch" class="wa-search" placeholder="Search by name or email…" autocomplete="off" />
+            <p id="friendSearchHint" class="wa-search-hint">Type a name (e.g. Alice) then tap Add</p>
+            <ul id="findPeopleList" class="wa-list wa-find-people"></ul>
+            <p class="wa-side-label">Friend requests</p>
+            <div class="wa-friend-req-tabs">
+              <button type="button" class="active" data-req-tab="received">Received</button>
+              <button type="button" data-req-tab="sent">Sent</button>
+            </div>
+            <ul id="friendRequestsList" class="wa-list wa-list--section"></ul>
+          </div>
+        </aside>
+        <section class="wa-main" id="chatMain">
+          <div id="chatEmpty" class="wa-empty-state">
+            <p>Select a friend to start chatting</p>
+            <p class="wa-empty-state__hint">Add friends in the Friends tab first</p>
+          </div>
+          <div id="chatActive" class="wa-chat-active">
+            <div class="wa-chat-header">
+              <div id="chatHeaderAvatar" class="wa-avatar"></div>
+              <div class="wa-chat-header__name"><strong id="chatHeaderName"></strong></div>
+              <button type="button" class="wa-icon-btn" id="btnVoiceCall" title="Voice call">📞</button>
+              <button type="button" class="wa-icon-btn" id="btnVideoCall" title="Video call">📹</button>
+            </div>
+            <div id="chatMessages" class="wa-messages"></div>
+            <form id="chatForm" class="wa-compose">
+              <input type="text" id="chatInput" placeholder="Type a message" maxlength="2000" autocomplete="off" />
+              <button type="submit" class="wa-btn">Send</button>
+            </form>
+          </div>
+        </section>
+      </div>
+      <div id="waNavSlot"></div>
+    </div>
+
+    <div id="callOverlay" class="wa-call-overlay hidden">
+      <div class="wa-call-card">
+        <p id="callStatus" class="wa-call-status">Connecting…</p>
+        <p id="callSubstatus" class="wa-call-substatus"></p>
+        <div id="callVideoWrap" class="wa-call-videos hidden">
+          <video id="localVideo" autoplay muted playsinline class="wa-call-local"></video>
+          <video id="remoteVideo" autoplay playsinline class="wa-call-remote"></video>
+        </div>
+        <div id="callIncomingActions" class="wa-call-actions hidden">
+          <button type="button" class="wa-call-btn wa-call-btn--decline" id="btnDeclineCall" title="Decline">✕</button>
+          <button type="button" class="wa-call-btn wa-call-btn--accept" id="btnAcceptCall" title="Accept">📞</button>
+        </div>
+        <div id="callActiveControls" class="wa-call-controls hidden">
+          <button type="button" class="wa-call-ctrl" id="btnMute" title="Mute">🎤</button>
+          <button type="button" class="wa-call-ctrl" id="btnToggleVideo" title="Camera">📹</button>
+          <button type="button" class="wa-call-ctrl wa-call-ctrl--end" id="btnEndCall" title="End">📵</button>
+        </div>
+        <div id="callEndedActions" class="wa-call-ended hidden">
+          <button type="button" class="wa-btn wa-btn--ghost" id="btnCallDismiss">Dismiss</button>
+          <button type="button" class="wa-btn" id="btnCallBack">Call back</button>
+        </div>
+        <button type="button" class="wa-btn wa-btn--ghost hidden" id="btnCancelRinging">Cancel</button>
+      </div>
+    </div>
+
+    <div id="msgMenu" class="wa-msg-menu hidden" role="menu">
+      <button type="button" data-action="copy">Copy</button>
+      <button type="button" data-action="edit">Edit</button>
+      <button type="button" data-action="delete">Delete</button>
+      <div class="wa-msg-emoji-bar">
+        <button type="button" data-emoji="❤️">❤️</button>
+        <button type="button" data-emoji="😂">😂</button>
+        <button type="button" data-emoji="😮">😮</button>
+        <button type="button" data-emoji="😢">😢</button>
+        <button type="button" data-emoji="🙏">🙏</button>
+      </div>
+    </div>
+
+    <script src="js/wa-nav.js"></script>
+    <script src="js/socket-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/chat.js"></script>
+  </body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campus Hub — Home</title>
+    <link rel="stylesheet" href="css/wa.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <script src="js/api.js"></script>
+  </head>
+  <body class="wa-body" data-wa-page="home">
+    <div class="wa-app">
+      <header class="wa-topbar">
+        <h1>Campus Hub</h1>
+        <div class="wa-topbar-actions" id="homeTopActions">
+          <div id="navGuest">
+            <button type="button" class="wa-btn wa-btn--ghost" id="btnOpenLogin">Log in</button>
+            <button type="button" class="wa-btn" id="btnOpenRegister">Register</button>
+          </div>
+          <div id="navUser" class="hidden wa-topbar-actions">
+            <div id="waHeaderSlot" style="display: flex; gap: 0.5rem; align-items: center"></div>
+          </div>
+        </div>
+      </header>
+
+      <main id="homeGuest" class="wa-hero">
+        <h2>Connect on campus</h2>
+        <p>Real-time chats, voice/video calls, status stories, and secure settings.</p>
+        <button type="button" class="wa-btn wa-btn--lg" id="btnHeroLogin">Get started</button>
+      </main>
+
+      <main id="homeUser" class="wa-hero hidden">
+        <h2>Welcome back</h2>
+        <p>Jump into your campus conversations.</p>
+        <div class="wa-hero-links">
+          <a href="chat.html" class="wa-btn wa-btn--lg">Open Chats</a>
+          <a href="stories.html" class="wa-btn wa-btn--ghost">View Status</a>
+        </div>
+      </main>
+
+      <div id="waNavSlot"></div>
+    </div>
+
+    <div id="authOverlay" class="auth-overlay" aria-hidden="true">
+      <div class="auth-modal" role="dialog">
+        <div class="auth-modal__panel">
+          <button type="button" class="auth-close" id="authClose">&times;</button>
+          <div class="auth-tabs">
+            <button type="button" class="auth-tab is-active" data-tab="login">Log in</button>
+            <button type="button" class="auth-tab" data-tab="register">Register</button>
+          </div>
+          <p id="authMessage" class="auth-message"></p>
+          <form id="loginForm" class="auth-form is-active">
+            <h2 class="auth-form-title">Log in to Campus Hub</h2>
+            <div class="field"><label>Username or email</label><input type="text" id="loginUsername" placeholder="Username or email" required /></div>
+            <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="Password" required /></div>
+            <button type="submit" class="auth-submit auth-submit--outline">Log in</button>
+          </form>
+          <form id="registerForm" class="auth-form">
+            <h2 class="auth-form-title">Create your account</h2>
+            <div class="field"><label>Username</label><input type="text" id="registerName" placeholder="Choose a username" required /></div>
+            <div class="field"><label>Gmail</label><input type="email" id="registerEmail" placeholder="you@gmail.com" required /></div>
+            <div class="field"><label>Password</label><input type="password" id="registerPassword" placeholder="Password" minlength="4" required /></div>
+            <button type="submit" class="auth-submit auth-submit--outline">Register</button>
+          </form>
+          <form id="verifyForm" class="auth-form">
+            <h2 id="verifyTitle" class="auth-form-title">Verify your Gmail</h2>
+            <p id="verifyHint" class="auth-verify-hint">Enter the code sent to <strong id="verifyEmailDisplay"></strong></p>
+            <div class="field"><label>6-digit code</label><input type="text" id="verifyCode" inputmode="numeric" maxlength="6" placeholder="000000" required /></div>
+            <label id="verifyRememberRow" class="auth-remember hidden">
+              <input type="checkbox" id="verifyRemember" />
+              Remember me on this device for 30 days
+            </label>
+            <button type="submit" class="auth-submit auth-submit--outline">Continue</button>
+            <button type="button" class="auth-link-btn" id="btnResendCode">Resend code</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/wa-nav.js"></script>
+    <script src="js/socket-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/home.js"></script>
+  </body>
+</html>

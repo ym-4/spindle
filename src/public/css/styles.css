@@ -1,0 +1,5 @@
+/* Shared layout helpers used across pages */
+
+.hidden {
+  display: none !important;
+}
