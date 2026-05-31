@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campus Hub — Admin</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <script src="js/api.js"></script>
+    <script src="js/page-guard.js" data-require-admin data-return="admin.html"></script>
+  </head>
+  <body class="auth-body">
+    <div class="auth-bg" aria-hidden="true"></div>
+
+    <nav class="site-nav">
+      <a href="home.html" class="site-logo" style="text-decoration: none">CAMPUS HUB</a>
+      <div class="nav-actions">
+        <div id="navGuest" class="hidden">
+          <a href="home.html" class="btn-neon">Log in</a>
+        </div>
+        <div id="navUser">
+          <span class="nav-user">Admin: <strong id="navUserName"></strong></span>
+          <a href="home.html" class="btn-neon">Home</a>
+          <button type="button" class="btn-neon" id="btnLogout">Log out</button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="profile-main">
+      <h1 class="admin-title">Admin Dashboard</h1>
+      <p class="admin-subtitle">Manage all registered users. Only admins can access this page.</p>
+
+      <div id="adminLoading" class="profile-loading">Loading users...</div>
+      <div id="adminError" class="profile-error hidden"></div>
+
+      <div id="adminPanel" class="admin-panel hidden">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody id="adminUsersBody"></tbody>
+        </table>
+      </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+  </body>
+</html>
