@@ -54,7 +54,7 @@
     <div class="main-container">
         <!-- Left Sidebar -->
         <aside class="sidebar">
-            <a href="index.html" class="sidebar-item active">
+            <a href="index.html" class="sidebar-item">
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
@@ -86,28 +86,12 @@
                 <span>Settings</span>
             </div>
 
-            <div class="sidebar-divider"></div>
-
-            <h6 class="px-3 mt-3 mb-2 text-muted"
-                style="font-size: 0.85rem; font-weight: 600;">
-                YOUR GROUPS
-            </h6>
-
-            <div class="sidebar-item">
-                <i class="fas fa-circle"
-                style="font-size: 0.5rem; color: #42b72a;"></i>
-                <span>CS101 Study Group</span>
-            </div>
-
-            <div class="sidebar-item">
-                <i class="fas fa-circle"
-                style="font-size: 0.5rem; color: #1877f2;"></i>
-                <span>Math Assignment Help</span>
-            </div>
-
-            <div class="sidebar-item">
-                <i class="fas fa-plus-circle"></i>
-                <span>See all groups</span>
+            <div class="sidebar-divider" id="yourGroupsDivider" style="display:none;"></div>
+            <div id="yourGroupsSection" style="display:none;">
+                <h6 class="px-3 mt-3 mb-2 text-muted" style="font-size: 0.85rem; font-weight: 600;">
+                    YOUR GROUPS
+                </h6>
+                <div id="yourGroupsContainer"></div>
             </div>
         </aside>
 
@@ -150,7 +134,7 @@
                         </div>
                     </div>
 
-                    <!-- dynamic comments (TBC) -->
+                    <!-- dynamic comments -->
                     <div id="commentsContainer">
                         <div class="text-muted text-center py-3" id="commentsPlaceholder">
                             <i class="fas fa-comments fa-2x mb-2 d-block"></i>
@@ -164,29 +148,11 @@
         <!-- Right Sidebar -->
         <aside class="right-sidebar">
             <div class="card">
-                <div class="card-header">Related Posts</div>
-                <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="small">
-                            <span class="badge bg-danger me-2">Confession</span>
-                            <div class="mt-1"><strong>Anyone else procrastinating...</strong></div>
-                            <div class="text-muted" style="font-size: 0.75rem;">24 comments</div>
-                        </div>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="small">
-                            <span class="badge bg-primary me-2">Q&A</span>
-                            <div class="mt-1"><strong>How to deal with exam stress?</strong></div>
-                            <div class="text-muted" style="font-size: 0.75rem;">18 comments</div>
-                        </div>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="small">
-                            <span class="badge bg-secondary me-2">General</span>
-                            <div class="mt-1"><strong>Study tips that actually work</strong></div>
-                            <div class="text-muted" style="font-size: 0.75rem;">45 comments</div>
-                        </div>
-                    </a>
+            <div class="card-header">Related Posts</div>
+                <div class="list-group list-group-flush" id="relatedPostsContainer">
+                    <div class="list-group-item text-muted small text-center py-3">
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                    </div>
                 </div>
             </div>
 

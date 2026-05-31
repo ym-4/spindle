@@ -74,6 +74,30 @@ module.exports.updateGroupPublicity = async function updateGroupPublicity(data) 
   return rows;
 }
 
+// for home page: suggested groups
+module.exports.getSuggestedGroups = async function getSuggestedGroups(data) {
+  const VALUES = [data.user_id || 0];
+  const { rows } = await pool.query(`
+    SELECT
+      g.id,
+      g.name,
+      g.school,
+      g.module,
+      g.description,
+      COUNT(gm.user_id) AS member_count
+    FROM "Groups" g
+    LEFT JOIN "GroupMembers" gm ON gm.group_id = g.id
+    WHERE g.public = TRUE
+      AND g.id NOT IN (
+        SELECT group_id FROM "GroupMembers" WHERE user_id = $1
+      )
+    GROUP BY g.id
+    ORDER BY member_count DESC
+    LIMIT 3
+  `, VALUES);
+  return rows;
+};
+
 // -----------------------------------------------------------------------------------------------------
 //                          GroupMembers Table
 // -----------------------------------------------------------------------------------------------------
