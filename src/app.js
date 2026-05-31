@@ -20,7 +20,8 @@ const postsRouter = require('./routers/Posts.router');
 const postCommentsRouter = require('./routers/PostComments.router');
 const searchRouter = require('./routers/Search.router');
 const groupRouter = require('./routers/Groups.router');
-const marketplaceRouter = require('./routers/Marketplace.router')
+const marketplaceRouter = require('./routers/Marketplace.router');
+const cartRouter = require('./routers/Cart.router');
 
 const app = express();
 app.use(cors()); // Might remove later
@@ -68,6 +69,7 @@ app.use('/comments', postCommentsRouter);
 app.use('/search', searchRouter);
 app.use('/groups', groupRouter);
 app.use('/marketplace', marketplaceRouter);
+app.use('/cart', cartRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 

@@ -1,0 +1,16 @@
+.main-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #fff;
+    border-right: 1px solid #ddd;
+    flex-shrink: 0;
+}
+
+#content-area {
+    flex: 1;
+    width: 100%;
+}

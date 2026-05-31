@@ -27,7 +27,10 @@ function addListing(seller_id, id, name, description, price) {
     </div>
   `;
 
-  card.querySelector(".add-to-cart-btn").addEventListener("click", () => addToCart(seller_id, id)); 
+  card.querySelector(".add-to-cart-btn").addEventListener("click", () => {
+    let amount = card.querySelector(".qty-input").value;
+    addToCart(seller_id, id, localStorage.loggedInUserId, amount);
+  });
   container.appendChild(card);
 }
 
@@ -44,4 +47,107 @@ async function loadListings() {
   });
 }
 
-loadListings();
+function addCartItem(seller_id, id, name, description, price, quantity) {
+  const container = document.querySelector('.cart-container');
+  const card = document.createElement('div');
+  card.setAttribute('data-seller-id', seller_id);
+  card.setAttribute('data-id', id);
+  card.innerHTML = `
+    <div class="card mb-3">
+      <div class="row g-0 align-items-center">
+        <div class="col-md-3">
+          <img src="https://placehold.co/150x120" class="img-fluid rounded-start" alt="${name}" />
+        </div>
+        <div class="col-md-6">
+          <div class="card-body">
+            <h5 class="card-title">${name}</h5>
+            <p class="card-text text-muted">${description}</p>
+            <p class="card-price fw-bold">$${Number(price).toFixed(2)}</p>
+          </div>
+        </div>
+        <div class="col-md-3 text-center">
+          <button class="btn btn-outline-danger btn-sm remove-btn">Remove</button>
+          <button class="btn btn-outline-secondary btn-sm edit-btn d-block mt-2 mx-auto">Edit</button>
+          <div class="card-quantity-container">
+            <div class="input-group justify-content-center mt-3 card-quantity">
+              ${quantity}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  card.querySelector(".remove-btn").addEventListener("click", () => {
+    removeFromCart(id, localStorage.loggedInUserId);
+    location.reload();
+  });
+
+  card.querySelector('.edit-btn').addEventListener("click", () => {
+    const modal = document.getElementById("editCartModal");
+
+    // Pre-fill the quantity input with the current quantity
+    modal.querySelector("#editQuantity").value = quantity;
+
+    // Save button handler
+    modal.querySelector("#editSaveBtn").onclick = () => {
+      const newQuantity = parseInt(modal.querySelector("#editQuantity").value);
+      if (newQuantity < 1) {
+        newQuantity = 1;
+      }
+      editCart(id, localStorage.loggedInUserId, newQuantity);
+
+      bootstrap.Modal.getInstance(modal).hide();
+      location.reload();
+    };
+
+    new bootstrap.Modal(modal).show();
+  });
+
+  container.appendChild(card);
+  updateSummary();
+}
+
+function updateSummary() {
+  const inputs = document.querySelectorAll('.card-price');
+  let subtotal = 0;
+
+  inputs.forEach(card => {
+    const price = parseFloat(card.textContent.replace('$', ''));
+    const quantity = Number(document.querySelector('.card-quantity').innerHTML);
+    console.log(quantity);
+    subtotal += price * quantity;
+  });
+
+  document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('total').textContent = `$${subtotal.toFixed(2)}`;
+}
+
+async function loadCart() {
+  fetchMethod(`http://localhost:3000/cart/${localStorage.loggedInUserId}`, (status, data) => {
+    if (status === 200) {
+      data.forEach(item => {
+        fetchMethod(`http://localhost:3000/marketplace/${item.item_id}`, (cartStatus, cartData) => {
+          if (status == 200) {
+            addCartItem(cartData.seller_id, cartData.id, cartData.name, cartData.description, cartData.price, item.amount)
+          }
+        }, "GET");
+      });
+    } else {
+      console.error("Failed to load cart:", status, data);
+    }
+  });
+
+  checkoutButton = document.querySelector('.checkout-btn');
+  checkoutButton.addEventListener("click", () => {
+    clearCart(localStorage.loggedInUserId);
+    location.reload();
+  })
+}
+
+// Insert the correct items based on the name of the document ;-D
+if (document.title == "Marketplace") {
+  loadListings();
+} else if (document.title == "Cart") {
+  loadCart();
+}
