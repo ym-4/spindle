@@ -1,0 +1,48 @@
+/* Chat inside Spindle layout — light WhatsApp-style panel */
+.spindle-chat-page .content-area {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 56px);
+  background: #f0f2f5;
+}
+
+.spindle-chat-page .wa-chat-shell {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 12px;
+  border: 1px solid #e4e6eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.spindle-chat-page {
+  --wa-bg: #f0f2f5;
+  --wa-panel: #ffffff;
+  --wa-panel2: #f7f8fa;
+  --wa-border: #e4e6eb;
+  --wa-text: #1c1c1c;
+  --wa-muted: #65676b;
+  --wa-green: #e02020;
+  --wa-green-dark: #c41a1a;
+  --wa-bubble-in: #ffffff;
+  --wa-bubble-out: #ffe8e8;
+}
+
+.spindle-chat-page .wa-sidebar-tabs button.active {
+  color: #e02020;
+  border-bottom-color: #e02020;
+}
+
+.spindle-chat-page .wa-btn {
+  background: #e02020;
+  color: #fff;
+}
+
+.spindle-chat-page .wa-btn--ghost {
+  background: transparent;
+  color: #e02020;
+  border: 1px solid #e02020;
+}

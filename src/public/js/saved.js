@@ -2,12 +2,22 @@
 //  GET /posts/saved/:user_id  → display saved posts
 //  DELETE /posts/saved/:id    → unsave
 
-const API_BASE = currentUrl;
+function savedApiBase() {
+  if (typeof currentUrl !== 'undefined' && currentUrl) return currentUrl;
+  if (typeof getApiBase === 'function') {
+    const base = getApiBase();
+    if (base) return base;
+  }
+  return window.location.origin || '';
+}
 let savedRows = []; 
 
 document.addEventListener('DOMContentLoaded', () => {
-  const token  = localStorage.getItem('token');
-  const userId = localStorage.getItem('loggedInUserId');
+  const token = typeof getToken === 'function' ? getToken() : localStorage.getItem('token');
+  let userId = localStorage.getItem('loggedInUserId');
+  if (!userId && typeof getStoredUser === 'function') {
+    userId = getStoredUser()?.id;
+  }
 
   loadYourGroups(); 
   loadHotPosts()
@@ -53,6 +63,11 @@ function loadSavedPosts(userId, token) {
       Loading saved posts...
     </div>`;
 
+  fetchMethod(`${savedApiBase()}/posts/saved/${userId}`, (status, data) => {
+    if (status !== 200 || !Array.isArray(data) || data.length === 0) {
+      showEmpty();
+      return;
+    }
   // Load reactions
   loadUserReactions().then(() => {
     fetchMethod(`${API_BASE}/posts/saved/${userId}`, (status, data) => {
@@ -63,6 +78,8 @@ function loadSavedPosts(userId, token) {
 
       savedRows = data;
 
+    fetchMethod(`${savedApiBase()}/posts`, (pStatus, posts) => {
+      if (pStatus !== 200) { showError(); return; }
       fetchMethod(`${API_BASE}/posts`, (pStatus, posts) => {
         if (pStatus !== 200) { showError(); return; }
 
@@ -200,7 +217,7 @@ function buildSavedPostCard(post, saveRow) {
 function unsavePost(saveRowId, cardEl) {
   const token = localStorage.getItem('token');
 
-  fetchMethod(`${API_BASE}/posts/saved/${saveRowId}`, (status) => {
+  fetchMethod(`${savedApiBase()}/posts/saved/${saveRowId}`, (status) => {
     if (status === 200) {
       cardEl.style.transition = 'opacity 0.2s';
       cardEl.style.opacity = '0';

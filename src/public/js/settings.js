@@ -18,7 +18,8 @@ async function loadSettings() {
   const { settings } = await authFetch('/profile/settings');
   document.getElementById('accDisplayName').value = settings.display_name || settings.name || '';
   document.getElementById('accEmail').value = settings.email || '';
-  document.getElementById('accBio').value = settings.bio || '';
+  const bioEl = document.getElementById('accBio');
+  if (bioEl) bioEl.value = settings.bio || '';
   document.getElementById('accLanguage').value = settings.language || 'en';
   document.getElementById('accTimezone').value = settings.timezone || 'Asia/Singapore';
   document.getElementById('sec2fa').checked = !!settings.two_factor_enabled;
@@ -35,10 +36,12 @@ async function loadSettings() {
   }
   applyTheme(settings.theme);
   const preview = document.getElementById('avatarPreview');
-  if (settings.profile_image) {
-    preview.innerHTML = `<img src="${mediaUrl(settings.profile_image)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`;
-  } else {
-    preview.textContent = (settings.name || '?').slice(0, 2).toUpperCase();
+  if (preview) {
+    if (settings.profile_image) {
+      preview.innerHTML = `<img src="${mediaUrl(settings.profile_image)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`;
+    } else {
+      preview.textContent = (settings.name || '?').slice(0, 2).toUpperCase();
+    }
   }
   loadSessions();
 }
@@ -279,8 +282,8 @@ document.addEventListener('DOMContentLoaded', () => {
     redirectToLogin('settings.html');
     return;
   }
-  injectWaHeader('Settings');
-  injectWaNav('settings');
+  if (document.getElementById('waHeaderSlot')) injectWaHeader('Settings');
+  if (document.getElementById('waNavSlot')) injectWaNav('settings');
   refreshNotifBadge();
   bindSettings();
   loadSettings();

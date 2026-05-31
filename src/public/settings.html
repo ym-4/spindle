@@ -3,113 +3,165 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Settings — Campus Hub</title>
-    <link rel="stylesheet" href="css/wa.css" />
+    <title>Settings — Spindle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/posts.css" />
+    <link rel="stylesheet" href="css/settings-spindle.css" />
+    <link rel="stylesheet" href="css/spindle-notif.css" />
     <script src="js/api.js"></script>
-    <script src="js/page-guard.js" data-require-login data-return="settings.html"></script>
   </head>
-  <body class="wa-body" data-wa-page="settings">
-    <div class="wa-app">
-      <div id="waHeaderSlot"></div>
-      <main style="flex: 1; overflow-y: auto">
+  <body class="settings-spindle-page" data-page="settings">
+    <nav class="navbar">
+      <div class="container-fluid px-0 d-flex align-items-center">
+        <a class="navbar-brand" href="index.html">
+          <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
+          <span class="brand-name">spindle</span>
+        </a>
+        <div class="navbar-right">
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a href="profile.html" class="btn-navbar-profile" id="profileButton">
+            <i class="fas fa-user-circle"></i> Profile
+          </a>
+          <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="main-container">
+      <aside class="sidebar"></aside>
+
+      <main class="content-area">
+        <h1 class="h4 mb-3">Settings</h1>
+        <p class="text-muted small mb-3">Account, security, and preferences. Edit your public profile on <a href="profile.html">Profile</a>.</p>
+
         <div id="settingsMenuView">
-          <ul class="wa-settings-menu">
-            <li><button type="button" class="wa-menu-item" data-open="profile"><span class="wa-menu-icon">👤</span><span><strong>Profile</strong><small>Name, photo, bio</small></span></button></li>
-            <li><button type="button" class="wa-menu-item" data-open="account"><span class="wa-menu-icon">📧</span><span><strong>Account</strong><small>Email, language, timezone</small></span></button></li>
-            <li><button type="button" class="wa-menu-item" data-open="security"><span class="wa-menu-icon">🔐</span><span><strong>Security</strong><small>2FA, password, linked devices</small></span></button></li>
-            <li><button type="button" class="wa-menu-item" data-open="appearance"><span class="wa-menu-icon">🎨</span><span><strong>Appearance</strong><small>Theme, font, compact mode</small></span></button></li>
-            <li><button type="button" class="wa-menu-item" data-open="privacy"><span class="wa-menu-icon">🛡</span><span><strong>Privacy</strong><small>Profile visibility, data export</small></span></button></li>
-            <li><button type="button" class="wa-menu-item" data-open="payment"><span class="wa-menu-icon">💳</span><span><strong>Payment</strong><small>Cards, PayNow, GrabPay</small></span></button></li>
-            <li><button type="button" class="wa-menu-item" data-open="danger"><span class="wa-menu-icon">⚠</span><span><strong>Account actions</strong><small>Deactivate or delete account</small></span></button></li>
-          </ul>
+          <div class="settings-menu-card">
+            <button type="button" class="settings-menu-item" data-open="account">
+              <span class="settings-menu-icon"><i class="fas fa-envelope"></i></span>
+              <span><strong>Account</strong><br /><small class="text-muted">Email, language, timezone</small></span>
+            </button>
+            <button type="button" class="settings-menu-item" data-open="security">
+              <span class="settings-menu-icon"><i class="fas fa-lock"></i></span>
+              <span><strong>Security</strong><br /><small class="text-muted">2FA, password, devices</small></span>
+            </button>
+            <button type="button" class="settings-menu-item" data-open="appearance">
+              <span class="settings-menu-icon"><i class="fas fa-palette"></i></span>
+              <span><strong>Appearance</strong><br /><small class="text-muted">Theme and display</small></span>
+            </button>
+            <button type="button" class="settings-menu-item" data-open="privacy">
+              <span class="settings-menu-icon"><i class="fas fa-shield-alt"></i></span>
+              <span><strong>Privacy</strong><br /><small class="text-muted">Visibility and data</small></span>
+            </button>
+            <button type="button" class="settings-menu-item" data-open="payment">
+              <span class="settings-menu-icon"><i class="fas fa-credit-card"></i></span>
+              <span><strong>Payment</strong><br /><small class="text-muted">Marketplace checkout</small></span>
+            </button>
+            <button type="button" class="settings-menu-item" data-open="danger">
+              <span class="settings-menu-icon"><i class="fas fa-exclamation-triangle text-danger"></i></span>
+              <span><strong class="text-danger">Account actions</strong><br /><small class="text-muted">Deactivate or delete</small></span>
+            </button>
+          </div>
         </div>
 
-        <div id="settingsDetailView" class="wa-settings-detail is-hidden">
-          <button type="button" class="wa-settings-back" id="settingsBack">← Back</button>
-          <div id="pane-profile" class="settings-pane is-hidden wa-form-section">
-            <h3>Profile photo</h3>
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem">
-              <div id="avatarPreview" class="wa-avatar" style="width: 72px; height: 72px"></div>
-              <label class="wa-btn">Upload photo<input type="file" id="avatarFile" accept="image/*" hidden /></label>
-            </div>
-            <label>Bio<textarea id="accBio" rows="3"></textarea></label>
-            <button type="button" class="wa-btn" id="btnSaveBio">Save bio</button>
-          </div>
-          <div id="pane-account" class="settings-pane is-hidden wa-form-section">
+        <div id="settingsDetailView" class="is-hidden mt-3">
+          <button type="button" class="btn btn-link ps-0 mb-2" id="settingsBack">← Back</button>
+
+          <div id="pane-account" class="settings-pane is-hidden settings-pane-card">
+            <h2 class="h5 mb-3">Account</h2>
             <form id="accountForm">
-              <label>Display name<input type="text" id="accDisplayName" /></label>
-              <label>Email<input type="email" id="accEmail" /></label>
-              <label>Language<select id="accLanguage"><option value="en">English</option><option value="zh">中文</option></select></label>
-              <label>Time zone<select id="accTimezone"><option value="Asia/Singapore">Asia/Singapore</option><option value="UTC">UTC</option></select></label>
-              <button type="submit" class="wa-btn">Save account</button>
+              <label>Display name<input type="text" id="accDisplayName" class="form-control" /></label>
+              <label>Email<input type="email" id="accEmail" class="form-control" /></label>
+              <label>Language<select id="accLanguage" class="form-select"><option value="en">English</option><option value="zh">中文</option></select></label>
+              <label>Time zone<select id="accTimezone" class="form-select"><option value="Asia/Singapore">Asia/Singapore</option><option value="UTC">UTC</option></select></label>
+              <button type="submit" class="btn btn-primary mt-2">Save account</button>
             </form>
           </div>
-          <div id="pane-security" class="settings-pane is-hidden">
-            <ul class="wa-settings-list">
-              <li class="wa-settings-row"><label><span>Two-factor authentication</span><input type="checkbox" class="wa-toggle" id="sec2fa" data-autosave="security" data-field="two_factor_enabled" /></label></li>
-              <li class="wa-settings-row"><label><span>Email on new login</span><input type="checkbox" class="wa-toggle" id="secLoginNotify" data-autosave="security" data-field="login_notifications" /></label></li>
-            </ul>
-            <h3 class="wa-side-label">Linked devices</h3>
-            <ul id="sessionsList" class="wa-list"></ul>
-            <div class="wa-form-section">
-              <h3>Change password</h3>
-              <p style="color: var(--wa-muted); font-size: 0.85rem">Requires email 2FA. New password must be entered twice.</p>
-              <form id="passwordForm">
-                <label>Current<input type="password" id="curPassword" required /></label>
-                <label>New password<input type="password" id="newPassword" minlength="4" required /></label>
-                <label>Confirm new password<input type="password" id="newPasswordConfirm" minlength="4" required /></label>
-                <label>Email 2FA code<input type="text" id="pwd2faCode" maxlength="6" placeholder="6-digit code" required /></label>
-                <button type="button" class="wa-btn wa-btn--ghost" id="btnRequestPwdCode">Send code to email</button>
-                <button type="submit" class="wa-btn" style="margin-top: 0.5rem">Update password</button>
-              </form>
+
+          <div id="pane-security" class="settings-pane is-hidden settings-pane-card">
+            <h2 class="h5 mb-3">Security</h2>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="sec2fa" data-autosave="security" data-field="two_factor_enabled" />
+              <label class="form-check-label" for="sec2fa">Two-factor authentication</label>
             </div>
-          </div>
-          <div id="pane-appearance" class="settings-pane is-hidden">
-            <ul class="wa-settings-list">
-              <li class="wa-settings-row"><label>Theme<select id="appTheme" data-autosave="appearance" data-field="theme"><option value="dark">Dark</option><option value="light">Light</option></select></label></li>
-              <li class="wa-settings-row"><label>Compact mode<input type="checkbox" class="wa-toggle" id="appCompact" data-autosave="appearance" data-field="compact_mode" /></label></li>
-              <li class="wa-settings-row"><label>Font size<select id="appFontSize" data-autosave="appearance" data-field="font_size"><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></label></li>
-            </ul>
-          </div>
-          <div id="pane-privacy" class="settings-pane is-hidden">
-            <ul class="wa-settings-list">
-              <li class="wa-settings-row"><label>Public profile<input type="checkbox" class="wa-toggle" id="privPublic" data-autosave="privacy" data-field="public_profile" /></label></li>
-              <li class="wa-settings-row"><label>Activity tracking<input type="checkbox" class="wa-toggle" id="privTracking" data-autosave="privacy" data-field="activity_tracking" /></label></li>
-            </ul>
-            <button type="button" class="wa-btn wa-btn--ghost" id="btnExportData" style="margin: 1rem">Export my data</button>
-          </div>
-          <div id="pane-payment" class="settings-pane is-hidden wa-form-section">
-            <form id="paymentForm">
-              <label>Name on account<input type="text" id="paymentBillingName" required /></label>
-              <label>Method<select id="paymentMethod" required><option value="">Choose…</option><option value="card">Card</option><option value="paynow">PayNow</option><option value="grabpay">GrabPay</option></select></label>
-              <label>Card number (only last 4 saved)<input type="text" id="paymentCardInput" placeholder="1234 5678 9012 3456" /></label>
-              <button type="submit" class="wa-btn">Save payment</button>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="secLoginNotify" data-autosave="security" data-field="login_notifications" />
+              <label class="form-check-label" for="secLoginNotify">Email on new login</label>
+            </div>
+            <h3 class="h6">Linked devices</h3>
+            <ul id="sessionsList" class="list-group mb-3"></ul>
+            <h3 class="h6">Change password</h3>
+            <p class="small text-muted">Requires email 2FA.</p>
+            <form id="passwordForm">
+              <label>Current<input type="password" id="curPassword" class="form-control" required /></label>
+              <label>New password<input type="password" id="newPassword" class="form-control" minlength="4" required /></label>
+              <label>Confirm new password<input type="password" id="newPasswordConfirm" class="form-control" minlength="4" required /></label>
+              <label>Email 2FA code<input type="text" id="pwd2faCode" class="form-control" maxlength="6" required /></label>
+              <button type="button" class="btn btn-outline-secondary" id="btnRequestPwdCode">Send code to email</button>
+              <button type="submit" class="btn btn-primary mt-2">Update password</button>
             </form>
           </div>
-          <div id="pane-danger" class="settings-pane is-hidden wa-form-section">
-            <p style="color: var(--wa-muted); font-size: 0.9rem">These actions affect your entire Campus Hub account.</p>
-            <button type="button" class="wa-btn wa-btn--ghost" id="btnDeactivate">Deactivate account</button>
-            <button type="button" class="wa-btn wa-btn--danger" id="btnDeleteAccount" style="margin-top: 0.75rem">Delete permanently</button>
+
+          <div id="pane-appearance" class="settings-pane is-hidden settings-pane-card">
+            <h2 class="h5 mb-3">Appearance</h2>
+            <label>Theme<select id="appTheme" class="form-select" data-autosave="appearance" data-field="theme"><option value="dark">Dark</option><option value="light">Light</option></select></label>
+            <div class="form-check my-2">
+              <input class="form-check-input" type="checkbox" id="appCompact" data-autosave="appearance" data-field="compact_mode" />
+              <label class="form-check-label" for="appCompact">Compact mode</label>
+            </div>
+            <label>Font size<select id="appFontSize" class="form-select" data-autosave="appearance" data-field="font_size"><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></label>
+          </div>
+
+          <div id="pane-privacy" class="settings-pane is-hidden settings-pane-card">
+            <h2 class="h5 mb-3">Privacy</h2>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="privPublic" data-autosave="privacy" data-field="public_profile" />
+              <label class="form-check-label" for="privPublic">Public profile</label>
+            </div>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="privTracking" data-autosave="privacy" data-field="activity_tracking" />
+              <label class="form-check-label" for="privTracking">Activity tracking</label>
+            </div>
+            <button type="button" class="btn btn-outline-secondary" id="btnExportData">Export my data</button>
+          </div>
+
+          <div id="pane-payment" class="settings-pane is-hidden settings-pane-card">
+            <h2 class="h5 mb-3">Payment</h2>
+            <form id="paymentForm">
+              <label>Name on account<input type="text" id="paymentBillingName" class="form-control" required /></label>
+              <label>Method<select id="paymentMethod" class="form-select" required><option value="">Choose…</option><option value="card">Card</option><option value="paynow">PayNow</option><option value="grabpay">GrabPay</option></select></label>
+              <label>Card (last 4 only saved)<input type="text" id="paymentCardInput" class="form-control" placeholder="1234 5678 9012 3456" /></label>
+              <button type="submit" class="btn btn-primary mt-2">Save payment</button>
+            </form>
+          </div>
+
+          <div id="pane-danger" class="settings-pane is-hidden settings-pane-card">
+            <h2 class="h5 text-danger mb-3">Account actions</h2>
+            <p class="small text-muted">These affect your entire Spindle account.</p>
+            <button type="button" class="btn btn-outline-secondary" id="btnDeactivate">Deactivate account</button>
+            <button type="button" class="btn btn-danger mt-2" id="btnDeleteAccount">Delete permanently</button>
           </div>
         </div>
       </main>
-      <div id="waNavSlot"></div>
     </div>
 
     <div id="dangerModal" class="wa-danger-modal hidden" role="dialog" aria-modal="true">
       <div class="wa-danger-modal__card">
         <h3 id="dangerModalTitle">Are you sure?</h3>
         <ul id="dangerModalList"></ul>
-        <p id="dangerModalExtra" style="color: var(--wa-muted); font-size: 0.85rem"></p>
-        <div class="wa-danger-modal__actions">
-          <button type="button" class="wa-btn wa-btn--ghost" id="dangerModalCancel">Cancel</button>
-          <button type="button" class="wa-btn wa-btn--danger" id="dangerModalConfirm">Confirm</button>
+        <p id="dangerModalExtra" class="small text-muted"></p>
+        <div class="d-flex gap-2 justify-content-end mt-3">
+          <button type="button" class="btn btn-outline-secondary" id="dangerModalCancel">Cancel</button>
+          <button type="button" class="btn btn-danger" id="dangerModalConfirm">Confirm</button>
         </div>
       </div>
     </div>
 
     <script src="js/wa-nav.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="js/socket-client.js"></script>
+    <script src="js/userNavBarToggle.js"></script>
+    <script src="js/spindle-sidebar.js"></script>
+    <script src="js/spindle-page.js"></script>
     <script src="js/settings.js"></script>
   </body>
 </html>

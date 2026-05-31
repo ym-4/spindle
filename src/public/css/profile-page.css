@@ -1,0 +1,249 @@
+/* Professional profile — Spindle light theme */
+.profile-page .content-area {
+  padding: 0;
+  background: #f0f2f5;
+}
+
+.pro-profile {
+  max-width: 900px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.pro-profile__cover {
+  position: relative;
+  height: 200px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+}
+
+.pro-profile__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pro-profile__cover-edit {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.pro-profile__head {
+  position: relative;
+  padding: 0 1.5rem 1rem;
+  margin-top: -48px;
+}
+
+.pro-profile__avatar-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.pro-profile__avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  background: linear-gradient(135deg, #e02020, #ff6b6b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pro-profile__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pro-profile__avatar-edit {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+}
+
+.pro-profile__actions-top {
+  float: right;
+  margin-top: 56px;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pro-profile__name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1c1c1c;
+  margin: 0.75rem 0 0.25rem;
+  clear: both;
+}
+
+.pro-profile__headline {
+  color: #65676b;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.pro-profile__meta-line {
+  color: #65676b;
+  font-size: 0.9rem;
+  margin-top: 0.35rem;
+}
+
+.pro-profile__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e4e6eb;
+  border-bottom: 1px solid #e4e6eb;
+  background: #fff;
+  margin: 0 1.5rem;
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+
+.pro-profile__stat strong {
+  display: block;
+  font-size: 1.25rem;
+  color: #1c1c1c;
+}
+
+.pro-profile__stat span {
+  font-size: 0.8rem;
+  color: #65676b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pro-profile__section {
+  background: #fff;
+  margin: 1rem 1.5rem 0;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid #e4e6eb;
+}
+
+.pro-profile__section h3 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #65676b;
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+}
+
+.pro-profile__bio {
+  color: #1c1c1c;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.pro-profile__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pro-profile__skill {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid #e4e6eb;
+  background: #f7f8fa;
+  color: #1c1c1c;
+}
+
+.pro-profile__skill:nth-child(5n + 1) {
+  border-color: #a855f7;
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.pro-profile__skill:nth-child(5n + 2) {
+  border-color: #22c55e;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.pro-profile__skill:nth-child(5n + 3) {
+  border-color: #f97316;
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.pro-profile__links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pro-profile__links li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.pro-profile__links li:last-child {
+  border-bottom: none;
+}
+
+.pro-profile__links a {
+  color: #1877f2;
+  text-decoration: none;
+}
+
+.pro-profile__links a:hover {
+  text-decoration: underline;
+}
+
+.pro-profile__friend-actions {
+  padding: 1rem 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Edit form */
+.pro-profile-edit {
+  margin: 1rem 1.5rem;
+  background: #fff;
+  border: 1px solid #e4e6eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.pro-profile-edit label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.pro-profile-edit input,
+.pro-profile-edit textarea {
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e4e6eb;
+  border-radius: 8px;
+}
+
+.pro-profile-edit textarea {
+  min-height: 80px;
+}
+
+.pro-profile-edit .form-hint {
+  font-size: 0.8rem;
+  color: #65676b;
+  font-weight: 400;
+}

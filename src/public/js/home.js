@@ -19,14 +19,14 @@ function setupHome() {
 
 document.addEventListener('DOMContentLoaded', () => {
   if (getToken() && !getStoredUser()) clearAuth();
-  if (isLoggedIn() && new URLSearchParams(location.search).get('return')) {
+  if (isLoggedIn()) {
     const user = getStoredUser();
     window.location.replace(getPostLoginRedirect(user));
     return;
   }
-  updateNavForUser(getStoredUser());
-  if (isLoggedIn()) injectWaNav('home');
+  updateNavForUser(null);
   setupHome();
+});
 });
 //  Spindle — Home Page
 

@@ -50,6 +50,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Browsers automatically request /favicon.ico — return 204 (no content) to avoid 404 noise.
+app.get('/', (req, res) => res.redirect('/home.html'));
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => res.status(204).end());
 

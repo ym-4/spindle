@@ -31,6 +31,36 @@ router.get('/', (req, res, next) => {
     .catch(next);
 });
 
+// Get post by Category (must be before /:id)
+router.get('/tag/:category', (req, res, next) => {
+  const data = {
+    category: req.params.category
+  }
+
+  getPostByCategory(data)
+    .then((post) => res.status(200).json(post))
+    .catch(next);
+});
+
+// Saved posts & reactions (must be before /:id)
+router.get('/saved/:user_id', (req, res, next) => {
+  const data = {
+    user_id: req.params.user_id
+  }
+  getSavedByUserID(data)
+    .then((post) => res.status(200).json(post))
+    .catch(next);
+});
+
+router.get('/reaction/:user_id', (req, res, next) => {
+  const data = {
+    user_id: req.params.user_id
+  }
+  getReactionByUserID(data)
+    .then((post) => res.status(200).json(post))
+    .catch(next);
+});
+
 // Get post by ID
 router.get('/:id', (req, res, next) => {
   const data = {
@@ -38,17 +68,6 @@ router.get('/:id', (req, res, next) => {
   }
 
   getPostByID(data)
-    .then((post) => res.status(200).json(post))
-    .catch(next);
-});
-
-// Get post by Category
-router.get('/tag/:category', (req, res, next) => {
-  const data = {
-    category: req.params.category
-  }
-
-  getPostByCategory(data)
     .then((post) => res.status(200).json(post))
     .catch(next);
 });
@@ -182,16 +201,6 @@ router.delete('/:id', (req, res, next) => {
 
 //==================== post interactions (saves, likes, etc) ============================
 //saves
-// Get saved posts by user ID
-router.get('/saved/:user_id', (req, res, next) => {
-  const data = {
-    user_id: req.params.user_id
-  }
-  getSavedByUserID(data)
-    .then((post) => res.status(200).json(post))
-    .catch(next);
-});
-
 // adds new save to saved posts
 router.post('/saved', (req, res, next) => {
   // missing required information
@@ -236,16 +245,6 @@ router.delete('/saved/:id', (req, res, next) => {
 });
 
 // likes n dislikes
-// Get reaction by user
-router.get('/reaction/:user_id', (req, res, next) => {
-  const data = {
-    user_id: req.params.user_id
-  }
-  getReactionByUserID(data)
-    .then((post) => res.status(200).json(post))
-    .catch(next);
-});
-
 // creates like for a post
 router.post('/like', (req, res, next) => {
   // missing required information
