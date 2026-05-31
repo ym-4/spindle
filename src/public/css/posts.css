@@ -88,7 +88,7 @@ body {
 .notif-bell {
     color: var(--text-primary);
     font-size: 1.2rem;
-    padding: 0.45rem 1.6rem;
+    padding: 0.45rem 0.7rem;
     border-radius: 8px;
     transition: background-color 0.2s;
     text-decoration: none;
@@ -1004,10 +1004,19 @@ body {
 
 .comment-item {
     padding: 0.75rem 0;
-    border-bottom: 1px solid var(--border-color);
 }
 
 .comment-item:last-child { border-bottom: none; }
+
+.comment-group {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.comment-group:last-child {
+    border-bottom: none;
+}
 
 .comment-item .comment-content { background-color: transparent; padding: 0; }
 
@@ -1106,10 +1115,10 @@ body {
 @media (max-width: 1200px) { .right-sidebar { display: none; } }
 
 @media (max-width: 768px) {
-    .sidebar { display: none; }
     .content-area { padding: 0 1rem; max-width: 100%; }
     .main-container { padding-top: 0.5rem; }
     .navbar .navbar-search { display: none; }
+    .sidebar { display: none; }
 }
 
 .text-muted { color: var(--text-secondary) !important; }

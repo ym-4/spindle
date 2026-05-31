@@ -5,7 +5,7 @@ const pool = new Pool({
 });
 
 const persons = [
-  { email: 'alice@example.com', name: 'Alice', hashed_password: 123 },
+  { email: 'alice@example.com', name: 'Alice'},
   { email: 'bob@example.com', name: 'Bob' },
   { email: 'carol@example.com', name: 'Carol' },
   { email: 'dave@example.com', name: 'Dave' },
@@ -113,6 +113,35 @@ const groups = [
     public: true,
   },
 ];
+
+// Example group members
+const groupMembers = [
+  // CS101 Study Group
+  { groupName: 'CS101 Study Group', userEmail: 'alice@example.com', role: 'admin' },
+  { groupName: 'CS101 Study Group', userEmail: 'bob@example.com', role: 'user' },
+  { groupName: 'CS101 Study Group', userEmail: 'carol@example.com', role: 'user' },
+
+  // Math Assignment Help
+  { groupName: 'Math Assignment Help', userEmail: 'bob@example.com', role: 'admin' },
+  { groupName: 'Math Assignment Help', userEmail: 'alice@example.com', role: 'user' },
+  { groupName: 'Math Assignment Help', userEmail: 'eve@example.com', role: 'user' },
+
+  // EEE Electronics Lab
+  { groupName: 'EEE Electronics Lab', userEmail: 'carol@example.com', role: 'admin' }, 
+  { groupName: 'EEE Electronics Lab', userEmail: 'frank@example.com', role: 'user' },
+  { groupName: 'EEE Electronics Lab', userEmail: 'grace@example.com', role: 'user' },
+
+  // Business Case Study Team
+  { groupName: 'Business Case Study Team', userEmail: 'dave@example.com', role: 'admin' }, 
+  { groupName: 'Business Case Study Team', userEmail: 'heidi@example.com', role: 'user' },
+  { groupName: 'Business Case Study Team', userEmail: 'ivan@example.com', role: 'user' },
+
+  // Biomedical Science Notes
+  { groupName: 'Biomedical Science Notes', userEmail: 'eve@example.com', role: 'admin' }, 
+  { groupName: 'Biomedical Science Notes', userEmail: 'judy@example.com', role: 'user' },
+  { groupName: 'Biomedical Science Notes', userEmail: 'mallory@example.com', role: 'user' },
+];
+
 
 // These seeded items should be moved to the top with the others later, right now I dont wanna be confused.
 const marketplaceItems = [
@@ -290,6 +319,22 @@ async function seed() {
   }
 
   console.log(`Inserted ${groups.length} groups.`);
+
+    // Insert group members
+  for (const gm of groupMembers) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [gm.userEmail]);
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [gm.groupName]);
+
+    if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "GroupMembers" ("group_id", "user_id", "role")
+         VALUES ($1, $2, $3)
+         ON CONFLICT DO NOTHING`,
+        [groupRes.rows[0].id, userRes.rows[0].id, gm.role],
+      );
+    }
+  }
+  console.log(`Inserted ${groupMembers.length} group members.`);
 
   // Insert marketplace items
   const sellerRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [

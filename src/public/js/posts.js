@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const REACTIONS_BASE = `${currentUrl}/posts`;
 let currentReaction = null;
+let openReplyThreads = new Set(); 
 let savedPostIds = new Set();
 
 // Load saved IDs
@@ -178,9 +179,6 @@ function renderPost(post) {
       <i class="fas fa-trash-alt me-2"></i>Delete post
     </button></li>` : '';
 
-  const hideOption = post.category !== 'confession'
-    ? `<li><a class="dropdown-item" href="#">Hide post</a></li>` : '';
-
   document.getElementById('postDetailContainer').innerHTML = `
     <div class="post-card" data-post-id="${post.id}" style="cursor: default;">
       <div class="post-header">
@@ -207,7 +205,6 @@ function renderPost(post) {
                   ${isSaved ? 'Unsave post' : 'Save post'}
                 </button>
               </li>` : ''}
-            ${hideOption}
             <li>
               <button class="dropdown-item report-post-btn">
                 Report
@@ -547,8 +544,13 @@ function appendCommentToDOM(comment, postId, allComments) {
   if (comment.parent_comment_id) return;
 
   const container = document.getElementById('commentsContainer');
+
+  const group = document.createElement('div');
+  group.className = 'comment-group';
+  container.appendChild(group);
+
   const el = buildCommentEl(comment, postId, false);
-  container.appendChild(el);
+  group.appendChild(el);
 
   const replies = allComments.filter(
     r => parseInt(r.parent_comment_id) === parseInt(comment.id)
@@ -556,30 +558,42 @@ function appendCommentToDOM(comment, postId, allComments) {
 
   if (replies.length === 0) return;
 
-  // show replies
+  // replies wrapper 
   const repliesWrapper = document.createElement('div');
   repliesWrapper.className = 'replies-wrapper';
-  repliesWrapper.style.display = 'none';
+  const wasOpen = openReplyThreads.has(parseInt(comment.id));
+  repliesWrapper.style.display = wasOpen ? 'block' : 'none';
+
   replies.forEach(reply => {
     repliesWrapper.appendChild(buildCommentEl(reply, postId, true, comment.id));
   });
 
+  // toggle button
   const toggleBtn = document.createElement('button');
   toggleBtn.className = 'show-replies-btn';
-  toggleBtn.innerHTML = `
-    <i class="fas fa-chevron-down" style="font-size:0.7rem;"></i>
-    Show ${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}`;
+  toggleBtn.dataset.commentId = comment.id;
+
+  function updateToggleLabel(open) {
+    toggleBtn.innerHTML = open
+      ? `<i class="fas fa-chevron-up" style="font-size:0.7rem;"></i> Hide replies`
+      : `<i class="fas fa-chevron-down" style="font-size:0.7rem;"></i> Show ${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}`;
+  }
+
+  updateToggleLabel(wasOpen);
 
   toggleBtn.addEventListener('click', () => {
     const isHidden = repliesWrapper.style.display === 'none';
     repliesWrapper.style.display = isHidden ? 'block' : 'none';
-    toggleBtn.innerHTML = isHidden
-      ? `<i class="fas fa-chevron-up" style="font-size:0.7rem;"></i> Hide replies`
-      : `<i class="fas fa-chevron-down" style="font-size:0.7rem;"></i> Show ${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}`;
+    updateToggleLabel(isHidden);
+    if (isHidden) {
+      openReplyThreads.add(parseInt(comment.id));
+    } else {
+      openReplyThreads.delete(parseInt(comment.id));
+    }
   });
 
-  container.appendChild(toggleBtn);
-  container.appendChild(repliesWrapper);
+  group.appendChild(toggleBtn);
+  group.appendChild(repliesWrapper);
 }
 
 // comment box
@@ -689,7 +703,7 @@ function toggleReplyBox(commentEl, comment, postId, rootParentId) {
   if (!token) { showLoginRequiredModal(); return; }
 
   const parentCommentId = rootParentId || comment.id;
-  const replyingToName = comment.author_name || 'User';
+  const replyingToName  = comment.author_name || 'User';
 
   const replyBox = document.createElement('div');
   replyBox.className = 'reply-input-box mt-2';
@@ -705,26 +719,29 @@ function toggleReplyBox(commentEl, comment, postId, rootParentId) {
 
   const actionsEl = commentEl.querySelector('.comment-actions');
   actionsEl.after(replyBox);
-  replyBox.querySelector('textarea').focus();
+
   const textarea = replyBox.querySelector('textarea');
-    textarea.value = `@${replyingToName} `;
-    textarea.focus();
-    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+  textarea.value = `@${replyingToName} `;
+  textarea.focus();
+  textarea.setSelectionRange(textarea.value.length, textarea.value.length);
 
   replyBox.querySelector('.cancel-reply-btn').addEventListener('click', () => replyBox.remove());
 
   replyBox.querySelector('.submit-reply-btn').addEventListener('click', () => {
-    const rawContent = replyBox.querySelector('textarea').value.trim();
-      if (!rawContent) return;
-      const mention = `@${replyingToName} `;
-      const content = rawContent.startsWith('@') ? rawContent : mention + rawContent;
+    const rawContent = textarea.value.trim();
+    if (!rawContent) return;
+
+    const mention = `@${replyingToName} `;
+    const content = rawContent.startsWith('@') ? rawContent : mention + rawContent;
 
     const submitBtn = replyBox.querySelector('.submit-reply-btn');
-    submitBtn.disabled = true;
+    submitBtn.disabled    = true;
     submitBtn.textContent = 'Posting...';
 
+    openReplyThreads.add(parseInt(parentCommentId));
+
     fetchMethod(`${COMMENTS_BASE}/${postId}`, (status, data) => {
-      submitBtn.disabled = false;
+      submitBtn.disabled    = false;
       submitBtn.textContent = 'Reply';
 
       if (status === 201 || status === 200) {
@@ -733,10 +750,7 @@ function toggleReplyBox(commentEl, comment, postId, rootParentId) {
       } else {
         alert(data.message || 'Failed to post reply.');
       }
-    }, 'POST', {
-      content,
-      parent_comment_id: parentCommentId 
-    }, token);
+    }, 'POST', { content, parent_comment_id: parentCommentId }, token);
   });
 }
 

@@ -9,21 +9,29 @@ document.addEventListener('DOMContentLoaded', function () {
   const registerButton = document.getElementById('registerButton');
   const profileButton  = document.getElementById('profileButton');
   const logoutButton   = document.getElementById('logoutButton');
+  const notificationBell = document.getElementById('notifications');
+  const messageIcon = document.getElementById('messages');
 
   const token = localStorage.getItem('token');
 
   if (token) {
-    // Logged in — show profile & logout, hide auth buttons
+    // Logged in — show profile + logout + notif + messages, hide auth buttons
     loginButton.classList.add('d-none');
     registerButton.classList.add('d-none');
     profileButton.classList.remove('d-none');
     logoutButton.classList.remove('d-none');
+
+    notificationBell.classList.remove('d-none');
+    messageIcon.classList.remove('d-none');
   } else {
-    // Logged out — show auth buttons, hide profile & logout
+    // Logged out — show auth buttons, hide profile + logout + messages + notif
     loginButton.classList.remove('d-none');
     registerButton.classList.remove('d-none');
     profileButton.classList.add('d-none');
     logoutButton.classList.add('d-none');
+
+    notificationBell.classList.add('d-none');
+    messageIcon.classList.add('d-none');
   }
 
   logoutButton.addEventListener('click', function () {

@@ -806,7 +806,7 @@ function loadYourGroups() {
   if (section) section.style.display = 'block';
   if (divider) divider.style.display = 'block';
 
-  fetchMethod(`${API_BASE}/groups/creator/${userId}`, (status, data) => {
+  fetchMethod(`${API_BASE}/groups/joined_groups/${userId}`, (status, data) => {
     if (status !== 200) return;
     renderYourGroups(data || []);
   });
