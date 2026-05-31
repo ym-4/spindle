@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
   updateNavForUser(null);
   setupHome();
 });
-});
 //  Spindle — Home Page
 
 const API_BASE = currentUrl;
