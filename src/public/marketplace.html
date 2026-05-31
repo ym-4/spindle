@@ -1,15 +1,53 @@
 <!doctype html>
 <html lang="en">
+
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
     <title>Marketplace — Campus Hub</title>
+
+    <!-- CSS -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link href="css/posts.css" rel="stylesheet" />
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/auth.css" />
+    <link rel="stylesheet" href="css/temp.css">
+    <link rel="stylesheet" href="css/marketplace.css">
+  
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
+
+    <!-- JS -->
     <script src="js/api.js"></script>
     <script src="js/page-guard.js" data-require-login data-return="marketplace.html"></script>
+    <script src="js/auth.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        updateNavForUser(getStoredUser());
+      });
+    </script>
+
+
   </head>
-  <body class="auth-body">
+
+
+
+  <body class="auth-body" data-page="marketplace">
+
     <div class="auth-bg" aria-hidden="true"></div>
     <nav class="site-nav">
       <a href="home.html" class="site-logo" style="text-decoration: none">CAMPUS HUB</a>
@@ -21,6 +59,7 @@
         </div>
       </div>
     </nav>
+    
     <main class="hero">
       <h1>Marketplace</h1>
       <p>Coming soon — list and browse campus items here. Payment details are saved in your profile settings.</p>
@@ -28,67 +67,11 @@
         >Back to profile</a
       >
     </main>
-    <script src="js/auth.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        updateNavForUser(getStoredUser());
-      });
-    </script>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
-    />
-    <link rel="stylesheet" href="css/posts.css" />
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="css/marketplace.css">
-    <title>Marketplace</title>
-  </head>
-  <body>
-    <div>
-      <body>
-        <!-- Navigation-->
-        <nav class="navbar">
-          <div class="container-fluid px-4 d-flex align-items-center">
-            <!-- Brand (left) -->
-            <a class="navbar-brand" href="index.html">
-              <img src="" alt="Spindle Logo" class="brand-logo" />
-              <span class="brand-name">spindle</span>
-            </a>
-
-            <div class="navbar-right">
-
-              <!-- Cart -->
-              <a href="cart.html" class="btn-navbar-login" title="Cart">Cart</a>
-
-              <!-- View Listings -->
-              <a href="my_listings.html" class="btn-navbar-login" title="My Listings">My Listings</a>
-
-              <!-- Create New Listing -->
-              <a href="create_listing.html" class="btn-navbar-login" title="New Listing"><i class="fas fa-plus"></i> New Listing</a>
-
-              <!-- Notification bell — always visible -->
-              <a href="#" class="notif-bell" title="Notifications">
-                <i class="fas fa-bell"></i>
-              </a>
-    <link rel="stylesheet" href="css/temp.css">
-
-    <title>Marketplace</title>
-  </head>
-  <body>
 
     <!-- Navigation-->
     <nav class="navbar">
-      <div class="container-fluid px-0 d-flex align-items-center">
+        <div class="container-fluid px-4 d-flex align-items-center">
+
         <!-- Brand (left) -->
         <a class="navbar-brand" href="index.html">
           <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
@@ -102,8 +85,8 @@
           </a>
 
           <!-- Login + Sign Up displayed (no token)-->
-          <a href="login.html" class="btn-navbar-login d-none" id="loginButton">Log In</a>
-          <a href="register.html" class="btn-navbar-signup d-none" id="registerButton"
+          <a href="home.html" class="btn-navbar-login d-none" id="loginButton">Log In</a>
+          <a href="home.html" class="btn-navbar-signup d-none" id="registerButton"
             >Sign Up</a
           >
 
@@ -188,7 +171,6 @@
             ></div>
           </div>
         </section>
-      </body>
           <header class="bg-dark py-5">
             <div class="container px-4 px-lg-5 my-5">
               <div class="text-center text-white">
@@ -212,7 +194,7 @@
               <p class="m-0 text-center text-white">Copyright &copy; Your Website 2026</p>
             </div>
           </footer>
-      </main>
+        </main>
       
     </div>
 
@@ -250,5 +232,9 @@
     <script src="js/userNavBarToggle.js" type="text/javascript"></script>
     <script src="js/insertMarketplaceItems.js" type="text/javascript"></script>
     <script src="js/cartFunctions.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/spindle-sidebar.js"></script>
+
+
   </body>
 </html>

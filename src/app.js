@@ -43,13 +43,15 @@ app.use((req, res, next) => {
 });
 
 // Parse incoming JSON request bodies (e.g. from POST/PUT requests)
-app.use(express.json());
+app.use(express.json({limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files (HTML, CSS, JS, images) from the 'public' folder.
 // e.g. src/public/index.html is accessible at http://localhost:<port>/
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Browsers automatically request /favicon.ico — return 204 (no content) to avoid 404 noise.
+app.get('/', (req, res) => res.redirect('/home.html'));
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => res.status(204).end());
 
@@ -68,6 +70,8 @@ app.use('/search', searchRouter);
 app.use('/groups', groupRouter);
 app.use('/marketplace', marketplaceRouter);
 app.use('/cart', cartRouter);
+
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // 404 handler — if no route above matched the request,
 // create a 404 error and pass it to the error handler below.

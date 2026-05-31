@@ -28,6 +28,11 @@ main {
     background-color: #9286b8 !important;    
 }
 
+#channel-container {
+    max-height: 24rem; 
+    overflow-y: auto;
+}
+
 /* -------------------------------------------------------------- */
 /*                           BANNER                               */
 /* -------------------------------------------------------------- */
@@ -264,4 +269,343 @@ main {
 
 .chat-divider span {
     padding: 0 10px;
+}
+
+.creator {
+    color: #d1aa0c;
+}
+
+.admin {
+    color: #d10c0c;
+}
+
+
+/* -------------------------------------------------------------- */
+/*                      MESSAGE  OPTIONS MODAL                    */
+/* -------------------------------------------------------------- */
+
+/* Modal */
+.modal-content {
+    background: #ffffff;
+}
+
+.message-preview {
+    background: #f5f7fb;
+    border: 1px solid #e9edf5;
+}
+
+#editMessageInput {
+    border: 1px solid #dfe5ee;
+    resize: none;
+    padding: 14px;
+    font-size: 0.95rem;
+}
+
+#editMessageInput:focus {
+    box-shadow: none;
+    border-color: #6c63ff;
+}
+
+#saveMessageBtn {
+    background: linear-gradient(135deg, #6c63ff, #5a54d1);
+    border: none;
+}
+
+#saveMessageBtn:hover {
+    opacity: 0.9;
+}
+
+#deleteMessageBtn {
+    background: #ff4d6d;
+    border: none;
+}
+
+#deleteMessageBtn:hover {
+    background: #e6395d;
+}
+
+
+/* -------------------------------------------------------------- */
+/*                       CREATE CHANNEL MODAL                     */
+/* -------------------------------------------------------------- */
+
+.channel-modal small {
+    font-size: 0.85rem;
+    color: #8a8a8a;
+}
+
+/* inputs (match edit message input feel) */
+.channel-input {
+    border-radius: 14px;
+    padding: 12px 14px;
+    border: 1px solid #e6e6e6;
+    transition: 0.2s ease;
+    font-size: 0.95rem;
+    background: #fafafa;
+}
+
+.channel-input:focus {
+    background: #fff;
+    border-color: #6c63ff;
+    box-shadow: 0 0 0 0.2rem rgba(108,99,255,0.15);
+}
+
+/* input group # prefix */
+.input-group-text {
+    border-radius: 14px 0 0 14px;
+    background: #f5f5f5;
+    border: 1px solid #e6e6e6;
+}
+
+#createNewChannelBtn {
+    background: linear-gradient(135deg, #6c63ff, #5a54d1);
+    border: none;
+    color: white;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+#cancelCreateChannelModal {
+    border-radius: 999px;
+}
+
+
+#createNewChannelBtn:hover {
+    opacity: 0.9;
+}
+
+/* -------------------------------------------------------------- */
+/*                             TOAST                              */
+/* -------------------------------------------------------------- */
+
+.app-toast {
+    border-radius: 14px;
+    padding: 6px;
+    min-width: 260px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.toast.show {
+    animation: slideIn 0.25s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* -------------------------------------------------------------- */
+/*                         OFFCANVAS                              */
+/* -------------------------------------------------------------- */
+
+.members-offcanvas {
+    width: 340px;
+    background: #f8f9fb;
+}
+
+/* header */
+.members-offcanvas .offcanvas-header {
+    border-bottom: 1px solid #e9ecef;
+    background: white;
+}
+
+/* search */
+.member-search {
+    border-radius: 10px;
+    padding: 10px;
+}
+
+/* list container */
+.member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* member card */
+.member-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: 0.2s ease;
+    cursor: pointer;
+}
+
+.member-card:hover {
+    transform: translateY(-2px);
+    background: #f1f3f5;
+}
+
+/* avatar */
+.member-card img {
+    width: 42px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* name styling */
+.member-card .name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* admin */
+.member-card.admin {
+    border-left: 4px solid #d10c0c;
+    background: #f56d6d;
+    color: black;
+}
+
+/* creator */
+.member-card.creator {
+    border-left: 5px solid #f4b400;
+    background: linear-gradient(
+        to right,
+        rgba(198, 155, 37, 0.20),
+        rgb(255, 255, 255) 100%
+    );
+    color: black;
+}
+
+/* Colours */
+.color-red {
+    background-color: rgb(255, 195, 195);
+}
+
+.color-red:hover {
+    background-color: rgb(255, 183, 183);
+}
+
+.color-orange {
+    background-color: rgb(255, 224, 197);
+}
+
+.color-orange:hover {
+    background-color: rgb(255, 215, 181);
+}
+
+.color-yellow {
+    background-color: rgb(253, 255, 197);
+}
+
+.color-yellow:hover {
+    background-color: rgb(252, 255, 176);
+}
+
+.color-green {
+    background-color: rgb(198, 255, 207);
+}
+
+.color-green:hover {
+    background-color: rgb(177, 255, 189);
+}
+
+.color-blue {
+    background-color: rgb(197, 223, 255);
+}
+
+.color-blue:hover {
+    background-color: rgb(180, 214, 255);
+}
+
+.color-purple {
+    background-color: rgb(247, 203, 255);
+}
+
+.color-purple:hover {
+    background-color: rgb(245, 192, 255);
+}
+
+.color-pink {
+    background-color: rgb(245, 215, 234);
+}
+
+.color-pink:hover {
+    background-color: rgb(255, 207, 238);
+}
+
+
+
+/* -------------------------------------------------------------- */
+/*                           GLOW CARD                            */
+/* -------------------------------------------------------------- */
+
+.member-card.creator {
+    position: relative;
+    border-radius: 16px;
+    padding: 3px;
+    overflow: visible;
+}
+
+/* actual card content */
+.member-card.creator .member-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    border-radius: 14px;
+    padding: 10px;
+    position: relative;
+    z-index: 2;
+}
+
+/* animated glow */
+.member-card.creator::before,
+.member-card.creator::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    border-radius: 16px;
+
+    background: linear-gradient(
+        45deg,
+        #ffca3a,
+        #ff9f1c,
+        #ffd60a,
+        #fff3b0,
+        #ffca3a
+    );
+
+    background-size: 400%;
+
+    animation: glowMove 8s linear infinite;
+
+    z-index: 0;
+}
+
+/* blur glow */
+.member-card.creator::after {
+    filter: blur(18px);
+    opacity: 0.7;
+}
+
+/* animation */
+@keyframes glowMove {
+    0% {
+        background-position: 0 0;
+    }
+
+    50% {
+        background-position: 100% 0;
+    }
+
+    100% {
+        background-position: 0 0;
+    }
 }

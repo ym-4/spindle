@@ -4,60 +4,174 @@ const pool = require('./db');
 module.exports.getAllPost = async function getAllPost() {
   const { rows } = await pool.query(`
   SELECT 
-    p.id, p.user_id, p.title, p.category, p.content, p.created_at, p.updated_at,
+    p.id,
+    p.user_id,
+    p.title,
+    p.category,
+    p.content,
+    p.attachment_url,
+    p.created_at,
+    p.updated_at,
+    p.is_anonymous,
     per.name AS author_name,
+
     COUNT(DISTINCT pc.id)::int AS comment_count,
-    COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
-    COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
+
+    COUNT(DISTINCT pr.id)
+      FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
+
+    COUNT(DISTINCT pr.id)
+      FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
+
   FROM "Posts" p
-  JOIN "Person" per ON p.user_id = per.id
-  LEFT JOIN "PostComments" pc ON pc.post_id = p.id
-  LEFT JOIN "PostReactions" pr ON pr.post_id = p.id
-  -- WHERE clause if needed
-  GROUP BY p.id, p.user_id, p.title, p.category, p.content, p.created_at, p.updated_at, per.name
+
+  JOIN "Person" per
+    ON p.user_id = per.id
+
+  LEFT JOIN "PostComments" pc
+    ON pc.post_id = p.id
+
+  LEFT JOIN "PostReactions" pr
+    ON pr.post_id = p.id
+
+  GROUP BY
+    p.id,
+    p.user_id,
+    p.title,
+    p.category,
+    p.content,
+    p.attachment_url,
+    p.created_at,
+    p.updated_at,
+    per.name
+
   ORDER BY p.created_at DESC
   `);
+
   return rows;
 };
 
 // GET post by id
 module.exports.getPostByID = async function getPostByID(data) {
   const VALUES = [data.id];
+
   const { rows } = await pool.query(`
     SELECT 
-      p.id, p.user_id, p.title, p.category, p.content, p.created_at, p.updated_at,
+      p.id,
+      p.user_id,
+      p.title,
+      p.category,
+      p.content,
+      p.attachment_url,
+      p.created_at,
+      p.updated_at,
+      p.is_anonymous,
+
       per.name AS author_name,
+
       COUNT(DISTINCT pc.id)::int AS comment_count,
-      COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
-      COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
+
+      COUNT(DISTINCT pr.id)
+        FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
+
+      COUNT(DISTINCT pr.id)
+        FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
+
     FROM "Posts" p
-    JOIN "Person" per ON p.user_id = per.id
-    LEFT JOIN "PostComments" pc ON pc.post_id = p.id
-    LEFT JOIN "PostReactions" pr ON pr.post_id = p.id
+
+    JOIN "Person" per
+      ON p.user_id = per.id
+
+    LEFT JOIN "PostComments" pc
+      ON pc.post_id = p.id
+
+    LEFT JOIN "PostReactions" pr
+      ON pr.post_id = p.id
+
     WHERE p.id = $1
-    GROUP BY p.id, p.user_id, p.title, p.category, p.content, p.created_at, p.updated_at, per.name
+
+    GROUP BY
+      p.id,
+      p.user_id,
+      p.title,
+      p.category,
+      p.content,
+      p.attachment_url,
+      p.created_at,
+      p.updated_at,
+      per.name
   `, VALUES);
+
   return rows[0];
 };
 
 // GET Post by Category (confession/qna/general)
 module.exports.getPostByCategory = async function getPostByCategory(data) {
   const VALUES = [data.category];
+
   const { rows } = await pool.query(`
-    SELECT 
-      p.id, p.user_id, p.title, p.category, p.content, p.created_at, p.updated_at,
+    SELECT p.id,
+      p.user_id,
+      p.title,
+      p.category,
+      p.content,
+      p.attachment_url,
+      p.created_at,
+      p.updated_at,
+      p.is_anonymous,
+
       per.name AS author_name,
+
       COUNT(DISTINCT pc.id)::int AS comment_count,
-      COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
-      COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
+
+      COUNT(DISTINCT pr.id)
+        FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
+
+      COUNT(DISTINCT pr.id)
+        FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
+
     FROM "Posts" p
-    JOIN "Person" per ON p.user_id = per.id
-    LEFT JOIN "PostComments" pc ON pc.post_id = p.id
-    LEFT JOIN "PostReactions" pr ON pr.post_id = p.id
+
+    JOIN "Person" per
+      ON p.user_id = per.id
+
+    LEFT JOIN "PostComments" pc
+      ON pc.post_id = p.id
+
+    LEFT JOIN "PostReactions" pr
+      ON pr.post_id = p.id
+
     WHERE p.category = $1
-    GROUP BY p.id, p.user_id, p.title, p.category, p.content, p.created_at, p.updated_at, per.name
+
+    GROUP BY
+      p.id,
+      p.user_id,
+      p.title,
+      p.category,
+      p.content,
+      p.attachment_url,
+      p.created_at,
+      p.updated_at,
+      per.name
+
     ORDER BY p.created_at DESC
   `, VALUES);
+
+  return rows;
+};
+
+// GET related posts (3 random post form the same category)
+module.exports.getRelatedPosts = async function getRelatedPosts(data) {
+  const VALUES = [data.category, data.id];
+
+  const { rows } = await pool.query(
+    `SELECT p.id, p.title, p.category, p.is_anonymous, u.name AS author_name,
+      (SELECT COUNT(*) FROM "PostComments" pc WHERE pc.post_id = p.id) AS comment_count
+    FROM "Posts" p
+    LEFT JOIN "Person" u ON p.user_id = u.id
+    WHERE p.category = $1 AND p.id != $2
+    ORDER BY RANDOM()
+    LIMIT 3`, VALUES);
   return rows;
 };
 
@@ -70,18 +184,18 @@ module.exports.getPostByUserID = async function getPostByUserID(data) {
 
 // Create new post
 module.exports.insertPost = async function insertPost(data) {
-  const VALUES = [data.user_id, data.title, data.category, data.content];
-  const { rows } = await pool.query('INSERT INTO "Posts" (user_id, title, category, content) VALUES ($1, $2, $3, $4) RETURNING id', VALUES);
+  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.is_anonymous];
+  const { rows } = await pool.query('INSERT INTO "Posts" (user_id, title, category, content, attachment_url, is_anonymous) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id', VALUES);
   return rows[0]; 
 }
 
 // update post by ID (owner only)
 module.exports.updatePostByID = async function updatePostByID(data) {
-  const VALUES = [data.title, data.content, data.category, data.id];
+  const VALUES = [data.title, data.content, data.category, data.attachment_url, data.id];
+
   const { rows } = await pool.query(
-    'UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3 WHERE "id" = $4 RETURNING *',
-    VALUES
-  );
+    `UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4,"updated_at" = CURRENT_TIMESTAMP WHERE "id" = $5 RETURNING *`, VALUES);
+
   return rows[0];
 };
 
@@ -146,3 +260,10 @@ module.exports.deleteReaction = async function deleteReaction(data) {
   const { rows } = await pool.query('DELETE FROM "PostReactions" WHERE "id" = $1 and "user_id" = $2 RETURNING *', VALUES);
   return rows[0];
 };
+
+// reporting a post
+module.exports.insertReport = async function insertReport(data) {
+  const VALUES = [data.post_id, data.user_id, data.reason];
+  const { rows } = await pool.query('INSERT INTO "Reports" (post_id, user_id, reason) VALUES ($1, $2, $3) RETURNING *', VALUES);
+  return rows[0]; 
+}

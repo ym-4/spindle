@@ -33,6 +33,14 @@ let groupCardTemplate = `
 `;
 
 const user_id = localStorage.getItem('loggedInUserId');
+const token = localStorage.getItem('token');
+console.log('sdfsfd', token)
+
+// redirect to login if no token
+if (token == null) {
+    window.location.href = "login.html";
+
+}
 
 /* Event listeners */ 
 
@@ -260,13 +268,11 @@ async function handleArrowButtonClick(btnID) {
 
     if (groups.length == 0) {
         popularGroupsContainer.innerHTML = "There are no groups currently, feel free to create one";
-        return; 
     }
 
     if (joinedGroups.length == 0) {
         joinedGroupsContainer.innerHTML = "There are no groups currently, feel free to join one";
-        return;
-    }
+    } 
 
     const cardsPerPage = 4;
     const maxPopularPage = Math.ceil(groups.length / cardsPerPage);
@@ -322,6 +328,8 @@ async function handleArrowButtonClick(btnID) {
         // ???
         console.log("arrow button error")
     }
+
+
 }
 
 async function handleAddButton(school) {
@@ -361,18 +369,11 @@ async function handleCreateButton() {
         const result = await createGroup(data);
         console.log("Group created: ", result);
 
-        document.getElementById("toastHeader").style.backgroundColor = '#61b464';
-        document.getElementById("toastHeader").style.color = '#1f5226';
-
-        document.getElementById("toastTitle").innerText = "Created Group";
-        document.getElementById("toastSmallText").innerText = "SUCCESS";
-        document.getElementById("toastMessage").innerText = `You have successfully created ${data.name}`;
-
         const modalElement = document.getElementById('create-group-modal');
         const modal = bootstrap.Modal.getInstance(modalElement);
         // Hide modal
         modal.hide();
-        toast.show();
+        displayToast("success", `Created Group: You have successfully created ${data.name}`);
 
         // Refresh page with new group
         await refreshGroupPage()
@@ -382,19 +383,12 @@ async function handleCreateButton() {
         console.error(err);
 
         if (err.type === "conflict") {
-            document.getElementById("toastHeader").style.backgroundColor = '#e16858';
-            document.getElementById("toastHeader").style.color = '#6c2424';
-
-            document.getElementById("toastTitle").innerText = "Create Group Failed";
-            document.getElementById("toastSmallText").innerText = "ERROR";
-            document.getElementById("toastMessage").innerText = "Group name already exists";
-            
             const modalElement = document.getElementById('create-group-modal');
             const modal = bootstrap.Modal.getInstance(modalElement);
             // Hide modal
             modal.hide();
 
-            toast.show();
+            displayToast("error", `Create Group Failed: Group name already exists`);
 
         // User did not fill in all the fields
         } else if (err.type === "bad request") {
@@ -451,14 +445,8 @@ async function handleLeaveButton() {
         await deleteMember({group_id: groupId});
 
         let currGroup = groups.find(group => group.id == groupId);
-        document.getElementById("toastHeader").style.backgroundColor = '#61b464';
-        document.getElementById("toastHeader").style.color = '#1f5226';
 
-        document.getElementById("toastTitle").innerText = "Left Group";
-        document.getElementById("toastSmallText").innerText = "SUCCESS";
-        document.getElementById("toastMessage").innerText = `You have left ${currGroup.name}`;
-
-        toast.show();
+        displayToast("success", `Left Group: You have left ${currGroup.name}`);
 
         // Show new data 
         refreshGroupPage();
@@ -473,33 +461,18 @@ async function handleLeaveButton() {
         console.error(err);
 
         if (err.type == "conflict") {
-            document.getElementById("toastHeader").style.backgroundColor = '#e16858';
-            document.getElementById("toastHeader").style.color = '#6c2424';
-
-
-            document.getElementById("toastTitle").innerText = "Leave Group Failed";
-            document.getElementById("toastSmallText").innerText = "ERROR";
-            document.getElementById("toastMessage").innerText = "You cannot leave as its creator";
-
             const modalElement = document.getElementById('join-group-modal');
             const modal = bootstrap.Modal.getInstance(modalElement);
 
             modal.hide();
-            toast.show();
+            displayToast("error", "Leave Group Failed: You cannot leave as its creator");
 
         } else if (err.type == "not found") {
-            document.getElementById("toastHeader").style.backgroundColor = '#e16858';
-            document.getElementById("toastHeader").style.color = '#6c2424';
-            
-            document.getElementById("toastTitle").innerText = "Leave Group Failed";
-            document.getElementById("toastSmallText").innerText = "ERROR";
-            document.getElementById("toastMessage").innerText = "You are not a member";
-
             const modalElement = document.getElementById('join-group-modal');
             const modal = bootstrap.Modal.getInstance(modalElement);
 
             modal.hide();
-            toast.show();
+            displayToast("error", "Leave Group Failed: You are not a member");
 
         } else if (err.type == "bad request") {
             alert("Missing information");
@@ -522,14 +495,8 @@ async function handleJoinButton() {
         await createMember({group_id: groupId});
 
         let currGroup = groups.find(group => group.id == groupId);
-        document.getElementById("toastHeader").style.backgroundColor = '#61b464';
-        document.getElementById("toastHeader").style.color = '#1f5226';
 
-        document.getElementById("toastTitle").innerText = "Joined Group";
-        document.getElementById("toastSmallText").innerText = "SUCCESS";
-        document.getElementById("toastMessage").innerText = `You have successfully joined ${currGroup.name}`;
-
-        toast.show();
+        displayToast("success", `Joined group: You have successfully joined ${currGroup.name}`);
 
         // Show new data 
         refreshGroupPage();
@@ -544,32 +511,19 @@ async function handleJoinButton() {
         console.error(err);
 
         if (err.type == "conflict") {
-            document.getElementById("toastHeader").style.backgroundColor = '#e16858';
-            document.getElementById("toastHeader").style.color = '#6c2424';
-
-            document.getElementById("toastTitle").innerText = "Join Group Failed";
-            document.getElementById("toastSmallText").innerText = "ERROR";
-            document.getElementById("toastMessage").innerText = "You are already a member";
-
             const modalElement = document.getElementById('join-group-modal');
             const modal = bootstrap.Modal.getInstance(modalElement);
 
             modal.hide();
-            toast.show();
+            displayToast("error", "Join group Failed: You are already a member")
 
         } else if (err.type == "not found") {
-            document.getElementById("toastHeader").style.backgroundColor = '#e16858';
-            document.getElementById("toastHeader").style.color = '#6c2424';
-
-            document.getElementById("toastTitle").innerText = "Join Group Failed";
-            document.getElementById("toastSmallText").innerText = "ERROR";
-            document.getElementById("toastMessage").innerText = "Group not found";
 
             const modalElement = document.getElementById('join-group-modal');
             const modal = bootstrap.Modal.getInstance(modalElement);
 
             modal.hide();
-            toast.show();
+            displayToast("error", "Join group Failed: Group not found")
 
         } else if (err.type == "bad request") {
             alert("Missing information");
@@ -623,7 +577,7 @@ function displayGroups(groups, container, currPage) {
 
 
                 <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                    ${currGroup.description}
                 </p>
 
                 <div class="group-footer">
@@ -658,9 +612,7 @@ function displayJoinedGroups(groups, container, currPage) {
         let currGroup = groups[i];
         let school = currGroup.school;
         
-        console.log("jigfoji", groupMembers)
         let groupObj = groupMembers.find(groupObj => currGroup.group_id == groupObj.groupId);
-        console.log("jifdsjsfdjoji", groupObj)
 
         let members = groupObj ? groupObj.member : [];
 
@@ -679,7 +631,7 @@ function displayJoinedGroups(groups, container, currPage) {
 
 
                 <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                    ${currGroup.description}
                 </p>
 
                 <div class="group-footer">
@@ -752,6 +704,43 @@ function displayGroupInfo(groupId) {
 
 }
 
+function displayToast(type, message) {
+    const toastEl = document.getElementById("groupsToast");
+    const toastBody = document.getElementById("toastBody");
+
+    // Icons 
+    const icons = {
+        success: "bi-check-circle-fill",
+        error: "bi-x-circle-fill",
+        warning: "bi-exclamation-triangle-fill",
+        info: "bi-info-circle-fill"
+    };
+
+    // Colours
+    const colors = {
+        success: "#198754",
+        error: "#dc3545",
+        warning: "#ffc107",
+        info: "#0dcaf0"
+    };
+
+    // Set background color (sets it to the corresponding type or black if match none)
+    toastEl.style.backgroundColor = colors[type] || "#333";
+
+    // Set content (sets it to corresponding icon if exist if not info icon used)
+    toastBody.innerHTML = `
+        <i class="bi ${icons[type] || icons.info}"></i>
+        <span>${message}</span>
+    `;
+
+    const toast = new bootstrap.Toast(toastEl, {
+        delay: 2500,
+        autohide: true
+    });
+
+    toast.show();
+}
+
 // -------------------------------------------------------------------------------------
 //                              Fetch Functions  
 // -------------------------------------------------------------------------------------
@@ -781,6 +770,8 @@ function fetchGroupsBySchool(school) {
 }
 
 function fetchJoinedGroups() {
+    // get the user_id from the local storage
+    const user_id = localStorage.getItem('loggedInUserId');
 
     return new Promise((resolve, reject) => {
         const url = `http://localhost:3000/groups/joined_groups/${user_id}`;
@@ -801,7 +792,7 @@ function fetchJoinedGroups() {
             }
         };
 
-        fetchMethod(url, callback);
+        fetchMethod(url, callback, "GET", null, token);
     });
 }
 
@@ -834,6 +825,8 @@ function fetchGroupMembers(groupId) {
 
 // data includes: (name, description, school, module)
 function createGroup(data) {
+    // get the user_id from the local storage
+    const user_id = localStorage.getItem('loggedInUserId');
 
     return new Promise((resolve, reject) => {
         const url = `http://localhost:3000/groups/create/${user_id}`;
@@ -843,6 +836,8 @@ function createGroup(data) {
 
             // group created: success
             if (responseStatus == 201) {
+                // Create default channel
+                createGeneralChannel(responseData.id);
                 resolve(responseData);
 
             // Token expired
@@ -868,13 +863,15 @@ function createGroup(data) {
             }
         };
 
-        fetchMethod(url, callback, "POST", data);
+        fetchMethod(url, callback, "POST", data, token);
 
     })
 }
 
 // data includes: (group_id)
 function createMember(data) {
+    // get the user_id from the local storage
+    const user_id = localStorage.getItem('loggedInUserId');
 
     const requestData = {
         ...data,
@@ -920,10 +917,58 @@ function createMember(data) {
             }
         };
 
-        fetchMethod(url, callback, "POST", requestData);
+        fetchMethod(url, callback, "POST", requestData, token);
 
     })
 }
+
+function createGeneralChannel(groupId) {
+
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/messages/send/${user_id}`;
+
+        const data = {
+            group_id: groupId, 
+            channel_name: "general", 
+            message: "General channel created"
+        }
+
+        const callback = (responseStatus, responseData) => {
+            console.log("createGeneralChannel", responseData);
+
+            // message created: success
+            if (responseStatus == 201) {
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './login.html';
+
+            // bad request: missing info
+            } else if (responseStatus == 400) {
+                reject({
+                    "type": "bad request",
+                    "message": "Missing required fields"
+                })
+
+            // User has no permissions
+            } else if (responseStatus == 403) {
+                reject({
+                    "type": "forbidden",
+                    "message": "User is not a group member"
+                })
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback, "POST", data, token);
+
+    })
+
+}
+
 
 // -------------------------------------------------------------------------------------
 //                              Delete Functions  
@@ -931,6 +976,8 @@ function createMember(data) {
 
 // data includes: group_id
 function deleteMember(data) {
+    // get the user_id from the local storage
+    const user_id = localStorage.getItem('loggedInUserId');
 
     const requestData = {
         ...data,
@@ -977,11 +1024,10 @@ function deleteMember(data) {
             }
         };
 
-        fetchMethod(url, callback, "DELETE", requestData);
+        fetchMethod(url, callback, "DELETE", requestData, token);
 
     })
 }
-
 
 // -------------------------------------------------------------------------------------
 //                              Other Functions  

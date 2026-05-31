@@ -174,7 +174,9 @@ module.exports.authenticate = async function authenticate(username, password) {
 
 module.exports.getUserProfile = async function getUserProfile(userId) {
   const { rows } = await pool.query(
-    `SELECT id, name, email, display_name, avatar, profile_image, bio, role, email_verified
+    `SELECT id, name, email, display_name, avatar, profile_image, cover_image, bio,
+            headline, location, skills, link_portfolio, link_github, link_linkedin,
+            role, email_verified, created_at
      FROM "Person" WHERE id = $1 AND deleted_at IS NULL`,
     [userId],
   );
@@ -190,9 +192,28 @@ module.exports.getUserProfile = async function getUserProfile(userId) {
     [userId],
   );
 
+  const row = rows[0];
+  let skills = row.skills;
+  if (typeof skills === 'string') {
+    try {
+      skills = JSON.parse(skills);
+    } catch {
+      skills = [];
+    }
+  }
+  if (!Array.isArray(skills)) skills = [];
+
   return {
-    ...toPublicUser(rows[0]),
-    bio: rows[0].bio,
+    ...toPublicUser(row),
+    bio: row.bio || '',
+    cover_image: row.cover_image || null,
+    headline: row.headline || '',
+    location: row.location || '',
+    skills,
+    link_portfolio: row.link_portfolio || '',
+    link_github: row.link_github || '',
+    link_linkedin: row.link_linkedin || '',
+    member_since: row.created_at,
     stats: statsResult.rows[0],
   };
 };
@@ -228,4 +249,42 @@ module.exports.deleteAccount = async function deleteAccount(userId) {
 
 module.exports.updateProfileImage = async function updateProfileImage(userId, imagePath) {
   await pool.query(`UPDATE "Person" SET profile_image = $1 WHERE id = $2`, [imagePath, userId]);
+};
+
+module.exports.updateCoverImage = async function updateCoverImage(userId, imagePath) {
+  await pool.query(`UPDATE "Person" SET cover_image = $1 WHERE id = $2`, [imagePath, userId]);
+};
+
+module.exports.updatePublicProfile = async function updatePublicProfile(userId, data) {
+  const fields = [];
+  const values = [];
+  let i = 1;
+
+  const setField = (col, val) => {
+    if (val === undefined) return;
+    fields.push(`"${col}" = $${i++}`);
+    values.push(val);
+  };
+
+  setField('display_name', data.display_name?.trim() || null);
+  setField('bio', data.bio ?? '');
+  setField('headline', data.headline?.trim() ?? '');
+  setField('location', data.location?.trim() ?? '');
+  setField('link_portfolio', data.link_portfolio?.trim() ?? '');
+  setField('link_github', data.link_github?.trim() ?? '');
+  setField('link_linkedin', data.link_linkedin?.trim() ?? '');
+
+  if (data.skills !== undefined) {
+    const skills = Array.isArray(data.skills)
+      ? data.skills.map((s) => String(s).trim()).filter(Boolean).slice(0, 20)
+      : [];
+    fields.push(`"skills" = $${i++}::jsonb`);
+    values.push(JSON.stringify(skills));
+  }
+
+  if (fields.length === 0) return module.exports.getUserProfile(userId);
+
+  values.push(userId);
+  await pool.query(`UPDATE "Person" SET ${fields.join(', ')} WHERE id = $${i}`, values);
+  return module.exports.getUserProfile(userId);
 };

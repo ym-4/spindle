@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 function setupHome() {
   const user = getStoredUser();
   const loggedIn = !!user && isLoggedIn();
@@ -20,35 +19,41 @@ function setupHome() {
 
 document.addEventListener('DOMContentLoaded', () => {
   if (getToken() && !getStoredUser()) clearAuth();
-  if (isLoggedIn() && new URLSearchParams(location.search).get('return')) {
+  if (isLoggedIn()) {
     const user = getStoredUser();
     window.location.replace(getPostLoginRedirect(user));
     return;
   }
-  updateNavForUser(getStoredUser());
-  if (isLoggedIn()) injectWaNav('home');
+  updateNavForUser(null);
   setupHome();
 });
-=======
+});
 //  Spindle — Home Page
 
 const API_BASE = currentUrl;
+let uploadedAttachmentUrl = null;
 
 let currentCategory = 'all';
 let savedPostIds = new Set(); 
 
 document.addEventListener('DOMContentLoaded', async () => {
+  setupCreatePostAvatar();
   await loadUserReactions();
 
   loadSavedIds().then(() => {
     loadPosts();
   });
 
+  loadYourGroups();
+  loadSuggestedGroups();
+
   setupCategoryTabs();
   setupCreatePost();
   setupSearch();
   setupAuthPopup();
   protectCreatePostUI();
+
+  setupAttachmentUpload();
 });
 
 // Load saved post IDs 
@@ -161,17 +166,37 @@ function formatTimestamp(createdAt, updatedAt) {
 function getCategoryLabel(category) {
   return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[category] || category;
 }
+
 function getCategoryClass(category) {
   return { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[category] || '';
 }
+
 function getAvatarInitial(post) {
-  if (post.category === 'confession') return 'A';
-  if (post.author_name) return post.author_name.charAt(0).toUpperCase();
+  if (post.is_anonymous) return 'A';
+  if (post.author_name) {
+    return post.author_name.charAt(0).toUpperCase();
+  }
   return 'U';
 }
+
 function getAuthorName(post) {
-  if (post.category === 'confession') return 'Anonymous';
+  if (post.is_anonymous) {
+    return 'Anonymous';
+  }
   return post.author_name || `User ${post.user_id}`;
+}
+
+function setupCreatePostAvatar() {
+  const avatar = document.getElementById('createPostAvatar');
+
+  if (!avatar) return;
+
+  const displayName = localStorage.getItem('displayName');
+  if (displayName && displayName.trim()) {
+    avatar.textContent = displayName.charAt(0).toUpperCase();
+  } else {
+    avatar.textContent = '\uD83D\uDC3C';
+  }
 }
 
 // post card
@@ -219,7 +244,11 @@ function buildPostCard(post) {
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
           ${saveOption}
-          <li><a class="dropdown-item" href="#">Report</a></li>
+          <li>
+            <button class="dropdown-item report-post-btn" data-post-id="${post.id}">
+              Report
+            </button>
+          </li>
           ${ownerOptions}
         </ul>
       </div>
@@ -227,7 +256,18 @@ function buildPostCard(post) {
 
     <span class="post-category ${getCategoryClass(post.category)}">${getCategoryLabel(post.category)}</span>
 
-    <div class="post-content">${escapeHtml(post.content)}</div>
+    <div class="post-content">
+      ${escapeHtml(post.content)}
+    </div>
+    ${post.attachment_url ? `
+      <div class="post-image-container mt-2">
+        <img
+          src="${post.attachment_url}"
+          class="img-fluid rounded post-image"
+          alt="Post attachment"
+        >
+      </div>
+    ` : ''}
 
     <div class="post-actions">
       <button class="post-action-btn like-btn" data-post-id="${post.id}">
@@ -259,6 +299,10 @@ function buildPostCard(post) {
   });
 
   card.querySelector('.post-menu-btn').addEventListener('click', (e) => e.stopPropagation());
+  card.querySelector('.share-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    openShareDropdown(e.currentTarget, post.id);
+  });
   const likeBtn = card.querySelector('.like-btn');
   const dislikeBtn = card.querySelector('.dislike-btn');
 
@@ -295,6 +339,22 @@ function buildPostCard(post) {
     });
   }
 
+  // report button
+  const reportBtn = card.querySelector('.report-post-btn');
+
+  if (reportBtn) {
+    reportBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!isLoggedIn) {
+        showAuthPopup();
+        return;
+      }
+      openReportModal(post.id);
+    });
+  }
+  
   // owner actions
   if (isOwner) {
     card.querySelector('.edit-post-btn').addEventListener('click', (e) => {
@@ -444,28 +504,67 @@ function setupCreatePost() {
     const content  = contentInput.value.trim();
     const user_id  = localStorage.getItem('loggedInUserId');
     const token    = localStorage.getItem('token');
+    const isAnonymous = document.getElementById('postAnonymous').checked;
 
     if (!token) { window.location.href = 'login.html'; return; }
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Posting...';
 
-    fetchMethod(`${API_BASE}/posts`, (status, data) => {
+    const formData = new FormData();
+
+    formData.append('user_id', user_id);
+    formData.append('title', title);
+    formData.append('category', category);
+    formData.append('content', content);
+    formData.append('is_anonymous', isAnonymous);
+
+    const attachmentInput = document.getElementById('postAttachment');
+
+    if (attachmentInput.files[0]) {
+      formData.append('attachment', attachmentInput.files[0]);
+    }
+
+    fetch(`${API_BASE}/posts`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    })
+    .then(async (response) => {
+      const data = await response.json();
+
       submitBtn.textContent = 'Post';
-      if (status === 201) {
-        bootstrap.Modal.getInstance(document.getElementById('createPostModal')).hide();
+
+      if (response.status === 201) {
+        bootstrap.Modal
+          .getInstance(document.getElementById('createPostModal'))
+          .hide();
+
         clearCreatePostForm();
         validateForm();
+
         if (currentCategory === 'all') loadPosts();
         else loadPostsByCategory(currentCategory);
+
       } else {
         submitBtn.disabled = false;
-        showModalError(data.message || 'Failed to create post. Please try again.');
+        showModalError(data.message || 'Failed to create post.');
       }
-    }, 'POST', { user_id, title, category, content }, token);
+    })
+    .catch((err) => {
+      console.error(err);
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Post';
+
+      showModalError('Upload failed.');
+    });
   });
 }
 
+// searchbar
 function setupSearch() {
   const input = document.getElementById('searchInput');
   if (!input) return;
@@ -523,6 +622,7 @@ function renderSearchResults(results, query) {
   });
 }
 
+
 function buildGroupResult(group) {
   const el = document.createElement('div');
   el.className = 'post-card';
@@ -564,7 +664,26 @@ function buildUserResult(user) {
 
 function escapeHtml(str) {
   if (!str) return '';
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  switch (str) {
+    case "SOC":
+      return "&#127760;"; 
+    case "MAD":
+      return "&#127912;";
+    case "EEE":
+      return "&#9889;"; 
+    case "ABE":
+      return "&#127963;"; 
+    case "SB":
+      return "&#129309;"; 
+    case "SMA":
+      return "&#9875;";
+    case "MAE":
+      return "&#128640;";
+    case "CLS":
+      return "&#129516;";
+    default:
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
 }
 
 function showPostsLoading() {
@@ -601,8 +720,16 @@ function clearCreatePostForm() {
   document.getElementById('postTitle').value = '';
   document.getElementById('postContent').value = '';
   document.getElementById('postCategory').value = 'confession';
-  document.getElementById('postAs').value = 'Your Name';
+  document.getElementById('postAnonymous').checked = false;
   document.getElementById('submitPostBtn').disabled = true;
+
+  uploadedAttachmentUrl = null;
+
+  const preview = document.getElementById('attachmentPreviewContainer');
+  if (preview) preview.innerHTML = '';
+
+  const attachmentInput = document.getElementById('postAttachment');
+  if (attachmentInput) attachmentInput.value = '';
 }
 
 function isLoggedIn() { return !!localStorage.getItem('token'); }
@@ -648,4 +775,497 @@ function protectCreatePostUI() {
     });
   });
 }
->>>>>>> origin/main
+
+// =========================
+// Groups display
+// =========================
+function loadSuggestedGroups() {
+  const container = document.getElementById('suggestedGroupsContainer');
+  if (!container) return;
+
+  const userId = localStorage.getItem('loggedInUserId') || 0;
+
+  fetchMethod(`${API_BASE}/groups/suggested?user_id=${userId}`, (status, data) => {
+    container.innerHTML = '';
+
+    if (status !== 200 || !data.length) {
+      container.innerHTML = `
+        <div class="list-group-item text-muted small text-center py-3">
+          No suggestions available.
+        </div>`;
+      return;
+    }
+
+    data.forEach(group => {
+      const item = document.createElement('div');
+      item.className = 'list-group-item';
+      item.innerHTML = `
+        <div class="d-flex align-items-center mb-2">
+          <div class="post-avatar me-2" style="width:40px;height:40px;font-size:0.8rem;">
+            ${escapeHtml(group.school)}
+          </div>
+          <div class="flex-grow-1">
+            <strong style="font-size:0.9rem;">${escapeHtml(group.name)}</strong>
+            <div class="small text-muted">${group.member_count} member${group.member_count !== 1 ? 's' : ''}</div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-primary w-100 join-group-btn" data-group-id="${group.id}">
+          Join Group
+        </button>
+      `;
+
+      item.querySelector('.join-group-btn').addEventListener('click', () => {
+        if (!isLoggedIn()) { showAuthPopup(); return; }
+        window.location.href = `groups.html?id=${group.id}`;
+      });
+
+      container.appendChild(item);
+    });
+  });
+}
+
+function loadYourGroups() {
+  const userId = localStorage.getItem('loggedInUserId');
+  const section  = document.getElementById('yourGroupsSection');
+  const divider  = document.getElementById('yourGroupsDivider');
+
+  // signed out display
+  if (!userId) return;
+
+  // signed in display
+  if (section) section.style.display = 'block';
+  if (divider) divider.style.display = 'block';
+
+  fetchMethod(`${API_BASE}/groups/joined_groups/${userId}`, (status, data) => {
+    if (status !== 200) return;
+    renderYourGroups(data || []);
+  });
+}
+
+function renderYourGroups(groups) {
+  const container = document.getElementById('yourGroupsContainer');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (!groups.length) {
+    // no study groups yet
+    const emptyState = document.createElement('a');
+    emptyState.href      = 'groups.html';
+    emptyState.className = 'sidebar-item d-flex align-items-center text-decoration-none';
+    emptyState.style.cssText = `
+      border: 1.5px dashed var(--border-color);
+      border-radius: 10px;
+      margin: 0.25rem 0.5rem;
+      color: var(--text-secondary);
+      transition: border-color 0.2s, color 0.2s;
+    `;
+    emptyState.innerHTML = `
+      <i class="fas fa-plus-circle me-2" style="font-size:1.2rem; color:var(--primary-color);"></i>
+      <span style="font-size:0.9rem; font-weight:600;">Join study groups</span>
+    `;
+    emptyState.addEventListener('mouseenter', () => {
+      emptyState.style.borderColor = 'var(--primary-color)';
+      emptyState.style.color       = 'var(--primary-color)';
+    });
+    emptyState.addEventListener('mouseleave', () => {
+      emptyState.style.borderColor = 'var(--border-color)';
+      emptyState.style.color       = 'var(--text-secondary)';
+    });
+    container.appendChild(emptyState);
+    return;
+  }
+
+  groups.forEach(group => {
+    const item = document.createElement('a');
+    item.href      = `groups.html?id=${group.id}`;
+    item.className = 'sidebar-item';
+    item.innerHTML = `
+      <i class="fas fa-circle" style="font-size:0.5rem; color:#1877f2;"></i>
+      <span>${escapeHtml(group.name)}</span>
+    `;
+    container.appendChild(item);
+  });
+
+  const seeAll = document.createElement('a');
+  seeAll.href      = 'groups.html';
+  seeAll.className = 'sidebar-item';
+  seeAll.innerHTML = `
+    <i class="fas fa-plus-circle"></i>
+    <span>See all groups</span>
+  `;
+  container.appendChild(seeAll);
+}
+
+// =========================
+// post actions
+// =========================
+
+function setupAttachmentUpload() {
+  const input = document.getElementById('postAttachment');
+  const previewContainer = document.getElementById('attachmentPreviewContainer');
+
+  if (!input) return;
+
+  input.addEventListener('change', () => {
+    const file = input.files[0];
+
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be under 5MB.');
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      previewContainer.innerHTML = `
+        <img
+          src="${e.target.result}"
+          style="
+            max-width:120px;
+            max-height:120px;
+            border-radius:12px;
+            object-fit:cover;
+          "
+        >
+      `;
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+// Share dropdown
+let activeShareDropdown = null;
+
+function openShareDropdown(btn, postId) {
+  // Close any already-open dropdown
+  if (activeShareDropdown) {
+    activeShareDropdown.remove();
+    activeShareDropdown = null;
+  }
+
+  const postUrl = `${window.location.origin}/posts.html?id=${postId}`;
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'share-dropdown';
+  dropdown.innerHTML = `
+    <button class="share-dropdown-item" id="shareCopyLink">
+      <i class="fas fa-link"></i> Copy link
+    </button>
+    <button class="share-dropdown-item" id="shareWhatsApp">
+      <i class="fab fa-whatsapp"></i> Share via WhatsApp
+    </button>
+    <button class="share-dropdown-item" id="shareTelegram">
+      <i class="fab fa-telegram"></i> Share via Telegram
+    </button>
+  `;
+
+  btn.style.position = 'relative';
+  btn.appendChild(dropdown);
+  activeShareDropdown = dropdown;
+
+  // Copy link
+  dropdown.querySelector('#shareCopyLink').addEventListener('click', (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(postUrl).then(() => {
+      const btn = dropdown.querySelector('#shareCopyLink');
+      btn.innerHTML = `<i class="fas fa-check"></i> Copied!`;
+      btn.style.color = 'var(--secondary-color)';
+      setTimeout(() => closeShareDropdown(), 1200);
+    });
+  });
+
+  // WhatsApp
+  dropdown.querySelector('#shareWhatsApp').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.open(`https://wa.me/?text=${encodeURIComponent(postUrl)}`, '_blank');
+    closeShareDropdown();
+  });
+
+  // Telegram
+  dropdown.querySelector('#shareTelegram').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(postUrl)}`, '_blank');
+    closeShareDropdown();
+  });
+
+  setTimeout(() => {
+    document.addEventListener('click', closeShareDropdown, { once: true });
+  }, 0);
+}
+
+function closeShareDropdown() {
+  if (activeShareDropdown) {
+    activeShareDropdown.remove();
+    activeShareDropdown = null;
+  }
+}
+
+// Report modal
+function openReportModal(postId) {
+  const existing = document.getElementById('reportModalOverlay');
+  if (existing) existing.remove();
+
+  const reasons = [
+    { icon: 'fas fa-ban',              label: 'Spam or misleading' },
+    { icon: 'fas fa-exclamation-triangle', label: 'Harassment or bullying' },
+    { icon: 'fas fa-heart-broken',     label: 'Harmful or dangerous content' },
+    { icon: 'fas fa-user-slash',       label: 'Hate speech or discrimination' },
+    { icon: 'fas fa-copyright',        label: 'Intellectual property violation' },
+    { icon: 'fas fa-flag',             label: 'Other' },
+  ];
+
+  const overlay = document.createElement('div');
+  overlay.className = 'report-modal-overlay';
+  overlay.id = 'reportModalOverlay';
+
+  overlay.innerHTML = `
+    <div class="report-modal-card">
+      <h5>Report post</h5>
+      <p class="report-modal-sub">Why are you reporting this post?</p>
+      <div id="reportReasonsContainer">
+        ${reasons.map(r => `
+          <button class="report-reason-btn" data-reason="${r.label}">
+            <i class="${r.icon}"></i> ${r.label}
+          </button>
+        `).join('')}
+      </div>
+      <div id="reportThanks" style="display:none; text-align:center; padding:1rem 0;">
+        <i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i>
+        <div class="fw-bold">Thanks for your report</div>
+        <div class="text-muted small mt-1">We'll review this post and take action if needed.</div>
+      </div>
+      <div class="report-modal-actions">
+        <button class="btn btn-outline-secondary btn-sm" id="reportCancelBtn">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  // Reason buttons
+  overlay.querySelectorAll('.report-reason-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const token   = localStorage.getItem('token');
+      const user_id = localStorage.getItem('loggedInUserId');
+
+      fetchMethod(`${API_BASE}/posts/${postId}/report`, (status, data) => {
+        const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
+        const thanksEl         = overlay.querySelector('#reportThanks');
+        const cancelBtn        = overlay.querySelector('#reportCancelBtn');
+
+        reasonsContainer.style.display = 'none';
+        cancelBtn.textContent = 'Close';
+
+        if (status === 409) {
+          // Already reported
+          thanksEl.innerHTML = `
+            <i class="fas fa-info-circle fa-2x mb-2 d-block" style="color:var(--primary-color);"></i>
+            <div class="fw-bold">Already reported</div>
+            <div class="text-muted small mt-1">You've already submitted a report for this post.</div>
+          `;
+        } else {
+          thanksEl.innerHTML = `
+            <i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i>
+            <div class="fw-bold">Thanks for your report</div>
+            <div class="text-muted small mt-1">We'll review this post and take action if needed.</div>
+          `;
+        }
+
+        thanksEl.style.display = 'block';
+        setTimeout(() => closeReportModal(), 2500);
+
+      }, 'POST', { user_id, reason: btn.dataset.reason }, token);
+    });
+  });
+
+  // Cancel
+  overlay.querySelector('#reportCancelBtn').addEventListener('click', closeReportModal);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeReportModal();
+  });
+}
+
+function closeReportModal() {
+  const overlay = document.getElementById('reportModalOverlay');
+  if (overlay) {
+    overlay.remove();
+    document.body.style.overflow = '';
+  }
+}
+
+// =========================
+// Quick Links
+// =========================
+
+const helpCenterLink = document.getElementById("helpCenterLink");
+const privacyLink = document.getElementById("privacyLink");
+const guidelinesLink = document.getElementById("guidelinesLink");
+
+const infoModal = new bootstrap.Modal(
+  document.getElementById("infoModal")
+);
+
+const modalTitle = document.getElementById("infoModalTitle");
+const modalBody = document.getElementById("infoModalBody");
+
+function openInfoModal(title, content) {
+  modalTitle.textContent = title;
+  modalBody.innerHTML = content;
+  infoModal.show();
+}
+
+helpCenterLink?.addEventListener("click", (e) => {
+  e.preventDefault();
+
+  openInfoModal(
+    "Help Center",
+    `
+    <h6>Frequently Asked Questions</h6>
+    <p><strong>How do I create a post?</strong><br>
+    To share your thoughts, click on the "What's on your mind?" field, add your text or media, and then select <em>Post</em>. Your content will appear in the community feed.</p>
+    <p><strong>Can I post anonymously?</strong><br>
+    Yes. Before submitting, enable the <em>Anonymous</em> option. This ensures your identity is hidden from other users, though Spindle may still retain internal records for security purposes.</p>
+    <p><strong>How do I join study groups?</strong><br>
+    Navigate to the <em>Study Groups</em> section from the main menu. Browse available groups and click <em>Join</em> to become a member. Some groups may require approval from moderators.</p>
+    <p><strong>How do I save or bookmark posts?</strong><br>
+    Click the bookmark icon beneath any post to save it. You can access your saved posts later from your profile under the <em>Saved</em> tab.</p>
+    <p><strong>How do I manage my account settings?</strong><br>
+    Go to your profile and select <em>Settings</em>. From there, you can update your email, change your password, adjust privacy preferences, and manage notifications.</p>
+    <p><strong>What happens to deleted posts?</strong><br>
+    When you delete a post, it is removed from public view immediately. However, copies may remain in backup storage for a limited time as part of our security and compliance processes.</p>
+    <p><strong>How do I report inappropriate content?</strong><br>
+    Click the three-dot menu on the post or comment and select <em>Report</em>. Our moderation team will review the report and take appropriate action.</p>
+    <p><strong>Can I deactivate or delete my account?</strong><br>
+    Yes. Visit <em>Settings</em> → <em>Account</em> → <em>Deactivate/Delete</em>. Deactivation allows you to return later, while deletion permanently removes your account and associated data (subject to legal retention requirements).</p>
+
+    <hr>
+    <h6>Getting Started</h6>
+    <p>
+    New to Spindle? Begin by creating your account, customizing your profile, and exploring communities that match your interests. Visit the <em>Quick Start Guide</em> for step-by-step instructions.
+    </p>
+    <h6>Community Guidelines</h6>
+    <p>
+    To keep Spindle safe and welcoming, please follow our <em>Community Rules</em>. Respect others, avoid harmful content, and report inappropriate behavior. Violations may result in warnings or account suspension.
+    </p>
+    <h6>Account & Privacy</h6>
+    <p>
+    You can manage your account settings under <em>Profile → Settings</em>. Options include updating your email, changing your password, adjusting privacy preferences, and controlling notifications. For details on how we protect your data, see our Privacy Policy.
+    </p>
+    <h6>Moderation & Reporting</h6>
+    <p>
+    Our moderation team works to ensure a safe environment. If you encounter harmful or inappropriate content, use the <em>Report</em> option. Reports are reviewed promptly, and appropriate action will be taken.
+    </p>
+    <h6>Technical Support</h6>
+    <p>
+    If you experience technical issues such as login errors, app crashes, or missing features, check the <em>Troubleshooting Guide</em>. If the issue persists, contact our support team.
+    </p>
+    <hr>
+    <p class="text-muted mb-0">
+    Need further assistance? Contact the Spindle Support Team at <a href="mailto:support@spindleapp.com">support@spindleapp.com</a>.
+    </p>
+
+    `
+  );
+});
+
+privacyLink?.addEventListener("click", (e) => {
+  e.preventDefault();
+
+  openInfoModal(
+    "Privacy Policy",
+    `
+    <p>
+      Spindle values your trust and is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our services.
+    </p>
+    <h5>Information We Collect</h5>
+    <ul>
+      <li><strong>Account Information:</strong> We collect only the information necessary to create and maintain your account, such as your username, email address, and password.</li>
+      <li><strong>Content:</strong> Posts, comments, and files you upload are stored securely and used solely within the platform.</li>
+      <li><strong>Usage Data:</strong> We may collect information about how you interact with Spindle, including log data, device information, and preferences, to improve user experience.</li>
+    </ul>
+    <h5>How We Use Your Information</h5>
+    <ul>
+      <li>To provide, maintain, and improve our services.</li>
+      <li>To protect the security and integrity of the platform.</li>
+      <li>To personalize your experience and deliver relevant content.</li>
+      <li>To comply with legal obligations and enforce our policies.</li>
+    </ul>
+    <h5>Data Protection</h5>
+    <ul>
+      <li><strong>Password Security:</strong> All passwords are encrypted using industry-standard methods.</li>
+      <li><strong>Anonymous Posting:</strong> When you choose to post anonymously, your identity is hidden from other users.</li>
+      <li><strong>File Usage:</strong> Uploaded files are used exclusively within the platform and are not shared externally.</li>
+    </ul>
+    <h5>Data Sharing</h5>
+    <ul>
+      <li>We do not sell or rent your personal information to third parties.</li>
+      <li>We may share limited information with trusted service providers who assist us in operating the platform, subject to strict confidentiality agreements.</li>
+      <li>We may disclose information if required by law or to protect the rights, safety, and security of our users and services.</li>
+    </ul>
+    <h5>Your Rights</h5>
+    <ul>
+      <li>You have the right to access, update, or delete your account information.</li>
+      <li>You may request a copy of the personal data we hold about you.</li>
+      <li>You can adjust your privacy settings within the platform at any time.</li>
+    </ul>
+    <h5>Changes to This Policy</h5>
+    <p>
+      We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. Updates will be posted here, and the "Last Updated" date will be revised accordingly.
+    </p>
+    <p class="text-muted mb-0">
+      Last updated: May 2026
+    </p>
+    `
+  );
+});
+
+guidelinesLink?.addEventListener("click", (e) => {
+  e.preventDefault();
+
+  openInfoModal(
+    "Community Guidelines",
+    `
+    <p>
+      Spindle is committed to maintaining a safe, respectful, and productive environment for all users. By participating in the platform, you agree to follow these guidelines to help us keep Spindle welcoming and useful for everyone.
+    </p>
+
+    <h5>Respect and Conduct</h5>
+    <ul>
+      <li><strong>Be respectful:</strong> Treat fellow students and community members with courtesy and consideration.</li>
+      <li><strong>No harassment or hate speech:</strong> Harassment, bullying, discrimination, or hate speech of any kind is strictly prohibited.</li>
+      <li><strong>Constructive participation:</strong> Engage in discussions thoughtfully and avoid disruptive behavior.</li>
+    </ul>
+
+    <h5>Content Standards</h5>
+    <ul>
+      <li><strong>No illegal or harmful content:</strong> Do not post content that promotes illegal activity, violence, or harm.</li>
+      <li><strong>Stay relevant:</strong> Keep discussions aligned with the category or group you are posting in.</li>
+      <li><strong>No spam:</strong> Avoid posting advertisements, repetitive content, or duplicate posts.</li>
+      <li><strong>Respect academic integrity:</strong> Do not share or encourage cheating, plagiarism, or violations of school policies.</li>
+    </ul>
+
+    <h5>Privacy and Safety</h5>
+    <ul>
+      <li><strong>Protect personal information:</strong> Do not share sensitive personal details about yourself or others.</li>
+      <li><strong>Anonymous posting:</strong> Use the anonymous option responsibly to contribute without revealing your identity.</li>
+      <li><strong>Reporting issues:</strong> If you encounter harmful or inappropriate content, use the <em>Report</em> feature to notify moderators.</li>
+    </ul>
+
+    <h5>Enforcement</h5>
+    <p>
+      Violations of these guidelines may result in content removal, warnings, temporary restrictions, or permanent account suspension. Enforcement decisions are made at the discretion of the moderation team to protect the integrity of the community.
+    </p>
+
+    <p class="text-muted mb-0">
+      Last updated: May 2026
+    </p>
+    `
+  );
+});

@@ -1,11 +1,16 @@
 const express = require('express');
+
+// Import functions needed
 const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreatorID, getGroupsBySchool, insertGroup, 
 		updateGroupName, 
 		updateGroupDescription, deleteGroup, updateGroupPublicity, getGroupMemberByGroupID, 
 		getGroupMemberByUserID, insertGroupMember, updateMemberRoleToAdmin, updateMemberRoleToUser, 
         getAllGroupAdmin, insertGroupDiscussion, updateGroupDiscussion, getAllGroupDiscussionByGroupID, 
         getGroupDiscussionMatch, deleteGroupMemberByUserId, getGroupDiscussionByUserID, deleteGroupDiscussionByID, 
-		getGroupDiscussionByGroupIDAndChannelName} = require('../models/Groups.model');
+		getGroupDiscussionByGroupIDAndChannelName } = require('../models/Groups.model');
+
+const { verifyToken } = require('../middlewares/jwtMiddleware');
+
 const router = express.Router();
 
 // ------------------------------------------------------------------
@@ -30,10 +35,10 @@ router.get('/group/:group_id', (req, res, next) => {
     .catch(next);
 });
 
-// GET Groups by creator id
-router.get('/creator/:creator_id', (req, res, next) => {
+// GET Groups by creator id (get groups that user is the creator of)
+router.get('/creator/:creator_id', verifyToken, (req, res, next) => {
   const data = {
-    creator_id: req.params.creator_id
+    creator_id: res.locals.userId
   }
 
   getGroupByCreatorID(data)
@@ -54,7 +59,7 @@ router.get('/school/:school_name', (req, res, next) => {
 
 // Create new Group (name, description, school, module)
 // Error handled: same name
-router.post('/create/:creator_id', (req, res, next) => {
+router.post('/create/:creator_id', verifyToken, (req, res, next) => {
   if (req.body == undefined || req.body.name == undefined || req.body.description == undefined || req.body.school == undefined 
 		|| req.body.module == undefined) {
     res.status(400).json({"message": "Error: name, description, school or module is undefined"});
@@ -62,8 +67,8 @@ router.post('/create/:creator_id', (req, res, next) => {
   }
 
   const data = {
-    creator_id: req.params.creator_id, 
-	user_id: req.params.creator_id,
+    creator_id: res.locals.userId, 
+	user_id: res.locals.userId,
     name: req.body.name, 
     description: req.body.description,
     school: req.body.school, 
@@ -103,7 +108,7 @@ router.post('/create/:creator_id', (req, res, next) => {
 });
 
 // Update Group name (creator_id, new name) - only creator
-router.put('/name/:group_id', (req, res, next) => {
+router.put('/name/:group_id', verifyToken, (req, res, next) => {
   if (req.body == undefined || req.body.name == undefined || req.body.creator_id == undefined) {
     res.status(400).json({"message": "Error: name or creator_id is undefined"});
     return;
@@ -111,7 +116,7 @@ router.put('/name/:group_id', (req, res, next) => {
 
 	const data = {
 		group_id: req.params.group_id, 
-		creator_id: req.body.creator_id,
+		creator_id: res.locals.userId,
 		name: req.body.name
 	}
 
@@ -146,7 +151,7 @@ router.put('/name/:group_id', (req, res, next) => {
 });
 
 // Update Group description (user_id, description) - only creator/admins
-router.put('/description/:group_id', (req, res, next) => {
+router.put('/description/:group_id', verifyToken, (req, res, next) => {
   if (req.body == undefined || req.body.description == undefined || req.body.user_id == undefined) {
     res.status(400).json({"message": "Error: description or creator_id is undefined"});
     return;
@@ -154,7 +159,7 @@ router.put('/description/:group_id', (req, res, next) => {
 
 	const data = {
 		group_id: req.params.group_id, 
-		user_id: req.body.user_id,
+		user_id: res.locals.userId,
 		description: req.body.description
 	}
 
@@ -177,8 +182,41 @@ router.put('/description/:group_id', (req, res, next) => {
 	.catch(next);
 });
 
+// Update Group publicity (creator_id, public) (Can only be done by group's creator)
+router.put('/public/:group_id', verifyToken, (req, res, next) => {
+  if (req.body == undefined || req.body.creator_id == undefined || req.body.public == undefined) {
+    res.status(400).json({"message": "Error: public or creator_id is undefined"});
+    return;
+  } 
+
+	const data = {
+		group_id: req.params.group_id, 
+		creator_id: res.locals.userId,
+		public: req.body.public // true or false
+	}
+
+	// Get all groups where user is the creator
+	getGroupByCreatorID(data) 
+		.then(results => {
+			// user is the group's creator (see if any id matches with this group)
+			if (results.filter(group => group.id == data.group_id).length > 0) {
+				updateGroupPublicity(data)
+					.then(results => {
+						res.status(200).json(results[0]);
+					})
+					.catch(next);
+
+			} else {
+				res.status(403).json({"message": "Error: User is not the group's creator"});
+				return;
+			}
+			
+		})
+		.catch(next);
+});
+
 // Delete Group (creator_id) (Can only be done by the group's creator)
-router.delete('/:group_id', (req, res, next) => {
+router.delete('/:group_id', verifyToken, (req, res, next) => {
   if (req.body == undefined || req.body.creator_id == undefined) {
     res.status(400).json({"message": "Error: creator_id is undefined"});
     return;
@@ -186,7 +224,7 @@ router.delete('/:group_id', (req, res, next) => {
 
 	const data = {
 		group_id: req.params.group_id, 
-		creator_id: req.body.creator_id,
+		creator_id: res.locals.userId,
 	}
 
 	// Get all groups where user is the creator
@@ -214,37 +252,17 @@ router.delete('/:group_id', (req, res, next) => {
 		.catch(next);
 });
 
-// Update Group publicity (creator_id, public) (Can only be done by group's creator)
-router.put('/public/:group_id', (req, res, next) => {
-  if (req.body == undefined || req.body.creator_id == undefined || req.body.public == undefined) {
-    res.status(400).json({"message": "Error: public or creator_id is undefined"});
-    return;
-  } 
 
-	const data = {
-		group_id: req.params.group_id, 
-		creator_id: req.body.creator_id,
-		public: req.body.public // true or false
-	}
+// for home page
+// GET suggested groups (excludes groups user already belongs to)
+router.get('/suggested', (req, res, next) => {
+  const data = {
+    user_id: res.locals.userId || 0
+  };
 
-	// Get all groups where user is the creator
-	getGroupByCreatorID(data) 
-		.then(results => {
-			// user is the group's creator (see if any id matches with this group)
-			if (results.filter(group => group.id == data.group_id).length > 0) {
-				updateGroupPublicity(data)
-					.then(results => {
-						res.status(200).json(results[0]);
-					})
-					.catch(next);
-
-			} else {
-				res.status(403).json({"message": "Error: User is not the group's creator"});
-				return;
-			}
-			
-		})
-		.catch(next);
+  getSuggestedGroups(data)
+    .then((groups) => res.status(200).json(groups))
+    .catch(next);
 });
 
 // ------------------------------------------------------------------
@@ -252,9 +270,9 @@ router.put('/public/:group_id', (req, res, next) => {
 // ------------------------------------------------------------------
 
 // Get Joined Groups by user_id 
-router.get('/joined_groups/:user_id', (req, res, next) => {
+router.get('/joined_groups/:user_id', verifyToken, (req, res, next) => {
   const data = {
-    user_id: req.params.user_id
+    user_id: res.locals.userId
   }
 
   getGroupMemberByUserID(data)
@@ -277,7 +295,7 @@ router.get('/joined/:group_id', (req, res, next) => {
 // Let user join group (as user)
 // Insert user as group member
 // Request: user_id
-router.post('/join/:group_id', (req, res, next) => {
+router.post('/join/:group_id', verifyToken, (req, res, next) => {
 	if (req.body == undefined || req.body.user_id == undefined) {
 		res.status(400).json({"message": "Error: user_id is undefined"});
 		return;
@@ -285,7 +303,7 @@ router.post('/join/:group_id', (req, res, next) => {
 
 	const data = {
 		group_id: req.params.group_id, 
-		user_id: req.body.user_id,
+		user_id: res.locals.userId
 	}
 
 	// Check group exists
@@ -324,7 +342,7 @@ router.post('/join/:group_id', (req, res, next) => {
 
 // Let user leave group (if not creator)
 // Request: user_id
-router.delete('/leave/:group_id', (req, res, next) => {
+router.delete('/leave/:group_id', verifyToken, (req, res, next) => {
   if (req.body == undefined || req.body.user_id == undefined) {
     return res.status(400).json({"message": "Error: user_id is undefined"});
     
@@ -332,7 +350,7 @@ router.delete('/leave/:group_id', (req, res, next) => {
 
 	const data = {
 		group_id: req.params.group_id, 
-		user_id: req.body.user_id,
+		user_id: res.locals.userId
 	}
 
 	// Check that user is a member
@@ -374,7 +392,7 @@ router.get('/messages/match/:group_id/:channel_name/:match_string', (req, res, n
   const data = {
     group_id: req.params.group_id,
 	match: req.params.match_string, 
-	channel_name: req.params.channel_name, 
+	channel_name: req.params.channel_name
   }
 
   getGroupDiscussionMatch(data)
@@ -383,7 +401,7 @@ router.get('/messages/match/:group_id/:channel_name/:match_string', (req, res, n
 });
 
 // Get Group Discussion by group_id and channel_name
-router.get('/messages/channel/:group_id/:channel_name', (req, res, next) => {
+router.get('/messages/channel/:group_id/:channel_name', verifyToken, (req, res, next) => {
   const data = {
     group_id: req.params.group_id,
 	channel_name: req.params.channel_name, 
@@ -395,7 +413,7 @@ router.get('/messages/channel/:group_id/:channel_name', (req, res, next) => {
 });
 
 // Get Group Discussion channel_name by group_id
-router.get('/messages/channels/:group_id', (req, res, next) => {
+router.get('/messages/channels/:group_id', verifyToken, (req, res, next) => {
   const data = {
     group_id: req.params.group_id
   }
@@ -416,7 +434,7 @@ router.get('/messages/channels/:group_id', (req, res, next) => {
 
 // Send/Create group message
 // Request: message, group_id, channel_name
-router.post('/messages/send/:user_id', (req, res, next) => {
+router.post('/messages/send/:user_id', verifyToken, (req, res, next) => {
   if (req.body == undefined || req.body.channel_name == undefined || req.body.message == undefined || 
 	req.body.group_id == undefined) {
     
@@ -425,7 +443,7 @@ router.post('/messages/send/:user_id', (req, res, next) => {
   }
 
   const data = {
-	user_id: req.params.user_id,
+	user_id: res.locals.userId,
     group_id: req.body.group_id, 
     channel_name: req.body.channel_name, 
     message: req.body.message,
@@ -455,12 +473,9 @@ router.post('/messages/send/:user_id', (req, res, next) => {
 
 });
 
-
-// CHECK THAT CHANNEL NAME DOESN"T ALREADY EXIST
-
 // Create new channel (Only Admin)
 // Request: group_id, channel_name
-router.post('/messages/channel/:user_id', (req, res, next) => {
+router.post('/messages/channel/:user_id', verifyToken, (req, res, next) => {
   if (req.body == undefined || req.body.channel_name == undefined || req.body.group_id == undefined) {
     
 	res.status(400).json({"message": "Error: channel_name or group_id is undefined"});
@@ -468,10 +483,10 @@ router.post('/messages/channel/:user_id', (req, res, next) => {
   }
 
   const data = {
-	user_id: req.params.user_id,
+	user_id: res.locals.userId,
     group_id: req.body.group_id, 
     channel_name: req.body.channel_name, 
-	message: `Welcome to the new ${req.body.new_channel_name} channel`
+	message: `Welcome to the new ${req.body.channel_name} channel`
   }
 
   // Check that user is an admin
@@ -521,14 +536,14 @@ router.post('/messages/channel/:user_id', (req, res, next) => {
 
 // Edit/Update group message
 // Request: id, new_message
-router.put('/messages/edit/:user_id', (req, res, next) => {
+router.put('/messages/edit/:user_id', verifyToken, (req, res, next) => {
   if (req.body == undefined || req.body.id == undefined || req.body.new_message == undefined) {
     res.status(400).json({"message": "Error: id or new_message is undefined"});
     return;
   }
 
 	const data = {
-		user_id: req.params.user_id, 
+		user_id: res.locals.userId, 
 		id: req.body.id,
 		message: req.body.new_message 
 	}
@@ -557,13 +572,13 @@ router.put('/messages/edit/:user_id', (req, res, next) => {
 
 // Delete group message
 // Request: id
-router.delete('/messages/delete/:user_id', (req, res, next) => {
+router.delete('/messages/delete/:user_id', verifyToken, (req, res, next) => {
   if (req.body == undefined || req.body.id == undefined) {
     return res.status(400).json({"message": "Error: id is undefined"});
   } 
 
 	const data = {
-		user_id: req.params.user_id, 
+		user_id: res.locals.userId,
 		id: req.body.id,
 	}
 
