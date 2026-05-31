@@ -7,3 +7,13 @@ function removeFromCart(item_id, user_id) {
     let data = {};
     fetchMethod(`http://localhost:3000/cart/remove/${item_id}/${user_id}`, (status, data) => {console.log(status, data)}, "DELETE", data);
 }
+
+function editCart(item_id, user_id, new_amount) {
+    let data = {new_amount : new_amount};
+    fetchMethod(`http://localhost:3000/cart/edit/${item_id}/${user_id}`, (status, data) => {console.log(status, data)}, "PUT", data);
+}
+
+function clearCart(user_id) {
+    let data = {};
+    fetchMethod(`http://localhost:3000/cart/clear/${user_id}`, (status, data) => {console.log(status, data)}, "DELETE", data);
+}

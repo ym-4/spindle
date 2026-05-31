@@ -38,3 +38,12 @@ module.exports.removeCartItem = async function removeCartItem(id, user_id) {
   );
   return rows[0];
 };
+
+// DELETE ALL items in a user cart
+module.exports.clearCart = async function clearCart(user_id) {
+  const { rows } = await pool.query(
+    'DELETE FROM "UserCart" WHERE "user_id" = $1 RETURNING *',
+    [user_id]
+  );
+  return rows[0];
+};

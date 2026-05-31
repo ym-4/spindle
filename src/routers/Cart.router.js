@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addToCart, getAllUserCartItems, getAllUserCartItemsById, removeCartItem, updateCartItem } = require('../models/Cart.model');
+const { addToCart, getAllUserCartItems, getAllUserCartItemsById, removeCartItem, updateCartItem, clearCart } = require('../models/Cart.model');
 
 // Retrieve all items
 router.get('/', (req, res, next) => {
@@ -40,7 +40,8 @@ router.post('/add/:user_id', (req, res, next) => {
 router.put('/edit/:id/:user_id', (req, res, next) => {
 
   if (req.body == undefined || req.params.id == undefined || req.params.user_id == undefined || req.body.new_amount == undefined) {
-    res.status(400).json({"message": "Error: item_id, user_id or amount is undefined"});
+    res.status(400).json({"message": "Error: item_id, user_id or new_amount is undefined"});
+    console.log(req.body)
     return;
   }
 
@@ -65,6 +66,17 @@ router.delete('/remove/:id/:user_id', (req, res, next) => {
   removeCartItem(id, user_id)
     .then((item) => {
       if (!item) return res.status(404).json({ error: 'Item not found' });
+      res.status(200).json(item);
+    })
+    .catch(next);
+});
+
+// Clear cart
+router.delete('/clear/:user_id', (req, res, next) => {
+  const user_id = Number(req.params.user_id);
+  clearCart(user_id)
+    .then((item) => {
+      if (!item) return res.status(404).json({ error: 'User not found' });
       res.status(200).json(item);
     })
     .catch(next);

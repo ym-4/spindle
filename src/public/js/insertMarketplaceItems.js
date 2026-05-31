@@ -92,10 +92,10 @@ function addCartItem(seller_id, id, name, description, price, quantity) {
     // Save button handler
     modal.querySelector("#editSaveBtn").onclick = () => {
       const newQuantity = parseInt(modal.querySelector("#editQuantity").value);
-      if (newQuantity < 1) return;
-
-      // TODO: call your update function here, e.g.:  
-      // updateCartItem(id, localStorage.loggedInUserId, newQuantity);
+      if (newQuantity < 1) {
+        newQuantity = 1;
+      }
+      editCart(id, localStorage.loggedInUserId, newQuantity);
 
       bootstrap.Modal.getInstance(modal).hide();
       location.reload();
@@ -137,6 +137,12 @@ async function loadCart() {
       console.error("Failed to load cart:", status, data);
     }
   });
+
+  checkoutButton = document.querySelector('.checkout-btn');
+  checkoutButton.addEventListener("click", () => {
+    clearCart(localStorage.loggedInUserId);
+    location.reload();
+  })
 }
 
 // Insert the correct items based on the name of the document ;-D

@@ -174,7 +174,7 @@ CREATE TABLE "GroupFiles" (
 
 CREATE TABLE "MarketplaceItems" (
   "id" SERIAL NOT NULL,
-  "seller_id" INT NOT NULL,
+  "seller_id" INT NOT NULL, -- User ID
   "name" TEXT NOT NULL,
   "description" TEXT NOT NULL,
   "price" NUMERIC(10, 2) NOT NULL,
