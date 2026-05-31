@@ -16,10 +16,12 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
 
     <!-- JS files -->
     <script src="js/queryCmds.js"></script>
-    <script src="/js/userNavBarToggle.js"></script>
+    <script src="js/userNavBarToggle.js"></script>
+    <script src="js/groupsFeed.js" defer></script>
 
     <title>Groups feed</title>
 </head>
@@ -133,17 +135,17 @@
 
                         <!-- LEFT: Group Info -->
                         <div class="text-white">
-                            <h2 class="fw-bold mb-1">SOC Study Group</h2>
-                            <small>CS1010 • School of Computing • 120 members</small>
+                            <h2 class="fw-bold mb-1" id="bannerGroupName">SOC Study Group</h2>
+                            <small id="bannerGroupDetails">CS1010 • School of Computing • 120 members</small>
                         </div>
 
                         <!-- RIGHT: Quick actions -->
                         <div class="d-flex gap-2">
-                            <button class="btn btn-light btn">
+                            <button class="btn btn-light btn" id="membersButton">
                                 <i class="bi bi-people"></i> Members
                             </button>
 
-                            <button class="btn btn-primary btn">
+                            <button class="btn btn-primary btn" id="leaveButton">
                                 Leave
                             </button>
                         </div>
@@ -163,14 +165,14 @@
                         <div class="card shadow-sm mb-3">
                         <div class="card-body">
                             <h6 class="fw-bold">Group Info</h6>
-                            <p class="text-muted small mb-2">
-                            A group for SOC students to share notes, ask questions and revise.
+                            <p class="text-muted small mb-2" id="groupInfoDescription">
+                                A group for SOC students to share notes, ask questions and revise.
                             </p>
 
                             <div class="small">
-                            <div><i class="bi bi-book"></i> CS1010</div>
-                            <div><i class="bi bi-people"></i> 120 Members</div>
-                            <div><i class="bi bi-globe"></i> Public Group</div>
+                                <div><i class="bi bi-book"></i> <span id="groupInfoModule">CS1010</span></div>
+                                <div><i class="bi bi-people"></i> <span id="groupInfoMemberCount">120</span> Members</div>
+                                <div><i class="bi bi-globe"></i> <span id="groupInfoPublicity">Public</span> Group</div>
                             </div>
                         </div>
                         </div>
@@ -242,21 +244,22 @@
                         <!-- Members -->
                         <div class="card shadow-sm">
                             <div class="card-body">
-                                <h6 class="fw-bold">Members</h6>
+                                <h6 class="fw-bold">Admins</h6>
+                                <div id="adminContainer">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <img src="images/Groups_profile_2.png" class="rounded-circle me-2" width="30" height="30">
+                                        <span>Alex</span>
+                                    </div>
 
-                                <div class="d-flex align-items-center mb-2">
-                                    <img src="images/Groups_profile_2.png" class="rounded-circle me-2" width="30" height="30">
-                                    <span>Alex</span>
-                                </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <img src="images/Groups_profile_2.png" class="rounded-circle me-2" width="30" height="30">
+                                        <span>Jamie</span>
+                                    </div>
 
-                                <div class="d-flex align-items-center mb-2">
-                                    <img src="images/Groups_profile_2.png" class="rounded-circle me-2" width="30" height="30">
-                                    <span>Jamie</span>
-                                </div>
-
-                                <div class="d-flex align-items-center">
-                                    <img src="images/Groups_profile_1.png" class="rounded-circle me-2" width="30" height="30">
-                                    <span>You</span>
+                                    <div class="d-flex align-items-center">
+                                        <img src="images/Groups_profile_1.png" class="rounded-circle me-2" width="30" height="30">
+                                        <span>You</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -280,7 +283,7 @@
 
                             <!-- CHAT HEADER -->
                             <div class="card-header chat-header">
-                                <strong># general</strong>
+                                <strong id="channelHeader"># general</strong>
                             </div>
 
                             <!-- MESSAGES -->
@@ -288,7 +291,7 @@
                                 
 
                                 <!-- messages -->
-                                <div class="chat-messages">
+                                <div class="chat-messages" id="message-container">
                                  
                                     <div class="chat-divider"><span> 20 May 2026 </span></div>
 
@@ -356,7 +359,7 @@
 
                             <!-- INPUT -->
                             <div class="card-footer bg-white">
-                                <div class="input-group">
+                                <div class="input-group" id="messageDiv">
                                     <input type="text" class="form-control" placeholder="Message #general...">
                                     <button class="btn" id="sendChatBtn">
                                         <i class="bi bi-send"></i>
@@ -377,8 +380,7 @@
                                 <h6 class="fw-bold mb-3">Channels</h6>
 
                                 <!-- CHANNEL LIST -->
-                                <div class="list-group list-group-flush">
-
+                                <div class="list-group list-group-flush" id="channel-container">
                                     <a href="#" class="list-group-item list-group-item-action active d-flex align-items-center channel-color" id="generalChannel">
                                         <span class="me-2">#</span> general
                                     </a>
