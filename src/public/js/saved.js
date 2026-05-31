@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadYourGroups(); 
-  loadHotPosts()
+  loadHotPosts();
 
   if (!token || !userId) {
     showLoginPrompt();
@@ -68,31 +68,21 @@ function loadSavedPosts(userId, token) {
       showEmpty();
       return;
     }
-  // Load reactions
-  loadUserReactions().then(() => {
-    fetchMethod(`${API_BASE}/posts/saved/${userId}`, (status, data) => {
-      if (status !== 200 || !Array.isArray(data) || data.length === 0) {
-        showEmpty();
-        return;
-      }
 
-      savedRows = data;
+    savedRows = data;
 
     fetchMethod(`${savedApiBase()}/posts`, (pStatus, posts) => {
       if (pStatus !== 200) { showError(); return; }
-      fetchMethod(`${API_BASE}/posts`, (pStatus, posts) => {
-        if (pStatus !== 200) { showError(); return; }
 
-        const savedPostIdSet = new Set(data.map(r => parseInt(r.post_id)));
-        const savedPosts = posts.filter(p => savedPostIdSet.has(parseInt(p.id)));
+      const savedPostIdSet = new Set(data.map(r => parseInt(r.post_id)));
+      const savedPosts = posts.filter(p => savedPostIdSet.has(parseInt(p.id)));
 
-        if (savedPosts.length === 0) { showEmpty(); return; }
+      if (savedPosts.length === 0) { showEmpty(); return; }
 
-        container.innerHTML = '';
-        savedPosts.forEach(post => {
-          const saveRow = savedRows.find(r => parseInt(r.post_id) === parseInt(post.id));
-          container.appendChild(buildSavedPostCard(post, saveRow));
-        });
+      container.innerHTML = '';
+      savedPosts.forEach(post => {
+        const saveRow = savedRows.find(r => parseInt(r.post_id) === parseInt(post.id));
+        container.appendChild(buildSavedPostCard(post, saveRow));
       });
     }, 'GET', null, token);
   });
