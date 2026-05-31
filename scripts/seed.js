@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const bcrypt = require('bcrypt');
 const { hashPassword } = require('../src/models/Auth.model');
 
 const pool = new Pool({
@@ -11,7 +12,7 @@ const hashedDefaultPassword = hashPassword(DEFAULT_PASSWORD);
 const hashedAdminPassword = hashPassword(ADMIN_PASSWORD);
 
 const persons = [
-  { email: 'alice@example.com', name: 'Alice' },
+  { email: 'alice@example.com', name: 'Alice'},
   { email: 'bob@example.com', name: 'Bob' },
   { email: 'carol@example.com', name: 'Carol' },
   { email: 'dave@example.com', name: 'Dave' },
@@ -75,6 +76,79 @@ const reactions = [
 
 // Example saved posts
 const savedPosts = [{ userEmail: 'heidi@example.com', postTitle: 'General Thoughts' }];
+
+// Example groups
+const groups = [
+  {
+    creatorEmail: 'alice@example.com',
+    name: 'CS101 Study Group',
+    description: 'Weekly discussions and coding practice for CS101.',
+    school: 'SOC',
+    module: 'CS101',
+    public: true,
+  },
+  {
+    creatorEmail: 'bob@example.com',
+    name: 'Math Assignment Help',
+    description: 'Get help with calculus and algebra assignments.',
+    school: 'SMA',
+    module: 'MA1508E',
+    public: true,
+  },
+  {
+    creatorEmail: 'carol@example.com',
+    name: 'EEE Electronics Lab',
+    description: 'Discuss lab work and electronics troubleshooting.',
+    school: 'EEE',
+    module: 'EE2001',
+    public: false,
+  },
+  {
+    creatorEmail: 'dave@example.com',
+    name: 'Business Case Study Team',
+    description: 'Collaborate on business presentations and reports.',
+    school: 'SB',
+    module: 'BU1001',
+    public: true,
+  },
+  {
+    creatorEmail: 'eve@example.com',
+    name: 'Biomedical Science Notes',
+    description: 'Sharing notes and revision materials.',
+    school: 'CLS',
+    module: 'BM2102',
+    public: true,
+  },
+];
+
+// Example group members
+const groupMembers = [
+  // CS101 Study Group
+  { groupName: 'CS101 Study Group', userEmail: 'alice@example.com', role: 'admin' },
+  { groupName: 'CS101 Study Group', userEmail: 'bob@example.com', role: 'user' },
+  { groupName: 'CS101 Study Group', userEmail: 'carol@example.com', role: 'user' },
+
+  // Math Assignment Help
+  { groupName: 'Math Assignment Help', userEmail: 'bob@example.com', role: 'admin' },
+  { groupName: 'Math Assignment Help', userEmail: 'alice@example.com', role: 'user' },
+  { groupName: 'Math Assignment Help', userEmail: 'eve@example.com', role: 'user' },
+
+  // EEE Electronics Lab
+  { groupName: 'EEE Electronics Lab', userEmail: 'carol@example.com', role: 'admin' }, 
+  { groupName: 'EEE Electronics Lab', userEmail: 'frank@example.com', role: 'user' },
+  { groupName: 'EEE Electronics Lab', userEmail: 'grace@example.com', role: 'user' },
+
+  // Business Case Study Team
+  { groupName: 'Business Case Study Team', userEmail: 'dave@example.com', role: 'admin' }, 
+  { groupName: 'Business Case Study Team', userEmail: 'heidi@example.com', role: 'user' },
+  { groupName: 'Business Case Study Team', userEmail: 'ivan@example.com', role: 'user' },
+
+  // Biomedical Science Notes
+  { groupName: 'Biomedical Science Notes', userEmail: 'eve@example.com', role: 'admin' }, 
+  { groupName: 'Biomedical Science Notes', userEmail: 'judy@example.com', role: 'user' },
+  { groupName: 'Biomedical Science Notes', userEmail: 'mallory@example.com', role: 'user' },
+];
+
 
 // These seeded items should be moved to the top with the others later, right now I dont wanna be confused.
 const marketplaceItems = [
@@ -280,14 +354,16 @@ const groupDiscussions = [
 async function seed() {
   console.log('Seeding data...');
 
-  // Insert persons (batch)
-  if (persons.length > 0) {
-    const personPlaceholders = persons.map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`);
-    const personValues = persons.flatMap((p) => [p.email, p.name]);
+  // Insert persons
+  for (const person of persons) {
+    const hashedPassword = await bcrypt.hash(
+      person.hashed_password?.toString() || 'password123',
+      10
+    );
+
     await pool.query(
-      `INSERT INTO "Person" ("email", "name") VALUES ${personPlaceholders.join(', ')} ON CONFLICT ("email") DO NOTHING`,
-      // "do nothing" prevents duplicate error when seeding data
-      personValues,
+      `INSERT INTO "Person" ("email", "name", "hashed_password") VALUES ($1, $2, $3) ON CONFLICT ("email") DO NOTHING`,
+      [person.email, person.name, hashedPassword]
     );
   }
   console.log(`Inserted ${persons.length} persons.`);
@@ -422,6 +498,49 @@ async function seed() {
     }
   }
   console.log(`Inserted ${savedPosts.length} saved posts.`);
+  
+  // Insert groups
+  for (const group of groups) {
+    const creatorRes = await pool.query(
+      `SELECT id FROM "Person" WHERE email = $1`,
+      [group.creatorEmail]
+    );
+
+    if (creatorRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "Groups"
+        ("name", "creator_id", "description", "school", "module", "public")
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT ("name") DO NOTHING`,
+        [
+          group.name,
+          creatorRes.rows[0].id,
+          group.description,
+          group.school,
+          group.module,
+          group.public,
+        ]
+      );
+    }
+  }
+
+  console.log(`Inserted ${groups.length} groups.`);
+
+    // Insert group members
+  for (const gm of groupMembers) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [gm.userEmail]);
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [gm.groupName]);
+
+    if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "GroupMembers" ("group_id", "user_id", "role")
+         VALUES ($1, $2, $3)
+         ON CONFLICT DO NOTHING`,
+        [groupRes.rows[0].id, userRes.rows[0].id, gm.role],
+      );
+    }
+  }
+  console.log(`Inserted ${groupMembers.length} group members.`);
 
   // Insert marketplace items
   const sellerRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [

@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
+  let currentLoginName = "";
+
   const loginForm = document.getElementById("loginForm");
   const warningCard = document.getElementById("warningCard");
   const warningText = document.getElementById("warningText");
@@ -10,10 +12,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (responseStatus == 200) {
       if (responseData.token) {
         localStorage.setItem("token", responseData.token);
-        localStorage.setItem(
-          "loggedInUserId",
-          responseData.userId
-        );
+        localStorage.setItem("loggedInUserId", responseData.userId);
+        localStorage.setItem("displayName", currentLoginName);
+
         window.location.href = "profile.html";
       }
     } else {
@@ -27,6 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
     event.preventDefault();
 
     const name = document.getElementById("username").value;
+    currentLoginName = name;
     const password = document.getElementById("password").value;
 
     const data = {

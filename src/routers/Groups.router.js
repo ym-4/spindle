@@ -7,7 +7,7 @@ const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreato
 		getGroupMemberByUserID, insertGroupMember, updateMemberRoleToAdmin, updateMemberRoleToUser, 
         getAllGroupAdmin, insertGroupDiscussion, updateGroupDiscussion, getAllGroupDiscussionByGroupID, 
         getGroupDiscussionMatch, deleteGroupMemberByUserId, getGroupDiscussionByUserID, deleteGroupDiscussionByID, 
-		getGroupDiscussionByGroupIDAndChannelName} = require('../models/Groups.model');
+		getGroupDiscussionByGroupIDAndChannelName } = require('../models/Groups.model');
 
 const { verifyToken } = require('../middlewares/jwtMiddleware');
 
@@ -250,6 +250,19 @@ router.delete('/:group_id', verifyToken, (req, res, next) => {
 			
 		})
 		.catch(next);
+});
+
+
+// for home page
+// GET suggested groups (excludes groups user already belongs to)
+router.get('/suggested', (req, res, next) => {
+  const data = {
+    user_id: res.locals.userId || 0
+  };
+
+  getSuggestedGroups(data)
+    .then((groups) => res.status(200).json(groups))
+    .catch(next);
 });
 
 // ------------------------------------------------------------------

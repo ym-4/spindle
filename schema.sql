@@ -94,6 +94,8 @@ CREATE TABLE "Posts" (
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
   "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "content" TEXT NOT NULL,
+  "attachment_url" TEXT,
+  "is_anonymous" BOOLEAN DEFAULT FALSE,
   CONSTRAINT "Posts_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
@@ -151,6 +153,14 @@ CREATE TABLE "SavedPosts" (
   UNIQUE(user_id, post_id)
 );
 
+CREATE TABLE "Reports" (
+  "id"        SERIAL PRIMARY KEY,
+  "post_id"   INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
+  "user_id"   INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "reason"    VARCHAR(100) NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE ("post_id", "user_id")
+);
 -- -------------------------------------------------------------------------------------
 --                                  GROUPS
 -- -------------------------------------------------------------------------------------
