@@ -133,11 +133,11 @@ router.post('/login',
 router.post('/register',
   (req, res, next) => {
     if (req.body.name == undefined || req.body.email == undefined || req.body.password == undefined) 
-      {
+    {
       return res.status(400).json({
         message: "name, email or password missing"
       });
-    }
+    } 
     next();
   },
   bcryptMiddleware.hashPassword, 
