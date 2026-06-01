@@ -1,7 +1,7 @@
 const express = require('express');
 
 // Import functions needed
-const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreatorID, getGroupsBySchool, insertGroup, 
+const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreatorID, getGroupsBySchool, getSuggestedGroups, insertGroup, 
 		updateGroupName, 
 		updateGroupDescription, deleteGroup, updateGroupPublicity, getGroupMemberByGroupID, 
 		getGroupMemberByUserID, insertGroupMember, updateMemberRoleToAdmin, updateMemberRoleToUser, 

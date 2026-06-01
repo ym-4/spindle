@@ -4,6 +4,8 @@ const cors = require('cors'); // Might remove later
 const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
+require('dotenv').config();
+
 
 
 // Import route handlers
