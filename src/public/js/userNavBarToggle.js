@@ -50,12 +50,29 @@ document.addEventListener('DOMContentLoaded', function () {
     messageIcon.classList.add('d-none');
   }
 
-  logoutButton.addEventListener('click', function () {
+  logoutButton.addEventListener('click', async function (event) {
+    event.preventDefault();
+    const token = spindleGetToken();
+
+    try {
+      if (token) {
+        await fetch('/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("Backend unregister skipped, clearing storage locally:", err);
+    }
+
     spindleClearAuth();
-    window.location.href = 'home.html';
     localStorage.removeItem('token');
     localStorage.removeItem('loggedInUserId');
     localStorage.removeItem('displayName');
-    window.location.href = 'index.html';
+
+    window.location.href = 'login.html';
   });
 });

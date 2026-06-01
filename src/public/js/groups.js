@@ -774,7 +774,7 @@ function fetchJoinedGroups() {
     const user_id = localStorage.getItem('loggedInUserId');
 
     return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/joined_groups/${user_id}`;
+        const url = `http://localhost:3000/groups/joined_groups`;
 
         const callback = (responseStatus, responseData) => {
             console.log("fetchJoinedGroups", responseData);

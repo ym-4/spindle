@@ -13,7 +13,8 @@ const {
 } = require('../models/Person.model');
 
 const bcryptMiddleware = require('../middlewares/bcryptMiddleware');
-const jwtMiddleware = require('../middlewares/jwtMiddleware');
+const { signToken } = require('../utils/jwt');
+const { authenticateJWT } = require('../middleware/auth.middleware');
 
 // GET ALL PERSONS
 router.get('/', (req, res, next) => {
@@ -123,8 +124,27 @@ router.post('/login',
       });
   },
   bcryptMiddleware.comparePassword,
-  jwtMiddleware.generateToken,
-  jwtMiddleware.sendToken
+  (req, res, next) => {
+    try {
+      const userPayload = {
+        id: res.locals.userId,
+        name: req.body.name,
+        email: req.body.email || "", 
+        role: 'user',                
+        sessionId: null             
+      };
+
+      const token = signToken(userPayload);
+
+      res.status(200).json({
+        message: "Login successful",
+        token: token,
+        userId: res.locals.userId
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 );
 
 //////////////////////////////////////////////////////
@@ -163,8 +183,27 @@ router.post('/register',
       res.status(500).json(err);
     });
   },
-  jwtMiddleware.generateToken,
-  jwtMiddleware.sendToken
+  (req, res, next) => {
+    try {
+      const userPayload = {
+        id: res.locals.userId,
+        name: req.body.name,
+        email: req.body.email,
+        role: 'user',
+        sessionId: null
+      };
+
+      const token = signToken(userPayload);
+
+      res.status(201).json({
+        message: "Registration successful",
+        token: token,
+        userId: res.locals.userId
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 );
 
 module.exports = router;

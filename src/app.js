@@ -9,7 +9,6 @@ require('dotenv').config();
 
 
 // Import route handlers
-const somethingRouter = require('./routers/Something.router');
 const personRouter = require('./routers/Person.router');
 const authRouter = require('./routers/Auth.router');
 const messageRouter = require('./routers/Message.router');
@@ -57,7 +56,6 @@ app.get('/', (req, res) => res.redirect('/home.html'));
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => res.status(204).end());
 
-app.use('/somethings', somethingRouter);
 app.use('/persons', personRouter);
 app.use('/auth', authRouter);
 app.use('/messages', messageRouter);
