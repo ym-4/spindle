@@ -1165,21 +1165,51 @@ function showError(message) {
 }
 
 function loadYourGroups() {
+  const token = localStorage.getItem('token');
   const userId = localStorage.getItem('loggedInUserId');
-  const section  = document.getElementById('yourGroupsSection');
-  const divider  = document.getElementById('yourGroupsDivider');
 
-  // signed out display
-  if (!userId) return;
+  if (!token || !userId) {
+    document.getElementById('yourGroupsDivider').style.display = 'none';
+    document.getElementById('yourGroupsSection').style.display = 'none';
+    return;
+  }
 
-  // signed in display
-  if (section) section.style.display = 'block';
-  if (divider) divider.style.display = 'block';
+  fetchMethod(`${currentUrl}/groups/joined_groups`, (status, data) => {
+    if (status === 200 && Array.isArray(data) && data.length > 0) {
+      // Reveal the container sections setup in posts.html
+      document.getElementById('yourGroupsDivider').style.display = 'block';
+      document.getElementById('yourGroupsSection').style.display = 'block';
 
-  fetchMethod(`${API_BASE}/groups/creator/${userId}`, (status, data) => {
-    if (status !== 200) return;
-    renderYourGroups(data || []);
-  });
+      const container = document.getElementById('yourGroupsContainer');
+      container.innerHTML = ''; 
+
+      data.forEach(group => {
+        const groupEl = document.createElement('a');
+        groupEl.href = `group-details.html?id=${group.id}`;
+        groupEl.className = 'sidebar-item px-3 py-2 d-flex align-items-center text-decoration-none';
+        groupEl.style.fontSize = '0.9rem';
+        
+        groupEl.innerHTML = `
+          <i class="fas fa-gradient fa-folder me-2 text-primary" style="font-size: 0.85rem;"></i>
+          <span class="text-truncate">${escapeHtml(group.name)}</span>
+        `;
+        container.appendChild(groupEl);
+      });
+    } else {
+      document.getElementById('yourGroupsDivider').style.display = 'none';
+      document.getElementById('yourGroupsSection').style.display = 'none';
+    }
+  }, 'GET', null, token);
+}
+
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
 }
 
 function renderYourGroups(groups) {

@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
     userId = getStoredUser()?.id;
   }
 
-  loadYourGroups(); 
   loadHotPosts();
 
   if (!token || !userId) {
@@ -295,19 +294,27 @@ function escapeHtml(str) {
 
 // Your Groups 
 function loadYourGroups() {
-  const userId  = localStorage.getItem('loggedInUserId');
+  const token = typeof getToken === 'function' ? getToken() : localStorage.getItem('token');
   const section = document.getElementById('yourGroupsSection');
   const divider = document.getElementById('yourGroupsDivider');
 
-  if (!userId) return;
+  if (!token) {
+    if (section) section.style.display = 'none';
+    if (divider) divider.style.display = 'none';
+    return;
+  }
 
-  if (section) section.style.display = 'block';
-  if (divider) divider.style.display = 'block';
+  if (section) section.style.setProperty('display', 'block', 'important');
+  if (divider) divider.style.setProperty('display', 'block', 'important');
 
-  fetchMethod(`${API_BASE}/groups/creator/${userId}`, (status, data) => {
+  fetchMethod(`${savedApiBase()}/groups/joined_groups`, (status, data) => {
+    if (status === 401) {
+      console.warn("Unauthorized access to joined groups from saved page.");
+      return;
+    }
     if (status !== 200) return;
     renderYourGroups(data || []);
-  });
+  }, 'GET', null, token);
 }
 
 function renderYourGroups(groups) {

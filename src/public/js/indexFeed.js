@@ -38,7 +38,6 @@ function initFeedPage() {
   setupCreatePostAvatar();
 
   loadUserReactions();
-  loadYourGroups();
   loadSuggestedGroups();
 
    loadSavedIds().then(() => {
@@ -842,12 +841,16 @@ function loadSuggestedGroups() {
   const container = document.getElementById('suggestedGroupsContainer');
   if (!container) return;
 
-  const userId = parseInt(feedUserId(), 10) || 0;
-
-  fetchMethod(`${feedApiBase()}/groups/suggested?user_id=${userId}`, (status, data) => {
+  const token = feedToken(); 
+  fetchMethod(`${feedApiBase()}/groups/suggested`, (status, data) => {
     container.innerHTML = '';
 
-    if (status !== 200 || !data.length) {
+    if (status === 401) {
+      console.warn("Suggested groups unauthorized. Leftover session tokens cleared.");
+      return;
+    }
+
+    if (status !== 200 || !data || !data.length) {
       container.innerHTML = `
         <div class="list-group-item text-muted small text-center py-3">
           No suggestions available.
@@ -874,31 +877,34 @@ function loadSuggestedGroups() {
       `;
 
       item.querySelector('.join-group-btn').addEventListener('click', () => {
-        if (!isLoggedIn()) { showAuthPopup(); return; }
+        if (!feedIsLoggedIn()) { showAuthPopup(); return; }
         window.location.href = `groups.html?id=${group.id}`;
       });
 
       container.appendChild(item);
     });
-  });
+  }, 'GET', null, token); 
 }
 
 function loadYourGroups() {
-  const userId = parseInt(feedUserId(), 10);
+  const token = feedToken(); 
   const section  = document.getElementById('yourGroupsSection');
   const divider  = document.getElementById('yourGroupsDivider');
 
-  // signed out display
-  if (!userId) return;
+  if (!token) return;
 
-  // signed in display
+  // Signed in display
   if (section) section.style.display = 'block';
   if (divider) divider.style.display = 'block';
 
-  fetchMethod(`${feedApiBase()}/groups/joined_groups/${userId}`, (status, data) => {
+  fetchMethod(`${feedApiBase()}/groups/joined_groups`, (status, data) => {
+    if (status === 401) {
+      console.warn("Joined groups unauthorized.");
+      return;
+    }
     if (status !== 200) return;
     renderYourGroups(data || []);
-  });
+  }, 'GET', null, token);
 }
 
 function renderYourGroups(groups) {
