@@ -236,3 +236,14 @@ function initAuth() {
 }
 
 document.addEventListener('DOMContentLoaded', initAuth);
+
+function handleLogout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('loggedInUserId');
+    localStorage.removeItem('pineappleUser');
+    localStorage.removeItem('pineappleToken');
+    localStorage.removeItem('displayName');
+    
+    // Redirect to login page
+    window.location.href = 'login.html';
+}
