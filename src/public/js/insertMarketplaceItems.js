@@ -47,6 +47,21 @@ async function loadListings() {
   });
 }
 
+// Fetch users Listings
+async function loadUserListings() {
+    fetchMethod("http://localhost:3000/marketplace/", (status, data) => {
+    if (status === 200) {
+      data.forEach(item => {
+        if (item.seller_id == localStorage.loggedInUserId) {
+          addListing(item.seller_id, item.id, item.name, item.description, item.price);
+        }
+      });
+    } else {
+      console.error("Failed to load listings:", status, data);
+    }
+  });
+}
+
 function addCartItem(seller_id, id, name, description, price, quantity) {
   const container = document.querySelector('.cart-container');
   const card = document.createElement('div');
@@ -150,4 +165,6 @@ if (document.title == "Marketplace") {
   loadListings();
 } else if (document.title == "Cart") {
   loadCart();
+} else if (document.title == "Marketplace - Your Listings") {
+  loadUserListings();
 }
