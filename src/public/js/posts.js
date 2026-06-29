@@ -3,7 +3,15 @@
 //  Comments: GET /comments/:post_id, POST /comments/:post_id, PUT /comments/:id, DELETE /comments/:id
 //  creator: PUT /posts/:id, DELETE /posts/:id
 
-const API_BASE = currentUrl;
+function feedApiBase() {
+  if (typeof currentUrl !== 'undefined' && currentUrl) return currentUrl;
+  if (typeof getApiBase === 'function') {
+    const base = getApiBase();
+    if (base) return base;
+  }
+  return window.location.origin || '';
+}
+
 const COMMENTS_BASE = `${currentUrl}/comments`;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1276,7 +1284,7 @@ function loadRelatedPosts(postId, category) {
       <div class="spinner-border spinner-border-sm" role="status"></div>
     </div>`;
 
-  fetchMethod(`${API_BASE}/posts/related/${category}/${postId}`, (status, data) => {
+  fetchMethod(`${feedApiBase()}/posts/related/${category}/${postId}`, (status, data) => {
     container.innerHTML = '';
 
     if (status !== 200 || !data.length) {
@@ -1424,7 +1432,7 @@ function openReportModal(postId) {
       const token   = localStorage.getItem('token');
       const user_id = localStorage.getItem('loggedInUserId');
 
-      fetchMethod(`${API_BASE}/posts/${postId}/report`, (status, data) => {
+      fetchMethod(`${feedApiBase()}/posts/${postId}/report`, (status, data) => {
         const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
         const thanksEl         = overlay.querySelector('#reportThanks');
         const cancelBtn        = overlay.querySelector('#reportCancelBtn');
