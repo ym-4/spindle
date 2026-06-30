@@ -84,48 +84,64 @@ const marketplaceItems = [
     name: 'Backpack',
     description: 'Durable everyday backpack with multiple compartments.',
     price: 49.9,
+    quality: "Brand New",
+    meetup: "Dover MRT"
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Calculator',
     description: 'Scientific calculator suitable for engineering modules.',
     price: 15.0,
+    quality: "Brand New",
+    meetup: "Dover MRT"
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Folder',
     description: 'A4 document folder to keep your notes organised.',
     price: 3.5,
+    quality: "Brand New",
+    meetup: "Dover MRT"
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Notebook',
     description: 'Lined notebook, 200 pages, hardcover.',
     price: 6.9,
+    quality: "Brand New",
+    meetup: "Dover MRT"
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Paper',
     description: 'A4 80gsm printing paper, 500 sheets per ream.',
     price: 8.0,
+    quality: "Brand New",
+    meetup: "Dover MRT"
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Pen',
     description: 'Smooth ballpoint pen, blue ink.',
     price: 1.5,
+    quality: "Brand New",
+    meetup: "Dover MRT"
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Pencil',
     description: 'HB pencil, ideal for sketching and writing.',
     price: 0.8,
+    quality: "Brand New",
+    meetup: "Dover MRT"
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Stationery Pack',
     description: 'Bundle of essentials: pens, pencils, ruler, eraser, and sharpener.',
     price: 12.0,
+    quality: "Brand New",
+    meetup: "Dover MRT"
   },
 ];
 
@@ -477,10 +493,10 @@ async function seed() {
     const sellerId = sellerRes.rows[0].id;
     for (const item of marketplaceItems) {
       await pool.query(
-        `INSERT INTO "MarketplaceItems" ("seller_id", "name", "description", "price")
-       VALUES ($1, $2, $3, $4)
+        `INSERT INTO "MarketplaceItems" ("seller_id", "name", "description", "price", "quality",  "meetup")
+       VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT DO NOTHING`,
-        [sellerId, item.name, item.description, item.price],
+        [sellerId, item.name, item.description, item.price, item.quality, item.meetup],
       );
     }
   }
