@@ -20,30 +20,24 @@
     <title>Create Listing – Spindle</title>
   </head>
   <body>
-    <!-- Navigation -->
+    <!-- Navigation-->
     <nav class="navbar">
-      <div class="container-fluid px-4 d-flex align-items-center">
+        <div class="container-fluid px-4 d-flex align-items-center">
+
+        <!-- Brand (left) -->
         <a class="navbar-brand" href="index.html">
-          <img src="" alt="Spindle Logo" class="brand-logo" />
+          <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
           <span class="brand-name">spindle</span>
         </a>
+
         <div class="navbar-right">
-          <a href="cart.html" class="btn-navbar-login" title="Cart">Cart</a>
-          <a href="my_listings.html" class="btn-navbar-login" title="My Listings">My Listings</a>
-          <a href="create_listing.html" class="btn-navbar-login" title="New Listing">
-            <i class="fas fa-plus"></i> New Listing
-          </a>
-          <a href="#" class="notif-bell" title="Notifications">
-            <i class="fas fa-bell"></i>
-          </a>
-          <a href="login.html" class="btn-navbar-login d-none" id="loginButton">Log In</a>
-          <a href="register.html" class="btn-navbar-signup d-none" id="registerButton">Sign Up</a>
-          <a href="profile.html" class="btn-navbar-profile d-none" id="profileButton">
-            <i class="fas fa-user-circle"></i> Profile
-          </a>
-          <button class="btn-navbar-logout d-none" id="logoutButton">Log Out</button>
+            <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+              <a href="profile.html" class="btn-navbar-profile" id="profileButton">
+                  <i class="fas fa-user-circle"></i> Profile
+              </a>
+              <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+            </div>
         </div>
-      </div>
     </nav>
 
     <!-- Header -->
