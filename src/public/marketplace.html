@@ -20,8 +20,7 @@
       integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
       crossorigin="anonymous"
     />
-    <link href="css/posts.css" rel="stylesheet" />
-    <link rel="stylesheet" href="css/auth.css" />
+    <link rel="stylesheet" href="css/posts.css" />
     <link rel="stylesheet" href="css/temp.css" />
     <link rel="stylesheet" href="css/marketplace.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
@@ -177,16 +176,22 @@
               />
             </div>
 
-            <div
-              id="listings-container"
-              class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center"
-            ></div>
+            <!-- Listing Container -->
+            <div id="no-listings-state" class="no-listings-state d-none">
+              <i class="fas fa-box-open no-listings-icon"></i>
+              <h4>No listings matched your search</h4>
+              <p class="text-muted">Be the first to list that item in the marketplace!</p>
+              <a href="create_listing.html" class="btn btn-outline-dark">
+                <i class="fas fa-plus-circle"></i> Add a Listing
+              </a>
+            </div>
+            <div id="listings-container" class="listings-grid"></div>
           </div>
         </section>
       </main>
     </div>
 
-    <!-- Modal -->
+    <!-- Item Added to Cart Modal -->
     <div
       class="modal fade"
       id="addedToCartModal"
