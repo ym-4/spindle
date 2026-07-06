@@ -1,7 +1,7 @@
 const express = require('express');
 const upload = require('../middlewares/upload');
 
-const { authenticateJWT } = require('../middleware/auth.middleware');
+const { authenticateJWT } = require('../middlewares/auth.middleware');
 
 const fs = require("fs");
 const path = require("path");

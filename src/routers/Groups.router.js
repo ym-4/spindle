@@ -9,7 +9,7 @@ const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreato
         getGroupDiscussionMatch, deleteGroupMemberByUserId, getGroupDiscussionByUserID, deleteGroupDiscussionByID, 
 		getGroupDiscussionByGroupIDAndChannelName } = require('../models/Groups.model');
 
-const { authenticateJWT } = require('../middleware/auth.middleware');
+const { authenticateJWT } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
