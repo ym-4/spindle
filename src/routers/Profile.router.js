@@ -2,7 +2,7 @@ const express = require('express');
 const createError = require('http-errors');
 const Profile = require('../models/Profile.model');
 const Auth = require('../models/Auth.model');
-const { authenticateJWT } = require('../middleware/auth.middleware');
+const { authenticateJWT } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 router.use(authenticateJWT);

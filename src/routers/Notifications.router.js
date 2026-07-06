@@ -1,6 +1,6 @@
 const express = require('express');
 const Notification = require('../models/Notification.model');
-const { authenticateJWT } = require('../middleware/auth.middleware');
+const { authenticateJWT } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 router.use(authenticateJWT);

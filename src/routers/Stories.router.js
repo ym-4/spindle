@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const Stories = require('../models/Stories.model');
-const { authenticateJWT } = require('../middleware/auth.middleware');
+const { authenticateJWT } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 const uploadDir = path.join(__dirname, '../public/uploads/stories');
