@@ -1,5 +1,5 @@
 const express = require('express');
-const jwtMiddleware = require('../middlewares/jwtMiddleware');
+const { authenticateJWT } = require('../middlewares/auth.middleware');
 
 const { 
   getAllComments,
@@ -31,14 +31,14 @@ router.get('/:post_id', (req, res, next) => {
 
 // Creates new comment under a post (post_id)
 router.post('/:post_id', 
-  jwtMiddleware.verifyToken, 
+  authenticateJWT, 
   (req, res, next) => {
     if (!req.body || !req.params.post_id || !req.body.content) {
       return res.status(400).json({ message: 'Error: post_id or content is undefined' });
     }
 
     const data = {
-      user_id: res.locals.userId,
+      user_id: req.user.id,
       post_id: req.params.post_id,
       content: req.body.content,
       parent_comment_id: req.body.parent_comment_id || null  
@@ -61,12 +61,12 @@ router.post('/:post_id',
 
 // Update Comments (owner only) 
 router.put('/:id', 
-  jwtMiddleware.verifyToken,
+  authenticateJWT,
   (req, res, next) => {
   
   const data = {
     id: req.params.id,
-    user_id: res.locals.userId,
+    user_id: req.user.id,
     content: req.body.content
   }
 
@@ -85,12 +85,12 @@ router.put('/:id',
 
 // delete Comments (owner only)
 router.delete('/:id', 
-  jwtMiddleware.verifyToken,
+  authenticateJWT,
   (req, res, next) => {
     
    const data = {
     id: req.params.id,
-    user_id: res.locals.userId
+    user_id: req.user.id
   }
   deleteCommentsByID(data)
     .then((results) => {

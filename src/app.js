@@ -4,10 +4,11 @@ const cors = require('cors'); // Might remove later
 const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
+require('dotenv').config();
+
 
 
 // Import route handlers
-const somethingRouter = require('./routers/Something.router');
 const personRouter = require('./routers/Person.router');
 const authRouter = require('./routers/Auth.router');
 const messageRouter = require('./routers/Message.router');
@@ -20,7 +21,8 @@ const postsRouter = require('./routers/Posts.router');
 const postCommentsRouter = require('./routers/PostComments.router');
 const searchRouter = require('./routers/Search.router');
 const groupRouter = require('./routers/Groups.router');
-const marketplaceRouter = require('./routers/Marketplace.router')
+const marketplaceRouter = require('./routers/Marketplace.router');
+const cartRouter = require('./routers/Cart.router');
 
 const app = express();
 app.use(cors()); // Might remove later
@@ -54,7 +56,6 @@ app.get('/', (req, res) => res.redirect('/home.html'));
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => res.status(204).end());
 
-app.use('/somethings', somethingRouter);
 app.use('/persons', personRouter);
 app.use('/auth', authRouter);
 app.use('/messages', messageRouter);
@@ -68,6 +69,7 @@ app.use('/comments', postCommentsRouter);
 app.use('/search', searchRouter);
 app.use('/groups', groupRouter);
 app.use('/marketplace', marketplaceRouter);
+app.use('/cart', cartRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 

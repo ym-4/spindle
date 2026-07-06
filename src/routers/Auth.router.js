@@ -5,7 +5,7 @@ const fs = require('fs');
 const multer = require('multer');
 const Auth = require('../models/Auth.model');
 const { signToken } = require('../utils/jwt');
-const { authenticateJWT, requireAdmin } = require('../middleware/auth.middleware');
+const { authenticateJWT, requireAdmin } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 const uploadDir = path.join(__dirname, '../public/uploads/avatars');

@@ -223,22 +223,22 @@ function redirectAfterLogin(user) {
 }
 
 /** Keep Spindle feed keys in sync if user logged in via Campus Hub auth only */
-(function syncSpindleAuthKeys() {
-  const token = getToken();
-  if (!token) return;
-  const user = getStoredUser();
-  if (user?.id) {
-    if (!localStorage.getItem(USER_ID_KEY)) {
-      localStorage.setItem(USER_ID_KEY, String(user.id));
-    }
-    if (!localStorage.getItem(TOKEN_KEY)) {
-      localStorage.setItem(TOKEN_KEY, token);
-    }
-    if (!localStorage.getItem(USER_KEY)) {
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-    }
-  }
-})();
+// (function syncSpindleAuthKeys() {
+//   const token = getToken();
+//   if (!token) return;
+//   const user = getStoredUser();
+//   if (user?.id) {
+//     if (!localStorage.getItem(USER_ID_KEY)) {
+//       localStorage.setItem(USER_ID_KEY, String(user.id));
+//     }
+//     if (!localStorage.getItem(TOKEN_KEY)) {
+//       localStorage.setItem(TOKEN_KEY, token);
+//     }
+//     if (!localStorage.getItem(USER_KEY)) {
+//       localStorage.setItem(USER_KEY, JSON.stringify(user));
+//     }
+//   }
+// })();
 
 function updateNavForUser(user) {
   const guestActions = document.getElementById('navGuest');

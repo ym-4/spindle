@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+xdocument.addEventListener("DOMContentLoaded", function () {
   let currentLoginName = "";
 
   const loginForm = document.getElementById("loginForm");

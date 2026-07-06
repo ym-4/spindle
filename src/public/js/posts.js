@@ -3,7 +3,15 @@
 //  Comments: GET /comments/:post_id, POST /comments/:post_id, PUT /comments/:id, DELETE /comments/:id
 //  creator: PUT /posts/:id, DELETE /posts/:id
 
-const API_BASE = currentUrl;
+function feedApiBase() {
+  if (typeof currentUrl !== 'undefined' && currentUrl) return currentUrl;
+  if (typeof getApiBase === 'function') {
+    const base = getApiBase();
+    if (base) return base;
+  }
+  return window.location.origin || '';
+}
+
 const COMMENTS_BASE = `${currentUrl}/comments`;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1165,21 +1173,51 @@ function showError(message) {
 }
 
 function loadYourGroups() {
+  const token = localStorage.getItem('token');
   const userId = localStorage.getItem('loggedInUserId');
-  const section  = document.getElementById('yourGroupsSection');
-  const divider  = document.getElementById('yourGroupsDivider');
 
-  // signed out display
-  if (!userId) return;
+  if (!token || !userId) {
+    document.getElementById('yourGroupsDivider').style.display = 'none';
+    document.getElementById('yourGroupsSection').style.display = 'none';
+    return;
+  }
 
-  // signed in display
-  if (section) section.style.display = 'block';
-  if (divider) divider.style.display = 'block';
+  fetchMethod(`${currentUrl}/groups/joined_groups`, (status, data) => {
+    if (status === 200 && Array.isArray(data) && data.length > 0) {
+      // Reveal the container sections setup in posts.html
+      document.getElementById('yourGroupsDivider').style.display = 'block';
+      document.getElementById('yourGroupsSection').style.display = 'block';
 
-  fetchMethod(`${API_BASE}/groups/creator/${userId}`, (status, data) => {
-    if (status !== 200) return;
-    renderYourGroups(data || []);
-  });
+      const container = document.getElementById('yourGroupsContainer');
+      container.innerHTML = ''; 
+
+      data.forEach(group => {
+        const groupEl = document.createElement('a');
+        groupEl.href = `group-details.html?id=${group.id}`;
+        groupEl.className = 'sidebar-item px-3 py-2 d-flex align-items-center text-decoration-none';
+        groupEl.style.fontSize = '0.9rem';
+        
+        groupEl.innerHTML = `
+          <i class="fas fa-gradient fa-folder me-2 text-primary" style="font-size: 0.85rem;"></i>
+          <span class="text-truncate">${escapeHtml(group.name)}</span>
+        `;
+        container.appendChild(groupEl);
+      });
+    } else {
+      document.getElementById('yourGroupsDivider').style.display = 'none';
+      document.getElementById('yourGroupsSection').style.display = 'none';
+    }
+  }, 'GET', null, token);
+}
+
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
 }
 
 function renderYourGroups(groups) {
@@ -1246,7 +1284,7 @@ function loadRelatedPosts(postId, category) {
       <div class="spinner-border spinner-border-sm" role="status"></div>
     </div>`;
 
-  fetchMethod(`${API_BASE}/posts/related/${category}/${postId}`, (status, data) => {
+  fetchMethod(`${feedApiBase()}/posts/related/${category}/${postId}`, (status, data) => {
     container.innerHTML = '';
 
     if (status !== 200 || !data.length) {
@@ -1394,7 +1432,7 @@ function openReportModal(postId) {
       const token   = localStorage.getItem('token');
       const user_id = localStorage.getItem('loggedInUserId');
 
-      fetchMethod(`${API_BASE}/posts/${postId}/report`, (status, data) => {
+      fetchMethod(`${feedApiBase()}/posts/${postId}/report`, (status, data) => {
         const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
         const thanksEl         = overlay.querySelector('#reportThanks');
         const cancelBtn        = overlay.querySelector('#reportCancelBtn');

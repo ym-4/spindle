@@ -1,6 +1,8 @@
 const express = require('express');
 const upload = require('../middlewares/upload');
 
+const { authenticateJWT } = require('../middlewares/auth.middleware');
+
 const fs = require("fs");
 const path = require("path");
 
@@ -202,14 +204,12 @@ router.delete('/:id', (req, res, next) => {
 //==================== post interactions (saves, likes, etc) ============================
 //saves
 // adds new save to saved posts
-router.post('/saved', (req, res, next) => {
-  // missing required information
-  if (req.body == undefined  || req.body.user_id == undefined || req.body.post_id == undefined) {
-    res.status(400).json({"message": "Error: user_id or post_id is undefined"});
-    return;
+router.post('/saved', authenticateJWT, (req, res, next) => {
+  if (!req.body?.post_id) {
+    return res.status(400).json({"message": "Error: post_id is undefined"});
   }
   const data = {
-    user_id: req.body.user_id,
+    user_id: req.user.id, 
     post_id: req.body.post_id
   }
 
@@ -246,15 +246,13 @@ router.delete('/saved/:id', (req, res, next) => {
 
 // likes n dislikes
 // creates like for a post
-router.post('/like', (req, res, next) => {
-  // missing required information
-  if (req.body == undefined  || req.body.post_id == undefined || req.body.user_id == undefined) {
-    res.status(400).json({"message": "Error: user_id or post_id is undefined"});
-    return;
+router.post('/like', authenticateJWT, (req, res, next) => {
+  if (!req.body?.post_id) {
+    return res.status(400).json({"message": "Error: post_id is undefined"});
   }
   const data = {
     post_id: req.body.post_id,
-    user_id: req.body.user_id,
+    user_id: req.user.id, 
     reaction_type: req.body.reaction_type
   }
 

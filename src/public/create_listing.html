@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="css/posts.css" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/marketplace.css">
+    <link rel="stylesheet" href="css/new_listing.css">
+    <title>Create Listing – Spindle</title>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="container-fluid px-4 d-flex align-items-center">
+        <a class="navbar-brand" href="index.html">
+          <img src="" alt="Spindle Logo" class="brand-logo" />
+          <span class="brand-name">spindle</span>
+        </a>
+        <div class="navbar-right">
+          <a href="cart.html" class="btn-navbar-login" title="Cart">Cart</a>
+          <a href="my_listings.html" class="btn-navbar-login" title="My Listings">My Listings</a>
+          <a href="create_listing.html" class="btn-navbar-login" title="New Listing">
+            <i class="fas fa-plus"></i> New Listing
+          </a>
+          <a href="#" class="notif-bell" title="Notifications">
+            <i class="fas fa-bell"></i>
+          </a>
+          <a href="login.html" class="btn-navbar-login d-none" id="loginButton">Log In</a>
+          <a href="register.html" class="btn-navbar-signup d-none" id="registerButton">Sign Up</a>
+          <a href="profile.html" class="btn-navbar-profile d-none" id="profileButton">
+            <i class="fas fa-user-circle"></i> Profile
+          </a>
+          <button class="btn-navbar-logout d-none" id="logoutButton">Log Out</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="bg-dark py-5">
+      <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white">
+          <h1 class="display-4 fw-bolder">New Listing</h1>
+          <p class="lead fw-normal text-white-50 mb-0">List an item for the SP Marketplace</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Form Section -->
+    <section class="py-5">
+      <div class="create-listing-wrapper">
+        <div class="create-listing-card">
+
+          <h2>Listing Details</h2>
+          <p class="subtitle">Fill in the details below. Fields marked <span style="color:#e53e3e">*</span> are required.</p>
+
+          <form id="createListingForm" novalidate>
+
+            <!-- Title -->
+            <div class="mb-3">
+              <label for="listingTitle" class="form-label">Title <span style="color:#e53e3e">*</span></label>
+              <input
+                type="text"
+                class="form-control"
+                id="listingTitle"
+                placeholder="e.g. Sony Headphones"
+                maxlength="100"
+                required
+              />
+              <div class="char-counter"><span id="titleCount">0</span> / 100</div>
+              <div class="invalid-feedback">Please provide a listing title.</div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+              <label for="listingDescription" class="form-label">Description <span style="color:#e53e3e">*</span></label>
+              <textarea
+                class="form-control"
+                id="listingDescription"
+                placeholder="Describe your item..."
+                maxlength="1000"
+                required
+              ></textarea>
+              <div class="char-counter"><span id="descCount">0</span> / 1000</div>
+              <div class="invalid-feedback">Please add a description.</div>
+            </div>
+
+            <hr class="section-divider" />
+
+            <!-- Price & Category (side by side on md+) -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="listingPrice" class="form-label">Price <span style="color:#e53e3e">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="listingPrice"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div class="invalid-feedback">Please enter a valid price.</div>
+              </div>
+            </div>
+
+            <!-- Condition -->
+            <div class="mb-3">
+              <label class="form-label d-block">Condition <span style="color:#e53e3e">*</span></label>
+              <div class="condition-options" id="conditionOptions">
+                <input type="radio" name="condition" id="cond-new" value="new" required />
+                <label for="cond-new">Brand New</label>
+
+                <input type="radio" name="condition" id="cond-like-new" value="like_new" />
+                <label for="cond-like-new">Like New</label>
+
+                <input type="radio" name="condition" id="cond-good" value="good" />
+                <label for="cond-good">Good</label>
+
+                <input type="radio" name="condition" id="cond-fair" value="fair" />
+                <label for="cond-fair">Fair</label>
+
+                <input type="radio" name="condition" id="cond-poor" value="poor" />
+                <label for="cond-poor">For Parts / Poor</label>
+              </div>
+              <div class="invalid-feedback d-block" id="conditionError" style="display:none!important; font-size:0.875em; color:#dc3545;"></div>
+            </div>
+
+            <hr class="section-divider" />
+
+            <!-- Images -->
+            <div class="mb-4">
+              <label class="form-label">Photos</label>
+              <div
+                class="upload-zone"
+                id="uploadZone"
+                role="button"
+                tabindex="0"
+                aria-label="Upload listing images"
+              >
+                <input
+                  type="file"
+                  id="listingImages"
+                  accept="image/*"
+                  multiple
+                  aria-hidden="true"
+                />
+                <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                <p><strong>Click to upload</strong> or drag &amp; drop</p>
+                <p>PNG, JPG, WEBP up to 10 MB each · Max 6 photos</p>
+              </div>
+              <div id="image-preview-container"></div>
+            </div>
+
+            <!-- Location (optional) -->
+            <div class="mb-4">
+              <label for="listingLocation" class="form-label">Meet-up Location <span class="text-muted fw-normal">(optional)</span></label>
+              <input
+                type="text"
+                class="form-control"
+                id="listingLocation"
+                placeholder="e.g. Dover MRT, FC6, etc."
+                maxlength="120"
+              />
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              <button type="submit" class="btn-create-listing">
+                <i class="fas fa-tag me-2"></i>Publish Listing
+              </button>
+              <a href="marketplace.html" class="btn-cancel-listing">Cancel</a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Success Toast -->
+    <div class="toast-container">
+      <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">
+            <i class="fas fa-check-circle me-2"></i> Listing published successfully!
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"></script>
+    <script src="js/queryCmds.js" type="text/javascript"></script>
+    <script src="js/getCurrentURL.js" type="text/javascript"></script>
+    <script src="js/userNavBarToggle.js" type="text/javascript"></script>
+    <script src="js/new_listing.js" type="text/javascript"></script>
+  </body>
+</html>

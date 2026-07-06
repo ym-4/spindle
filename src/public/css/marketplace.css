@@ -1,7 +1,12 @@
 .main-container {
     display: flex;
     min-height: 100vh;
-    padding-top: 0;
+}
+
+.navbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1050;
 }
 
 .sidebar {
@@ -14,9 +19,4 @@
 #content-area {
     flex: 1;
     width: 100%;
-}
-
-main {
-    background-color: #f0f2f5;
-    padding-top: 1rem !important;
 }
