@@ -180,7 +180,7 @@
             <div id="no-listings-state" class="no-listings-state d-none">
               <i class="fas fa-box-open no-listings-icon"></i>
               <h4>You don't have that listed right now</h4>
-            <p class="text-muted">You can add it right away!</p>
+              <p class="text-muted">You can add it right away!</p>
               <a href="create_listing.html" class="btn btn-outline-dark">
                 <i class="fas fa-plus-circle"></i> Add a Listing
               </a>
@@ -237,6 +237,20 @@
         }
         if (typeof injectNotificationsOnly === 'function') {
           injectNotificationsOnly('spindleNotifSlot');
+        }
+      });
+    </script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const logoutBtn = document.getElementById('logoutButton');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            // Call the clear logic
+            clearAuth();
+            // Force browser to fully reload/redirect
+            window.location.href = 'home.html';
+          });
         }
       });
     </script>

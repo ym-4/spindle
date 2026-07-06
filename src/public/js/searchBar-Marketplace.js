@@ -3,8 +3,16 @@ let listingContainer = document.getElementById('listings-container');
 
 function marketplaceSearch() {
   searchBar.addEventListener('input', () => {
+
     listingContainer.innerHTML = '';
     let searchQuery = searchBar.value.toLowerCase();
+
+    // If search query is nothing, load listings as usual
+    if (searchQuery == "") {
+      loadListings();
+      return;
+    }
+
     fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
       const emptyState = document.getElementById('no-listings-state');
 
@@ -32,8 +40,16 @@ function marketplaceSearch() {
 
 function yourListingsSearch() {
   searchBar.addEventListener('input', () => {
+
     listingContainer.innerHTML = '';
     let searchQuery = searchBar.value.toLowerCase();
+
+    // If search query is nothing, load listings as usual
+    if (searchQuery == "") {
+      loadUserListings();
+      return;
+    }
+
     fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
       const emptyState = document.getElementById('no-listings-state');
 

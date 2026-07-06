@@ -246,5 +246,30 @@
     <script src="js/api.js"></script>
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof injectWaHeader === 'function') {
+          injectWaHeader('Marketplace');
+        }
+        if (typeof injectNotificationsOnly === 'function') {
+          injectNotificationsOnly('spindleNotifSlot');
+        }
+      });
+    </script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const logoutBtn = document.getElementById('logoutButton');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            // Call the clear logic
+            clearAuth();
+            // Force browser to fully reload/redirect
+            window.location.href = 'home.html';
+          });
+        }
+      });
+    </script>
   </body>
 </html>

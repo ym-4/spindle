@@ -35,19 +35,29 @@ function addListing(seller_id, id, name, description, price) {
 }
 
 // Fetch all marketplace items
-async function loadListings() {
-  const container = document.getElementById('listings-container');
-  const emptyState = document.getElementById('no-listings-state');
 
+const container = document.getElementById('listings-container');
+const emptyState = document.getElementById('no-listings-state');
+
+const LISTINGS_PER_PAGE = 20;
+let currentPage = 1;
+
+async function loadListings() {
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
     if (status === 200) {
       if (data.length == 0 || !data) {
         emptyState.classList.remove('d-none');
       } else {
         emptyState.classList.add('d-none');
-        data.forEach((item) => {
-          addListing(item.seller_id, item.id, item.name, item.description, item.price);
-        });
+        for (i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
+          addListing(
+            data[i].seller_id,
+            data[i].id,
+            data[i].name,
+            data[i].description,
+            data[i].price,
+          );
+        }
       }
     } else {
       console.error('Failed to load listings:', status, data);
@@ -147,7 +157,6 @@ function updateSummary() {
 
 async function loadCart() {
   fetchMethod(`http://localhost:3000/cart/${localStorage.loggedInUserId}`, (status, data) => {
-
     const emptyState = document.getElementById('empty-cart-state');
 
     if (data.length == 0 || !data) {
@@ -189,6 +198,19 @@ async function loadCart() {
 
 // Insert the correct items based on the name of the document ;-D
 if (document.title == 'Marketplace') {
+  document.getElementById('prev-page-btn').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      container.innerHTML = '';
+      loadListings();
+    }
+  });
+  document.getElementById('next-page-btn').addEventListener('click', () => {
+    currentPage++;
+    container.innerHTML = '';
+    loadListings();
+  });
+
   loadListings();
 } else if (document.title == 'Cart') {
   loadCart();
