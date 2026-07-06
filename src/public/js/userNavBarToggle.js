@@ -53,9 +53,5 @@ document.addEventListener('DOMContentLoaded', function () {
   logoutButton.addEventListener('click', function () {
     spindleClearAuth();
     window.location.href = 'home.html';
-    localStorage.removeItem('token');
-    localStorage.removeItem('loggedInUserId');
-    localStorage.removeItem('displayName');
-    window.location.href = 'index.html';
   });
 });

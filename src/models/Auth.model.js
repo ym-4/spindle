@@ -70,13 +70,17 @@ module.exports.findByEmail = async function findByEmail(email) {
   return rows[0] ?? null;
 };
 
-module.exports.createUser = async function createUser({ name, email, password, avatar }) {
+module.exports.createUser = async function createUser({ name, email, password, avatar, country }) {
+  // Ensure country column exists
+  try {
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS country TEXT DEFAULT ''`);
+  } catch {}
   const hashedPassword = hashPassword(password);
   const { rows } = await pool.query(
-    `INSERT INTO "Person" (name, email, avatar, hashed_password, role, email_verified, display_name)
-     VALUES ($1, $2, $3, $4, $5, FALSE, $1)
+    `INSERT INTO "Person" (name, email, avatar, hashed_password, role, email_verified, display_name, country)
+     VALUES ($1, $2, $3, $4, $5, FALSE, $1, $6)
      RETURNING id, name, email, display_name, avatar, profile_image, role, email_verified`,
-    [name, email, avatar ?? null, hashedPassword, ROLES.USER],
+    [name, email, avatar ?? null, hashedPassword, ROLES.USER, country || ''],
   );
   await pool.query(`INSERT INTO "UserSettings" (user_id) VALUES ($1) ON CONFLICT DO NOTHING`, [
     rows[0].id,

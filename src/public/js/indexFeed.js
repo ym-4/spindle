@@ -45,9 +45,42 @@ function initFeedPage() {
     protectCreatePostUI();
     loadSavedIds();
     loadUserReactions();
+    loadSuggestedGroups();
   } catch (err) {
     console.error('Feed setup error:', err);
   }
+}
+
+function loadSuggestedGroups() {
+  const container = document.getElementById('suggestedGroupsContainer');
+  if (!container) return;
+  const userId = feedUserId();
+  const url = feedApiBase() + '/groups/suggested' + (userId ? '?user_id=' + userId : '');
+  fetchMethod(url, function(status, data) {
+    if (status !== 200 || !Array.isArray(data)) {
+      container.innerHTML = '<div class="list-group-item text-muted small text-center py-3">No suggestions</div>';
+      return;
+    }
+    container.innerHTML = '';
+    if (data.length === 0) {
+      container.innerHTML = '<div class="list-group-item text-muted small text-center py-3">No suggestions yet</div>';
+      return;
+    }
+    data.forEach(function(g) {
+      var name = (g.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var desc = (g.description || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var item = document.createElement('a');
+      item.href = '#';
+      item.className = 'list-group-item list-group-item-action';
+      item.innerHTML = '<div class="fw-bold" style="font-size:0.9rem;">' + name + '</div><small class="text-muted">' + desc.slice(0,60) + '</small>';
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        localStorage.setItem('groupId', g.id);
+        window.location.href = 'groups_feed.html';
+      });
+      container.appendChild(item);
+    });
+  }, 'GET', null, feedToken());
 }
 
 if (document.readyState === 'loading') {
@@ -402,7 +435,7 @@ function loadPosts() {
       showPostsError();
       renderTop3([]);
     }
-  });
+  }, 'GET', null, feedToken());
 }
 
 function loadPostsByCategory(category) {
@@ -413,7 +446,7 @@ function loadPostsByCategory(category) {
     } else {
       showPostsError();
     }
-  });
+  }, 'GET', null, feedToken());
 }
 
 function resetHotPostsLoading() {
@@ -668,19 +701,19 @@ function clearCreatePostForm() {
 function feedIsLoggedIn() { return !!feedToken(); }
 
 function showAuthPopup() {
-  document.getElementById('authOverlay').classList.remove('d-none');
+  document.getElementById('loginRequiredModal').classList.remove('d-none');
   document.body.style.overflow = 'hidden';
 }
 
 function hideAuthPopup() {
-  document.getElementById('authOverlay').classList.add('d-none');
+  document.getElementById('loginRequiredModal').classList.add('d-none');
   document.body.style.overflow = '';
 }
 
 function setupAuthPopup() {
   const closeBtn = document.getElementById('closeAuthPopup');
   if (closeBtn) closeBtn.addEventListener('click', hideAuthPopup);
-  const overlay = document.getElementById('authOverlay');
+  const overlay = document.getElementById('loginRequiredModal');
   if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) hideAuthPopup(); });
 }
 

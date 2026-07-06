@@ -64,35 +64,40 @@ function loadSavedPosts(userId, token) {
     </div>`;
 
   fetchMethod(`${savedApiBase()}/posts/saved/${userId}`, (status, data) => {
-    if (status !== 200 || !Array.isArray(data) || data.length === 0) {
+    if (status !== 200 || !Array.isArray(data)) {
       showEmpty();
       return;
     }
-  // Load reactions
-  loadUserReactions().then(() => {
-    fetchMethod(`${API_BASE}/posts/saved/${userId}`, (status, data) => {
-      if (status !== 200 || !Array.isArray(data) || data.length === 0) {
-        showEmpty();
+    if (data.length === 0) {
+      showEmpty();
+      return;
+    }
+
+    savedRows = data;
+
+    fetchMethod(`${savedApiBase()}/posts`, (pStatus, posts) => {
+      if (pStatus !== 200 || !Array.isArray(posts)) {
+        showError();
         return;
       }
 
-      savedRows = data;
-
-    fetchMethod(`${savedApiBase()}/posts`, (pStatus, posts) => {
-      if (pStatus !== 200) { showError(); return; }
-      fetchMethod(`${API_BASE}/posts`, (pStatus, posts) => {
-        if (pStatus !== 200) { showError(); return; }
+      loadUserReactions().then(() => {
 
         const savedPostIdSet = new Set(data.map(r => parseInt(r.post_id)));
         const savedPosts = posts.filter(p => savedPostIdSet.has(parseInt(p.id)));
 
-        if (savedPosts.length === 0) { showEmpty(); return; }
+        if (savedPosts.length === 0) {
+          showEmpty();
+          return;
+        }
 
         container.innerHTML = '';
         savedPosts.forEach(post => {
           const saveRow = savedRows.find(r => parseInt(r.post_id) === parseInt(post.id));
           container.appendChild(buildSavedPostCard(post, saveRow));
         });
+      }).catch(function() {
+        showError();
       });
     }, 'GET', null, token);
   });
@@ -256,7 +261,7 @@ function showLoginPrompt() {
     <div class="post-card text-center py-5 text-muted">
       <i class="fas fa-lock fa-2x mb-3 d-block"></i>
       <p class="mb-2 fw-semibold">You need to be logged in to view saved posts.</p>
-      <a href="login.html" class="btn btn-primary btn-sm">Log In</a>
+      <a href="home.html?login=1&return=saved.html" class="btn btn-primary btn-sm">Log In</a>
     </div>`;
 }
 

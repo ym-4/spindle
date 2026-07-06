@@ -6,9 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const file = window.location.pathname.split('/').pop() || 'index.html';
-  const isPublicFeed = file === 'index.html';
+  const isPublicPage = file === 'index.html' || file === 'home.html';
 
-  if (!isPublicFeed && typeof isLoggedIn === 'function' && !isLoggedIn()) {
+  if (!isPublicPage && typeof isLoggedIn === 'function' && !isLoggedIn()) {
     redirectToLogin(file + window.location.search);
     return;
   }
@@ -16,4 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof isLoggedIn === 'function' && isLoggedIn() && typeof injectNotificationsOnly === 'function') {
     injectNotificationsOnly('spindleNotifSlot');
   }
+
+  document.getElementById('logoutButton')?.addEventListener('click', (e) => {
+    if (typeof handleLogout === 'function') handleLogout();
+    else {
+      if (typeof clearAuth === 'function') clearAuth();
+      else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('loggedInUserId');
+      }
+      window.location.href = 'home.html';
+    }
+  });
 });

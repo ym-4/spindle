@@ -1,5 +1,8 @@
 function applyTheme(theme) {
-  document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+  if (!theme) return;
+  const t = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('spindleTheme', t); } catch {}
 }
 
 function openSettingsPane(id) {
@@ -15,35 +18,39 @@ function closeSettingsPane() {
 }
 
 async function loadSettings() {
-  const { settings } = await authFetch('/profile/settings');
-  document.getElementById('accDisplayName').value = settings.display_name || settings.name || '';
-  document.getElementById('accEmail').value = settings.email || '';
-  const bioEl = document.getElementById('accBio');
-  if (bioEl) bioEl.value = settings.bio || '';
-  document.getElementById('accLanguage').value = settings.language || 'en';
-  document.getElementById('accTimezone').value = settings.timezone || 'Asia/Singapore';
-  document.getElementById('sec2fa').checked = !!settings.two_factor_enabled;
-  document.getElementById('secLoginNotify').checked = settings.login_notifications !== false;
-  document.getElementById('appTheme').value = settings.theme || 'dark';
-  document.getElementById('appCompact').checked = !!settings.compact_mode;
-  document.getElementById('appFontSize').value = settings.font_size || 'medium';
-  document.getElementById('privPublic').checked = settings.public_profile !== false;
-  document.getElementById('privTracking').checked = settings.activity_tracking !== false;
-  document.getElementById('paymentBillingName').value = settings.billing_name || '';
-  document.getElementById('paymentMethod').value = settings.payment_method || '';
-  if (settings.card_last4) {
-    document.getElementById('paymentCardInput').placeholder = `•••• •••• •••• ${settings.card_last4}`;
-  }
-  applyTheme(settings.theme);
-  const preview = document.getElementById('avatarPreview');
-  if (preview) {
-    if (settings.profile_image) {
-      preview.innerHTML = `<img src="${mediaUrl(settings.profile_image)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`;
-    } else {
-      preview.textContent = (settings.name || '?').slice(0, 2).toUpperCase();
+  try {
+    const { settings } = await authFetch('/profile/settings');
+    document.getElementById('accDisplayName').value = settings.display_name || settings.name || '';
+    document.getElementById('accEmail').value = settings.email || '';
+    const bioEl = document.getElementById('accBio');
+    if (bioEl) bioEl.value = settings.bio || '';
+    document.getElementById('accLanguage').value = settings.language || 'en';
+    document.getElementById('accTimezone').value = settings.timezone || 'Asia/Singapore';
+    document.getElementById('sec2fa').checked = !!settings.two_factor_enabled;
+    document.getElementById('secLoginNotify').checked = settings.login_notifications !== false;
+    document.getElementById('appTheme').value = settings.theme || 'light';
+    document.getElementById('appCompact').checked = !!settings.compact_mode;
+    document.getElementById('appFontSize').value = settings.font_size || 'medium';
+    document.getElementById('privPublic').checked = settings.public_profile !== false;
+    document.getElementById('privTracking').checked = settings.activity_tracking !== false;
+    document.getElementById('paymentBillingName').value = settings.billing_name || '';
+    document.getElementById('paymentMethod').value = settings.payment_method || '';
+    if (settings.card_last4) {
+      document.getElementById('paymentCardInput').placeholder = `•••• •••• •••• ${settings.card_last4}`;
     }
+    applyTheme(settings.theme);
+    const preview = document.getElementById('avatarPreview');
+    if (preview) {
+      if (settings.profile_image) {
+        preview.innerHTML = `<img src="${mediaUrl(settings.profile_image)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`;
+      } else {
+        preview.textContent = (settings.name || '?').slice(0, 2).toUpperCase();
+      }
+    }
+    loadSessions();
+  } catch (err) {
+    showToast(err.message, true);
   }
-  loadSessions();
 }
 
 async function autoSaveToggle(el) {
@@ -285,6 +292,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('waHeaderSlot')) injectWaHeader('Settings');
   if (document.getElementById('waNavSlot')) injectWaNav('settings');
   refreshNotifBadge();
-  bindSettings();
   loadSettings();
+  bindSettings();
 });
