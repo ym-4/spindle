@@ -7,7 +7,7 @@ const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreato
 		getGroupMemberByUserID, insertGroupMember, updateMemberRoleToAdmin, updateMemberRoleToUser, 
         getAllGroupAdmin, insertGroupDiscussion, updateGroupDiscussion, getAllGroupDiscussionByGroupID, 
         getGroupDiscussionMatch, deleteGroupMemberByUserId, getGroupDiscussionByUserID, deleteGroupDiscussionByID, 
-		getGroupDiscussionByGroupIDAndChannelName, getSuggestedGroups } = require('../models/Groups.model');
+		getGroupDiscussionByGroupIDAndChannelName } = require('../models/Groups.model');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
 

@@ -1,8 +1,6 @@
 function applyTheme(theme) {
-  if (!theme) return;
-  const t = theme === 'light' ? 'light' : 'dark';
-  document.documentElement.dataset.theme = t;
-  try { localStorage.setItem('spindleTheme', t); } catch {}
+  // always light mode regardless of setting
+  document.documentElement.dataset.theme = 'light';
 }
 
 function openSettingsPane(id) {
@@ -28,7 +26,7 @@ async function loadSettings() {
     document.getElementById('accTimezone').value = settings.timezone || 'Asia/Singapore';
     document.getElementById('sec2fa').checked = !!settings.two_factor_enabled;
     document.getElementById('secLoginNotify').checked = settings.login_notifications !== false;
-    document.getElementById('appTheme').value = settings.theme || 'light';
+    document.getElementById('appTheme').value = 'light';
     document.getElementById('appCompact').checked = !!settings.compact_mode;
     document.getElementById('appFontSize').value = settings.font_size || 'medium';
     document.getElementById('privPublic').checked = settings.public_profile !== false;

@@ -39,11 +39,12 @@
   window.loadSidebarGroups = function loadSidebarGroups() {
     const userId = localStorage.getItem('loggedInUserId');
     const container = document.getElementById('yourGroupsContainer');
-    if (!userId || !container) return;
+    const token = localStorage.getItem('token');
+    if (!userId || !container || !token) return;
     const base = (typeof currentUrl !== 'undefined' && currentUrl) ? currentUrl : (typeof API_BASE !== 'undefined' ? API_BASE : '');
     if (!base) { container.innerHTML = ''; return; }
     if (typeof fetchMethod !== 'function') { container.innerHTML = ''; return; }
-    fetchMethod(base + '/groups/joined_groups/' + userId, (status, data) => {
+    fetchMethod(base + '/groups/joined_groups', (status, data) => {
       if (status !== 200 || !Array.isArray(data)) { container.innerHTML = ''; return; }
       if (data.length === 0) {
         container.innerHTML = '<a href="groups.html" class="sidebar-item"><i class="fas fa-plus-circle"></i><span>Join study groups</span></a>';
