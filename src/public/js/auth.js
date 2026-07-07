@@ -213,7 +213,9 @@ function initAuth() {
   initHeroLinks(user);
 
   const params = new URLSearchParams(window.location.search);
-  if (params.get('login') === '1' && !isLoggedIn()) openAuthModal('login');
+  if (params.get('login') === '1' && !isLoggedIn()) {
+    openAuthModal(params.get('tab') === 'register' ? 'register' : 'login');
+  }
   if (isLoggedIn() && params.get('return')) {
     window.location.replace(getPostLoginRedirect(user));
     return;

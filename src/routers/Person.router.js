@@ -14,7 +14,7 @@ const {
 
 const bcryptMiddleware = require('../middlewares/bcryptMiddleware');
 const { signToken } = require('../utils/jwt');
-const { authenticateJWT } = require('../middleware/auth.middleware');
+const { authenticateJWT } = require('../middlewares/auth.middleware');
 
 // GET ALL PERSONS
 router.get('/', (req, res, next) => {

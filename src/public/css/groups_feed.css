@@ -3,6 +3,12 @@
     padding-top: 0;
 }
 
+.navbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1050;
+}
+
 main {
     background-color: #f0f2f5;
     padding-top: 1rem !important;
