@@ -21,6 +21,8 @@ let token;
 let channels; 
 // Store current channel name
 let currChannel;
+// Store announcements
+let announcements;
 // Store current group data
 let group;
 /* Sample data
@@ -155,12 +157,13 @@ window.addEventListener("DOMContentLoaded", async () => {
         // Fetches group channels
         await fetchGroupChannels();
         // Fetch group details
-        await fetchGroupByGroupId();
+        await fetchGroupByGroupId(groupId);
         // Fetch group members
-        await fetchGroupMembers();
+        await fetchGroupMembers(groupId);
 
         // Fetch user data 
         await fetchAllUsers();
+        announcements = await fetchGroupAnnouncements();
 
         // Fetch group discussion for first group channel
         await fetchGroupDiscussionByChannel(channels[0]);
@@ -171,7 +174,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         displayChannelMessages(currChannelMessages);
         displayGroupDetails();
         displayAdmins();
-        
+        displayAnnouncements();
+
         // Add event listeners
         addEventListenerToChannels(channels);
         addEventListenerToSendMessageButton();
@@ -721,6 +725,33 @@ function displayGroupDetails() {
     document.getElementById("groupInfoPublicity").innerText = group.public ? "Public" : "Private";
 }
 
+function displayAnnouncements() {
+
+    const container = document.getElementById("announcementContainer");
+
+    if (!announcements || announcements.length === 0) {
+        container.innerHTML = `
+            <div class="text-muted small">
+                No announcements yet.
+            </div>
+        `;
+        return;
+    }
+
+    let temp = "";
+
+    announcements.forEach(announcement => {
+
+        temp += `
+            <div class="alert p-2 small announcement-color mb-2">
+                ${announcement.text}
+            </div>
+        `;
+    });
+
+    container.innerHTML = temp;
+}
+
 function displayToast(type, message) {
     const toastEl = document.getElementById("groupsFeedToast");
     const toastBody = document.getElementById("toastBody");
@@ -824,410 +855,6 @@ function displayMemberSearchResults(results) {
 }
 
 // -------------------------------------------------------------------------------------
-//                              Fetch Functions  
-// -------------------------------------------------------------------------------------
-
-// Gets the channels for the group
-async function fetchGroupChannels() {
-   return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/messages/channels/${groupId}`;
-
-        const callback = (responseStatus, responseData) => {
-            console.log("fetchGroupDiscussionChannels", responseData);
-
-            if (responseStatus == 200) {
-                channels = responseData.channels;
-                console.log("fetchGroupChannels data", responseData)
-                resolve(responseData);
-
-            // Token expired
-            } else if (responseStatus == 401) {
-                window.location.href = './login.html';
-
-            } else {
-                reject(responseData);
-            }
-        };
-
-        fetchMethod(url, callback, "GET", null, token);
-    });
-}
-
-// Fetch messages by channel
-async function fetchGroupDiscussionByChannel(channel_name) {
-   return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/messages/channel/${groupId}/${channel_name}`;
-
-        const callback = (responseStatus, responseData) => {
-            console.log("fetchGroupDiscussionByChannel", responseData);
-
-            if (responseStatus == 200) {
-                currChannelMessages = responseData;
-                console.log("fetchGroupDiscussionByChannel data", responseData)
-                resolve(responseData);
-
-            // Token expired
-            } else if (responseStatus == 401) {
-                window.location.href = './login.html';
-
-            } else {
-                reject(responseData);
-            }
-        };
-
-        fetchMethod(url, callback, "GET", null, token);
-    });
-}
-
-async function fetchGroupDiscussionMatch(matchString) {
-   return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/messages/match/${groupId}/${currChannel}/${matchString}`;
-
-        const callback = (responseStatus, responseData) => {
-            console.log("fetchGroupDiscussionMatch", responseData);
-
-            if (responseStatus == 200) {
-                resolve(responseData);
-
-            // Token expired
-            } else if (responseStatus == 401) {
-                window.location.href = './login.html';
-
-            } else {
-                reject(responseData);
-            }
-        };
-
-        fetchMethod(url, callback);
-    });
-}
-
-async function fetchAllUsers() {
-   return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/persons`;
-
-        const callback = (responseStatus, responseData) => {
-            console.log("fetchAllUsers", responseData);
-
-            if (responseStatus == 200) {
-                users = responseData;
-                resolve(responseData);
-
-            // Token expired
-            } else if (responseStatus == 401) {
-                window.location.href = './login.html';
-
-            } else {
-                reject(responseData);
-            }
-        };
-
-        fetchMethod(url, callback);
-    });
-}
-
-// Fetch group details
-async function fetchGroupByGroupId() {
-   return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/group/${groupId}`;
-
-        const callback = (responseStatus, responseData) => {
-            console.log("fetchGroupByGroupId", responseData);
-
-            if (responseStatus == 200) {
-                group = responseData[0];
-                resolve(responseData);
-
-            // Token expired
-            } else if (responseStatus == 401) {
-                window.location.href = './login.html';
-
-            } else {
-                reject(responseData);
-            }
-        };
-
-        fetchMethod(url, callback);
-    });
-}
-
-// Fetch group members
-async function fetchGroupMembers() {
-    return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/joined/${groupId}`;
-
-        const callback = (responseStatus, responseData) => {
-            console.log("fetchGroupMembers", responseData);
-
-            if (responseStatus == 200) {
-                members = responseData;
-                resolve(responseData);
-
-            // Token expired
-            } else if (responseStatus == 401) {
-                window.location.href = './login.html';
-
-            } else {
-                reject(responseData);
-            }
-        };
-
-        fetchMethod(url, callback);
-    });
-}
-
-// -------------------------------------------------------------------------------------
-//                         Create/Update/Delete Functions  
-// -------------------------------------------------------------------------------------
-
-async function createGroupDiscussionChannel(channel_name) {
-
-    return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/messages/channel/${userId}`;
-
-        const data = {
-            group_id: groupId, 
-            channel_name: channel_name
-        }
-
-        const callback = (responseStatus, responseData) => {
-            console.log("createGroupDiscussionChannel", responseData);
-
-            // channel created: success
-            if (responseStatus == 201) {
-                resolve(responseData);
-
-            // Token expired
-            } else if (responseStatus == 401) {
-                window.location.href = './login.html';
-
-            // name conflict
-            } else if (responseStatus == 409) {
-                reject({
-                    "type": "conflict", 
-                    "message": "Group channel already exists"
-                })
-
-            // bad request: missing info
-            } else if (responseStatus == 400) {
-                reject({
-                    "type": "bad request",
-                    "message": "Missing required fields"
-                })
-
-            // User has no permissions
-            } else if (responseStatus == 403) {
-                reject({
-                    "type": "forbidden",
-                    "message": "User is not an admin"
-                })
-
-            } else {
-                reject(responseData);
-            }
-        };
-
-        fetchMethod(url, callback, "POST", data, token);
-
-    })
-
-}
-
-async function createGroupDiscussionMessage(message) {
-
-    return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/messages/send/${userId}`;
-
-        const data = {
-            group_id: groupId, 
-            channel_name: currChannel, 
-            message: message
-        }
-
-        const callback = (responseStatus, responseData) => {
-            console.log("createGroupDiscussionMessage", responseData);
-
-            // message created: success
-            if (responseStatus == 201) {
-                resolve(responseData);
-
-            // Token expired
-            } else if (responseStatus == 401) {
-                window.location.href = './login.html';
-
-            // bad request: missing info
-            } else if (responseStatus == 400) {
-                reject({
-                    "type": "bad request",
-                    "message": "Missing required fields"
-                })
-
-            // User has no permissions
-            } else if (responseStatus == 403) {
-                reject({
-                    "type": "forbidden",
-                    "message": "User is not a group member"
-                })
-
-            } else {
-                reject(responseData);
-            }
-        };
-
-        fetchMethod(url, callback, "POST", data, token);
-
-    })
-
-}
-
-async function updateGroupDiscussionMessage(messageId, newMessage) {
-
-    return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/messages/edit/${userId}`;
-
-        const data = {
-            id: messageId, 
-            new_message: newMessage
-        }
-
-        const callback = (responseStatus, responseData) => {
-            console.log("createGroupDiscussionMessage", responseData);
-
-            // message edited: success
-            if (responseStatus == 200) {
-                resolve(responseData);
-
-            // Token expired
-            } else if (responseStatus == 401) {
-                window.location.href = './login.html';
-
-            // bad request: missing info
-            } else if (responseStatus == 400) {
-                reject({
-                    "type": "bad request",
-                    "message": "Missing required fields"
-                })
-
-            // User has no permissions
-            } else if (responseStatus == 403) {
-                reject({
-                    "type": "forbidden",
-                    "message": "User did not send this message"
-                })
-
-            } else {
-                reject(responseData);
-            }
-        };
-
-        fetchMethod(url, callback, "PUT", data, token);
-
-    })
-}
-
-async function deleteGroupDiscussionMessage(messageId) {
-
-    return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/messages/delete/${userId}`;
-
-        const data = {
-            id: messageId
-        }
-
-        const callback = (responseStatus, responseData) => {
-            console.log("deleteGroupDiscussionMessage", responseData);
-
-            // message deleted: success
-            if (responseStatus == 204) {
-                resolve();
-
-            // Token expired
-            } else if (responseStatus == 401) {
-                window.location.href = './login.html';
-
-            // bad request: missing info
-            } else if (responseStatus == 400) {
-                reject({
-                    "type": "bad request",
-                    "message": "Missing required fields"
-                })
-
-            // User did not send the message
-            } else if (responseStatus == 403) {
-                reject({
-                    "type": "forbidden", 
-                    "message": "User did not send this message"
-                })
-
-            } else {
-                reject(responseData);
-            }
-        };
-
-        fetchMethod(url, callback, "DELETE", data, token);
-
-    })
-}
-
-// NOT DONE
-async function deleteGroupDiscussionChannel() {
-    // BACKEND ROUTE NOT DONE
-    
-}
-
-// Leave group
-async function deleteGroupMembership() {
-    const data = {
-        group_id: groupId, 
-        user_id: userId
-    };
-
-    return new Promise((resolve, reject) => {
-        const url = `http://localhost:3000/groups/leave/${data.group_id}`;
-
-        const callback = (responseStatus, responseData) => {
-            console.log("deleteGroupMembership", responseData);
-
-            // membership deleted: success
-            if (responseStatus == 204) {
-                resolve(responseData);
-
-            // Token expired
-            } else if (responseStatus == 401) {
-                window.location.href = './login.html';
-
-            // user cannot leave 
-            } else if (responseStatus == 409) {
-                reject({
-                    "type": "conflict", 
-                    "message": "User cannot leave as its creator"
-                })
-
-            // bad request: missing info
-            } else if (responseStatus == 400) {
-                reject({
-                    "type": "bad request",
-                    "message": "Missing required fields"
-                })
-
-            // User is not a member
-            } else if (responseStatus == 404) {
-                reject({
-                    "type": "not found", 
-                    "message": "User is not a member"
-                })
-
-            } else {
-                reject(responseData);
-            }
-        };
-
-        fetchMethod(url, callback, "DELETE", data, token);
-
-    })
-}
-
-// -------------------------------------------------------------------------------------
 //                          Add Event Listener Functions  
 // -------------------------------------------------------------------------------------
 
@@ -1316,13 +943,16 @@ async function refreshChannelAndChat(channelName) {
     await fetchGroupChannels();
 
     // Fetch Group details
-    await fetchGroupByGroupId();
+    await fetchGroupByGroupId(groupId);
 
     // Fetch Group members
-    await fetchGroupMembers();
+    await fetchGroupMembers(groupId);
 
     // Fetch messages from that channel
     await fetchGroupDiscussionByChannel(currChannel);
+
+    announcements = await fetchGroupAnnouncements();
+    displayAnnouncements();
 
     // Fetch user data 
     await fetchAllUsers();
