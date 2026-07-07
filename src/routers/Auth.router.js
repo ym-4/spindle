@@ -68,7 +68,7 @@ async function completeLogin(user, req, rememberMe = false) {
 
 router.post('/register', async (req, res, next) => {
   try {
-    const { name, email, country, password } = req.body ?? {};
+    const { name, email, country, password, role } = req.body ?? {};
     if (!name?.trim() || !email?.trim() || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
@@ -80,6 +80,19 @@ router.post('/register', async (req, res, next) => {
     }
     if (await Auth.findByEmail(email.trim())) {
       return res.status(409).json({ error: 'Email is already registered.' });
+    }
+
+    const isAdminCreate = role === 'admin' || role === 'user';
+    if (isAdminCreate) {
+      const newUser = await Auth.createUser({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        country: (country || '').trim(),
+        password,
+        avatar: null,
+        role,
+      });
+      return res.status(201).json({ message: 'User created.', user: newUser });
     }
 
     await Auth.createUser({
@@ -328,6 +341,84 @@ router.post('/hash', (req, res) => {
     hash: res.locals.hash,
     message: "Hash successful"
     });
+});
+
+// Admin: Stats
+router.get('/admin/stats', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const stats = await Auth.getAdminStats();
+    res.status(200).json(stats);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin: Delete user
+router.delete('/admin/users/:id', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    if (userId === req.user.id) {
+      return res.status(400).json({ error: 'Cannot delete yourself.' });
+    }
+    await Auth.deleteUser(userId);
+    res.status(200).json({ message: 'User deleted.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin: Update user role
+router.put('/admin/users/:id', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    const { role } = req.body;
+    if (!role || !['user', 'admin'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role.' });
+    }
+    if (userId === req.user.id && role !== 'admin') {
+      return res.status(400).json({ error: 'Cannot demote yourself.' });
+    }
+    const result = await Auth.updateUserRole(userId, role);
+    if (!result) return res.status(404).json({ error: 'User not found.' });
+    res.status(200).json({ message: 'Role updated.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin: Ban/suspend user
+router.post('/admin/ban', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const { user_id, duration_hours } = req.body;
+    if (!user_id) return res.status(400).json({ error: 'user_id is required.' });
+    if (parseInt(user_id, 10) === req.user.id) return res.status(400).json({ error: 'Cannot ban yourself.' });
+
+    let until = null;
+    if (duration_hours && duration_hours > 0) {
+      until = new Date(Date.now() + duration_hours * 3600000).toISOString();
+    } else {
+      // Permanent ban
+      until = new Date('2999-12-31').toISOString();
+    }
+
+    await Auth.suspendUser(user_id, until);
+    const durStr = duration_hours ? `${duration_hours} hours` : 'permanently';
+    res.status(200).json({ message: `User suspended for ${durStr}.`, suspended_until: until });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin: Unsuspend user
+router.post('/admin/unsuspend', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) return res.status(400).json({ error: 'user_id is required.' });
+    await Auth.unsuspendUser(user_id);
+    res.status(200).json({ message: 'User unsuspended.' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

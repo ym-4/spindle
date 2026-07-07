@@ -769,11 +769,8 @@ function fetchGroupsBySchool(school) {
 }
 
 function fetchJoinedGroups() {
-    // get the user_id from the local storage
-    const user_id = localStorage.getItem('loggedInUserId');
-
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/joined_groups/${user_id}`;
+        const url = `${currentUrl}/groups/joined_groups`;
 
         const callback = (responseStatus, responseData) => {
             console.log("fetchJoinedGroups", responseData);
@@ -782,7 +779,6 @@ function fetchJoinedGroups() {
                 joinedGroups = responseData;
                 resolve(responseData);
 
-            // Token expired
             } else if (responseStatus == 401) {
                 window.location.href = 'home.html?login=1';
 

@@ -291,6 +291,23 @@
         </div>
     </div>
 
+    <!-- Report Modal -->
+    <div id="reportModalOverlay" class="report-modal-overlay d-none">
+      <div class="report-modal-card">
+        <h5 class="mb-2">Report Post</h5>
+        <p class="report-modal-sub" id="reportModalSub">Why are you reporting this post?</p>
+        <div id="reportReasonsContainer"></div>
+        <div id="reportDescriptionStep" style="display:none;">
+          <textarea id="reportDescriptionInput" class="form-control mt-2" rows="3" placeholder="Provide additional details (optional)"></textarea>
+          <button class="btn btn-primary btn-sm mt-2 w-100" id="reportSubmitDescBtn">Submit Report</button>
+        </div>
+        <div id="reportThanks" style="display:none;text-align:center;padding:1rem 0;"></div>
+        <div class="report-modal-actions">
+          <button class="btn btn-outline-secondary btn-sm" id="reportCancelBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Confirm delete modal -->
     <div id="confirmOverlay" class="auth-overlay d-none">
     <div class="auth-popup-card" style="max-width:360px;">
@@ -365,5 +382,30 @@
     <script src="js/userNavBarToggle.js"></script>
     <script src="js/reactions.js"></script>
     <script src="js/indexFeed.js"></script>
+    <script>
+      document.getElementById('postAttachment')?.addEventListener('change', function() {
+        const container = document.getElementById('attachmentPreviewContainer');
+        container.innerHTML = '';
+        if (this.files && this.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'position:relative;display:inline-block;margin-left:8px;';
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd;';
+            const btn = document.createElement('button');
+            btn.innerHTML = '&times;';
+            btn.type = 'button';
+            btn.style.cssText = 'position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#e02020;color:#fff;font-size:14px;line-height:1;cursor:pointer;';
+            btn.onclick = function() { container.innerHTML = ''; document.getElementById('postAttachment').value = ''; };
+            wrap.appendChild(img);
+            wrap.appendChild(btn);
+            container.appendChild(wrap);
+          };
+          reader.readAsDataURL(this.files[0]);
+        }
+      });
+    </script>
 </body>
 </html>

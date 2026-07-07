@@ -263,7 +263,48 @@ module.exports.deleteReaction = async function deleteReaction(data) {
 
 // reporting a post
 module.exports.insertReport = async function insertReport(data) {
-  const VALUES = [data.post_id, data.user_id, data.reason];
-  const { rows } = await pool.query('INSERT INTO "Reports" (post_id, user_id, reason) VALUES ($1, $2, $3) RETURNING *', VALUES);
+  try {
+    await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS description TEXT DEFAULT ''`);
+  } catch {}
+  const VALUES = [data.post_id, data.user_id, data.reason, data.description || ''];
+  const { rows } = await pool.query('INSERT INTO "Reports" (post_id, user_id, reason, description) VALUES ($1, $2, $3, $4) RETURNING *', VALUES);
   return rows[0]; 
-}
+};
+
+module.exports.getAllReports = async function getAllReports() {
+  const { rows } = await pool.query(
+    `SELECT r.id, r.post_id, r.reason, r.description, r.created_at,
+            u.id AS reporter_id, u.name AS reporter_name, u.email AS reporter_email,
+            p.title AS post_title, p.user_id AS post_author_id,
+            pa.name AS post_author_name
+     FROM "Reports" r
+     JOIN "Person" u ON r.user_id = u.id
+     JOIN "Posts" p ON r.post_id = p.id
+     LEFT JOIN "Person" pa ON p.user_id = pa.id
+      ORDER BY r.created_at DESC`
+  );
+  return rows;
+};
+
+module.exports.searchAllPosts = async function searchAllPosts({ search, category } = {}) {
+  let sql = `SELECT p.id, p.title, p.category, p.content, p.created_at,
+             per.name AS author_name, per.id AS author_id
+             FROM "Posts" p
+             LEFT JOIN "Person" per ON p.user_id = per.id
+             WHERE 1=1`;
+  const params = [];
+  let idx = 1;
+  if (search) {
+    sql += ` AND (p.title ILIKE $${idx} OR p.content ILIKE $${idx} OR per.name ILIKE $${idx})`;
+    params.push(`%${search}%`);
+    idx++;
+  }
+  if (category) {
+    sql += ` AND p.category = $${idx}`;
+    params.push(category);
+    idx++;
+  }
+  sql += ` ORDER BY p.created_at DESC LIMIT 200`;
+  const { rows } = await pool.query(sql, params);
+  return rows;
+};

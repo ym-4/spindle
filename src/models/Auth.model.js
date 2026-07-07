@@ -70,17 +70,18 @@ module.exports.findByEmail = async function findByEmail(email) {
   return rows[0] ?? null;
 };
 
-module.exports.createUser = async function createUser({ name, email, password, avatar, country }) {
-  // Ensure country column exists
+module.exports.createUser = async function createUser({ name, email, password, avatar, country, role }) {
   try {
     await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS country TEXT DEFAULT ''`);
   } catch {}
   const hashedPassword = hashPassword(password);
+  const userRole = role || ROLES.USER;
+  const emailVerified = role === 'admin';
   const { rows } = await pool.query(
     `INSERT INTO "Person" (name, email, avatar, hashed_password, role, email_verified, display_name, country)
-     VALUES ($1, $2, $3, $4, $5, FALSE, $1, $6)
+     VALUES ($1, $2, $3, $4, $5, $6, $1, $7)
      RETURNING id, name, email, display_name, avatar, profile_image, role, email_verified`,
-    [name, email, avatar ?? null, hashedPassword, ROLES.USER, country || ''],
+    [name, email, avatar ?? null, hashedPassword, userRole, emailVerified, country || ''],
   );
   await pool.query(`INSERT INTO "UserSettings" (user_id) VALUES ($1) ON CONFLICT DO NOTHING`, [
     rows[0].id,
@@ -224,10 +225,10 @@ module.exports.getUserProfile = async function getUserProfile(userId) {
 
 module.exports.getAllUsersForAdmin = async function getAllUsersForAdmin() {
   const { rows } = await pool.query(
-    `SELECT id, name, email, display_name, avatar, profile_image, role, email_verified
+    `SELECT id, name, email, display_name, avatar, profile_image, role, email_verified, suspended_until
      FROM "Person" WHERE deleted_at IS NULL ORDER BY id`,
   );
-  return rows.map(toPublicUser);
+  return rows; // return raw rows so admin sees suspended_until
 };
 
 module.exports.updatePassword = async function updatePassword(userId, currentPassword, newPassword) {
@@ -291,4 +292,40 @@ module.exports.updatePublicProfile = async function updatePublicProfile(userId, 
   values.push(userId);
   await pool.query(`UPDATE "Person" SET ${fields.join(', ')} WHERE id = $${i}`, values);
   return module.exports.getUserProfile(userId);
+};
+
+module.exports.deleteUser = async function deleteUser(userId) {
+  await pool.query(`UPDATE "Person" SET deleted_at = NOW(), is_active = FALSE WHERE id = $1`, [userId]);
+};
+
+module.exports.updateUserRole = async function updateUserRole(userId, role) {
+  const { rows } = await pool.query(
+    `UPDATE "Person" SET role = $1 WHERE id = $2 AND deleted_at IS NULL RETURNING id`,
+    [role, userId]
+  );
+  return rows.length > 0;
+};
+
+module.exports.suspendUser = async function suspendUser(userId, until) {
+  try {
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+  } catch {}
+  await pool.query(`UPDATE "Person" SET suspended_until = $1 WHERE id = $2`, [until, userId]);
+};
+
+module.exports.unsuspendUser = async function unsuspendUser(userId) {
+  await pool.query(`UPDATE "Person" SET suspended_until = NULL WHERE id = $1`, [userId]);
+};
+
+module.exports.getAdminStats = async function getAdminStats() {
+  const { rows: userRows } = await pool.query(`SELECT COUNT(*)::int AS count FROM "Person" WHERE deleted_at IS NULL`);
+  const { rows: postRows } = await pool.query(`SELECT COUNT(*)::int AS count FROM "Posts"`);
+  const { rows: reportRows } = await pool.query(`SELECT COUNT(*)::int AS count FROM "Reports"`);
+  const { rows: suspendedRows } = await pool.query(`SELECT COUNT(*)::int AS count FROM "Person" WHERE suspended_until IS NOT NULL AND suspended_until > NOW()`);
+  return {
+    users: userRows[0].count,
+    posts: postRows[0].count,
+    reports: reportRows[0].count,
+    suspended: suspendedRows[0].count,
+  };
 };
