@@ -56,6 +56,9 @@ let currChannelMessages;
 // Stores current message clicked
 let message;
 
+// Admin list 
+let adminMembers;
+
 // HTML Templates
 
 // Channel sidebar template
@@ -177,6 +180,16 @@ window.addEventListener("DOMContentLoaded", async () => {
         addEventListenerToLeaveButton();
         addEventListenerToMembersButton();
         addEventListenerToMemberSearch();
+        
+        adminMembers = members.filter(member => member.role == "admin");
+
+        // Show button to manage group if user is the creator
+        if (userId == group.creator_id) {
+            document.getElementById("manageGroupButton").style.display = "block";
+        } else {
+            document.getElementById("manageGroupButton").style.display = "none";
+        }
+
 
     } catch (err) {
         console.error(err);
@@ -293,8 +306,7 @@ async function handleDeleteMessageButton() {
 
 async function handlecreateChannelButtonClicked() {
     // Check if user is an admin
-    let adminList = members.filter(member => member.role == "admin");
-    let isAdmin = adminList.find(admin => admin.user_id == userId);
+    let isAdmin = adminMembers.find(admin => admin.user_id == userId);
 
     // User is an admin
     if (isAdmin) {
