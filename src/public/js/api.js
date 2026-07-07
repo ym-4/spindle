@@ -121,11 +121,23 @@ function isLoggedIn() {
 
 /** Send guests to home login; after login they return to the protected page. */
 function redirectToLogin(returnPath) {
-  const params = new URLSearchParams({ login: '1' });
-  if (returnPath) {
-    params.set('return', returnPath);
+  const params = new URLSearchParams(location.search);
+
+  // Already on the login page
+  if (
+    location.pathname.endsWith("home.html") &&
+    params.get("login") === "1"
+  ) {
+    return;
   }
-  window.location.replace(`home.html?${params.toString()}`);
+
+  const qs = new URLSearchParams({ login: "1" });
+
+  if (returnPath) {
+    qs.set("return", returnPath);
+  }
+
+  location.replace(`home.html?${qs}`);
 }
 
 function getSafeReturnPath() {
@@ -157,6 +169,14 @@ function getWsUrl() {
   const url = new URL(base);
   return `${proto}//${url.host}/ws`;
 }
+
+const THEME_STORAGE_KEY = 'spindleTheme';
+
+function applyStoredTheme() {
+  document.documentElement.dataset.theme = 'light';
+  try { localStorage.removeItem(THEME_STORAGE_KEY); } catch {}
+}
+applyStoredTheme();
 
 function mediaUrl(path) {
   if (!path) return '';
