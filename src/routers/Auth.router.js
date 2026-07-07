@@ -188,6 +188,7 @@ router.post('/login', async (req, res, next) => {
     if (!user) return res.status(401).json({ error: 'Invalid username or password.' });
 
     // Check if user is banned
+    try { await require('../models/db').query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`); } catch {}
     const { rows: banCheck } = await require('../models/db').query(
       `SELECT suspended_until, banned_reason FROM "Person" WHERE id = $1`,
       [user.id]
