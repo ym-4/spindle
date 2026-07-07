@@ -33,6 +33,8 @@ function switchAuthTab(tab) {
   if (verifyForm) verifyForm.classList.remove('is-active');
   const msg = document.getElementById('authMessage');
   if (msg) showMessage(msg, '');
+  const title = document.querySelector('.auth-modal__panel h1');
+  if (title) title.textContent = tab === 'register' ? 'REGISTER' : 'LOGIN';
 }
 
 function showVerifyStep(email, previewCode, step = 'register') {

@@ -16,6 +16,7 @@ const COMMENTS_BASE = `${currentUrl}/comments`;
 
 document.addEventListener('DOMContentLoaded', () => {
   loadYourGroups();
+  setupCommentSortUI();
 
   const params  = new URLSearchParams(window.location.search);
   const postId  = params.get('id');
@@ -43,6 +44,9 @@ const REACTIONS_BASE = `${currentUrl}/posts`;
 let currentReaction = null;
 let openReplyThreads = new Set(); 
 let savedPostIds = new Set();
+let currentCommentSort = 'newest';
+let activeCommentPostId = null;
+let activeCommentsData = [];
 
 // Load saved IDs
 function loadSavedIds() {
@@ -480,6 +484,78 @@ function renderPostEditMode(post) {
   });
 }
 // COMMENTS
+function setupCommentSortUI() {
+  document.querySelectorAll('.comment-sort-option').forEach((option) => {
+    option.addEventListener('click', () => {
+      currentCommentSort = option.dataset.sort || 'newest';
+
+      document.querySelectorAll('.comment-sort-option').forEach((item) => {
+        item.classList.toggle('active', item === option);
+      });
+
+      if (activeCommentPostId) {
+        renderCommentsForPost(activeCommentPostId, activeCommentsData);
+      }
+    });
+  });
+}
+
+function getCommentSortLabel(sortType) {
+  return { newest: 'Newest', oldest: 'Oldest', top: 'Top' }[sortType] || 'Newest';
+}
+
+function sortCommentsForDisplay(comments, sortType, allComments = comments) {
+  const list = [...comments];
+  const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
+  const getCreatedAt = (comment) => new Date(comment.created_at || 0).getTime();
+  const getReplyCount = (comment) => allComments.filter(
+    (entry) => parseInt(entry.parent_comment_id) === parseInt(comment.id)
+  ).length;
+  const isOwnComment = (comment) => loggedInUserId && parseInt(comment.user_id) === loggedInUserId;
+
+  return list.sort((a, b) => {
+    const aOwn = isOwnComment(a);
+    const bOwn = isOwnComment(b);
+
+    if (aOwn !== bOwn) return aOwn ? -1 : 1;
+
+    if (sortType === 'oldest') return getCreatedAt(a) - getCreatedAt(b);
+
+    //WIP: to change to like count
+    if (sortType === 'top') {
+      const replyDiff = getReplyCount(b) - getReplyCount(a);
+      if (replyDiff !== 0) return replyDiff;
+    }
+    return getCreatedAt(b) - getCreatedAt(a);
+  });
+}
+
+function renderCommentsForPost(postId, comments) {
+  const container = document.getElementById('commentsContainer');
+  if (!container) return;
+
+  activeCommentPostId = postId;
+  activeCommentsData = Array.isArray(comments) ? comments : [];
+
+  container.innerHTML = '';
+
+  const totalComments = activeCommentsData.length;
+  const countEl = document.getElementById('commentCountBtn');
+  if (countEl) countEl.textContent = totalComments;
+  const totalLabel = document.getElementById('totalCommentsLabel');
+  if (totalLabel) totalLabel.textContent = `(${totalComments})`;
+
+  if (totalComments === 0) {
+    showNoComments();
+    return;
+  }
+
+  const sortedComments = sortCommentsForDisplay(activeCommentsData, currentCommentSort, activeCommentsData);
+  sortedComments
+    .filter((comment) => !comment.parent_comment_id)
+    .forEach((comment) => appendCommentToDOM(comment, postId, sortedComments));
+}
+
 // Load comments
 function loadComments(postId) {
   const container = document.getElementById('commentsContainer');
@@ -492,16 +568,9 @@ function loadComments(postId) {
   const token = localStorage.getItem('token');
 
   fetchMethod(`${COMMENTS_BASE}/${postId}`, (status, data) => {
-    container.innerHTML = '';
-    const comments = Array.isArray(data) ? data : data.rows || [];
-
-    if (status === 200 && comments.length > 0) {
-      const countEl = document.getElementById('commentCountBtn');
-      if (countEl) countEl.textContent = comments.length;
-      document.getElementById('totalCommentsLabel').textContent = `(${comments.length})`;
-      comments.forEach(comment => appendCommentToDOM(comment, postId, comments));
-    } else if (status === 200 && comments.length === 0) {
-      showNoComments();
+    if (status === 200) {
+      const comments = Array.isArray(data) ? data : data.rows || [];
+      renderCommentsForPost(postId, comments);
     } else {
       container.innerHTML = `<div class="text-muted text-center py-3">Could not load comments.</div>`;
     }
@@ -560,8 +629,12 @@ function appendCommentToDOM(comment, postId, allComments) {
   const el = buildCommentEl(comment, postId, false);
   group.appendChild(el);
 
-  const replies = allComments.filter(
-    r => parseInt(r.parent_comment_id) === parseInt(comment.id)
+  const replies = sortCommentsForDisplay(
+    allComments.filter(
+      r => parseInt(r.parent_comment_id) === parseInt(comment.id)
+    ),
+    currentCommentSort,
+    allComments
   );
 
   if (replies.length === 0) return;
@@ -813,16 +886,7 @@ function deleteComment(commentId, commentEl, postId) {
 
   fetchMethod(`${currentUrl}/comments/${commentId}`, (status, data) => {
     if (status === 200) {
-      commentEl.style.transition = 'opacity 0.2s';
-      commentEl.style.opacity = '0';
-      setTimeout(() => {
-        commentEl.remove();
-        const remaining = document.querySelectorAll('.comment-item').length;
-        const countEl = document.getElementById('commentCountBtn');
-        if (countEl) countEl.textContent = remaining;
-        document.getElementById('totalCommentsLabel').textContent = `(${remaining})`;
-        if (remaining === 0) showNoComments();
-      }, 200);
+      loadComments(postId);
     } else {
       alert('Failed to delete comment. Please try again.');
     }

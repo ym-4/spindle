@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const isPublicFeed = file === 'index.html' || file === 'home.html';
 
   if (!isPublicFeed && typeof isLoggedIn === 'function' && !isLoggedIn()) {
-    redirectToLogin(file + window.location.search);
+    redirectToLogin(file);
     return;
   }
 
