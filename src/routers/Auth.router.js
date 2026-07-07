@@ -188,7 +188,11 @@ router.post('/login', async (req, res, next) => {
     if (!user) return res.status(401).json({ error: 'Invalid username or password.' });
 
     // Check if user is banned
-    try { await require('../models/db').query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`); } catch {}
+    try {
+      const db = require('../models/db');
+      await db.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+      await db.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
+    } catch {}
     const { rows: banCheck } = await require('../models/db').query(
       `SELECT suspended_until, banned_reason FROM "Person" WHERE id = $1`,
       [user.id]
@@ -546,7 +550,10 @@ router.post('/check-ban', async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email required.' });
-    const { rows } = await require('../models/db').query(
+    const db = require('../models/db');
+    await db.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+    await db.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
+    const { rows } = await db.query(
       `SELECT id, display_name, name, suspended_until, banned_reason FROM "Person" WHERE email = $1`,
       [email]
     );

@@ -1,6 +1,16 @@
 const crypto = require('crypto');
 const pool = require('./db');
 
+// Ensure custom columns exist for admin features (runs once on module load)
+(async () => {
+  try {
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
+  } catch (e) {
+    console.warn('[Auth.model] Could not add Person columns:', e.message);
+  }
+})();
+
 const SCRYPT_KEYLEN = 64;
 const ROLES = { USER: 'user', ADMIN: 'admin' };
 
@@ -223,6 +233,9 @@ module.exports.getUserProfile = async function getUserProfile(userId) {
 };
 
 module.exports.getAllUsersForAdmin = async function getAllUsersForAdmin() {
+  try {
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+  } catch {}
   const { rows } = await pool.query(
     `SELECT id, name, email, display_name, avatar, profile_image, role, email_verified, suspended_until
      FROM "Person" WHERE deleted_at IS NULL ORDER BY id`,
@@ -313,10 +326,16 @@ module.exports.suspendUser = async function suspendUser(userId, until) {
 };
 
 module.exports.unsuspendUser = async function unsuspendUser(userId) {
+  try {
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+  } catch {}
   await pool.query(`UPDATE "Person" SET suspended_until = NULL WHERE id = $1`, [userId]);
 };
 
 module.exports.getAdminStats = async function getAdminStats() {
+  try {
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+  } catch {}
   const { rows: userRows } = await pool.query(`SELECT COUNT(*)::int AS count FROM "Person" WHERE deleted_at IS NULL`);
   const { rows: postRows } = await pool.query(`SELECT COUNT(*)::int AS count FROM "Posts"`);
   const { rows: reportRows } = await pool.query(`SELECT COUNT(*)::int AS count FROM "Reports"`);
@@ -406,6 +425,8 @@ module.exports.createAppeal = async function createAppeal(userId, message) {
 module.exports.getPendingAppeals = async function getPendingAppeals() {
   try {
     await pool.query(`CREATE TABLE IF NOT EXISTS "BanAppeals" (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES "Person"(id), message TEXT NOT NULL, status TEXT DEFAULT 'pending', created_at TIMESTAMP DEFAULT NOW(), resolved_at TIMESTAMP, resolved_by INTEGER REFERENCES "Person"(id))`);
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
   } catch {}
   const { rows } = await pool.query(
     `SELECT ba.*, p.display_name AS user_name, p.name AS user_username, p.suspended_until, p.banned_reason
@@ -443,6 +464,9 @@ module.exports.dismissReport = async function dismissReport(reportId) {
 };
 
 module.exports.searchUsers = async function searchUsers(term) {
+  try {
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+  } catch {}
   const { rows } = await pool.query(
     `SELECT id, display_name, name, email, role, suspended_until FROM "Person" WHERE LOWER(name) LIKE LOWER($1) OR LOWER(email) LIKE LOWER($1) OR LOWER(display_name) LIKE LOWER($1) ORDER BY id DESC LIMIT 100`,
     [`%${term}%`]
