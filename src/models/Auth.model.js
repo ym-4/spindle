@@ -478,7 +478,7 @@ module.exports.getTrendStats = async function getTrendStats() {
   const { rows } = await pool.query(
     `SELECT
       (SELECT COUNT(*) FROM "Person" WHERE created_at > NOW() - INTERVAL '7 days') AS users_7d,
-      (SELECT COUNT(*) FROM "Post" WHERE created_at > NOW() - INTERVAL '7 days') AS posts_7d,
+      (SELECT COUNT(*) FROM "Posts" WHERE created_at > NOW() - INTERVAL '7 days') AS posts_7d,
       (SELECT COUNT(*) FROM "Reports" WHERE created_at > NOW() - INTERVAL '7 days') AS reports_7d`
   );
   return rows[0];
