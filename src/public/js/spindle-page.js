@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const file = window.location.pathname.split('/').pop() || 'index.html';
-  const isPublicFeed = file === 'index.html';
+  const isPublicFeed = file === 'index.html' || file === 'home.html';
 
   if (!isPublicFeed && typeof isLoggedIn === 'function' && !isLoggedIn()) {
     redirectToLogin(file + window.location.search);

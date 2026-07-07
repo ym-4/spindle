@@ -121,9 +121,17 @@ function isLoggedIn() {
 
 /** Send guests to home login; after login they return to the protected page. */
 function redirectToLogin(returnPath) {
+  // Prevent nesting: if already on home.html with login=1, do nothing
+  const page = window.location.pathname.split('/').pop() || '';
+  if (page === 'home.html' && window.location.search.includes('login=1')) {
+    return;
+  }
   const params = new URLSearchParams({ login: '1' });
   if (returnPath) {
-    params.set('return', returnPath);
+    const clean = returnPath.split('?')[0]; // strip any existing query
+    if (/^[a-zA-Z0-9_-]+\.html$/.test(clean)) {
+      params.set('return', clean);
+    }
   }
   window.location.replace(`home.html?${params.toString()}`);
 }
