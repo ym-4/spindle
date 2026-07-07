@@ -5,10 +5,9 @@ function setupHome() {
   document.getElementById('homeGuest').classList.toggle('hidden', loggedIn);
   document.getElementById('homeUser').classList.toggle('hidden', !loggedIn);
 
+  updateNavForUser(user);
+
   if (loggedIn) {
-    const navUser = document.getElementById('navUser');
-    navUser.classList.remove('hidden');
-    navUser.style.display = 'flex';
     injectHeaderActions('waHeaderSlot');
     connectSocket();
     onWs('notification', () => refreshNotifBadge());
@@ -26,6 +25,5 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.replace(getPostLoginRedirect(user));
     return;
   }
-  updateNavForUser(null);
   setupHome();
 });
