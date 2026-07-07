@@ -49,6 +49,7 @@ async function loadListings() {
         emptyState.classList.remove('d-none');
       } else {
         emptyState.classList.add('d-none');
+
         for (i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
           addListing(
             data[i].seller_id,
@@ -209,6 +210,25 @@ if (document.title == 'Marketplace') {
     currentPage++;
     container.innerHTML = '';
     loadListings();
+  });
+
+  let totalListings = 0;
+  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
+    let totalListings = data.length;
+    let totalPages = Math.floor(totalListings / LISTINGS_PER_PAGE);
+
+    const nextItem = document.getElementById('next-page-item');
+    for (let i = 1; i <= totalPages; i++) {
+      const li = document.createElement('li');
+      li.className = `page-item page-num ${i === currentPage ? 'active' : ''}`;
+      li.innerHTML = `<button class="page-link">${i}</button>`;
+      li.querySelector('button').addEventListener('click', () => {
+        currentPage = i;
+        container.innerHTML = '';
+        loadListings();
+      });
+      nextItem.before(li);
+    }
   });
 
   loadListings();
