@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET_KEY|| 'dev-jwt-secret-change-me';
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-jwt-secret-change-me';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 function signToken(user) {

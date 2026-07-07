@@ -3,657 +3,84 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Spindle — Campus Hub</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Campus Hub — Home</title>
+    <link rel="stylesheet" href="css/wa.css" />
     <link rel="stylesheet" href="css/auth.css" />
-    <link rel="stylesheet" href="css/auth-brutalist.css" />
     <script src="js/api.js"></script>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-
-      body {
-        min-height: 100vh;
-        overflow-x: hidden;
-        font-family: 'Courier New', monospace;
-        background: #0a0a1a;
-        color: #fff;
-      }
-
-      /* ---- 3D marble background ---- */
-      .bg-canvas {
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        overflow: hidden;
-        background: radial-gradient(ellipse at 20% 50%, #1a1a3e 0%, transparent 60%),
-                    radial-gradient(ellipse at 80% 20%, #3a1a3e 0%, transparent 60%),
-                    radial-gradient(ellipse at 50% 80%, #1a3a3e 0%, transparent 60%),
-                    #0a0a1a;
-      }
-
-      .marble {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(60px);
-        mix-blend-mode: screen;
-        will-change: transform, background;
-      }
-
-      .marble:nth-child(1) {
-        width: 700px; height: 700px;
-        background: radial-gradient(circle at 30% 30%, #ff6b6b, #c850c0, #4158d0);
-        top: -15%; left: -10%;
-        animation: marbleDrift1 18s ease-in-out infinite alternate, hueShift 8s linear infinite;
-      }
-      .marble:nth-child(2) {
-        width: 500px; height: 500px;
-        background: radial-gradient(circle at 70% 70%, #43e97b, #38f9d7, #4158d0);
-        bottom: -10%; right: -8%;
-        animation: marbleDrift2 20s ease-in-out infinite alternate, hueShift 10s linear infinite reverse;
-      }
-      .marble:nth-child(3) {
-        width: 450px; height: 450px;
-        background: radial-gradient(circle at 50% 50%, #f093fb, #f5576c, #ffcc70);
-        top: 40%; left: 50%;
-        transform: translate(-50%, -50%);
-        animation: marbleDrift3 22s ease-in-out infinite alternate, hueShift 12s linear infinite;
-      }
-      .marble:nth-child(4) {
-        width: 300px; height: 300px;
-        background: radial-gradient(circle at 40% 60%, #a18cd1, #fbc2eb);
-        top: 70%; left: 15%;
-        animation: marbleDrift4 16s ease-in-out infinite alternate, hueShift 9s linear infinite reverse;
-      }
-      .marble:nth-child(5) {
-        width: 350px; height: 350px;
-        background: radial-gradient(circle at 60% 40%, #ffecd2, #fcb69f);
-        top: 10%; left: 75%;
-        animation: marbleDrift5 19s ease-in-out infinite alternate, hueShift 11s linear infinite;
-      }
-
-      @keyframes marbleDrift1 {
-        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
-        100% { transform: translate(120px, 80px) scale(1.15) rotate(15deg); }
-      }
-      @keyframes marbleDrift2 {
-        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
-        100% { transform: translate(-100px, -60px) scale(1.1) rotate(-12deg); }
-      }
-      @keyframes marbleDrift3 {
-        0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
-        100% { transform: translate(calc(-50% + 80px), calc(-50% - 50px)) scale(1.2) rotate(8deg); }
-      }
-      @keyframes marbleDrift4 {
-        0% { transform: translate(0, 0) scale(1); }
-        100% { transform: translate(50px, -80px) scale(1.25); }
-      }
-      @keyframes marbleDrift5 {
-        0% { transform: translate(0, 0) scale(1); }
-        100% { transform: translate(-70px, 60px) scale(1.15); }
-      }
-      @keyframes hueShift {
-        0% { filter: blur(60px) hue-rotate(0deg); }
-        100% { filter: blur(60px) hue-rotate(360deg); }
-      }
-
-      /* Extra sparkle particles */
-      .sparkle-container {
-        position: fixed;
-        inset: 0;
-        z-index: 1;
-        pointer-events: none;
-        overflow: hidden;
-      }
-      .sparkle {
-        position: absolute;
-        width: 4px; height: 4px;
-        background: #fff;
-        border-radius: 50%;
-        opacity: 0;
-        animation: sparkle 4s ease-in-out infinite;
-      }
-      .sparkle:nth-child(1) { top: 15%; left: 20%; animation-delay: 0s; }
-      .sparkle:nth-child(2) { top: 30%; left: 70%; animation-delay: 0.8s; }
-      .sparkle:nth-child(3) { top: 65%; left: 30%; animation-delay: 1.6s; }
-      .sparkle:nth-child(4) { top: 80%; left: 80%; animation-delay: 2.4s; }
-      .sparkle:nth-child(5) { top: 50%; left: 50%; animation-delay: 3.2s; }
-      .sparkle:nth-child(6) { top: 10%; left: 85%; animation-delay: 0.4s; }
-      .sparkle:nth-child(7) { top: 75%; left: 10%; animation-delay: 1.2s; }
-      .sparkle:nth-child(8) { top: 40%; left: 90%; animation-delay: 2s; }
-      .sparkle:nth-child(9) { top: 90%; left: 45%; animation-delay: 2.8s; }
-      .sparkle:nth-child(10) { top: 20%; left: 40%; animation-delay: 3.6s; }
-
-      @keyframes sparkle {
-        0%, 100% { opacity: 0; transform: scale(0) translateY(0); }
-        50% { opacity: 1; transform: scale(1) translateY(-20px); }
-      }
-
-      /* ---- content above background ---- */
-      .home-wrap {
-        position: relative;
-        z-index: 2;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        min-height: 100vh;
-        padding: 1.5rem 1.5rem 3rem;
-      }
-
-      .home-actions-top {
-        align-self: flex-end;
-        display: flex;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-      }
-      .home-actions-top .wa-btn {
-        background: rgba(0,0,0,0.35);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,0.25);
-        color: #fff;
-        font-family: 'Courier New', monospace;
-        font-weight: 700;
-        border-radius: 8px;
-        padding: 0.5rem 1.25rem;
-        cursor: pointer;
-        transition: background 0.2s;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.3);
-      }
-      .home-actions-top .wa-btn:hover { background: rgba(255,255,255,0.22); }
-
-      .home-hero {
-        text-align: center;
-        max-width: 800px;
-        width: 100%;
-      }
-
-      .home-hero .home-logo {
-        width: 100px;
-        height: 100px;
-        object-fit: contain;
-        margin-bottom: 0.75rem;
-        animation: logoFloat 3s ease-in-out infinite;
-        filter: drop-shadow(0 4px 30px rgba(65,88,208,0.4));
-      }
-      @keyframes logoFloat {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-14px); }
-      }
-
-      .home-hero h1 {
-        font-family: 'Courier New', monospace;
-        font-weight: 800;
-        font-size: 3.2rem;
-        margin-bottom: 0.25rem;
-        letter-spacing: -1px;
-        text-shadow: 0 2px 40px rgba(0,0,0,0.4);
-        background: linear-gradient(135deg, #f5af19, #f12711, #f5af19);
-        background-size: 200% 200%;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        animation: shimmer 4s ease-in-out infinite;
-      }
-      @keyframes shimmer {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-      }
-
-      .home-hero .subtitle {
-        font-size: 1.05rem;
-        color: #fff;
-        line-height: 1.7;
-        margin-bottom: 1.5rem;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-        text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-        font-weight: 500;
-      }
-
-      .home-hero .home-cta {
-        background: linear-gradient(135deg, #4158d0, #c850c0);
-        color: #fff;
-        font-family: 'Courier New', monospace;
-        font-weight: 700;
-        border: none;
-        border-radius: 10px;
-        padding: 0.85rem 2.5rem;
-        font-size: 1.1rem;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 4px 25px rgba(65,88,208,0.35);
-      }
-      .home-hero .home-cta:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 35px rgba(65,88,208,0.5);
-      }
-
-      /* ---- Stats bar ---- */
-      .stats-bar {
-        display: flex;
-        justify-content: center;
-        gap: 2.5rem;
-        margin: 2rem 0 2.5rem;
-        flex-wrap: wrap;
-      }
-      .stats-bar .stat {
-        text-align: center;
-      }
-      .stats-bar .stat .num {
-        font-size: 1.8rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #43e97b, #38f9d7);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      .stats-bar .stat .label {
-        display: block;
-        font-size: 0.8rem;
-        color: #ddd;
-        text-shadow: 0 1px 8px rgba(0,0,0,0.5);
-        margin-top: 2px;
-      }
-
-      /* ---- Features grid ---- */
-      .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1.25rem;
-        max-width: 800px;
-        width: 100%;
-        margin: 0 auto;
-      }
-      .features-grid .card {
-        background: rgba(255,255,255,0.06);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.10);
-        border-radius: 16px;
-        padding: 1.75rem 1.25rem;
-        text-align: center;
-        transition: transform 0.25s, background 0.25s;
-      }
-      .features-grid .card:hover {
-        transform: translateY(-8px);
-        background: rgba(255,255,255,0.12);
-      }
-      .features-grid .card i {
-        font-size: 2.2rem;
-        margin-bottom: 0.75rem;
-        background: linear-gradient(135deg, #f5af19, #f12711);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      .features-grid .card h4 {
-        font-weight: 700;
-        font-size: 1rem;
-        margin-bottom: 0.4rem;
-        color: #fff;
-        text-shadow: 0 1px 8px rgba(0,0,0,0.4);
-      }
-      .features-grid .card p {
-        font-size: 0.85rem;
-        opacity: 0.85;
-        line-height: 1.5;
-        color: #fff;
-        text-shadow: 0 1px 6px rgba(0,0,0,0.4);
-      }
-
-      /* ---- How it works ---- */
-      .how-section {
-        max-width: 800px;
-        width: 100%;
-        margin: 3rem auto 0;
-        text-align: center;
-      }
-      .how-section h3 {
-        font-weight: 700;
-        font-size: 1.4rem;
-        margin-bottom: 0.5rem;
-        color: #fff;
-        text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-      }
-      .how-section > p {
-        color: #ddd;
-        font-size: 0.9rem;
-        margin-bottom: 1.5rem;
-        text-shadow: 0 1px 8px rgba(0,0,0,0.4);
-      }
-      .how-steps {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-      }
-      .how-steps .step {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 12px;
-        padding: 1.25rem 1rem;
-      }
-      .how-steps .step .step-num {
-        display: inline-block;
-        width: 32px; height: 32px;
-        line-height: 32px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #4158d0, #c850c0);
-        font-weight: 700;
-        font-size: 0.85rem;
-        margin-bottom: 0.5rem;
-      }
-      .how-steps .step h5 {
-        font-size: 0.95rem;
-        font-weight: 700;
-        margin-bottom: 0.3rem;
-      }
-      .how-steps .step p {
-        font-size: 0.82rem;
-        color: #ddd;
-        line-height: 1.5;
-      }
-      .how-steps .step h5 {
-        color: #fff;
-      }
-
-      /* ---- Logged in ---- */
-      #homeUser.home-hero .links {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 1rem;
-      }
-      #homeUser.home-hero .links a {
-        background: rgba(255,255,255,0.10);
-        color: #fff;
-        text-decoration: none;
-        padding: 0.7rem 1.5rem;
-        border-radius: 10px;
-        font-weight: 700;
-        font-family: 'Courier New', monospace;
-        transition: background 0.2s, transform 0.2s;
-        backdrop-filter: blur(6px);
-        border: 1px solid rgba(255,255,255,0.12);
-      }
-      #homeUser.home-hero .links a:hover {
-        background: rgba(255,255,255,0.2);
-        transform: translateY(-2px);
-      }
-      #homeUser.home-hero .links a.primary {
-        background: linear-gradient(135deg, #4158d0, #c850c0);
-        border: none;
-      }
-
-      /* Sidebar for logged-in users */
-      .home-sidebar {
-        position: fixed;
-        top: 0; left: 0;
-        width: 260px;
-        height: 100vh;
-        z-index: 10;
-        background: rgba(10,10,26,0.85);
-        backdrop-filter: blur(12px);
-        border-right: 1px solid rgba(255,255,255,0.08);
-        padding-top: 1rem;
-        overflow-y: auto;
-        display: none;
-      }
-      .home-sidebar .sidebar-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.65rem 1.25rem;
-        color: rgba(255,255,255,0.75);
-        text-decoration: none;
-        font-family: 'Courier New', monospace;
-        font-size: 0.85rem;
-        transition: background 0.2s, color 0.2s;
-      }
-      .home-sidebar .sidebar-item:hover,
-      .home-sidebar .sidebar-item.active {
-        background: rgba(255,255,255,0.08);
-        color: #fff;
-      }
-      .home-sidebar .sidebar-item i {
-        width: 1.25rem;
-        text-align: center;
-      }
-      .home-sidebar .sidebar-divider {
-        height: 1px;
-        background: rgba(255,255,255,0.08);
-        margin: 0.5rem 1rem;
-      }
-      .home-sidebar .sidebar-item .spinner-border {
-        margin-left: 0.5rem;
-      }
-      #navUser.hidden { display: none !important; }
-      body.logged-in .home-wrap { margin-left: 260px; }
-      body.logged-in .home-sidebar { display: block; }
-
-      .hidden { display: none !important; }
-
-      @media (max-width: 600px) {
-        .home-hero h1 { font-size: 2.2rem; }
-        .stats-bar { gap: 1.5rem; }
-        .stats-bar .stat .num { font-size: 1.4rem; }
-        .home-actions-top { align-self: center; margin-bottom: 0.5rem; }
-      }
-    </style>
   </head>
-  <body>
-    <div class="bg-canvas">
-      <div class="marble"></div>
-      <div class="marble"></div>
-      <div class="marble"></div>
-      <div class="marble"></div>
-      <div class="marble"></div>
-    </div>
-    <div class="sparkle-container">
-      <div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div>
-      <div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div>
-      <div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div>
-      <div class="sparkle"></div>
-    </div>
-
-    <aside class="sidebar" id="homeSidebar" style="position:fixed;top:0;left:0;width:260px;height:100vh;z-index:10;background:rgba(10,10,26,0.85);backdrop-filter:blur(12px);border-right:1px solid rgba(255,255,255,0.08);overflow-y:auto;display:none"></aside>
-
-    <div class="home-wrap">
-      <div class="home-actions-top" id="homeTopActions">
-        <div id="navGuest">
-          <button type="button" class="wa-btn" id="btnOpenLogin">Log in</button>
-          <button type="button" class="wa-btn" id="btnOpenRegister">Register</button>
-        </div>
-        <div id="navUser" class="hidden" style="display:none;gap:0.5rem;align-items:center">
-          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
-          <div id="waHeaderSlot" style="display:flex;gap:0.5rem;align-items:center"></div>
-        </div>
-      </div>
-
-      <div id="homeGuest" class="home-hero">
-        <img src="images/Logo_Panda.png" alt="Spindle" class="home-logo" />
-        <h1>Spindle</h1>
-        <p class="subtitle">
-          Your all-in-one campus hub. Share posts, form study groups, trade on the Marketplace,
-          chat with friends, and stay connected — all built for students, by students.
-        </p>
-        <button type="button" class="home-cta" id="btnHeroLogin">Get started &nbsp;→</button>
-
-        <div class="stats-bar">
-          <div class="stat"><span class="num">8+</span><span class="label">Schools</span></div>
-          <div class="stat"><span class="num">23</span><span class="label">Study Groups</span></div>
-          <div class="stat"><span class="num">50+</span><span class="label">Listings</span></div>
-          <div class="stat"><span class="num">Real-time</span><span class="label">Chat &amp; Calls</span></div>
-        </div>
-
-        <div class="features-grid">
-          <div class="card">
-            <i class="fas fa-newspaper"></i>
-            <h4>Feed</h4>
-            <p>Post confessions, questions, and announcements. Upvote, comment, and save what matters.</p>
+  <body class="wa-body" data-wa-page="home">
+    <div class="wa-app">
+      <header class="wa-topbar">
+        <h1>Campus Hub</h1>
+        <div class="wa-topbar-actions" id="homeTopActions">
+          <div id="navGuest">
+            <button type="button" class="wa-btn wa-btn--ghost" id="btnOpenLogin">Log in</button>
+            <button type="button" class="wa-btn" id="btnOpenRegister">Register</button>
           </div>
-          <div class="card">
-            <i class="fas fa-users"></i>
-            <h4>Study Groups</h4>
-            <p>Join or create groups by school and module. Collaborate with channel-based chat rooms.</p>
-          </div>
-          <div class="card">
-            <i class="fas fa-store"></i>
-            <h4>Marketplace</h4>
-            <p>Buy and sell textbooks, electronics, notes, and more. Cart and checkout included.</p>
-          </div>
-          <div class="card">
-            <i class="fas fa-comments"></i>
-            <h4>Chat &amp; Calls</h4>
-            <p>Real-time one-on-one messaging, group chats, and voice/video calls with anyone on campus.</p>
+          <div id="navUser" class="hidden wa-topbar-actions">
+            <div id="waHeaderSlot" style="display: flex; gap: 0.5rem; align-items: center"></div>
           </div>
         </div>
+      </header>
 
-        <div class="how-section">
-          <h3>How it works</h3>
-          <p>Three simple steps to get started</p>
-          <div class="how-steps">
-            <div class="step">
-              <div class="step-num">1</div>
-              <h5>Create your account</h5>
-              <p>Sign up with your school email and verify your identity in seconds.</p>
-            </div>
-            <div class="step">
-              <div class="step-num">2</div>
-              <h5>Set up your profile</h5>
-              <p>Add your school, avatar, and bio so other students can find and connect with you.</p>
-            </div>
-            <div class="step">
-              <div class="step-num">3</div>
-              <h5>Explore &amp; connect</h5>
-              <p>Browse the feed, join study groups, shop the marketplace, or start a chat.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <main id="homeGuest" class="wa-hero">
+        <h2>Connect on campus</h2>
+        <p>Real-time chats, voice/video calls, status stories, and secure settings.</p>
+        <button type="button" class="wa-btn wa-btn--lg" id="btnHeroLogin">Get started</button>
+      </main>
 
-      <div id="homeUser" class="home-hero hidden">
-        <img src="images/Logo_Panda.png" alt="Spindle" class="home-logo" />
-        <h1>Welcome back</h1>
-        <p class="subtitle">Jump back into the action. Your feed, groups, and messages are waiting.</p>
-        <div class="links">
-          <a href="index.html" class="primary">Open Feed</a>
-          <a href="chat.html">Chats</a>
-          <a href="groups.html">Study Groups</a>
-          <a href="marketplace.html">Marketplace</a>
+      <main id="homeUser" class="wa-hero hidden">
+        <h2>Welcome back</h2>
+        <p>Jump into your campus conversations.</p>
+        <div class="wa-hero-links">
+          <a href="index.html" class="wa-btn wa-btn--lg">Open Feed</a>
+          <a href="chat.html" class="wa-btn wa-btn--ghost">Chats</a>
         </div>
-      </div>
+      </main>
 
       <div id="waNavSlot"></div>
     </div>
 
     <div id="authOverlay" class="auth-overlay" aria-hidden="true">
-      <div class="auth-modal" role="dialog" onclick="if(event.target===this)closeAuthModal()">
+      <div class="auth-modal" role="dialog">
         <div class="auth-modal__panel">
           <button type="button" class="auth-close" id="authClose">&times;</button>
-          <h1>LOGIN</h1>
-
           <div class="auth-tabs">
             <button type="button" class="auth-tab is-active" data-tab="login">Log in</button>
             <button type="button" class="auth-tab" data-tab="register">Register</button>
           </div>
-
           <p id="authMessage" class="auth-message"></p>
-
           <form id="loginForm" class="auth-form is-active">
-            <div class="field">
-              <label for="loginUsername">EMAIL</label>
-              <input type="text" id="loginUsername" placeholder="your@email.com" required />
-            </div>
-            <div class="field">
-              <label for="loginPassword">PASSWORD</label>
-              <input type="password" id="loginPassword" placeholder="••••••••" required />
-            </div>
-            <button type="submit" class="auth-submit">SIGN IN</button>
-            <div class="auth-divider">OR</div>
-            <div class="social-login">
-              <div class="social-btn">G</div>
-              <div class="social-btn">F</div>
-              <div class="social-btn">X</div>
-            </div>
-            <div class="auth-footer-row">
-              Don't have an account? <a id="switchToRegister">Sign up</a>
-            </div>
+            <h2 class="auth-form-title">Log in to Campus Hub</h2>
+            <div class="field"><label>Username or email</label><input type="text" id="loginUsername" placeholder="Username or email" required /></div>
+            <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="Password" required /></div>
+            <button type="submit" class="auth-submit auth-submit--outline">Log in</button>
           </form>
-
           <form id="registerForm" class="auth-form">
-            <div class="field">
-              <label for="registerName">USERNAME</label>
-              <input type="text" id="registerName" placeholder="Choose a username" required />
-            </div>
-            <div class="field">
-              <label for="registerEmail">GMAIL</label>
-              <input type="email" id="registerEmail" placeholder="you@gmail.com" required />
-            </div>
-            <div class="field">
-              <label for="registerCountry">COUNTRY</label>
-              <select id="registerCountry" class="form-select" required style="width:100%;padding:12px 15px;border:2px solid #000;background:#fff;font-family:'Courier New',monospace;font-size:16px;border-radius:0;color:#000">
-                <option value="">Select your country</option>
-                <option value="Singapore">Singapore</option>
-                <option value="Malaysia">Malaysia</option>
-                <option value="Indonesia">Indonesia</option>
-                <option value="Thailand">Thailand</option>
-                <option value="Vietnam">Vietnam</option>
-                <option value="Philippines">Philippines</option>
-                <option value="Myanmar">Myanmar</option>
-                <option value="Cambodia">Cambodia</option>
-                <option value="Laos">Laos</option>
-                <option value="Brunei">Brunei</option>
-                <option value="China">China</option>
-                <option value="India">India</option>
-                <option value="Japan">Japan</option>
-                <option value="South Korea">South Korea</option>
-                <option value="Taiwan">Taiwan</option>
-                <option value="United States">United States</option>
-                <option value="United Kingdom">United Kingdom</option>
-                <option value="Australia">Australia</option>
-                <option value="New Zealand">New Zealand</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="registerPassword">PASSWORD</label>
-              <input type="password" id="registerPassword" placeholder="••••••••" minlength="4" required />
-            </div>
-            <button type="submit" class="auth-submit">REGISTER</button>
-            <div class="auth-footer-row">
-              Already have an account? <a id="switchToLogin">Log in</a>
-            </div>
+            <h2 class="auth-form-title">Create your account</h2>
+            <div class="field"><label>Username</label><input type="text" id="registerName" placeholder="Choose a username" required /></div>
+            <div class="field"><label>Gmail</label><input type="email" id="registerEmail" placeholder="you@gmail.com" required /></div>
+            <div class="field"><label>Password</label><input type="password" id="registerPassword" placeholder="Password" minlength="4" required /></div>
+            <button type="submit" class="auth-submit auth-submit--outline">Register</button>
           </form>
-
           <form id="verifyForm" class="auth-form">
             <h2 id="verifyTitle" class="auth-form-title">Verify your Gmail</h2>
             <p id="verifyHint" class="auth-verify-hint">Enter the code sent to <strong id="verifyEmailDisplay"></strong></p>
-            <div class="field">
-              <label for="verifyCode">6-digit code</label>
-              <input type="text" id="verifyCode" inputmode="numeric" maxlength="6" placeholder="000000" required />
-            </div>
+            <div class="field"><label>6-digit code</label><input type="text" id="verifyCode" inputmode="numeric" maxlength="6" placeholder="000000" required /></div>
             <label id="verifyRememberRow" class="auth-remember hidden">
               <input type="checkbox" id="verifyRemember" />
               Remember me on this device for 30 days
             </label>
-            <button type="submit" class="auth-submit">Continue</button>
+            <button type="submit" class="auth-submit auth-submit--outline">Continue</button>
             <button type="button" class="auth-link-btn" id="btnResendCode">Resend code</button>
           </form>
         </div>
       </div>
     </div>
 
-    <script src="js/queryCmds.js"></script>
-    <script src="js/getCurrentURL.js"></script>
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/spindle-page.js"></script>
-    <script src="js/spindle-sidebar.js"></script>
     <script src="js/home.js"></script>
-    <script>
-      document.getElementById('switchToRegister')?.addEventListener('click', () => switchAuthTab('register'));
-      document.getElementById('switchToLogin')?.addEventListener('click', () => switchAuthTab('login'));
-    </script>
   </body>
 </html>

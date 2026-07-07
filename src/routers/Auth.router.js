@@ -68,7 +68,7 @@ async function completeLogin(user, req, rememberMe = false) {
 
 router.post('/register', async (req, res, next) => {
   try {
-    const { name, email, country, password } = req.body ?? {};
+    const { name, email, password } = req.body ?? {};
     if (!name?.trim() || !email?.trim() || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
@@ -85,7 +85,6 @@ router.post('/register', async (req, res, next) => {
     await Auth.createUser({
       name: name.trim(),
       email: email.trim().toLowerCase(),
-      country: (country || '').trim(),
       password,
       avatar: null,
     });
