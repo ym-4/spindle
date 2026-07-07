@@ -82,7 +82,6 @@ module.exports.createUser = async function createUser({ name, email, password, a
      VALUES ($1, $2, $3, $4, $5, $6, $1, $7)
      RETURNING id, name, email, display_name, avatar, profile_image, role, email_verified`,
     [name, email, avatar ?? null, hashedPassword, userRole, emailVerified, country || '']);
-  );
   await pool.query(`INSERT INTO "UserSettings" (user_id) VALUES ($1) ON CONFLICT DO NOTHING`, [
     rows[0].id,
   ]);
