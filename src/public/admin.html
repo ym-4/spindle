@@ -1,55 +1,170 @@
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Campus Hub — Admin</title>
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/auth.css" />
-    <script src="js/api.js"></script>
-    <script src="js/page-guard.js" data-require-admin data-return="admin.html"></script>
-  </head>
-  <body class="auth-body">
-    <div class="auth-bg" aria-hidden="true"></div>
-
-    <nav class="site-nav">
-      <a href="home.html" class="site-logo" style="text-decoration: none">CAMPUS HUB</a>
-      <div class="nav-actions">
-        <div id="navGuest" class="hidden">
-          <a href="home.html" class="btn-neon">Log in</a>
+    <link rel="stylesheet" href="css/wa.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .admin-wrapper { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+        .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+        .admin-header h1 { font-size: 1.8rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+        .admin-header h1 i { color: #1877f2; margin-right: 0.5rem; }
+        .admin-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e4e6eb; padding-bottom: 0.5rem; }
+        .admin-tabs .tab-btn { border: none; background: none; padding: 0.6rem 1.2rem; font-weight: 600; color: #65676b; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .admin-tabs .tab-btn:hover { background: #e4e6eb; }
+        .admin-tabs .tab-btn.active { background: #1877f2; color: #fff; }
+        .admin-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+        .admin-card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #e4e6eb; display: flex; align-items: center; justify-content: space-between; background: #fafafa; }
+        .admin-card-header h5 { margin: 0; font-weight: 600; }
+        .admin-card-body { padding: 1.5rem; }
+        .admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th { text-align: left; padding: 0.75rem 0.5rem; font-size: 0.8rem; text-transform: uppercase; color: #65676b; border-bottom: 2px solid #e4e6eb; font-weight: 600; }
+        .admin-table td { padding: 0.75rem 0.5rem; border-bottom: 1px solid #e4e6eb; font-size: 0.9rem; }
+        .admin-table tr:hover td { background: #f7f8fa; }
+        .role-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .role-badge--admin { background: #e7f3ff; color: #1877f2; }
+        .role-badge--user { background: #f0f2f5; color: #65676b; }
+        .btn-action { padding: 0.3rem 0.7rem; font-size: 0.8rem; border-radius: 6px; border: none; cursor: pointer; }
+        .btn-action:hover { opacity: 0.85; }
+        .btn-danger-sm { background: #fee; color: #e41e3f; }
+        .btn-danger-sm:hover { background: #fcc; }
+        .btn-edit-sm { background: #e7f3ff; color: #1877f2; }
+        .btn-success-sm { background: #e6f9ee; color: #1b9c4b; }
+        .add-user-bar { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; padding: 1rem; background: #f7f8fa; border-radius: 8px; }
+        .add-user-bar input { border: 1px solid #ccd0d5; border-radius: 6px; padding: 0.4rem 0.7rem; font-size: 0.85rem; flex: 1; min-width: 120px; }
+        .add-user-bar select { border: 1px solid #ccd0d5; border-radius: 6px; padding: 0.4rem 0.7rem; font-size: 0.85rem; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #65676b; }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 0.5rem; color: #ccd0d5; }
+        .loading-spinner { text-align: center; padding: 2rem; color: #65676b; }
+    </style>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <div class="admin-header">
+            <h1><i class="fas fa-shield-alt"></i>Admin Dashboard</h1>
+            <div>
+                <a href="home.html" class="btn btn-outline-secondary btn-sm me-2"><i class="fas fa-arrow-left"></i> Back to Home</a>
+                <button class="btn btn-outline-danger btn-sm" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
         </div>
-        <div id="navUser">
-          <span class="nav-user">Admin: <strong id="navUserName"></strong></span>
-          <a href="home.html" class="btn-neon">Home</a>
-          <button type="button" class="btn-neon" id="btnLogout">Log out</button>
+
+        <div id="adminStats"></div>
+
+        <div class="admin-tabs">
+            <button class="tab-btn active" id="tabUsers"><i class="fas fa-users me-1"></i>Users</button>
+            <button class="tab-btn" id="tabPosts"><i class="fas fa-newspaper me-1"></i>Posts</button>
+            <button class="tab-btn" id="tabReports"><i class="fas fa-flag me-1"></i>Reports</button>
         </div>
-      </div>
-    </nav>
 
-    <main class="profile-main">
-      <h1 class="admin-title">Admin Dashboard</h1>
-      <p class="admin-subtitle">Manage all registered users. Only admins can access this page.</p>
+        <div id="adminUsersSection">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h5><i class="fas fa-users me-2"></i>All Users</h5>
+                    <span id="userCount" class="badge bg-secondary"></span>
+                </div>
+                <div class="admin-card-body">
+                    <div class="add-user-bar">
+                        <input type="text" id="newUserName" placeholder="Username" />
+                        <input type="email" id="newUserEmail" placeholder="Email" />
+                        <input type="password" id="newUserPassword" placeholder="Password" />
+                        <select id="newUserRole">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" id="addUserBtn"><i class="fas fa-plus"></i> Add User</button>
+                    </div>
+                    <div id="adminLoading" class="loading-spinner"><i class="fas fa-spinner fa-spin me-2"></i>Loading users...</div>
+                    <div id="adminError" class="alert alert-danger hidden"></div>
+                    <div id="adminPanel" class="hidden">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th style="width:160px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      <div id="adminLoading" class="profile-loading">Loading users...</div>
-      <div id="adminError" class="profile-error hidden"></div>
+        <div id="adminPostsSection" class="hidden">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h5><i class="fas fa-newspaper me-2"></i>All Posts</h5>
+                    <span id="postCount" class="badge bg-secondary"></span>
+                </div>
+                <div class="admin-card-body">
+                    <div class="mb-3">
+                        <input type="text" id="postSearch" class="form-control form-control-sm" placeholder="Search posts by title, author, or content..." style="max-width:400px;">
+                    </div>
+                    <div id="postsLoading" class="loading-spinner"><i class="fas fa-spinner fa-spin me-2"></i>Loading posts...</div>
+                    <div id="postsError" class="alert alert-danger hidden"></div>
+                    <div id="postsPanel" class="hidden">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Category</th>
+                                    <th>Date</th>
+                                    <th style="width:60px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminPostsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      <div id="adminPanel" class="admin-panel hidden">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Role</th>
-            </tr>
-          </thead>
-          <tbody id="adminUsersBody"></tbody>
-        </table>
-      </div>
-    </main>
+        <div id="adminReportsSection" class="hidden">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h5><i class="fas fa-flag me-2"></i>Reported Posts</h5>
+                    <span id="reportCount" class="badge bg-danger"></span>
+                </div>
+                <div class="admin-card-body">
+                    <div id="reportsLoading" class="loading-spinner"><i class="fas fa-spinner fa-spin me-2"></i>Loading reports...</div>
+                    <div id="reportsError" class="alert alert-danger hidden"></div>
+                    <div id="reportsPanel" class="hidden">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Post</th>
+                                    <th>Reason</th>
+                                    <th>Description</th>
+                                    <th>Reporter</th>
+                                    <th>Post Author</th>
+                                    <th>Date</th>
+                                    <th style="width:90px;">Ban</th>
+                                    <th style="width:60px;">Del</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/admin.js"></script>
-  </body>
+</body>
 </html>

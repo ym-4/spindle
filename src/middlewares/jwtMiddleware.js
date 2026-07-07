@@ -11,7 +11,7 @@ const jwt = require("jsonwebtoken");
 //////////////////////////////////////////////////////
 // SET JWT CONFIGURATION
 //////////////////////////////////////////////////////
-const secretKey = process.env.JWT_SECRET_KEY;
+const secretKey = process.env.JWT_SECRET_KEY || 'dev-jwt-secret-change-me';;
 const tokenDuration = process.env.JWT_EXPIRES_IN;
 const tokenAlgorithm = process.env.JWT_ALGORITHM;
 
@@ -78,7 +78,7 @@ module.exports.verifyToken = (req, res, next) => {
     }
 
     res.locals.userId = decoded.userId;
-    res.locals.tokenTimestamp = decoded.timestamp;
+    res.locals.tokenTimestamp = decoded.timestamp || decoded.iat;;
 
     next();
   };

@@ -19,7 +19,9 @@ function setupHome() {
 
 document.addEventListener('DOMContentLoaded', () => {
   if (getToken() && !getStoredUser()) clearAuth();
-  if (isLoggedIn()) {
+  const params = new URLSearchParams(location.search);
+
+  if (isLoggedIn() && params.has("return")) {
     const user = getStoredUser();
     window.location.replace(getPostLoginRedirect(user));
     return;
