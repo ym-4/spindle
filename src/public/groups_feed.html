@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="css/spindle-notif.css">
     <link rel="stylesheet" href="css/profile-page.css">
     <script src="js/api.js"></script>
-    <script src="js/groupsSharedFunctions.js" defer></script>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -115,13 +114,6 @@
 
                         <!-- RIGHT: Quick actions -->
                         <div class="d-flex gap-2">
-                            <!-- ADMIN ONLY VIEW -->
-                            <a href="groups_admin.html" style="text-decoration: none;">
-                                <button class="btn btn-warning btn" id="manageGroupButton">
-                                    <i class="bi bi-gear-fill"></i> Manage Group
-                                </button>
-                            </a>
-
                             <button class="btn btn-light btn" id="membersButton">
                                 <i class="bi bi-people"></i> Members
                             </button>
@@ -212,16 +204,13 @@
 
                                 <h6 class="fw-bold"><i class="bi bi-megaphone me-2"></i>Announcements</h6>
 
-                                <div id="announcementContainer">
-                                    <div class="alert p-2 small mb-2 announcement-color">
-                                        Assignment 1 Released
-                                    </div>
-
-                                    <div class="alert p-2 small announcement-color">
-                                        CA2 DUE NEXT WEEK
-                                    </div>
+                                <div class="alert p-2 small mb-2 announcement-color">
+                                    Assignment 1 Released
                                 </div>
-                                
+
+                                <div class="alert p-2 small announcement-color">
+                                    CA2 DUE NEXT WEEK
+                                </div>
                             </div>
                         </div>
 
@@ -275,7 +264,7 @@
                                 
                                 <!-- messages -->
                                 <div class="chat-messages" id="message-container">
-                                
+                                 
                                     <div class="chat-divider"><span> 20 May 2026 </span></div>
 
                                     <div class="msg msg-left">
