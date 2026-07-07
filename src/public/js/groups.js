@@ -38,7 +38,8 @@ console.log('sdfsfd', token)
 
 // redirect to login if no token
 if (token == null) {
-    window.location.href = "home.html?login=1&return=groups.html";
+    window.location.href = "home.html?login=1&tab=login&return=posts.html";
+
 }
 
 /* Event listeners */ 
@@ -68,7 +69,7 @@ let currentJoinedPage = 1;
 
 // Only runs in groups_page.html
 const currentURL = window.location.href; 
-if (currentURL.includes('groups_page.html')) {
+if (currentURL == 'http://localhost:3000/groups_page.html') {
     window.addEventListener("DOMContentLoaded", async () => {
         // Get stored school
         const school = localStorage.getItem("school");
@@ -746,7 +747,7 @@ function displayToast(type, message) {
 
 function fetchGroupsBySchool(school) {
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/school/${school.toUpperCase()}`;
+        const url = `http://localhost:3000/groups/school/${school.toUpperCase()}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("fetchGroupsBySchool", responseData);
@@ -757,7 +758,7 @@ function fetchGroupsBySchool(school) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             } else {
                 reject(responseData);
@@ -773,7 +774,7 @@ function fetchJoinedGroups() {
     const user_id = localStorage.getItem('loggedInUserId');
 
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/joined_groups/${user_id}`;
+        const url = `http://localhost:3000/groups/joined_groups`;
 
         const callback = (responseStatus, responseData) => {
             console.log("fetchJoinedGroups", responseData);
@@ -784,7 +785,7 @@ function fetchJoinedGroups() {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             } else {
                 reject(responseData);
@@ -797,7 +798,7 @@ function fetchJoinedGroups() {
 
 function fetchGroupMembers(groupId) {
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/joined/${groupId}`;
+        const url = `http://localhost:3000/groups/joined/${groupId}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("fetchGroupMembers", responseData);
@@ -807,7 +808,7 @@ function fetchGroupMembers(groupId) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             } else {
                 reject(responseData);
@@ -828,7 +829,7 @@ function createGroup(data) {
     const user_id = localStorage.getItem('loggedInUserId');
 
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/create/${user_id}`;
+        const url = `http://localhost:3000/groups/create/${user_id}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("createGroup", responseData);
@@ -841,7 +842,7 @@ function createGroup(data) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             // name conflict
             } else if (responseStatus == 409) {
@@ -878,7 +879,7 @@ function createMember(data) {
     };
 
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/join/${requestData.group_id}`;
+        const url = `http://localhost:3000/groups/join/${requestData.group_id}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("createMember", responseData);
@@ -889,7 +890,7 @@ function createMember(data) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             // user is already a member 
             } else if (responseStatus == 409) {
@@ -924,7 +925,7 @@ function createMember(data) {
 function createGeneralChannel(groupId) {
 
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/messages/send/${user_id}`;
+        const url = `http://localhost:3000/groups/messages/send/${user_id}`;
 
         const data = {
             group_id: groupId, 
@@ -941,7 +942,7 @@ function createGeneralChannel(groupId) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             // bad request: missing info
             } else if (responseStatus == 400) {
@@ -984,7 +985,7 @@ function deleteMember(data) {
     };
 
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/leave/${requestData.group_id}`;
+        const url = `http://localhost:3000/groups/leave/${requestData.group_id}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("deleteMember", responseData);
@@ -995,7 +996,7 @@ function deleteMember(data) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             // user cannot leave 
             } else if (responseStatus == 409) {

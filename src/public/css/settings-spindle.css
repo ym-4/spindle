@@ -1,19 +1,13 @@
-.settings-spindle-page {
-  background: var(--wa-bg, #0b141a);
-  color: var(--wa-text, #e9edef);
-  min-height: 100vh;
-}
-
 .settings-spindle-page .content-area {
   padding: 1.25rem;
   max-width: 720px;
 }
 
 .settings-spindle-page .settings-menu-card {
-  border: 1px solid var(--wa-border, #e4e6eb);
+  border: 1px solid #e4e6eb;
   border-radius: 12px;
   overflow: hidden;
-  background: var(--wa-panel, #fff);
+  background: #fff;
 }
 
 .settings-spindle-page .settings-menu-item {
@@ -23,15 +17,14 @@
   width: 100%;
   padding: 1rem 1.25rem;
   border: none;
-  border-bottom: 1px solid var(--wa-border, #e4e6eb);
-  background: var(--wa-panel, #fff);
-  color: var(--wa-text, #1c1c1c);
+  border-bottom: 1px solid #e4e6eb;
+  background: #fff;
   text-align: left;
   cursor: pointer;
 }
 
 .settings-spindle-page .settings-menu-item:hover {
-  background: var(--wa-panel2, #f7f8fa);
+  background: #f7f8fa;
 }
 
 .settings-spindle-page .settings-menu-item:last-child {
@@ -45,8 +38,8 @@
 }
 
 .settings-spindle-page .settings-pane-card {
-  background: var(--wa-panel, #fff);
-  border: 1px solid var(--wa-border, #e4e6eb);
+  background: #fff;
+  border: 1px solid #e4e6eb;
   border-radius: 12px;
   padding: 1.25rem;
 }
@@ -55,7 +48,7 @@
   display: block;
   margin-bottom: 0.75rem;
   font-weight: 500;
-  color: var(--wa-text, #1c1c1c);
+  color: #1c1c1c;
 }
 
 .settings-spindle-page .settings-pane-card input,
@@ -64,10 +57,8 @@
   width: 100%;
   margin-top: 0.25rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--wa-border, #e4e6eb);
+  border: 1px solid #e4e6eb;
   border-radius: 8px;
-  background: var(--wa-panel2, #fff);
-  color: var(--wa-text, #1c1c1c);
 }
 
 .settings-spindle-page .wa-danger-modal {
@@ -85,8 +76,8 @@
 }
 
 .settings-spindle-page .wa-danger-modal__card {
-  background: var(--wa-panel, #fff);
-  color: var(--wa-text, #1c1c1c);
+  background: #fff;
+  color: #1c1c1c;
   padding: 1.5rem;
   border-radius: 12px;
   max-width: 400px;
