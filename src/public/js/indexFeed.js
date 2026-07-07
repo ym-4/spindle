@@ -283,11 +283,7 @@ function buildPostCard(post) {
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
           ${saveOption}
-          <li>
-            <button class="dropdown-item report-post-btn" data-post-id="${post.id}">
-              Report
-            </button>
-          </li>
+          <li><a class="dropdown-item report-post-btn" href="#">Report</a></li>
           ${ownerOptions}
         </ul>
       </div>
@@ -378,22 +374,11 @@ function buildPostCard(post) {
     });
   }
 
-  // report button
-  const reportBtn = card.querySelector('.report-post-btn');
-
-  if (reportBtn) {
-    reportBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (!isLoggedIn) {
-        showAuthPopup();
-        return;
-      }
-      openReportModal(post.id);
-    });
-  }
-  
+  // report
+  card.querySelector('.report-post-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openReportModal(post.id, post.user_id);
+  });
   // owner actions
   if (isOwner) {
     card.querySelector('.edit-post-btn').addEventListener('click', (e) => {
@@ -502,6 +487,113 @@ function setupCategoryTabs() {
     });
   });
 }
+
+const REPORT_REASONS = [
+  { label: 'Spam', icon: 'fa-shield' },
+  { label: 'Harassment', icon: 'fa-user-slash' },
+  { label: 'Hate speech', icon: 'fa-exclamation-triangle' },
+  { label: 'Misinformation', icon: 'fa-circle-exclamation' },
+  { label: 'NSFW / inappropriate', icon: 'fa-eye-slash' },
+  { label: 'Other', icon: 'fa-ellipsis' },
+];
+
+let currentReportPostId = null;
+let currentReportUserId = null;
+let currentReportReason = null;
+
+function openReportModal(postId, authorUserId) {
+  currentReportPostId = postId;
+  currentReportUserId = authorUserId;
+  currentReportReason = null;
+  const overlay = document.getElementById('reportModalOverlay');
+  const reasonsContainer = document.getElementById('reportReasonsContainer');
+  const thanksContainer = document.getElementById('reportThanks');
+  const descStep = document.getElementById('reportDescriptionStep');
+  const modalSub = document.getElementById('reportModalSub');
+  document.getElementById('reportCancelBtn').style.display = '';
+  reasonsContainer.style.display = '';
+  descStep.style.display = 'none';
+  thanksContainer.style.display = 'none';
+  modalSub.textContent = 'Why are you reporting this post?';
+  reasonsContainer.innerHTML = REPORT_REASONS.map(r =>
+    `<button class="report-reason-btn" data-reason="${r.label}"><i class="fas ${r.icon}"></i> ${r.label}</button>`
+  ).join('');
+  overlay.querySelectorAll('.report-reason-btn').forEach(btn => {
+    btn.addEventListener('click', () => showReportDescriptionStep(btn.dataset.reason));
+  });
+  document.getElementById('reportSubmitDescBtn').onclick = submitReport;
+  overlay.classList.remove('d-none');
+}
+
+function showReportDescriptionStep(reason) {
+  currentReportReason = reason;
+  const overlay = document.getElementById('reportModalOverlay');
+  const reasonsContainer = document.getElementById('reportReasonsContainer');
+  const descStep = document.getElementById('reportDescriptionStep');
+  const modalSub = document.getElementById('reportModalSub');
+  reasonsContainer.style.display = 'none';
+  descStep.style.display = 'block';
+  document.getElementById('reportDescriptionInput').value = '';
+  modalSub.textContent = 'Report: ' + reason;
+}
+
+function closeReportModal() {
+  document.getElementById('reportModalOverlay').classList.add('d-none');
+  currentReportPostId = null;
+  currentReportUserId = null;
+  currentReportReason = null;
+}
+
+function submitReport() {
+  const postId = currentReportPostId;
+  const reason = currentReportReason;
+  const description = document.getElementById('reportDescriptionInput').value.trim();
+  if (!postId || !reason) return;
+  const userId = feedUserId();
+  fetchMethod(`${feedApiBase()}/posts/${postId}/report`, (status, data) => {
+    const reasonsContainer = document.getElementById('reportReasonsContainer');
+    const descStep = document.getElementById('reportDescriptionStep');
+    const thanksContainer = document.getElementById('reportThanks');
+    const cancelBtn = document.getElementById('reportCancelBtn');
+    reasonsContainer.style.display = 'none';
+    descStep.style.display = 'none';
+    cancelBtn.style.display = 'none';
+    thanksContainer.style.display = '';
+    if (status === 409) {
+      thanksContainer.innerHTML = '<div class="fw-bold">Already reported</div><div class="text-muted small mt-1">You have already reported this post.</div>';
+      setTimeout(closeReportModal, 2500);
+    } else if (status === 200 || status === 201) {
+      thanksContainer.innerHTML = '<div class="fw-bold">Thanks for your report</div><div class="text-muted small mt-1">Our team will review it.</div>';
+      setTimeout(() => {
+        if (confirm('Do you also want to block this user?')) {
+          blockReportedUser();
+        }
+        closeReportModal();
+      }, 800);
+    } else {
+      thanksContainer.innerHTML = '<div class="fw-bold text-danger">Something went wrong</div><div class="text-muted small mt-1">Please try again later.</div>';
+      setTimeout(closeReportModal, 2500);
+    }
+  }, 'POST', { user_id: userId, reason, description }, feedToken());
+}
+
+function blockReportedUser() {
+  const blockerId = feedUserId();
+  const blockedId = currentReportUserId;
+  if (!blockerId || !blockedId) return;
+  fetchMethod(`${feedApiBase()}/block`, (status) => {
+    if (status === 200 || status === 201) {
+      alert('User has been blocked.');
+    } else {
+      alert('Failed to block user.');
+    }
+  }, 'POST', { blocker_id: blockerId, blocked_id: blockedId }, feedToken());
+}
+
+document.getElementById('reportCancelBtn')?.addEventListener('click', closeReportModal);
+document.getElementById('reportModalOverlay')?.addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeReportModal();
+});
 
 function renderTop3(posts) {
   const container = document.getElementById('top5Container');

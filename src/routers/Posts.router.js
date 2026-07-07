@@ -21,7 +21,9 @@ const {
   insertLike,
   updateReaction,
   deleteReaction,
-  insertReport
+  insertReport,
+  getAllReports,
+  searchAllPosts
 } = require('../models/Posts.model');
 
 const router = express.Router();
@@ -31,6 +33,33 @@ router.get('/', (req, res, next) => {
   getAllPost()
     .then((post) => res.status(200).json(post))
     .catch(next);
+});
+
+// Admin: Get all posts with optional search
+router.get('/admin/all', authenticateJWT, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required.' });
+    }
+    const { search, category } = req.query;
+    const posts = await searchAllPosts({ search, category });
+    res.status(200).json(posts);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Get all reports (admin only) — must be before /:id
+router.get('/reports', authenticateJWT, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required.' });
+    }
+    const reports = await getAllReports();
+    res.status(200).json(reports);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Get post by Category (must be before /:id)
@@ -184,21 +213,29 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
 });
 
 // delete post (owner only)
-router.delete('/:id', (req, res, next) => {
-   const data = {
-    id: req.params.id
-  }
-  deletePostByID(data)
-    .then((results) => {
-      if (!results) {
-        return res.status(404).json({ error: 'Post not found' });
+router.delete('/:id', authenticateJWT, (req, res, next) => {
+  const postId = req.params.id;
+  // Check if user is admin or post owner
+  getPostByID({ id: postId })
+    .then((post) => {
+      if (!post) return res.status(404).json({ error: 'Post not found' });
+      if (req.user.role !== 'admin' && post.user_id !== req.user.id) {
+        return res.status(403).json({ error: 'Not authorized to delete this post.' });
       }
-      res.status(200).json(results);
+      deletePostByID({ id: postId })
+        .then((results) => {
+          if (!results) return res.status(404).json({ error: 'Post not found' });
+          res.status(200).json(results);
+        })
+        .catch((error) => {
+          console.error("Error deletePostByID: " + error);
+          res.status(500).json(error);
+        });
     })
     .catch((error) => {
-        console.error("Error deletePostByID: " + error);
-        res.status(500).json(error);
-    })
+      console.error("Error getPostByID: " + error);
+      res.status(500).json(error);
+    });
 });
 
 //==================== post interactions (saves, likes, etc) ============================
@@ -319,13 +356,13 @@ router.post('/:id/report', (req, res, next) => {
   const data = {
     post_id: req.params.id,
     user_id: req.body.user_id,
-    reason:  req.body.reason
+    reason:  req.body.reason,
+    description: req.body.description || ''
   };
 
   insertReport(data)
     .then((result) => res.status(201).json(result))
     .catch((error) => {
-      // Unique constraint violation if user already reported this post
       if (error.code === '23505') {
         return res.status(409).json({ message: 'You have already reported this post.' });
       }
