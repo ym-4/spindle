@@ -33,8 +33,6 @@ function switchAuthTab(tab) {
   if (verifyForm) verifyForm.classList.remove('is-active');
   const msg = document.getElementById('authMessage');
   if (msg) showMessage(msg, '');
-  const title = document.querySelector('.auth-modal__panel h1');
-  if (title) title.textContent = tab === 'register' ? 'REGISTER' : 'LOGIN';
 }
 
 function showVerifyStep(email, previewCode, step = 'register') {
@@ -125,14 +123,13 @@ async function handleRegister(event) {
   const msg = document.getElementById('authMessage');
   const name = document.getElementById('registerName').value.trim();
   const email = document.getElementById('registerEmail').value.trim();
-  const country = document.getElementById('registerCountry')?.value || '';
   const password = document.getElementById('registerPassword').value;
 
   try {
     showMessage(msg, 'Creating account and sending Gmail code...', '');
     const data = await authFetch('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, country, password }),
+      body: JSON.stringify({ name, email, password }),
     });
     if (data.needsVerification) {
       showVerifyStep(data.email, data.previewCode, 'register');
@@ -217,8 +214,7 @@ function initAuth() {
 
   const params = new URLSearchParams(window.location.search);
   if (params.get('login') === '1' && !isLoggedIn()) {
-    const tab = params.get('register') === 'true' ? 'register' : 'login';
-    openAuthModal(tab);
+    openAuthModal(params.get('tab') === 'register' ? 'register' : 'login');
   }
   if (isLoggedIn() && params.get('return')) {
     window.location.replace(getPostLoginRedirect(user));
@@ -242,3 +238,14 @@ function initAuth() {
 }
 
 document.addEventListener('DOMContentLoaded', initAuth);
+
+function handleLogout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('loggedInUserId');
+    localStorage.removeItem('pineappleUser');
+    localStorage.removeItem('pineappleToken');
+    localStorage.removeItem('displayName');
+    
+    // Redirect to login page
+    window.location.href = 'login.html';
+}

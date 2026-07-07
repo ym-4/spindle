@@ -98,7 +98,6 @@ router.post('/register', async (req, res, next) => {
     await Auth.createUser({
       name: name.trim(),
       email: email.trim().toLowerCase(),
-      country: (country || '').trim(),
       password,
       avatar: null,
     });

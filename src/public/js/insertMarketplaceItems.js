@@ -27,29 +27,55 @@ function addListing(seller_id, id, name, description, price) {
     </div>
   `;
 
-  card.querySelector(".add-to-cart-btn").addEventListener("click", () => {
-    let amount = card.querySelector(".qty-input").value;
+  card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
+    let amount = card.querySelector('.qty-input').value;
     addToCart(seller_id, id, localStorage.loggedInUserId, amount);
   });
   container.appendChild(card);
 }
 
 // Fetch all marketplace items
+
+const container = document.getElementById('listings-container');
+const emptyState = document.getElementById('no-listings-state');
+
+const LISTINGS_PER_PAGE = 20;
+let currentPage = 1;
+
 async function loadListings() {
-  const container = document.getElementById('listings-container');
-  if (!container) return;
-  container.innerHTML = '<div class="text-center text-muted py-5"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading listings...</div>';
-  fetchMethod(`${getApiBase()}/marketplace/`, (status, data) => {
-    if (status === 200 && Array.isArray(data) && data.length > 0) {
-      container.innerHTML = '';
-      data.forEach(item => {
-        addListing(item.seller_id, item.id, item.name, item.description, item.price);
-      });
-    } else if (status === 200) {
-      container.innerHTML = '<div class="text-center text-muted py-5"><i class="fas fa-store fa-2x mb-2 d-block"></i>No listings available yet.</div>';
+  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
+    if (status === 200) {
+      if (data.length == 0 || !data) {
+        emptyState.classList.remove('d-none');
+      } else {
+        emptyState.classList.add('d-none');
+        for (i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
+          addListing(
+            data[i].seller_id,
+            data[i].id,
+            data[i].name,
+            data[i].description,
+            data[i].price,
+          );
+        }
+      }
     } else {
-      console.error("Failed to load listings:", status, data);
-      container.innerHTML = '<div class="text-center text-danger py-5"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Could not load listings. Please try again later.</div>';
+      console.error('Failed to load listings:', status, data);
+    }
+  });
+}
+
+// Fetch users Listings
+async function loadUserListings() {
+  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
+    if (status === 200) {
+      data.forEach((item) => {
+        if (item.seller_id == localStorage.loggedInUserId) {
+          addListing(item.seller_id, item.id, item.name, item.description, item.price);
+        }
+      });
+    } else {
+      console.error('Failed to load listings:', status, data);
     }
   });
 }
@@ -85,20 +111,20 @@ function addCartItem(seller_id, id, name, description, price, quantity) {
     </div>
   `;
 
-  card.querySelector(".remove-btn").addEventListener("click", () => {
+  card.querySelector('.remove-btn').addEventListener('click', () => {
     removeFromCart(id, localStorage.loggedInUserId);
     location.reload();
   });
 
-  card.querySelector('.edit-btn').addEventListener("click", () => {
-    const modal = document.getElementById("editCartModal");
+  card.querySelector('.edit-btn').addEventListener('click', () => {
+    const modal = document.getElementById('editCartModal');
 
     // Pre-fill the quantity input with the current quantity
-    modal.querySelector("#editQuantity").value = quantity;
+    modal.querySelector('#editQuantity').value = quantity;
 
     // Save button handler
-    modal.querySelector("#editSaveBtn").onclick = () => {
-      const newQuantity = parseInt(modal.querySelector("#editQuantity").value);
+    modal.querySelector('#editSaveBtn').onclick = () => {
+      const newQuantity = parseInt(modal.querySelector('#editQuantity').value);
       if (newQuantity < 1) {
         newQuantity = 1;
       }
@@ -119,10 +145,9 @@ function updateSummary() {
   const inputs = document.querySelectorAll('.card-price');
   let subtotal = 0;
 
-  inputs.forEach(card => {
+  inputs.forEach((card) => {
     const price = parseFloat(card.textContent.replace('$', ''));
     const quantity = Number(document.querySelector('.card-quantity').innerHTML);
-    console.log(quantity);
     subtotal += price * quantity;
   });
 
@@ -131,35 +156,64 @@ function updateSummary() {
 }
 
 async function loadCart() {
-  const container = document.querySelector('.cart-container');
-  fetchMethod(`${getApiBase()}/cart/${localStorage.loggedInUserId}`, (status, data) => {
-    if (status === 200 && Array.isArray(data) && data.length > 0) {
-      data.forEach(item => {
-        fetchMethod(`${getApiBase()}/marketplace/${item.item_id}`, (cartStatus, cartData) => {
-          if (cartStatus == 200) {
-            addCartItem(cartData.seller_id, cartData.id, cartData.name, cartData.description, cartData.price, item.amount)
-          }
-        }, "GET");
-      });
-    } else if (status === 200) {
-      if (container) container.innerHTML = '<div class="text-center text-muted py-5"><i class="fas fa-shopping-cart fa-2x mb-2 d-block"></i>Your cart is empty.</div>';
+  fetchMethod(`http://localhost:3000/cart/${localStorage.loggedInUserId}`, (status, data) => {
+    const emptyState = document.getElementById('empty-cart-state');
+
+    if (data.length == 0 || !data) {
+      emptyState.classList.remove('d-none');
     } else {
-      console.error("Failed to load cart:", status, data);
+      emptyState.classList.add('d-none');
+    }
+
+    if (status === 200) {
+      data.forEach((item) => {
+        fetchMethod(
+          `http://localhost:3000/marketplace/${item.item_id}`,
+          (cartStatus, cartData) => {
+            if (status == 200) {
+              addCartItem(
+                cartData.seller_id,
+                cartData.id,
+                cartData.name,
+                cartData.description,
+                cartData.price,
+                item.amount,
+              );
+            }
+          },
+          'GET',
+        );
+      });
+    } else {
+      console.error('Failed to load cart:', status, data);
     }
   });
 
-  const checkoutButton = document.querySelector('.checkout-btn');
-  if (checkoutButton) {
-    checkoutButton.addEventListener("click", () => {
-      clearCart(localStorage.loggedInUserId);
-      location.reload();
-    })
-  }
+  checkoutButton = document.querySelector('.checkout-btn');
+  checkoutButton.addEventListener('click', () => {
+    clearCart(localStorage.loggedInUserId);
+    location.reload();
+  });
 }
 
 // Insert the correct items based on the name of the document ;-D
-if (document.title.startsWith("Marketplace")) {
+if (document.title == 'Marketplace') {
+  document.getElementById('prev-page-btn').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      container.innerHTML = '';
+      loadListings();
+    }
+  });
+  document.getElementById('next-page-btn').addEventListener('click', () => {
+    currentPage++;
+    container.innerHTML = '';
+    loadListings();
+  });
+
   loadListings();
-} else if (document.title == "Cart") {
+} else if (document.title == 'Cart') {
   loadCart();
+} else if (document.title == 'Marketplace - Your Listings') {
+  loadUserListings();
 }

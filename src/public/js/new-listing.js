@@ -1,8 +1,8 @@
 // ── Character counters ──
 const titleInput = document.getElementById('listingTitle');
-const descInput  = document.getElementById('listingDescription');
+const descInput = document.getElementById('listingDescription');
 const titleCount = document.getElementById('titleCount');
-const descCount  = document.getElementById('descCount');
+const descCount = document.getElementById('descCount');
 
 titleInput.addEventListener('input', () => {
   titleCount.textContent = titleInput.value.length;
@@ -32,14 +32,21 @@ form.addEventListener('submit', (e) => {
     return;
   }
 
-  // TODO: add API call here
-
   let data = {
     seller_id: localStorage.loggedInUserId,
-    name:        titleInput.value.trim(),
+    name: titleInput.value.trim(),
     description: descInput.value.trim(),
-    price:       parseFloat(document.getElementById('listingPrice').value),
-  }
+    price: parseFloat(document.getElementById('listingPrice').value),
+    quality: "Brand New",
+    meetup: "Dover MRT",
+  };
 
-  fetchMethod(`${getApiBase()}/marketplace/`, (status, data) => {console.log(status, data)}, "POST", data);
+  fetchMethod(
+    `http://localhost:3000/marketplace/`,
+    (status, data) => {
+      console.log(status, data);
+    },
+    'POST',
+    data,
+  );
 });

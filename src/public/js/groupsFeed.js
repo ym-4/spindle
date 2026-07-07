@@ -136,17 +136,16 @@ window.addEventListener("DOMContentLoaded", async () => {
     school = localStorage.getItem("school");
     // Get stored user
     userId = localStorage.getItem("loggedInUserId");
+    // Get stored group
+    groupId = localStorage.getItem("groupId");
     // Get stored token
     token = localStorage.getItem('token');
 
     // redirect to login if no token
     if (token == null) {
-        window.location.href = "home.html?login=1";
-    }
+        window.location.href = "login.html";
 
-    // Read groupId from URL params first, then fall back to localStorage
-    const urlParams = new URLSearchParams(window.location.search);
-    groupId = urlParams.get('groupId') || localStorage.getItem("groupId");
+    }
 
     try {
         // Fetch data
@@ -160,35 +159,20 @@ window.addEventListener("DOMContentLoaded", async () => {
         // Fetch user data 
         await fetchAllUsers();
 
-        if (channels && channels.length > 0) {
-            // Fetch group discussion for first group channel
-            await fetchGroupDiscussionByChannel(channels[0]);
-            currChannel = channels[0];
+        // Fetch group discussion for first group channel
+        await fetchGroupDiscussionByChannel(channels[0]);
+        currChannel = channels[0];
 
-            // Display data 
-            displayChannelSidebar(channels);
-            displayChannelMessages(currChannelMessages);
-
-            // Add event listeners
-            addEventListenerToChannels(channels);
-            addEventListenerToSendMessageButton();
-            addEventListenerToMessages();
-        } else {
-            currChannel = null;
-            document.getElementById("channel-container").innerHTML = '<div class="text-muted small text-center py-3">No channels yet</div>';
-            const msgContainer = document.getElementById("message-container");
-            if (msgContainer) msgContainer.innerHTML = '';
-            const messageDiv = document.getElementById("messageDiv");
-            if (messageDiv) messageDiv.innerHTML = '';
-            const channelHeader = document.getElementById("channelHeader");
-            if (channelHeader) channelHeader.innerText = "# No channels";
-        }
-
-        // Display data (always shown)
+        // Display data 
+        displayChannelSidebar(channels);
+        displayChannelMessages(currChannelMessages);
         displayGroupDetails();
         displayAdmins();
-
-        // Add event listeners (always needed)
+        
+        // Add event listeners
+        addEventListenerToChannels(channels);
+        addEventListenerToSendMessageButton();
+        addEventListenerToMessages();
         addEventListenerToCreateChannelButton();
         addEventListenerToLeaveButton();
         addEventListenerToMembersButton();
@@ -196,8 +180,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     } catch (err) {
         console.error(err);
-        const msg = err?.message || err?.type || (typeof err === 'string' ? err : 'Unknown error');
-        alert(`Error: ${msg}`);
+        alert("Error occured");
     }
 
     console.log('messages', currChannelMessages);
@@ -835,7 +818,7 @@ function displayMemberSearchResults(results) {
 // Gets the channels for the group
 async function fetchGroupChannels() {
    return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/messages/channels/${groupId}`;
+        const url = `http://localhost:3000/groups/messages/channels/${groupId}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("fetchGroupDiscussionChannels", responseData);
@@ -847,7 +830,7 @@ async function fetchGroupChannels() {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             } else {
                 reject(responseData);
@@ -861,7 +844,7 @@ async function fetchGroupChannels() {
 // Fetch messages by channel
 async function fetchGroupDiscussionByChannel(channel_name) {
    return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/messages/channel/${groupId}/${channel_name}`;
+        const url = `http://localhost:3000/groups/messages/channel/${groupId}/${channel_name}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("fetchGroupDiscussionByChannel", responseData);
@@ -873,7 +856,7 @@ async function fetchGroupDiscussionByChannel(channel_name) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             } else {
                 reject(responseData);
@@ -886,7 +869,7 @@ async function fetchGroupDiscussionByChannel(channel_name) {
 
 async function fetchGroupDiscussionMatch(matchString) {
    return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/messages/match/${groupId}/${currChannel}/${matchString}`;
+        const url = `http://localhost:3000/groups/messages/match/${groupId}/${currChannel}/${matchString}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("fetchGroupDiscussionMatch", responseData);
@@ -896,7 +879,7 @@ async function fetchGroupDiscussionMatch(matchString) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             } else {
                 reject(responseData);
@@ -909,7 +892,7 @@ async function fetchGroupDiscussionMatch(matchString) {
 
 async function fetchAllUsers() {
    return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/persons`;
+        const url = `http://localhost:3000/persons`;
 
         const callback = (responseStatus, responseData) => {
             console.log("fetchAllUsers", responseData);
@@ -920,7 +903,7 @@ async function fetchAllUsers() {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             } else {
                 reject(responseData);
@@ -934,7 +917,7 @@ async function fetchAllUsers() {
 // Fetch group details
 async function fetchGroupByGroupId() {
    return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/group/${groupId}`;
+        const url = `http://localhost:3000/groups/group/${groupId}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("fetchGroupByGroupId", responseData);
@@ -945,7 +928,7 @@ async function fetchGroupByGroupId() {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             } else {
                 reject(responseData);
@@ -959,7 +942,7 @@ async function fetchGroupByGroupId() {
 // Fetch group members
 async function fetchGroupMembers() {
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/joined/${groupId}`;
+        const url = `http://localhost:3000/groups/joined/${groupId}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("fetchGroupMembers", responseData);
@@ -970,7 +953,7 @@ async function fetchGroupMembers() {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             } else {
                 reject(responseData);
@@ -988,7 +971,7 @@ async function fetchGroupMembers() {
 async function createGroupDiscussionChannel(channel_name) {
 
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/messages/channel/${userId}`;
+        const url = `http://localhost:3000/groups/messages/channel/${userId}`;
 
         const data = {
             group_id: groupId, 
@@ -1004,7 +987,7 @@ async function createGroupDiscussionChannel(channel_name) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             // name conflict
             } else if (responseStatus == 409) {
@@ -1041,7 +1024,7 @@ async function createGroupDiscussionChannel(channel_name) {
 async function createGroupDiscussionMessage(message) {
 
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/messages/send/${userId}`;
+        const url = `http://localhost:3000/groups/messages/send/${userId}`;
 
         const data = {
             group_id: groupId, 
@@ -1058,7 +1041,7 @@ async function createGroupDiscussionMessage(message) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             // bad request: missing info
             } else if (responseStatus == 400) {
@@ -1088,7 +1071,7 @@ async function createGroupDiscussionMessage(message) {
 async function updateGroupDiscussionMessage(messageId, newMessage) {
 
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/messages/edit/${userId}`;
+        const url = `http://localhost:3000/groups/messages/edit/${userId}`;
 
         const data = {
             id: messageId, 
@@ -1104,7 +1087,7 @@ async function updateGroupDiscussionMessage(messageId, newMessage) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             // bad request: missing info
             } else if (responseStatus == 400) {
@@ -1133,7 +1116,7 @@ async function updateGroupDiscussionMessage(messageId, newMessage) {
 async function deleteGroupDiscussionMessage(messageId) {
 
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/messages/delete/${userId}`;
+        const url = `http://localhost:3000/groups/messages/delete/${userId}`;
 
         const data = {
             id: messageId
@@ -1148,7 +1131,7 @@ async function deleteGroupDiscussionMessage(messageId) {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             // bad request: missing info
             } else if (responseStatus == 400) {
@@ -1188,7 +1171,7 @@ async function deleteGroupMembership() {
     };
 
     return new Promise((resolve, reject) => {
-        const url = `${currentUrl}/groups/leave/${data.group_id}`;
+        const url = `http://localhost:3000/groups/leave/${data.group_id}`;
 
         const callback = (responseStatus, responseData) => {
             console.log("deleteGroupMembership", responseData);
@@ -1199,7 +1182,7 @@ async function deleteGroupMembership() {
 
             // Token expired
             } else if (responseStatus == 401) {
-                window.location.href = 'home.html?login=1';
+                window.location.href = './login.html';
 
             // user cannot leave 
             } else if (responseStatus == 409) {
@@ -1238,53 +1221,57 @@ async function deleteGroupMembership() {
 
 function addEventListenerToChannels(channels) {
     channels.forEach(channel => {
-        const el = document.getElementById(channel);
-        if (el) el.addEventListener("click", (e) => handleChannelClicked(e));
+        // document.getElementById(channel).removeEventListener("click", (e) => handleChannelClicked(e)); 
+        document.getElementById(channel).addEventListener("click", (e) => handleChannelClicked(e));
     })
 }
 
 function addEventListenerToSendMessageButton() {
-    const el = document.getElementById("sendChatBtn");
-    if (el) el.addEventListener("click", handleSendMessageClicked);
+    // document.getElementById("sendChatBtn").removeEventListener("click", handleSendMessageClicked); 
+    document.getElementById("sendChatBtn").addEventListener("click", handleSendMessageClicked);
 }
 
 function addEventListenerToMessages() {
     currChannelMessages.forEach(message => {
-        const el = document.getElementById(message.id);
-        if (el) el.addEventListener("click", (e) => handleMessageClicked(e));
+        // document.getElementById(message.id).removeEventListener("click", (e) => handleMessageClicked(e));
+        document.getElementById(message.id).addEventListener("click", (e) => handleMessageClicked(e));
     })
 }
 
 function addEventListenerToMessageOptionsButton() {
-    const saveBtn = document.getElementById("saveMessageBtn");
-    if (saveBtn) saveBtn.addEventListener("click", handleSaveMessageButton);
-    const deleteBtn = document.getElementById("deleteMessageBtn");
-    if (deleteBtn) deleteBtn.addEventListener("click", handleDeleteMessageButton);
+    // document.getElementById("saveMessageBtn").removeEventListener("click", handleSaveMessageButton);
+    document.getElementById("saveMessageBtn").addEventListener("click", handleSaveMessageButton);
+
+    // document.getElementById("deleteMessageBtn").removeEventListener("click", handleDeleteMessageButton);
+    document.getElementById("deleteMessageBtn").addEventListener("click", handleDeleteMessageButton);
 }
 
 function addEventListenerToCreateChannelButton() {
-    const el = document.getElementById("createChannelBtn");
-    if (el) el.addEventListener("click", handlecreateChannelButtonClicked);
+    // document.getElementById("saveMessageBtn").removeEventListener("click", handleSaveMessageButton);
+    document.getElementById("createChannelBtn").addEventListener("click", handlecreateChannelButtonClicked);
+
 }
 
 function addEventListenerToCreateNewChannelButton() {
-    const el = document.getElementById("createNewChannelBtn");
-    if (el) el.addEventListener("click", handleCreateNewChannelButtonClicked);
+    // document.getElementById("createNewChannelBtn").removeEventListener("click", handleCreateNewChannelButtonClicked);
+    document.getElementById("createNewChannelBtn").addEventListener("click", handleCreateNewChannelButtonClicked);
+
 }
 
 function addEventListenerToLeaveButton() {
-    const el = document.getElementById("leaveButton");
-    if (el) el.addEventListener("click", handleLeaveButtonClicked);
+    // document.getElementById("leaveButton").removeEventListener("click", handleLeaveButtonClicked);
+    document.getElementById("leaveButton").addEventListener("click", handleLeaveButtonClicked);
+
 }
 
 function addEventListenerToMembersButton() {
-    const el = document.getElementById("membersButton");
-    if (el) el.addEventListener("click", handleMembersButtonClicked);
+    // document.getElementById("membersButton").removeEventListener("click", handleMembersButtonClicked);
+    document.getElementById("membersButton").addEventListener("click", handleMembersButtonClicked);
+
 }
 
 function addEventListenerToMemberSearch() {
-    const el = document.getElementById("searchMemberInput");
-    if (el) el.addEventListener("input", (e) => {handleMemberSearch(e)});
+    document.getElementById("searchMemberInput").addEventListener("input", (e) => {handleMemberSearch(e)});
 }
 
 // -------------------------------------------------------------------------------------

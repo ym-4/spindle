@@ -11,7 +11,7 @@ const jwt = require("jsonwebtoken");
 //////////////////////////////////////////////////////
 // SET JWT CONFIGURATION
 //////////////////////////////////////////////////////
-const secretKey = process.env.JWT_SECRET_KEY || 'dev-jwt-secret-change-me';
+const secretKey = process.env.JWT_SECRET_KEY;
 const tokenDuration = process.env.JWT_EXPIRES_IN;
 const tokenAlgorithm = process.env.JWT_ALGORITHM;
 
@@ -77,8 +77,8 @@ module.exports.verifyToken = (req, res, next) => {
       return res.status(401).json({ error: "Invalid token" });
     }
 
-    res.locals.userId = decoded.userId || decoded.id;
-    res.locals.tokenTimestamp = decoded.timestamp || decoded.iat;
+    res.locals.userId = decoded.userId;
+    res.locals.tokenTimestamp = decoded.timestamp;
 
     next();
   };
