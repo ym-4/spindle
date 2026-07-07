@@ -36,13 +36,20 @@ function addListing(seller_id, id, name, description, price) {
 
 // Fetch all marketplace items
 async function loadListings() {
-  fetchMethod("http://localhost:3000/marketplace/", (status, data) => {
-    if (status === 200) {
+  const container = document.getElementById('listings-container');
+  if (!container) return;
+  container.innerHTML = '<div class="text-center text-muted py-5"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading listings...</div>';
+  fetchMethod(`${getApiBase()}/marketplace/`, (status, data) => {
+    if (status === 200 && Array.isArray(data) && data.length > 0) {
+      container.innerHTML = '';
       data.forEach(item => {
         addListing(item.seller_id, item.id, item.name, item.description, item.price);
       });
+    } else if (status === 200) {
+      container.innerHTML = '<div class="text-center text-muted py-5"><i class="fas fa-store fa-2x mb-2 d-block"></i>No listings available yet.</div>';
     } else {
       console.error("Failed to load listings:", status, data);
+      container.innerHTML = '<div class="text-center text-danger py-5"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Could not load listings. Please try again later.</div>';
     }
   });
 }
@@ -124,29 +131,34 @@ function updateSummary() {
 }
 
 async function loadCart() {
-  fetchMethod(`http://localhost:3000/cart/${localStorage.loggedInUserId}`, (status, data) => {
-    if (status === 200) {
+  const container = document.querySelector('.cart-container');
+  fetchMethod(`${getApiBase()}/cart/${localStorage.loggedInUserId}`, (status, data) => {
+    if (status === 200 && Array.isArray(data) && data.length > 0) {
       data.forEach(item => {
-        fetchMethod(`http://localhost:3000/marketplace/${item.item_id}`, (cartStatus, cartData) => {
-          if (status == 200) {
+        fetchMethod(`${getApiBase()}/marketplace/${item.item_id}`, (cartStatus, cartData) => {
+          if (cartStatus == 200) {
             addCartItem(cartData.seller_id, cartData.id, cartData.name, cartData.description, cartData.price, item.amount)
           }
         }, "GET");
       });
+    } else if (status === 200) {
+      if (container) container.innerHTML = '<div class="text-center text-muted py-5"><i class="fas fa-shopping-cart fa-2x mb-2 d-block"></i>Your cart is empty.</div>';
     } else {
       console.error("Failed to load cart:", status, data);
     }
   });
 
-  checkoutButton = document.querySelector('.checkout-btn');
-  checkoutButton.addEventListener("click", () => {
-    clearCart(localStorage.loggedInUserId);
-    location.reload();
-  })
+  const checkoutButton = document.querySelector('.checkout-btn');
+  if (checkoutButton) {
+    checkoutButton.addEventListener("click", () => {
+      clearCart(localStorage.loggedInUserId);
+      location.reload();
+    })
+  }
 }
 
 // Insert the correct items based on the name of the document ;-D
-if (document.title == "Marketplace") {
+if (document.title.startsWith("Marketplace")) {
   loadListings();
 } else if (document.title == "Cart") {
   loadCart();

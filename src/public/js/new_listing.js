@@ -41,5 +41,5 @@ form.addEventListener('submit', (e) => {
     price:       parseFloat(document.getElementById('listingPrice').value),
   }
 
-  fetchMethod(`http://localhost:3000/marketplace/`, (status, data) => {console.log(status, data)}, "POST", data);
+  fetchMethod(`${getApiBase()}/marketplace/`, (status, data) => {console.log(status, data)}, "POST", data);
 });

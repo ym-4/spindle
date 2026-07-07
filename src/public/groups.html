@@ -6,10 +6,7 @@
     <!-- CSS files -->
     <link rel="stylesheet" href="css/groups.css">
     <link rel="stylesheet" href="css/posts.css">
-    <link rel="stylesheet" href="css/spindle-notif.css">
-    <link rel="stylesheet" href="css/profile-page.css">
-    <script src="js/api.js"></script>
-    
+    <link rel="stylesheet" href="css/wa.css">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -17,6 +14,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
+
+    <!-- JS files -->
+    <script src="js/api.js"></script>
+    <script src="js/getCurrentURL.js"></script>
+    <script src="js/page-guard.js" data-require-login data-return="groups.html" defer></script>
+    <script src="js/queryCmds.js"></script>
+    <script src="js/userNavBarToggle.js"></script>
+    <script src="js/groups.js" defer></script>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"/>
@@ -41,14 +46,20 @@
                     placeholder="Search posts, groups, items..." aria-label="Search">
             </div>
 
+            
             <div class="navbar-right">
                 <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
-                <a href="profile.html" class="btn-navbar-profile" id="profileButton">
+
+                <!-- Login + Sign Up displayed (no token)-->
+                <a href="home.html?login=1&return=groups.html" class="btn-navbar-login d-none" id="loginButton">Log In</a>
+                <a href="home.html?login=1&return=groups.html" class="btn-navbar-signup d-none" id="registerButton">Sign Up</a>
+
+                <!-- Profile + Logout displayed (token)-->
+                <a href="profile.html" class="btn-navbar-profile d-none" id="profileButton">
                     <i class="fas fa-user-circle"></i> Profile
                 </a>
-                <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+                <button class="btn-navbar-logout d-none" id="logoutButton">Log Out</button>
             </div>
-    </div>
 
         </div>
     </nav>
@@ -76,18 +87,18 @@
             
             <div class="sidebar-divider"></div>
             
-            <div class="sidebar-item">
+            <a href="saved.html" class="sidebar-item">
                 <i class="fas fa-bookmark"></i>
                 <span>Saved Posts</span>
-            </div>
-            <div class="sidebar-item">
+            </a>
+            <a href="index.html" class="sidebar-item">
                 <i class="fas fa-clock"></i>
                 <span>Recent</span>
-            </div>
-            <div class="sidebar-item">
+            </a>
+            <a href="settings.html" class="sidebar-item">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
-            </div>
+            </a>
         </aside>
 
         <!-- MAP -->
@@ -196,22 +207,14 @@
 
     </div>
 
+
+
+
     <!-- Copy footer over from home page -->
+
+    <script src="js/spindle-page.js"></script>
     <script src="js/wa-nav.js"></script>
-    <script src="js/socket-client.js"></script>
     <script src="js/spindle-sidebar.js"></script>
-    <script src="js/groups.js" defer></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof injectWaHeader === 'function') {
-                injectWaHeader('Study Groups');
-            }
-            if (typeof injectNotificationsOnly === 'function') {
-                injectNotificationsOnly('spindleNotifSlot');
-            }
-        });
-    </script>
-    
 </body>
 
 </html>

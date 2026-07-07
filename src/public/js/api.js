@@ -158,6 +158,14 @@ function getWsUrl() {
   return `${proto}//${url.host}/ws`;
 }
 
+const THEME_STORAGE_KEY = 'spindleTheme';
+
+function applyStoredTheme() {
+  document.documentElement.dataset.theme = 'light';
+  try { localStorage.removeItem(THEME_STORAGE_KEY); } catch {}
+}
+applyStoredTheme();
+
 function mediaUrl(path) {
   if (!path) return '';
   if (path.startsWith('http')) return path;

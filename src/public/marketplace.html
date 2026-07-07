@@ -1,213 +1,137 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-
-    <title>Marketplace</title>
-
-    <!-- CSS -->
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet"/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
-    />
-    <link href="css/posts.css" rel="stylesheet" />
-    <link rel="stylesheet" href="css/auth.css" />
-    <link rel="stylesheet" href="css/temp.css">
-    <link rel="stylesheet" href="css/marketplace.css">
-    <link rel="stylesheet" href="css/spindle-notif.css">
-    <link rel="stylesheet" href="css/profile-page.css">
-  
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace - Spindle</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Google Fonts -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
-
-    <!-- JS -->
+    <link rel="stylesheet" href="css/posts.css">
+    <link rel="stylesheet" href="css/temp.css">
+    <link rel="stylesheet" href="css/spindle-notif.css">
+    <link rel="stylesheet" href="css/wa.css">
     <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/wa-nav.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        updateNavForUser(getStoredUser());
-        syncLegacyNavbar();
-      });
-    </script>
-
-
-  </head>
-
-  <body class="" data-page="marketplace">
-
+    <script src="js/page-guard.js" data-require-login data-return="marketplace.html"></script>
+</head>
+<body data-page="marketplace">
     <!-- Navigation-->
     <nav class="navbar">
         <div class="container-fluid px-4 d-flex align-items-center">
+            <!-- Brand (left) -->
+            <a class="navbar-brand" href="index.html">
+                <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
+                <span class="brand-name">spindle</span>
+            </a>
 
-        <!-- Brand (left) -->
-        <a class="navbar-brand" href="index.html">
-          <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
-          <span class="brand-name">spindle</span>
-        </a>
-
-        <div class="navbar-right">
-                <!-- Cart -->
-                <a href="cart.html" class="btn-navbar-login">Cart</a>
-                <!-- Cart -->
-                <a href="create_listing.html" class="btn-navbar-login">+New Lising</a>
-                
+            <div class="navbar-right">
                 <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
-                <a href="home.html?login=1&tab=login&return=marketplace.html" class="btn-navbar-login" id="loginButton">Log In</a>
-                <a href="home.html?login=1&tab=register&return=marketplace.html" class="btn-navbar-signup" id="registerButton">Sign Up</a>
+
+                <!-- Login + Sign Up displayed (no token)-->
+                <a href="home.html?login=1&return=marketplace.html" class="btn-navbar-login d-none" id="loginButton">Log In</a>
+                <a href="home.html?login=1&return=marketplace.html" class="btn-navbar-signup d-none" id="registerButton">Sign Up</a>
+
+                <!-- Profile + Logout displayed (token)-->
                 <a href="profile.html" class="btn-navbar-profile d-none" id="profileButton">
                     <i class="fas fa-user-circle"></i> Profile
                 </a>
-                <button class="btn-navbar-logout d-none" id="logoutButton" type="button">Log Out</button>
+                <button class="btn-navbar-logout d-none" id="logoutButton">Log Out</button>
             </div>
-      </div>
+        </div>
     </nav>
 
     <!-- Main Container -->
     <div class="main-container">
-      <!-- Left Sidebar -->
-      <aside class="sidebar">
-          <a href="index.html" class="sidebar-item">
-              <i class="fas fa-home"></i>
-              <span>Home</span>
-          </a>
-          <a href="groups.html" class="sidebar-item">
-              <i class="fas fa-users"></i>
-              <span>Study Groups</span>
-          </a>
-          <a href="marketplace.html" class="sidebar-item active">
-              <i class="fas fa-store"></i>
-              <span>Marketplace</span>
-          </a>
-          <a href="profile.html" class="sidebar-item">
-              <i class="fas fa-user"></i>
-              <span>Profile</span>
-          </a>
-          
-          <div class="sidebar-divider"></div>
-          
-          <div class="sidebar-item">
-              <i class="fas fa-bookmark"></i>
-              <span>Saved Posts</span>
-          </div>
-          <div class="sidebar-item">
-              <i class="fas fa-clock"></i>
-              <span>Recent</span>
-          </div>
-          <div class="sidebar-item">
-              <i class="fas fa-cog"></i>
-              <span>Settings</span>
-          </div>
-          
-          <div class="sidebar-divider"></div>
-          
-          <h6 class="px-3 mt-3 mb-2 text-muted" style="font-size: 0.85rem; font-weight: 600;">YOUR GROUPS</h6>
-          <div class="sidebar-item">
-              <i class="fas fa-circle" style="font-size: 0.5rem; color: #42b72a;"></i>
-              <span>CS101 Study Group</span>
-          </div>
-          <div class="sidebar-item">
-              <i class="fas fa-circle" style="font-size: 0.5rem; color: #1877f2;"></i>
-              <span>Math Assignment Help</span>
-          </div>
-          <div class="sidebar-item">
-              <i class="fas fa-plus-circle"></i>
-              <span>See all groups</span>
-          </div>
-      </aside>
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <a href="index.html" class="sidebar-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="groups.html" class="sidebar-item">
+                <i class="fas fa-users"></i>
+                <span>Study Groups</span>
+            </a>
+            <a href="marketplace.html" class="sidebar-item active">
+                <i class="fas fa-store"></i>
+                <span>Marketplace</span>
+            </a>
+            <a href="profile.html" class="sidebar-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
 
-      <main id="content-area">
-        <!-- Header-->
-        <header class="bg-dark py-5">
-          <div class="container px-4 px-lg-5 my-5">
-            <div class="text-center text-white">
-              <h1 class="display-4 fw-bolder">SP Marketplace</h1>
-              <p class="lead fw-normal text-white-50 mb-0">Shop to your heart's content</p>
-            </div>
-          </div>
-        </header>
-        <!-- Section-->
-        <section class="py-5">
-          <div class="container px-4 px-lg-5 mt-5">
-            <div
-              id="listings-container"
-              class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center"
-            ></div>
-          </div>
-        </section>
-          <!-- Section-->
-          <section class="py-5">
-            <div class="container px-4 px-lg-5 mt-5">
-              <div
-                id="listings-container"
-                class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center"
-              ></div>
-            </div>
-          </section>
+            <div class="sidebar-divider"></div>
+
+            <a href="saved.html" class="sidebar-item">
+                <i class="fas fa-bookmark"></i>
+                <span>Saved Posts</span>
+            </a>
+            <a href="index.html" class="sidebar-item">
+                <i class="fas fa-clock"></i>
+                <span>Recent</span>
+            </a>
+            <a href="settings.html" class="sidebar-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+
+            <div class="sidebar-divider"></div>
+
+            <h6 class="px-3 mt-3 mb-2 text-muted" style="font-size: 0.85rem; font-weight: 600;">YOUR GROUPS</h6>
+            <div id="yourGroupsContainer"></div>
+        </aside>
+
+        <main id="content-area">
+            <!-- Header-->
+            <header class="bg-dark py-5">
+                <div class="container px-4 px-lg-5 my-5">
+                    <div class="text-center text-white">
+                        <h1 class="display-4 fw-bolder">SP Marketplace</h1>
+                        <p class="lead fw-normal text-white-50 mb-0">Shop to your heart's content</p>
+                    </div>
+                </div>
+            </header>
+            <!-- Section-->
+            <section class="py-5">
+                <div class="container px-4 px-lg-5 mt-5">
+                    <div id="listings-container" class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center"></div>
+                </div>
+            </section>
+            <!-- Footer-->
+            <footer class="py-5 bg-dark">
+                <div class="container">
+                    <p class="m-0 text-center text-white">Copyright &copy; Spindle 2026</p>
+                </div>
+            </footer>
         </main>
-      
     </div>
-
 
     <!-- Modal -->
-    <div
-      class="modal fade"
-      id="addedToCartModal"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="addedToCartModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="addedToCartModalLabel">Item Added to Cart Successfully!</h5>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          </div>
+    <div class="modal fade" id="addedToCartModal" tabindex="-1" role="dialog" aria-labelledby="addedToCartModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addedToCartModalLabel">Item Added to Cart Successfully!</h5>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-      crossorigin="anonymous"
-    ></script>
-    <script src="js/queryCmds.js" type="text/javascript"></script>
-    <script src="js/getCurrentURL.js" type="text/javascript"></script>
-   
-    <script src="js/insertMarketplaceItems.js" type="text/javascript"></script>
-    <script src="js/cartFunctions.js"></script>
-    <script src="js/api.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/queryCmds.js"></script>
+    <script src="js/getCurrentURL.js"></script>
+    <script src="js/spindle-page.js"></script>
     <script src="js/wa-nav.js"></script>
-    <script src="js/socket-client.js"></script>
+    <script src="js/userNavBarToggle.js"></script>
     <script src="js/spindle-sidebar.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof injectWaHeader === 'function') {
-                injectWaHeader('Marketplace');
-            }
-            if (typeof injectNotificationsOnly === 'function') {
-                injectNotificationsOnly('spindleNotifSlot');
-            }
-        });
-    </script>
-  </body>
+    <script src="js/cartFunctions.js"></script>
+    <script src="js/insertMarketplaceItems.js"></script>
+</body>
 </html>

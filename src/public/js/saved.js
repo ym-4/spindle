@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     userId = getStoredUser()?.id;
   }
 
-  loadHotPosts();
+  loadYourGroups(); 
+  loadHotPosts()
 
   if (!token || !userId) {
     showLoginPrompt();
@@ -63,7 +64,11 @@ function loadSavedPosts(userId, token) {
     </div>`;
 
   fetchMethod(`${savedApiBase()}/posts/saved/${userId}`, (status, data) => {
-    if (status !== 200 || !Array.isArray(data) || data.length === 0) {
+    if (status !== 200 || !Array.isArray(data)) {
+      showEmpty();
+      return;
+    }
+    if (data.length === 0) {
       showEmpty();
       return;
     }
@@ -71,17 +76,28 @@ function loadSavedPosts(userId, token) {
     savedRows = data;
 
     fetchMethod(`${savedApiBase()}/posts`, (pStatus, posts) => {
-      if (pStatus !== 200) { showError(); return; }
+      if (pStatus !== 200 || !Array.isArray(posts)) {
+        showError();
+        return;
+      }
 
-      const savedPostIdSet = new Set(data.map(r => parseInt(r.post_id)));
-      const savedPosts = posts.filter(p => savedPostIdSet.has(parseInt(p.id)));
+      loadUserReactions().then(() => {
 
-      if (savedPosts.length === 0) { showEmpty(); return; }
+        const savedPostIdSet = new Set(data.map(r => parseInt(r.post_id)));
+        const savedPosts = posts.filter(p => savedPostIdSet.has(parseInt(p.id)));
 
-      container.innerHTML = '';
-      savedPosts.forEach(post => {
-        const saveRow = savedRows.find(r => parseInt(r.post_id) === parseInt(post.id));
-        container.appendChild(buildSavedPostCard(post, saveRow));
+        if (savedPosts.length === 0) {
+          showEmpty();
+          return;
+        }
+
+        container.innerHTML = '';
+        savedPosts.forEach(post => {
+          const saveRow = savedRows.find(r => parseInt(r.post_id) === parseInt(post.id));
+          container.appendChild(buildSavedPostCard(post, saveRow));
+        });
+      }).catch(function() {
+        showError();
       });
     }, 'GET', null, token);
   });
@@ -245,7 +261,7 @@ function showLoginPrompt() {
     <div class="post-card text-center py-5 text-muted">
       <i class="fas fa-lock fa-2x mb-3 d-block"></i>
       <p class="mb-2 fw-semibold">You need to be logged in to view saved posts.</p>
-      <a href="login.html" class="btn btn-primary btn-sm">Log In</a>
+      <a href="home.html?login=1&return=saved.html" class="btn btn-primary btn-sm">Log In</a>
     </div>`;
 }
 
@@ -294,27 +310,19 @@ function escapeHtml(str) {
 
 // Your Groups 
 function loadYourGroups() {
-  const token = typeof getToken === 'function' ? getToken() : localStorage.getItem('token');
+  const userId  = localStorage.getItem('loggedInUserId');
   const section = document.getElementById('yourGroupsSection');
   const divider = document.getElementById('yourGroupsDivider');
 
-  if (!token) {
-    if (section) section.style.display = 'none';
-    if (divider) divider.style.display = 'none';
-    return;
-  }
+  if (!userId) return;
 
-  if (section) section.style.setProperty('display', 'block', 'important');
-  if (divider) divider.style.setProperty('display', 'block', 'important');
+  if (section) section.style.display = 'block';
+  if (divider) divider.style.display = 'block';
 
-  fetchMethod(`${savedApiBase()}/groups/joined_groups`, (status, data) => {
-    if (status === 401) {
-      console.warn("Unauthorized access to joined groups from saved page.");
-      return;
-    }
+  fetchMethod(`${API_BASE}/groups/creator/${userId}`, (status, data) => {
     if (status !== 200) return;
     renderYourGroups(data || []);
-  }, 'GET', null, token);
+  });
 }
 
 function renderYourGroups(groups) {

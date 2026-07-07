@@ -77,6 +77,121 @@ const reactions = [
 // Example saved posts
 const savedPosts = [{ userEmail: 'heidi@example.com', postTitle: 'General Thoughts' }];
 
+// Example groups
+const groups = [
+  {
+    creatorEmail: 'alice@example.com',
+    name: 'CS101 Study Group',
+    description: 'Weekly discussions and coding practice for CS101.',
+    school: 'SOC',
+    module: 'CS101',
+    public: true,
+  },
+  {
+    creatorEmail: 'bob@example.com',
+    name: 'Math Assignment Help',
+    description: 'Get help with calculus and algebra assignments.',
+    school: 'SMA',
+    module: 'MA1508E',
+    public: true,
+  },
+  {
+    creatorEmail: 'carol@example.com',
+    name: 'EEE Electronics Lab',
+    description: 'Discuss lab work and electronics troubleshooting.',
+    school: 'EEE',
+    module: 'EE2001',
+    public: false,
+  },
+  {
+    creatorEmail: 'dave@example.com',
+    name: 'Business Case Study Team',
+    description: 'Collaborate on business presentations and reports.',
+    school: 'SB',
+    module: 'BU1001',
+    public: true,
+  },
+  {
+    creatorEmail: 'eve@example.com',
+    name: 'Biomedical Science Notes',
+    description: 'Sharing notes and revision materials.',
+    school: 'CLS',
+    module: 'BM2102',
+    public: true,
+  },
+  {
+    name: 'SOC Study Buddies',
+    creatorEmail: 'alice@example.com',
+    description: 'A group for SOC students to revise and share notes.',
+    school: 'SOC',
+    module: 'CS1010',
+    public: true,
+  },
+  {
+    name: 'MAD Project Team',
+    creatorEmail: 'bob@example.com',
+    description: 'Mobile App Development project collaboration group.',
+    school: 'MAD',
+    module: 'CP2106',
+    public: false,
+  },
+  {
+    name: 'EEE Circuit Masters',
+    creatorEmail: 'carol@example.com',
+    description: 'Discuss circuits, labs, and exam prep for EEE modules.',
+    school: 'EEE',
+    module: 'EE2020',
+    public: true,
+  },
+];
+
+// Example group members
+const groupMembers = [
+  // CS101 Study Group
+  { groupName: 'CS101 Study Group', userEmail: 'alice@example.com', role: 'admin' },
+  { groupName: 'CS101 Study Group', userEmail: 'bob@example.com', role: 'user' },
+  { groupName: 'CS101 Study Group', userEmail: 'carol@example.com', role: 'user' },
+
+  // Math Assignment Help
+  { groupName: 'Math Assignment Help', userEmail: 'bob@example.com', role: 'admin' },
+  { groupName: 'Math Assignment Help', userEmail: 'alice@example.com', role: 'user' },
+  { groupName: 'Math Assignment Help', userEmail: 'eve@example.com', role: 'user' },
+
+  // EEE Electronics Lab
+  { groupName: 'EEE Electronics Lab', userEmail: 'carol@example.com', role: 'admin' }, 
+  { groupName: 'EEE Electronics Lab', userEmail: 'frank@example.com', role: 'user' },
+  { groupName: 'EEE Electronics Lab', userEmail: 'grace@example.com', role: 'user' },
+
+  // Business Case Study Team
+  { groupName: 'Business Case Study Team', userEmail: 'dave@example.com', role: 'admin' }, 
+  { groupName: 'Business Case Study Team', userEmail: 'heidi@example.com', role: 'user' },
+  { groupName: 'Business Case Study Team', userEmail: 'ivan@example.com', role: 'user' },
+
+  // Biomedical Science Notes
+  { groupName: 'Biomedical Science Notes', userEmail: 'eve@example.com', role: 'admin' }, 
+  { groupName: 'Biomedical Science Notes', userEmail: 'judy@example.com', role: 'user' },
+  { groupName: 'Biomedical Science Notes', userEmail: 'mallory@example.com', role: 'user' },
+
+  // SOC Study Buddies
+  { groupName: 'SOC Study Buddies', userEmail: 'alice@example.com', role: 'admin' },
+  { groupName: 'SOC Study Buddies', userEmail: 'bob@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'carol@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'beni@example.com', role: 'admin' },
+  { groupName: 'SOC Study Buddies', userEmail: 'emataso@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'hinano@example.com', role: 'user' },
+
+  // MAD Project Team
+  { groupName: 'MAD Project Team', userEmail: 'bob@example.com', role: 'admin' },
+  { groupName: 'MAD Project Team', userEmail: 'dave@example.com', role: 'user' },
+  { groupName: 'MAD Project Team', userEmail: 'eve@example.com', role: 'user' },
+
+  // EEE Circuit Masters
+  { groupName: 'EEE Circuit Masters', userEmail: 'carol@example.com', role: 'admin' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'frank@example.com', role: 'user' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'grace@example.com', role: 'user' },
+];
+
+
 // These seeded items should be moved to the top with the others later, right now I dont wanna be confused.
 const marketplaceItems = [
   {
@@ -127,57 +242,6 @@ const marketplaceItems = [
     description: 'Bundle of essentials: pens, pencils, ruler, eraser, and sharpener.',
     price: 12.0,
   },
-];
-
-// Seed data for groups
-// Example Groups 
-const groups = [
-  {
-    name: 'SOC Study Buddies',
-    creatorEmail: 'alice@example.com',
-    description: 'A group for SOC students to revise and share notes.',
-    school: 'SOC',
-    module: 'CS1010',
-    public: true,
-  },
-  {
-    name: 'MAD Project Team',
-    creatorEmail: 'bob@example.com',
-    description: 'Mobile App Development project collaboration group.',
-    school: 'MAD',
-    module: 'CP2106',
-    public: false,
-  },
-  {
-    name: 'EEE Circuit Masters',
-    creatorEmail: 'carol@example.com',
-    description: 'Discuss circuits, labs, and exam prep for EEE modules.',
-    school: 'EEE',
-    module: 'EE2020',
-    public: true,
-  },
-];
-
-// Example GroupMembers
-const groupMembers = [
-  // SOC group
-  { groupName: 'SOC Study Buddies', userEmail: 'alice@example.com', role: 'admin' },
-  { groupName: 'SOC Study Buddies', userEmail: 'bob@example.com', role: 'user' },
-  { groupName: 'SOC Study Buddies', userEmail: 'carol@example.com', role: 'user' },
-  { groupName: 'SOC Study Buddies', userEmail: 'beni@example.com', role: 'admin' },
-  { groupName: 'SOC Study Buddies', userEmail: 'emataso@example.com', role: 'user' },
-  { groupName: 'SOC Study Buddies', userEmail: 'hinano@example.com', role: 'user' },
-
-
-  // MAD group
-  { groupName: 'MAD Project Team', userEmail: 'bob@example.com', role: 'admin' },
-  { groupName: 'MAD Project Team', userEmail: 'dave@example.com', role: 'user' },
-  { groupName: 'MAD Project Team', userEmail: 'eve@example.com', role: 'user' },
-
-  // EEE group
-  { groupName: 'EEE Circuit Masters', userEmail: 'carol@example.com', role: 'admin' },
-  { groupName: 'EEE Circuit Masters', userEmail: 'frank@example.com', role: 'user' },
-  { groupName: 'EEE Circuit Masters', userEmail: 'grace@example.com', role: 'user' },
 ];
 
 // Example Group Discussions
@@ -426,48 +490,48 @@ async function seed() {
   }
   console.log(`Inserted ${savedPosts.length} saved posts.`);
   
-  // // Insert groups
-  // for (const group of groups) {
-  //   const creatorRes = await pool.query(
-  //     `SELECT id FROM "Person" WHERE email = $1`,
-  //     [group.creatorEmail]
-  //   );
+  // Insert groups
+  for (const group of groups) {
+    const creatorRes = await pool.query(
+      `SELECT id FROM "Person" WHERE email = $1`,
+      [group.creatorEmail]
+    );
 
-  //   if (creatorRes.rows.length > 0) {
-  //     await pool.query(
-  //       `INSERT INTO "Groups"
-  //       ("name", "creator_id", "description", "school", "module", "public")
-  //       VALUES ($1, $2, $3, $4, $5, $6)
-  //       ON CONFLICT ("name") DO NOTHING`,
-  //       [
-  //         group.name,
-  //         creatorRes.rows[0].id,
-  //         group.description,
-  //         group.school,
-  //         group.module,
-  //         group.public,
-  //       ]
-  //     );
-  //   }
-  // }
+    if (creatorRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "Groups"
+        ("name", "creator_id", "description", "school", "module", "public")
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT ("name") DO NOTHING`,
+        [
+          group.name,
+          creatorRes.rows[0].id,
+          group.description,
+          group.school,
+          group.module,
+          group.public,
+        ]
+      );
+    }
+  }
 
-  // console.log(`Inserted ${groups.length} groups.`);
+  console.log(`Inserted ${groups.length} groups.`);
 
-  //   // Insert group members
-  // for (const gm of groupMembers) {
-  //   const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [gm.userEmail]);
-  //   const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [gm.groupName]);
+    // Insert group members
+  for (const gm of groupMembers) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [gm.userEmail]);
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [gm.groupName]);
 
-  //   if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
-  //     await pool.query(
-  //       `INSERT INTO "GroupMembers" ("group_id", "user_id", "role")
-  //        VALUES ($1, $2, $3)
-  //        ON CONFLICT DO NOTHING`,
-  //       [groupRes.rows[0].id, userRes.rows[0].id, gm.role],
-  //     );
-  //   }
-  // }
-  // console.log(`Inserted ${groupMembers.length} group members.`);
+    if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "GroupMembers" ("group_id", "user_id", "role")
+         VALUES ($1, $2, $3)
+         ON CONFLICT DO NOTHING`,
+        [groupRes.rows[0].id, userRes.rows[0].id, gm.role],
+      );
+    }
+  }
+  console.log(`Inserted ${groupMembers.length} group members.`);
 
   // Insert marketplace items
   const sellerRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
@@ -486,52 +550,8 @@ async function seed() {
   }
   console.log(`Inserted ${marketplaceItems.length} marketplace items.`);
 
-
-  // Insert groups
-  for (const group of groups) {
-    const userRes = await pool.query(
-      `SELECT id FROM "Person" WHERE email = $1`,
-      [group.creatorEmail]
-    );
-
-    if (userRes.rows.length > 0) {
-      await pool.query(
-        `INSERT INTO "Groups" ("name", "creator_id", "description", "school", "module")
-         VALUES ($1, $2, $3, $4, $5)`,
-        [group.name, userRes.rows[0].id, group.description, group.school, group.module],
-      );
-    }
-  }
-
-  console.log(`Inserted ${groups.length} groups.`);
-
-  // Insert group members
-  for (const member of groupMembers) {
-    const userRes = await pool.query(
-      `SELECT id FROM "Person" WHERE email = $1`,
-      [member.userEmail]
-    );
-
-    const groupRes = await pool.query(
-      `SELECT id FROM "Groups" WHERE name = $1`,
-      [member.groupName]
-    );
-
-    if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
-      await pool.query(
-        `INSERT INTO "GroupMembers" ("group_id", "user_id", "role")
-        VALUES ($1, $2, $3)
-        ON CONFLICT DO NOTHING`,
-        [groupRes.rows[0].id, userRes.rows[0].id, member.role]
-      );
-    }
-  }
-
-  console.log(`Inserted ${groupMembers.length} group members.`);
-
   // Insert group discussions
   for (const discussion of groupDiscussions) {
-
     const userRes = await pool.query(
       `SELECT id FROM "Person" WHERE email = $1`,
       [discussion.userEmail]
@@ -543,7 +563,6 @@ async function seed() {
     );
 
     if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
-
       await pool.query(
         `INSERT INTO "GroupDiscussions"
         ("group_id", "user_id", "channel_name", "message")
@@ -556,7 +575,6 @@ async function seed() {
           discussion.message
         ]
       );
-
     }
   }
 
