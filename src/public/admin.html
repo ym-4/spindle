@@ -3,30 +3,33 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Campus Hub — Admin</title>
-    <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="css/auth.css" />
-    <link rel="stylesheet" href="css/wa.css" />
+    <title>Admin — Spindle</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .admin-wrapper { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+        .admin-wrapper { max-width: 1400px; margin: 0 auto; padding: 2rem 1rem; }
         .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
         .admin-header h1 { font-size: 1.8rem; font-weight: 700; color: #1a1a2e; margin: 0; }
         .admin-header h1 i { color: #1877f2; margin-right: 0.5rem; }
-        .admin-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e4e6eb; padding-bottom: 0.5rem; }
+        .admin-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e4e6eb; padding-bottom: 0.5rem; flex-wrap: wrap; }
         .admin-tabs .tab-btn { border: none; background: none; padding: 0.6rem 1.2rem; font-weight: 600; color: #65676b; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
         .admin-tabs .tab-btn:hover { background: #e4e6eb; }
         .admin-tabs .tab-btn.active { background: #1877f2; color: #fff; }
-        .admin-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+        .admin-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 1.5rem; }
         .admin-card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #e4e6eb; display: flex; align-items: center; justify-content: space-between; background: #fafafa; }
         .admin-card-header h5 { margin: 0; font-weight: 600; }
         .admin-card-body { padding: 1.5rem; }
+        .stat-card { text-align: center; padding: 1.25rem; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .stat-card .num { font-size: 2rem; font-weight: 800; }
+        .stat-card .trend { font-size: 0.8rem; margin-top: 0.25rem; }
+        .stat-card .label { font-size: 0.85rem; color: #65676b; margin-top: 0.25rem; }
         .admin-table { width: 100%; border-collapse: collapse; }
-        .admin-table th { text-align: left; padding: 0.75rem 0.5rem; font-size: 0.8rem; text-transform: uppercase; color: #65676b; border-bottom: 2px solid #e4e6eb; font-weight: 600; }
+        .admin-table th { text-align: left; padding: 0.75rem 0.5rem; font-size: 0.8rem; text-transform: uppercase; color: #65676b; border-bottom: 2px solid #e4e6eb; font-weight: 600; white-space: nowrap; }
         .admin-table td { padding: 0.75rem 0.5rem; border-bottom: 1px solid #e4e6eb; font-size: 0.9rem; }
         .admin-table tr:hover td { background: #f7f8fa; }
+        .filter-bar { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; padding: 0.75rem; background: #f7f8fa; border-radius: 8px; }
+        .filter-bar select, .filter-bar input { border: 1px solid #ccd0d5; border-radius: 6px; padding: 0.35rem 0.6rem; font-size: 0.85rem; }
         .role-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
         .role-badge--admin { background: #e7f3ff; color: #1877f2; }
         .role-badge--user { background: #f0f2f5; color: #65676b; }
@@ -36,12 +39,16 @@
         .btn-danger-sm:hover { background: #fcc; }
         .btn-edit-sm { background: #e7f3ff; color: #1877f2; }
         .btn-success-sm { background: #e6f9ee; color: #1b9c4b; }
-        .add-user-bar { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; padding: 1rem; background: #f7f8fa; border-radius: 8px; }
-        .add-user-bar input { border: 1px solid #ccd0d5; border-radius: 6px; padding: 0.4rem 0.7rem; font-size: 0.85rem; flex: 1; min-width: 120px; }
-        .add-user-bar select { border: 1px solid #ccd0d5; border-radius: 6px; padding: 0.4rem 0.7rem; font-size: 0.85rem; }
-        .empty-state { text-align: center; padding: 3rem 1rem; color: #65676b; }
-        .empty-state i { font-size: 2.5rem; margin-bottom: 0.5rem; color: #ccd0d5; }
-        .loading-spinner { text-align: center; padding: 2rem; color: #65676b; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .modal-overlay.hidden { display: none; }
+        .modal-box { background: #fff; border-radius: 12px; max-width: 500px; width: 90%; padding: 1.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .modal-box h3 { margin-bottom: 0.75rem; }
+        .modal-box p { color: #65676b; font-size: 0.9rem; margin-bottom: 1rem; }
+        .modal-box .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+        .hidden { display: none !important; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-approved { background: #d4edda; color: #155724; }
+        .badge-dismissed { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -49,122 +56,146 @@
         <div class="admin-header">
             <h1><i class="fas fa-shield-alt"></i>Admin Dashboard</h1>
             <div>
-                <a href="home.html" class="btn btn-outline-secondary btn-sm me-2"><i class="fas fa-arrow-left"></i> Back to Home</a>
+                <a href="home.html" class="btn btn-outline-secondary btn-sm me-2"><i class="fas fa-arrow-left"></i> Back</a>
                 <button class="btn btn-outline-danger btn-sm" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
 
-        <div id="adminStats"></div>
+        <!-- Stats -->
+        <div id="adminStats" class="row g-3 mb-4"></div>
 
+        <!-- Tabs -->
         <div class="admin-tabs">
-            <button class="tab-btn active" id="tabUsers"><i class="fas fa-users me-1"></i>Users</button>
-            <button class="tab-btn" id="tabPosts"><i class="fas fa-newspaper me-1"></i>Posts</button>
-            <button class="tab-btn" id="tabReports"><i class="fas fa-flag me-1"></i>Reports</button>
+            <button class="tab-btn active" data-tab="users"><i class="fas fa-users me-1"></i>Users</button>
+            <button class="tab-btn" data-tab="posts"><i class="fas fa-newspaper me-1"></i>Posts</button>
+            <button class="tab-btn" data-tab="reports"><i class="fas fa-flag me-1"></i>Reports</button>
+            <button class="tab-btn" data-tab="appeals"><i class="fas fa-gavel me-1"></i>Appeals</button>
+            <button class="tab-btn" data-tab="audit"><i class="fas fa-history me-1"></i>Audit Log</button>
         </div>
 
-        <div id="adminUsersSection">
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <h5><i class="fas fa-users me-2"></i>All Users</h5>
-                    <span id="userCount" class="badge bg-secondary"></span>
+        <!-- ===== USERS TAB ===== -->
+        <div id="tabUsers" class="tab-content"><div class="admin-card">
+            <div class="admin-card-header"><h5><i class="fas fa-users me-2"></i>All Users</h5><span id="userCount" class="badge bg-secondary"></span></div>
+            <div class="admin-card-body">
+                <div class="filter-bar">
+                    <input type="text" id="userSearch" placeholder="Search by name or email..." style="flex:1;min-width:150px;">
+                    <button class="btn btn-outline-secondary btn-sm" id="showBannedBtn"><i class="fas fa-ban me-1"></i>Show Banned</button>
                 </div>
-                <div class="admin-card-body">
-                    <div class="add-user-bar">
-                        <input type="text" id="newUserName" placeholder="Username" />
-                        <input type="email" id="newUserEmail" placeholder="Email" />
-                        <input type="password" id="newUserPassword" placeholder="Password" />
-                        <select id="newUserRole">
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                        <button class="btn btn-primary btn-sm" id="addUserBtn"><i class="fas fa-plus"></i> Add User</button>
-                    </div>
-                    <div id="adminLoading" class="loading-spinner"><i class="fas fa-spinner fa-spin me-2"></i>Loading users...</div>
-                    <div id="adminError" class="alert alert-danger hidden"></div>
-                    <div id="adminPanel" class="hidden">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th style="width:160px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminUsersBody"></tbody>
-                        </table>
-                    </div>
+                <div id="adminLoading" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading users...</div>
+                <div id="adminError" class="alert alert-danger hidden"></div>
+                <div id="adminPanel" class="hidden">
+                    <table class="admin-table"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th style="width:200px;">Actions</th></tr></thead><tbody id="adminUsersBody"></tbody></table>
                 </div>
             </div>
-        </div>
+        </div></div>
 
-        <div id="adminPostsSection" class="hidden">
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <h5><i class="fas fa-newspaper me-2"></i>All Posts</h5>
-                    <span id="postCount" class="badge bg-secondary"></span>
+        <!-- ===== POSTS TAB ===== -->
+        <div id="tabPosts" class="tab-content hidden"><div class="admin-card">
+            <div class="admin-card-header"><h5><i class="fas fa-newspaper me-2"></i>All Posts</h5><span id="postCount" class="badge bg-secondary"></span></div>
+            <div class="admin-card-body">
+                <div class="filter-bar">
+                    <input type="text" id="postSearch" placeholder="Search by title, author, or content..." style="flex:1;min-width:150px;">
+                    <select id="filterCategory"><option value="">All Categories</option><option value="Confession">Confession</option><option value="Q&A">Q&amp;A</option><option value="General">General</option></select>
+                    <select id="filterDate"><option value="">All Time</option><option value="1">Last Hour</option><option value="24">Last 24 Hours</option><option value="720">Last 30 Days</option></select>
                 </div>
-                <div class="admin-card-body">
-                    <div class="mb-3">
-                        <input type="text" id="postSearch" class="form-control form-control-sm" placeholder="Search posts by title, author, or content..." style="max-width:400px;">
-                    </div>
-                    <div id="postsLoading" class="loading-spinner"><i class="fas fa-spinner fa-spin me-2"></i>Loading posts...</div>
-                    <div id="postsError" class="alert alert-danger hidden"></div>
-                    <div id="postsPanel" class="hidden">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Title</th>
-                                    <th>Author</th>
-                                    <th>Category</th>
-                                    <th>Date</th>
-                                    <th style="width:60px;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminPostsBody"></tbody>
-                        </table>
-                    </div>
+                <div id="postsLoading" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading posts...</div>
+                <div id="postsError" class="alert alert-danger hidden"></div>
+                <div id="postsPanel" class="hidden">
+                    <table class="admin-table"><thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Category</th><th>Date</th><th style="width:80px;">Action</th></tr></thead><tbody id="adminPostsBody"></tbody></table>
                 </div>
             </div>
-        </div>
+        </div></div>
 
-        <div id="adminReportsSection" class="hidden">
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <h5><i class="fas fa-flag me-2"></i>Reported Posts</h5>
-                    <span id="reportCount" class="badge bg-danger"></span>
+        <!-- ===== REPORTS TAB ===== -->
+        <div id="tabReports" class="tab-content hidden"><div class="admin-card">
+            <div class="admin-card-header"><h5><i class="fas fa-flag me-2"></i>Reports</h5>
+                <div><button class="btn btn-outline-secondary btn-sm me-2" id="showResolvedReportsBtn">Resolved</button><span id="reportCount" class="badge bg-danger"></span></div>
+            </div>
+            <div class="admin-card-body">
+                <div id="reportsLoading" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading reports...</div>
+                <div id="reportsError" class="alert alert-danger hidden"></div>
+                <div id="reportsPanel" class="hidden">
+                    <table class="admin-table"><thead><tr><th>ID</th><th>Post</th><th>Reason</th><th>Description</th><th>Reporter</th><th>Author</th><th>Date</th><th style="width:200px;">Actions</th></tr></thead><tbody id="reportsBody"></tbody></table>
                 </div>
-                <div class="admin-card-body">
-                    <div id="reportsLoading" class="loading-spinner"><i class="fas fa-spinner fa-spin me-2"></i>Loading reports...</div>
-                    <div id="reportsError" class="alert alert-danger hidden"></div>
-                    <div id="reportsPanel" class="hidden">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Post</th>
-                                    <th>Reason</th>
-                                    <th>Description</th>
-                                    <th>Reporter</th>
-                                    <th>Post Author</th>
-                                    <th>Date</th>
-                                    <th style="width:90px;">Ban</th>
-                                    <th style="width:60px;">Del</th>
-                                </tr>
-                            </thead>
-                            <tbody id="reportsBody"></tbody>
-                        </table>
-                    </div>
+            </div>
+        </div></div>
+
+        <!-- ===== APPEALS TAB ===== -->
+        <div id="tabAppeals" class="tab-content hidden"><div class="admin-card">
+            <div class="admin-card-header"><h5><i class="fas fa-gavel me-2"></i>Ban Appeals</h5><span id="appealCount" class="badge bg-warning"></span></div>
+            <div class="admin-card-body">
+                <div id="appealsLoading" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading appeals...</div>
+                <div id="appealsError" class="alert alert-danger hidden"></div>
+                <div id="appealsPanel" class="hidden">
+                    <table class="admin-table"><thead><tr><th>ID</th><th>User</th><th>Ban Reason</th><th>Duration</th><th>Appeal Message</th><th>Submitted</th><th style="width:180px;">Actions</th></tr></thead><tbody id="appealsBody"></tbody></table>
                 </div>
+            </div>
+        </div></div>
+
+        <!-- ===== AUDIT LOG TAB ===== -->
+        <div id="tabAudit" class="tab-content hidden"><div class="admin-card">
+            <div class="admin-card-header"><h5><i class="fas fa-history me-2"></i>Audit Log</h5></div>
+            <div class="admin-card-body">
+                <div id="auditLoading" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading audit log...</div>
+                <div id="auditError" class="alert alert-danger hidden"></div>
+                <div id="auditPanel" class="hidden">
+                    <table class="admin-table"><thead><tr><th>Date</th><th>Admin</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody id="auditBody"></tbody></table>
+                </div>
+            </div>
+        </div></div>
+    </div>
+
+    <!-- Double-confirm modal -->
+    <div id="confirmModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3 id="confirmTitle">Confirm</h3>
+            <p id="confirmDesc"></p>
+            <div id="confirmExtra" class="hidden mb-2">
+                <label class="small text-muted">Type <strong id="confirmTypeWord"></strong> to confirm:</label>
+                <input type="text" id="confirmInput" class="form-control form-control-sm mt-1" placeholder="">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline-secondary btn-sm" id="confirmCancel">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="confirmOk">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ban reason modal -->
+    <div id="banModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>Ban User</h3>
+            <p id="banUserLabel"></p>
+            <div class="mb-2">
+                <label class="form-label small">Duration</label>
+                <select id="banDuration" class="form-select form-select-sm">
+                    <option value="1">1 Hour</option>
+                    <option value="24">24 Hours</option>
+                    <option value="720">30 Days</option>
+                    <option value="8760">1 Year</option>
+                    <option value="0">Permanent</option>
+                </select>
+            </div>
+            <div class="mb-2">
+                <label class="form-label small">Reason</label>
+                <select id="banReasonSelect" class="form-select form-select-sm mb-1">
+                    <option value="">Select a reason...</option>
+                    <option value="Harassment">Harassment</option>
+                    <option value="Spam">Spam</option>
+                    <option value="Inappropriate Content">Inappropriate Content</option>
+                    <option value="Other">Other</option>
+                </select>
+                <textarea id="banReasonText" class="form-control form-control-sm hidden" rows="2" placeholder="Enter reason..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline-secondary btn-sm" id="banCancel">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="banConfirm">Ban User</button>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
     <script src="js/admin.js"></script>
 </body>
 </html>

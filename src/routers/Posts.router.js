@@ -35,14 +35,14 @@ router.get('/', (req, res, next) => {
     .catch(next);
 });
 
-// Admin: Get all posts with optional search
+// Admin: Get all posts with optional search, category, and date filters
 router.get('/admin/all', authenticateJWT, async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Admin access required.' });
     }
-    const { search, category } = req.query;
-    const posts = await searchAllPosts({ search, category });
+    const { search, category, date } = req.query;
+    const posts = await searchAllPosts({ search, category, date });
     res.status(200).json(posts);
   } catch (err) {
     next(err);
@@ -55,7 +55,8 @@ router.get('/reports', authenticateJWT, async (req, res, next) => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Admin access required.' });
     }
-    const reports = await getAllReports();
+    const includeDismissed = req.query.includeDismissed === 'true';
+    const reports = await getAllReports(includeDismissed);
     res.status(200).json(reports);
   } catch (err) {
     next(err);

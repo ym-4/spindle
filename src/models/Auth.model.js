@@ -328,3 +328,134 @@ module.exports.getAdminStats = async function getAdminStats() {
     suspended: suspendedRows[0].count,
   };
 };
+
+module.exports.addAuditLog = async function addAuditLog(adminId, action, targetType, targetId, details) {
+  try {
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
+  } catch {}
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "AuditLog" (
+        id SERIAL PRIMARY KEY,
+        admin_id INTEGER NOT NULL REFERENCES "Person"(id),
+        action TEXT NOT NULL,
+        target_type TEXT,
+        target_id INTEGER,
+        details TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+  } catch {}
+  const { rows } = await pool.query(
+    `INSERT INTO "AuditLog" (admin_id, action, target_type, target_id, details) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+    [adminId, action, targetType || null, targetId || null, details || null]
+  );
+  return rows[0];
+};
+
+module.exports.getAuditLog = async function getAuditLog() {
+  try {
+    await pool.query(`CREATE TABLE IF NOT EXISTS "AuditLog" (id SERIAL PRIMARY KEY, admin_id INTEGER NOT NULL REFERENCES "Person"(id), action TEXT NOT NULL, target_type TEXT, target_id INTEGER, details TEXT, created_at TIMESTAMP DEFAULT NOW())`);
+  } catch {}
+  const { rows } = await pool.query(
+    `SELECT al.*, p.display_name AS admin_name, p.name AS admin_username
+     FROM "AuditLog" al
+     LEFT JOIN "Person" p ON p.id = al.admin_id
+     ORDER BY al.created_at DESC
+     LIMIT 200`
+  );
+  return rows;
+};
+
+module.exports.banUserWithReason = async function banUserWithReason(userId, until, reason, adminId) {
+  await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
+  await pool.query(`UPDATE "Person" SET suspended_until = $1, banned_reason = $2 WHERE id = $3`, [until, reason, userId]);
+};
+
+module.exports.getBannedUsers = async function getBannedUsers() {
+  try {
+    await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
+  } catch {}
+  const { rows } = await pool.query(
+    `SELECT id, display_name, name, email, role, suspended_until, banned_reason FROM "Person" WHERE suspended_until IS NOT NULL AND suspended_until > NOW() ORDER BY suspended_until DESC`
+  );
+  return rows;
+};
+
+module.exports.createAppeal = async function createAppeal(userId, message) {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "BanAppeals" (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES "Person"(id),
+        message TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW(),
+        resolved_at TIMESTAMP,
+        resolved_by INTEGER REFERENCES "Person"(id)
+      )
+    `);
+  } catch {}
+  const { rows } = await pool.query(
+    `INSERT INTO "BanAppeals" (user_id, message) VALUES ($1,$2) RETURNING *`,
+    [userId, message]
+  );
+  return rows[0];
+};
+
+module.exports.getPendingAppeals = async function getPendingAppeals() {
+  try {
+    await pool.query(`CREATE TABLE IF NOT EXISTS "BanAppeals" (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES "Person"(id), message TEXT NOT NULL, status TEXT DEFAULT 'pending', created_at TIMESTAMP DEFAULT NOW(), resolved_at TIMESTAMP, resolved_by INTEGER REFERENCES "Person"(id))`);
+  } catch {}
+  const { rows } = await pool.query(
+    `SELECT ba.*, p.display_name AS user_name, p.name AS user_username, p.suspended_until, p.banned_reason
+     FROM "BanAppeals" ba
+     LEFT JOIN "Person" p ON p.id = ba.user_id
+     WHERE ba.status = 'pending'
+     ORDER BY ba.created_at DESC`
+  );
+  return rows;
+};
+
+module.exports.resolveAppeal = async function resolveAppeal(appealId, status, resolvedBy) {
+  const { rows } = await pool.query(
+    `UPDATE "BanAppeals" SET status = $1, resolved_at = NOW(), resolved_by = $2 WHERE id = $3 RETURNING *`,
+    [status, resolvedBy, appealId]
+  );
+  return rows[0];
+};
+
+module.exports.getDismissedReports = async function getDismissedReports() {
+  const { rows } = await pool.query(
+    `SELECT * FROM "BanAppeals" WHERE status != 'pending' ORDER BY resolved_at DESC`
+  );
+  return rows;
+};
+
+module.exports.getReportById = async function getReportById(reportId) {
+  const { rows } = await pool.query(`SELECT r.*, p.display_name AS reporter_name, p.name AS reporter_username FROM "Reports" r LEFT JOIN "Person" p ON p.id = r.user_id WHERE r.id = $1`, [reportId]);
+  return rows[0];
+};
+
+module.exports.dismissReport = async function dismissReport(reportId) {
+  try { await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`); } catch {}
+  await pool.query(`UPDATE "Reports" SET dismissed = true WHERE id = $1`, [reportId]);
+};
+
+module.exports.searchUsers = async function searchUsers(term) {
+  const { rows } = await pool.query(
+    `SELECT id, display_name, name, email, role, suspended_until FROM "Person" WHERE LOWER(name) LIKE LOWER($1) OR LOWER(email) LIKE LOWER($1) OR LOWER(display_name) LIKE LOWER($1) ORDER BY id DESC LIMIT 100`,
+    [`%${term}%`]
+  );
+  return rows;
+};
+
+module.exports.getTrendStats = async function getTrendStats() {
+  const { rows } = await pool.query(
+    `SELECT
+      (SELECT COUNT(*) FROM "Person" WHERE created_at > NOW() - INTERVAL '7 days') AS users_7d,
+      (SELECT COUNT(*) FROM "Post" WHERE created_at > NOW() - INTERVAL '7 days') AS posts_7d,
+      (SELECT COUNT(*) FROM "Reports" WHERE created_at > NOW() - INTERVAL '7 days') AS reports_7d`
+  );
+  return rows[0];
+};
