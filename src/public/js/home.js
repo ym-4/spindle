@@ -8,7 +8,14 @@ function setupHome() {
   updateNavForUser(user);
 
   if (loggedIn) {
-    injectHeaderActions('waHeaderSlot');
+    const slot = document.getElementById('waHeaderSlot');
+    if (slot) {
+      slot.innerHTML = '<button type="button" class="wa-btn wa-btn--ghost wa-btn--small" id="waHeaderLogout">Log out</button>';
+      document.getElementById('waHeaderLogout')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        handleLogout();
+      });
+    }
     connectSocket();
     onWs('notification', () => refreshNotifBadge());
   }
