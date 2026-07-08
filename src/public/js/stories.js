@@ -1,60 +1,49 @@
 function esc(t) {
-  const d = document.createElement('div');
+  var d = document.createElement('div');
   d.textContent = t ?? '';
   return d.innerHTML;
 }
 
 async function loadStories() {
-  const grid = document.getElementById('storiesGrid');
-  const empty = document.getElementById('storiesEmpty');
-  const { stories } = await authFetch('/stories');
-  if (stories.length === 0) {
-    grid.innerHTML = '';
-    empty.classList.remove('hidden');
-    return;
-  }
-  empty.classList.add('hidden');
-  grid.innerHTML = stories
-    .map(
-      (s) => `
-    <article class="wa-story-card">
-      <img src="${mediaUrl(s.media_url)}" alt="" />
-      <div style="padding: 0.5rem">
-        <strong>${esc(s.display_name || s.name)}</strong>
-        ${s.caption ? `<p style="margin:0.25rem 0;font-size:0.8rem">${esc(s.caption)}</p>` : ''}
-        <small style="color:var(--wa-muted)">${new Date(s.created_at).toLocaleString()}</small>
-      </div>
-    </article>`,
-    )
-    .join('');
+  var grid = document.getElementById('storiesGrid');
+  var empty = document.getElementById('storiesEmpty');
+  if (!grid) return;
+  try {
+    var data = await authFetch('/stories');
+    var stories = data.stories || [];
+    if (stories.length === 0) {
+      grid.innerHTML = '';
+      if (empty) empty.classList.remove('hidden');
+      return;
+    }
+    if (empty) empty.classList.add('hidden');
+    grid.innerHTML = stories.map(function (s) {
+      return '<div class="col-sm-6 col-md-4 col-lg-3"><div class="card shadow-sm h-100"><img src="' + mediaUrl(s.media_url) + '" class="card-img-top" style="height:200px;object-fit:cover;" alt="" /><div class="card-body p-2"><strong>' + esc(s.display_name || s.name) + '</strong>' + (s.caption ? '<p class="small mb-1 mt-1">' + esc(s.caption) + '</p>' : '') + '<small class="text-muted">' + new Date(s.created_at).toLocaleString() + '</small></div></div></div>';
+    }).join('');
+  } catch (e) { /* ignore */ }
 }
 
-document.getElementById('storyForm')?.addEventListener('submit', async (e) => {
+document.getElementById('storyForm')?.addEventListener('submit', async function (e) {
   e.preventDefault();
-  const file = document.getElementById('storyFile').files?.[0];
-  if (!file) return showToast('Choose a photo', true);
-  const fd = new FormData();
+  var file = document.getElementById('storyFile').files?.[0];
+  if (!file) { alert('Please choose a photo.'); return; }
+  var fd = new FormData();
   fd.append('media', file);
   fd.append('caption', document.getElementById('storyCaption').value);
-  const res = await fetch(`${API_BASE}/stories`, {
+  var res = await fetch(API_BASE + '/stories', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${getToken()}` },
+    headers: { Authorization: 'Bearer ' + getToken() },
     body: fd,
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) return showToast(data.error || 'Upload failed', true);
-  showToast('Status posted!');
+  var data = await res.json().catch(function () { return {}; });
+  if (!res.ok) { alert(data.error || 'Upload failed'); return; }
+  alert('Status posted!');
   document.getElementById('storyForm').reset();
   loadStories();
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (!isLoggedIn()) {
-    redirectToLogin('stories.html');
-    return;
-  }
-  injectWaHeader('Status');
-  injectWaNav('stories');
+document.addEventListener('DOMContentLoaded', function () {
+  if (!isLoggedIn()) { redirectToLogin('stories.html'); return; }
   refreshNotifBadge();
   loadStories();
 });

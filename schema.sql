@@ -229,17 +229,6 @@ CREATE TABLE "GroupFiles" (
   FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
 );
 
-CREATE TABLE "GroupAnnouncements" (
-  "announcement_id" SERIAL,
-  "user_id" INT NOT NULL,
-  "group_id" INT NOT NULL,
-  "text" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "GroupAnnouncements_pkey" PRIMARY KEY ("announcement_id"), 
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
-);
-
 ---------------------------------------------------------------------------------------
 --                                  USER
 -- -------------------------------------------------------------------------------------

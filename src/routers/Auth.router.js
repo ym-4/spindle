@@ -187,6 +187,26 @@ router.post('/login', async (req, res, next) => {
     const user = await Auth.authenticate(username.trim(), password);
     if (!user) return res.status(401).json({ error: 'Invalid username or password.' });
 
+    // Check if user is banned
+    try {
+      const db = require('../models/db');
+      await db.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+      await db.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
+    } catch {}
+    const { rows: banCheck } = await require('../models/db').query(
+      `SELECT suspended_until, banned_reason FROM "Person" WHERE id = $1`,
+      [user.id]
+    );
+    if (banCheck.length > 0 && banCheck[0].suspended_until && new Date(banCheck[0].suspended_until) > new Date()) {
+      return res.status(403).json({
+        banned: true,
+        user_id: user.id,
+        name: user.display_name || user.name,
+        suspended_until: banCheck[0].suspended_until,
+        reason: banCheck[0].banned_reason || 'No reason provided'
+      });
+    }
+
     if (!user.email_verified && user.role !== 'admin') {
       const { code } = await Auth.saveVerificationCode(user.email, 'email_verify');
       console.log(`[Campus Hub] Register verify for ${user.email}: ${code}`);
@@ -418,6 +438,132 @@ router.post('/admin/unsuspend', authenticateJWT, requireAdmin, async (req, res, 
   } catch (err) {
     next(err);
   }
+});
+
+// Admin: Ban user with reason
+router.post('/admin/ban-with-reason', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const { user_id, duration_hours, reason } = req.body;
+    if (!user_id) return res.status(400).json({ error: 'user_id is required.' });
+    if (!reason) return res.status(400).json({ error: 'Ban reason is required.' });
+    if (parseInt(user_id, 10) === req.user.id) return res.status(400).json({ error: 'Cannot ban yourself.' });
+    let until = null;
+    if (duration_hours && duration_hours > 0) {
+      until = new Date(Date.now() + duration_hours * 3600000).toISOString();
+    } else {
+      until = new Date('2999-12-31').toISOString();
+    }
+    await Auth.banUserWithReason(user_id, until, reason, req.user.id);
+    await Auth.addAuditLog(req.user.id, 'ban', 'user', user_id, `Banned for ${duration_hours ? duration_hours + ' hours' : 'permanent'}. Reason: ${reason}`);
+    const durStr = duration_hours ? `${duration_hours} hours` : 'permanently';
+    res.status(200).json({ message: `User suspended ${durStr}.`, suspended_until: until });
+  } catch (err) { next(err); }
+});
+
+// Admin: Get banned users list
+router.get('/admin/banned-users', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const users = await Auth.getBannedUsers();
+    res.status(200).json({ users });
+  } catch (err) { next(err); }
+});
+
+// Admin: Submit appeal (no auth required - banned user can't log in)
+router.post('/appeal', async (req, res, next) => {
+  try {
+    const { user_id, message } = req.body;
+    if (!user_id || !message) return res.status(400).json({ error: 'user_id and message required.' });
+    const appeal = await Auth.createAppeal(user_id, message);
+    res.status(200).json({ message: 'Appeal submitted.', appeal });
+  } catch (err) { next(err); }
+});
+
+// Admin: Get pending appeals
+router.get('/admin/appeals', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const appeals = await Auth.getPendingAppeals();
+    res.status(200).json({ appeals });
+  } catch (err) { next(err); }
+});
+
+// Admin: Dismiss appeal (mark as done, ban stays)
+router.post('/admin/appeals/:id/dismiss', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const appealId = parseInt(req.params.id, 10);
+    await Auth.resolveAppeal(appealId, 'dismissed', req.user.id);
+    await Auth.addAuditLog(req.user.id, 'dismiss_appeal', 'appeal', appealId, 'Appeal dismissed - ban remains');
+    res.status(200).json({ message: 'Appeal dismissed.' });
+  } catch (err) { next(err); }
+});
+
+// Admin: Appeal approve (approve + unsuspend)
+router.post('/admin/appeals/:id/approve', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const pool = require('../models/db');
+    const appealId = parseInt(req.params.id, 10);
+    const { rows } = await pool.query(`SELECT user_id FROM "BanAppeals" WHERE id = $1`, [appealId]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Appeal not found.' });
+    await Auth.unsuspendUser(rows[0].user_id);
+    await Auth.resolveAppeal(appealId, 'approved', req.user.id);
+    await Auth.addAuditLog(req.user.id, 'approve_appeal', 'appeal', appealId, 'Appeal approved - user unsuspended');
+    res.status(200).json({ message: 'Appeal approved. User unsuspended.' });
+  } catch (err) { next(err); }
+});
+
+// Admin: Get audit log
+router.get('/admin/audit-log', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const log = await Auth.getAuditLog();
+    res.status(200).json({ log });
+  } catch (err) { next(err); }
+});
+
+// Admin: Dismiss report
+router.post('/admin/reports/:id/dismiss', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const reportId = parseInt(req.params.id, 10);
+    await Auth.dismissReport(reportId);
+    await Auth.addAuditLog(req.user.id, 'dismiss_report', 'report', reportId, 'Report dismissed');
+    res.status(200).json({ message: 'Report dismissed.' });
+  } catch (err) { next(err); }
+});
+
+// Admin: Search users
+router.get('/admin/search-users', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const term = req.query.q || '';
+    const users = await Auth.searchUsers(term);
+    res.status(200).json({ users });
+  } catch (err) { next(err); }
+});
+
+// Admin: Trend stats
+router.get('/admin/trend-stats', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const trends = await Auth.getTrendStats();
+    res.status(200).json(trends);
+  } catch (err) { next(err); }
+});
+
+// Admin: Check ban status (for login page check - no auth)
+router.post('/check-ban', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required.' });
+    const db = require('../models/db');
+    await db.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+    await db.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
+    const { rows } = await db.query(
+      `SELECT id, display_name, name, suspended_until, banned_reason FROM "Person" WHERE email = $1`,
+      [email]
+    );
+    if (rows.length === 0) return res.status(200).json({ banned: false });
+    const user = rows[0];
+    if (user.suspended_until && new Date(user.suspended_until) > new Date()) {
+      return res.status(200).json({ banned: true, user_id: user.id, name: user.display_name || user.name, suspended_until: user.suspended_until, reason: user.banned_reason || 'No reason provided' });
+    }
+    res.status(200).json({ banned: false });
+  } catch (err) { next(err); }
 });
 
 module.exports = router;
