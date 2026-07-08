@@ -187,8 +187,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         
         adminMembers = members.filter(member => member.role == "admin");
 
-        // Show button to manage group if user is the creator
-        if (userId == group.creator_id) {
+        // Show button to manage group if user is an admin
+        if (userId == group.creator_id || checkGroupAdmin()) {
             document.getElementById("manageGroupButton").style.display = "block";
         } else {
             document.getElementById("manageGroupButton").style.display = "none";
@@ -535,12 +535,12 @@ function displayChannelMessages(messages) {
         let role = "user";
         let userMember = members.find(member => member.user_id == currMessage.user_id);
 
-        if (userMember.role == "admin") {
-            role = "admin"
-        } 
+        if (userMember && userMember.role === "admin") {
+            role = "admin";
+        }
 
         if (currMessage.user_id == group.creator_id) {
-            role = "creator"
+            role = "creator";
         }
 
         tempHTML += `
@@ -750,43 +750,6 @@ function displayAnnouncements() {
     });
 
     container.innerHTML = temp;
-}
-
-function displayToast(type, message) {
-    const toastEl = document.getElementById("groupsFeedToast");
-    const toastBody = document.getElementById("toastBody");
-
-    // Icons 
-    const icons = {
-        success: "bi-check-circle-fill",
-        error: "bi-x-circle-fill",
-        warning: "bi-exclamation-triangle-fill",
-        info: "bi-info-circle-fill"
-    };
-
-    // Colours
-    const colors = {
-        success: "#198754",
-        error: "#dc3545",
-        warning: "#ffc107",
-        info: "#0dcaf0"
-    };
-
-    // Set background color (sets it to the corresponding type or black if match none)
-    toastEl.style.backgroundColor = colors[type] || "#333";
-
-    // Set content (sets it to corresponding icon if exist if not info icon used)
-    toastBody.innerHTML = `
-        <i class="bi ${icons[type] || icons.info}"></i>
-        <span>${message}</span>
-    `;
-
-    const toast = new bootstrap.Toast(toastEl, {
-        delay: 2500,
-        autohide: true
-    });
-
-    toast.show();
 }
 
 function displayCreateChannelModal() {

@@ -60,6 +60,14 @@ module.exports.updateGroupDescription = async function updateGroupDescription(da
   return rows;
 }
 
+// Update Group module (group id, module) - only creator/admins
+module.exports.updateGroupModule = async function updateGroupModule(data) {
+  const VALUES = [data.group_id, data.module];
+  const { rows } = await pool.query('UPDATE "Groups" SET module = $2 WHERE id = $1 RETURNING *', VALUES);
+  return rows;
+}
+
+
 // Delete Group (Can only be done by the group's creator)
 module.exports.deleteGroup = async function deleteGroup(data) {
   const VALUES = [data.group_id, data.creator_id];
@@ -69,8 +77,8 @@ module.exports.deleteGroup = async function deleteGroup(data) {
 
 // Update Group publicity (Can only be done by group's creator)
 module.exports.updateGroupPublicity = async function updateGroupPublicity(data) {
-  const VALUES = [data.group_id, data.creator_id, data.public];
-  const { rows } = await pool.query('UPDATE "Groups" SET public = $3 WHERE id = $1 AND creator_id = $2 RETURNING *', VALUES);
+  const VALUES = [data.group_id, data.public];
+  const { rows } = await pool.query('UPDATE "Groups" SET public = $2 WHERE id = $1 RETURNING *', VALUES);
   return rows;
 }
 
@@ -126,14 +134,14 @@ module.exports.insertGroupMember = async function insertGroupMember(data) {
 
 // Update member role (user to admin)
 module.exports.updateMemberRoleToAdmin = async function updateMemberRoleToAdmin(data) {
-  const VALUES = [data.group_id, data.user_id];
+  const VALUES = [data.group_id, data.user_being_promoted_user_id];
   const { rows } = await pool.query(`UPDATE "GroupMembers" SET role = 'admin' WHERE group_id = $1 AND user_id = $2 RETURNING *`, VALUES);
   return rows; 
 }
 
 // Update member role (admin to user) - not applicable to group's creator
 module.exports.updateMemberRoleToUser = async function updateMemberRoleToUser(data) {
-  const VALUES = [data.group_id, data.user_id];
+  const VALUES = [data.group_id, data.user_being_demoted_user_id];
   const { rows } = await pool.query(`UPDATE "GroupMembers" SET role = 'user' WHERE group_id = $1 AND user_id = $2 RETURNING *`, VALUES);
   return rows; 
 }

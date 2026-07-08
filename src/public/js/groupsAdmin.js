@@ -13,7 +13,7 @@ let group;
 let groupMembers;
 let groupChannels;
 let groupAnnouncements;
-let users; 
+let users;
 
 window.addEventListener("DOMContentLoaded", async () => {
 
@@ -21,7 +21,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     addEventListeners();
 
     try {
-        group = await fetchGroupByGroupId(groupId)[0];
+        group = (await fetchGroupByGroupId(groupId))[0];
         groupMembers = await fetchGroupMembers(groupId);
         groupChannels = await fetchGroupChannels();
         groupAnnouncements = await fetchGroupAnnouncements();
@@ -31,6 +31,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         displayGroupMembers();
         displayGroupChannels();
         displayGroupAnnouncements();
+
+        setupPermissions();
 
     } catch (err) {
         console.error(err);
@@ -76,8 +78,36 @@ function toggleButtons() {
 function addEventListeners() {
     const memberSearch = document.getElementById("memberSearch");
 
-    memberSearch.addEventListener("input", e => {
-        displayGroupMembers(e.target.value);
+    memberSearch.addEventListener("input", e => {displayGroupMembers(e.target.value);});
+
+    document.getElementById("saveGroupDetails").addEventListener("click", editGroupDetails);
+
+    // Members table
+    document.querySelector("#members tbody").addEventListener("click", (e) => {
+        const button = e.target.closest("button");
+        if (!button) return;
+
+        const userId = button.dataset.id;
+
+        if (button.classList.contains("remove-admin")) {
+            removeAdmin(userId);
+        } else if (button.classList.contains("promote-member")) {
+            promoteMember(userId);
+        } else if (button.classList.contains("remove-member")) {
+            removeMember(userId);
+        }
+    });
+
+    // Channels
+    document.querySelector("#channels .list-group").addEventListener("click", (e) => {
+        const button = e.target.closest("button");
+        if (!button) return;
+
+        const channel = button.dataset.channel;
+
+        if (button.classList.contains("delete-channel")) {
+            deleteChannel(channel);
+        }
     });
 }
 
@@ -85,16 +115,74 @@ function addEventListeners() {
 //                              Functions 2  
 // -------------------------------------------------------------------------------------
 
-function removeAdmin() {
+async function editGroupDetails() {
+    const updatedGroup = {
+        description: document.getElementById("groupDescription").value.trim(),
+        module: document.getElementById("groupModule").value.trim(),
+        public: document.getElementById("groupPublicity").value === "Public"
+    };
+
+    try {
+        // updates group details
+        await updateGroup(updatedGroup);
+
+        // refetch groups to get new data
+        group = (await fetchGroupByGroupId(groupId))[0];
+
+        // display new data
+        displayGroupDetails();
+
+        // success toast
+        displayToast("success", "Group updated successfully!");
+
+    } catch(err) {
+        console.error(err);
+        // error toast
+        displayToast("error", "Failed to update group");
+    }
+}
+
+async function removeAdmin(demotedUserId) {
+    try {
+        await updateRoleToUser(demotedUserId);
+
+        // refresh data
+        groupMembers = await fetchGroupMembers(groupId);
+        await displayGroupMembers();
+        displayToast("success", "Member demoted!");
+
+    } catch (err) {
+        displayToast("error", err.message);
+    }
 
 }
 
-function promoteMember() {
+async function promoteMember(promotedUserId) {
+    try {
+        await updateRoleToAdmin(promotedUserId);
 
+        groupMembers = await fetchGroupMembers(groupId);
+        displayGroupMembers();
+
+        displayToast("success", "Member promoted!");
+    } catch (err) {
+        displayToast("error", err.message);
+    }
 }
 
-function removeMember() {
+async function removeMember(removedMemberUserId) {
+    try {
+        await deleteGroupMember(removedMemberUserId);
+        
+        // refresh data
+        groupMembers = await fetchGroupMembers(groupId);
+        displayGroupMembers();
 
+        displayToast("success", "Member removed!");
+
+    } catch (err) {
+        displayToast("error", err.message);
+    }
 }
 
 function editChannel() {
@@ -117,6 +205,14 @@ function deleteAnnouncement() {
 
 }
 
+async function updateGroup(data) {
+    await Promise.all([
+        updateGroupDescription(data.description),
+        updateGroupModule(data.module),
+        updateGroupPublicity(data.public)
+    ]);
+}
+
 // -------------------------------------------------------------------------------------
 //                              Display Functions  
 // -------------------------------------------------------------------------------------
@@ -127,10 +223,9 @@ function displayGroupDetails() {
 
     document.getElementById("groupDescription").value = group.description;
 
-    document.querySelector("input[value='CS1010']").value = group.module;
+    document.getElementById("groupModule").value = group.module;
 
-    document.querySelector("select").value =
-        group.public ? "Public" : "Private";
+    document.getElementById("groupPublicity").value = group.public ? "Public" : "Private";
 }
 
 function displayGroupMembers(search = "") {
@@ -178,12 +273,17 @@ function displayGroupMembers(search = "") {
 
                 badge = `<span class="badge bg-primary">Admin</span>`;
 
-                actions = `
-                    <button class="btn btn-outline-secondary btn-sm remove-admin"
-                            data-id="${member.user_id}">
-                        Remove Admin
-                    </button>
-                `;
+                // Don't allow removing yourself as admin
+                if (member.user_id == userId) {
+                    actions = "-";
+                } else {
+                    actions = `
+                        <button class="btn btn-outline-secondary btn-sm remove-admin"
+                                data-id="${member.user_id}">
+                            Remove Admin
+                        </button>
+                    `;
+                }
 
             } else {
 
@@ -278,7 +378,7 @@ function displayGroupAnnouncements() {
 
                 <div>
                     <small class="text-muted">
-                        Posted by ${user.name ?? "Anonymous"} •
+                        Posted by ${user?.name ?? "Anonymous"} •
                         ${new Date(announcement.created_at).toLocaleString()}
                     </small>
                 </div>
@@ -304,4 +404,26 @@ function displayGroupAnnouncements() {
 
         announcementList.appendChild(div);
     });
+}
+
+function setupPermissions() {
+    let isCreator = checkGroupCreator();
+    let isAdmin = checkGroupAdmin();
+
+    console.log('creator',isCreator);
+    console.log('admin',isAdmin);
+
+    // Admins but not creators
+    if (isAdmin && !isCreator) {
+
+        // Disable editing of group details
+        document.getElementById("groupDescription").disabled = true;
+        document.getElementById("groupModule").disabled = true;
+        document.getElementById("groupPublicity").disabled = true;
+
+        document.getElementById("saveGroupDetails").style.display = "none";
+
+        // Hide Delete Group button
+        document.querySelector("#adminNav .text-danger").style.display = "none";
+    }
 }

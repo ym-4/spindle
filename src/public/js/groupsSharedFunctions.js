@@ -472,6 +472,54 @@ async function deleteGroupMembership() {
     })
 }
 
+// Remoeve member
+async function deleteGroupMember(removedUsedId) {
+
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/kick/${groupId}/${removedUsedId}`;
+
+        const callback = (responseStatus, responseData) => {
+            console.log("deleteGroupMembership", responseData);
+
+            // membership deleted: success
+            if (responseStatus == 204) {
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './home.html';
+
+            // user cannot leave 
+            } else if (responseStatus == 409) {
+                reject({
+                    "type": "conflict", 
+                    "message": "User cannot leave as its creator"
+                })
+
+            // bad request: missing info
+            } else if (responseStatus == 400) {
+                reject({
+                    "type": "bad request",
+                    "message": "Missing required fields"
+                })
+
+            // User is not a member
+            } else if (responseStatus == 404) {
+                reject({
+                    "type": "not found", 
+                    "message": "User is not a member"
+                })
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback, "DELETE", null, token);
+
+    })
+}
+
 // Create group announcement
 async function createGroupAnnouncement(text) {
 
@@ -550,7 +598,7 @@ async function updateGroupAnnouncement(text, announcementId) {
             } else if (responseStatus == 403) {
                 reject({
                     "type": "forbidden",
-                    "message": "User did not send this message"
+                    "message": "User is not an admin"
                 })
 
             // Announcement not found
@@ -610,6 +658,255 @@ async function deleteGroupAnnouncement(announcementId) {
     })
 }
 
+// Update group description
+async function updateGroupDescription(description) {
+
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/description/${groupId}`;
+
+        const data = {
+            description: description
+        }
+
+        const callback = (responseStatus, responseData) => {
+            console.log("updateGroupDescription", responseData);
+
+            // message edited: success
+            if (responseStatus == 200) {
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './home.html';
+
+            // bad request: missing info
+            } else if (responseStatus == 400) {
+                reject({
+                    "type": "bad request",
+                    "message": "Missing required fields"
+                })
+
+            // User has no permissions
+            } else if (responseStatus == 403) {
+                reject({
+                    "type": "forbidden",
+                    "message": "User is not an admin"
+                })
+
+            // Group not found
+            } else if (responseStatus == 404) {
+                reject({
+                    "type": "not found",
+                    "message": "Group not found"
+                })
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback, "PUT", data, token);
+
+    })
+}
+
+// Update group module
+async function updateGroupModule(module) {
+
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/module/${groupId}`;
+
+        const data = {
+            module: module
+        }
+
+        const callback = (responseStatus, responseData) => {
+            console.log("updateGroupModule", responseData);
+
+            // message edited: success
+            if (responseStatus == 200) {
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './home.html';
+
+            // bad request: missing info
+            } else if (responseStatus == 400) {
+                reject({
+                    "type": "bad request",
+                    "message": "Missing required fields"
+                })
+
+            // User has no permissions
+            } else if (responseStatus == 403) {
+                reject({
+                    "type": "forbidden",
+                    "message": "User is not an admin"
+                })
+
+            // Group not found
+            } else if (responseStatus == 404) {
+                reject({
+                    "type": "not found",
+                    "message": "Group not found"
+                })
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback, "PUT", data, token);
+
+    })
+}
+
+// Update group publicity
+async function updateGroupPublicity(public) {
+
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/public/${groupId}`;
+
+        const data = {
+            public: public
+        }
+
+        const callback = (responseStatus, responseData) => {
+            console.log("updateGroupPublicity", responseData);
+
+            // message edited: success
+            if (responseStatus == 200) {
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './home.html';
+
+            // bad request: missing info
+            } else if (responseStatus == 400) {
+                reject({
+                    "type": "bad request",
+                    "message": "Missing required fields"
+                })
+
+            // User has no permissions
+            } else if (responseStatus == 403) {
+                reject({
+                    "type": "forbidden",
+                    "message": "User is not an admin"
+                })
+
+            // Group not found
+            } else if (responseStatus == 404) {
+                reject({
+                    "type": "not found",
+                    "message": "Group not found"
+                })
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback, "PUT", data, token);
+
+    })
+}
+
+// user to admin
+async function updateRoleToAdmin(userBeingPromotedUserId) {
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/roleToAdmin/${groupId}/${userBeingPromotedUserId}`;
+
+        const callback = (responseStatus, responseData) => {
+            console.log("updateRoleToAdmin", responseData);
+
+            // message edited: success
+            if (responseStatus == 200) {
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './home.html';
+
+            // bad request: missing info
+            } else if (responseStatus == 400) {
+                reject({
+                    "type": "bad request",
+                    "message": "Missing required fields"
+                })
+
+            // User has no permissions
+            } else if (responseStatus == 403) {
+                reject({
+                    "type": "forbidden",
+                    "message": "User is not an admin"
+                })
+
+            // Group not found
+            } else if (responseStatus == 404) {
+                reject({
+                    "type": "not found",
+                    "message": "Group not found"
+                })
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback, "PUT", null, token);
+
+    })
+}
+
+// admin to user
+async function updateRoleToUser(userBeingDemotedUserId) {
+    return new Promise((resolve, reject) => {
+        const url = `http://localhost:3000/groups/roleToUser/${groupId}/${userBeingDemotedUserId}`;
+
+        const callback = (responseStatus, responseData) => {
+            console.log("updateRoleToUser", responseData);
+
+            // message edited: success
+            if (responseStatus == 200) {
+                resolve(responseData);
+
+            // Token expired
+            } else if (responseStatus == 401) {
+                window.location.href = './home.html';
+
+            // bad request: missing info
+            } else if (responseStatus == 400) {
+                reject({
+                    "type": "bad request",
+                    "message": "Missing required fields"
+                })
+
+            // User has no permissions
+            } else if (responseStatus == 403) {
+                reject({
+                    "type": "forbidden",
+                    "message": "You are not the group's creator"
+                })
+
+            // Group not found
+            } else if (responseStatus == 404) {
+                reject({
+                    "type": "not found",
+                    "message": "Group not found"
+                })
+
+            } else {
+                reject(responseData);
+            }
+        };
+
+        fetchMethod(url, callback, "PUT", null, token);
+
+    })
+}
 
 // -------------------------------------------------------------------------------------
 //                         Other Functions  
@@ -622,13 +919,49 @@ function checkGroupCreator() {
     }
 }
 
-function checkGroupAdmin(group_id) {
+function checkGroupAdmin() {
     let adminList = members.filter(member => member.role == "admin");
-    let isAdmin = adminList.find(admin => admin.user_id == userId);
 
-    if (isAdmin) {
+    if (adminList.find(admin => admin.user_id == userId)) {
         return true;
     } else {
         return false;
     }
+}
+
+function displayToast(type, message) {
+    const toastEl = document.getElementById("groupsFeedToast");
+    const toastBody = document.getElementById("toastBody");
+
+    // Icons 
+    const icons = {
+        success: "bi-check-circle-fill",
+        error: "bi-x-circle-fill",
+        warning: "bi-exclamation-triangle-fill",
+        info: "bi-info-circle-fill"
+    };
+
+    // Colours
+    const colors = {
+        success: "#198754",
+        error: "#dc3545",
+        warning: "#ffc107",
+        info: "#0dcaf0"
+    };
+
+    // Set background color (sets it to the corresponding type or black if match none)
+    toastEl.style.backgroundColor = colors[type] || "#333";
+
+    // Set content (sets it to corresponding icon if exist if not info icon used)
+    toastBody.innerHTML = `
+        <i class="bi ${icons[type] || icons.info}"></i>
+        <span>${message}</span>
+    `;
+
+    const toast = new bootstrap.Toast(toastEl, {
+        delay: 2500,
+        autohide: true
+    });
+
+    toast.show();
 }
