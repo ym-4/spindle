@@ -10,6 +10,7 @@ module.exports.getAllPost = async function getAllPost() {
     p.category,
     p.content,
     p.attachment_url,
+    p.gif_url,
     p.created_at,
     p.updated_at,
     p.is_anonymous,
@@ -41,6 +42,7 @@ module.exports.getAllPost = async function getAllPost() {
     p.category,
     p.content,
     p.attachment_url,
+    p.gif_url,
     p.created_at,
     p.updated_at,
     per.name
@@ -63,6 +65,7 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.category,
       p.content,
       p.attachment_url,
+      p.gif_url,
       p.created_at,
       p.updated_at,
       p.is_anonymous,
@@ -97,6 +100,7 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.category,
       p.content,
       p.attachment_url,
+      p.gif_url,
       p.created_at,
       p.updated_at,
       per.name
@@ -116,6 +120,7 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.category,
       p.content,
       p.attachment_url,
+      p.gif_url,
       p.created_at,
       p.updated_at,
       p.is_anonymous,
@@ -150,6 +155,7 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.category,
       p.content,
       p.attachment_url,
+      p.gif_url,
       p.created_at,
       p.updated_at,
       per.name
@@ -184,17 +190,18 @@ module.exports.getPostByUserID = async function getPostByUserID(data) {
 
 // Create new post
 module.exports.insertPost = async function insertPost(data) {
-  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.is_anonymous];
-  const { rows } = await pool.query('INSERT INTO "Posts" (user_id, title, category, content, attachment_url, is_anonymous) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id', VALUES);
+  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.gif_url, data.is_anonymous];
+
+  const { rows } = await pool.query('INSERT INTO "Posts"(user_id, title, category, content, attachment_url, gif_url, is_anonymous) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id', VALUES);
   return rows[0]; 
 }
 
 // update post by ID (owner only)
 module.exports.updatePostByID = async function updatePostByID(data) {
-  const VALUES = [data.title, data.content, data.category, data.attachment_url, data.id];
+  const VALUES = [data.title, data.content, data.category, data.attachment_url, data.gif_url, data.id];
 
   const { rows } = await pool.query(
-    `UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4,"updated_at" = CURRENT_TIMESTAMP WHERE "id" = $5 RETURNING *`, VALUES);
+    `UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4, "gif_url" = $5, "updated_at" = CURRENT_TIMESTAMP WHERE "id" = $6 RETURNING *`, VALUES);
 
   return rows[0];
 };

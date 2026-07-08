@@ -105,6 +105,7 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
     category: req.body.category,
     content: req.body.content,
     attachment_url: attachmentUrl,
+    gif_url: req.body.gif_url || null,
     is_anonymous: req.body.is_anonymous === 'true'
   };
 
@@ -115,7 +116,8 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
       title: data.title,
       category: data.category,
       content: data.content,
-      attachment_url: data.attachment_url
+      attachment_url: data.attachment_url,
+      gif_url: data.gif_url
     }))
     .catch((error) => {
       console.error('Error insertPost:', error);
@@ -126,6 +128,7 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
 // Update post (owner only) 
 router.put('/:id', upload.single('attachment'), (req, res, next) => {
   let attachmentUrl = req.body.attachment_url || null;
+  let gifUrl = req.body.gif_url || null;
 
   getPostByID({ id: req.params.id })
     .then((existingPost) => {
@@ -136,6 +139,7 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
       }
 
       attachmentUrl = existingPost.attachment_url;
+      gifUrl = existingPost.gif_url || gifUrl;
 
       if (req.body.remove_attachment === 'true') {
         if (existingPost.attachment_url) {
@@ -148,6 +152,7 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
           });
         }
         attachmentUrl = null;
+        gifUrl = null;
       }
       if (req.file) {
         if (existingPost.attachment_url) {
@@ -167,7 +172,8 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
         title: req.body.title,
         content: req.body.content,
         category: req.body.category,
-        attachment_url: attachmentUrl
+        attachment_url: attachmentUrl,
+        gif_url: gifUrl
       };
       return updatePostByID(data);
     })

@@ -94,37 +94,27 @@
                     <input type="text" placeholder="What's on your mind?" readonly style="cursor:pointer;">
                 </div>
                 <div class="create-post-options">
-                    <button class="create-post-option" data-category-shortcut="confession">
-                        <i class="fas fa-mask" style="color: #e4405f;"></i>
-                        Confession
+                    <button class="create-post-option" data-action="write">
+                        <i class="fas fa-comments" style="color:#1877f2;"></i>
+                        Discuss
                     </button>
-                    <button class="create-post-option" data-category-shortcut="qna">
-                        <i class="fas fa-question-circle" style="color: #1877f2;"></i>
-                        Q&amp;A
+                    <button class="create-post-option" data-action="ask">
+                        <i class="fas fa-question-circle" style="color:#e67e22;"></i>
+                        Ask
                     </button>
-                    <button class="create-post-option" data-category-shortcut="general">
-                        <i class="fas fa-comments" style="color: #42b72a;"></i>
-                        General Talk
+                    <button class="create-post-option" data-action="confess">
+                        <i class="fas fa-hand-holding-heart" style="color:#e4405f;"></i>
+                        Confess
                     </button>
                 </div>
             </div>
 
+            <!-- category tabs -->
             <div class="card mb-3">
                 <div class="card-body p-2">
-                    <ul class="nav nav-tabs border-0 filter-tabs">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#" data-category="all">All Posts</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-category="confession">Confessions</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-category="qna">Q&amp;A</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-category="general">General</a>
-                        </li>
-                    </ul>
+                    <div class="category-pills-wrapper" id="categoryPills">
+                        <!-- Pills rendered by home.js -->
+                    </div>
                 </div>
             </div>
 
@@ -223,12 +213,23 @@
                                     Category
                                 </label>
 
-                                <select class="form-select modern-select"
-                                        id="postCategory">
-                                    <option value="confession">Confession</option>
-                                    <option value="qna">Q&amp;A</option>
-                                    <option value="general">General Talk</option>
-                                </select>
+                               <select class="form-select modern-select" id="postCategory">
+                                <option value="confession">Confession</option>
+                                <option value="qna">Q&amp;A</option>
+                                <option value="general">General Talk</option>
+                                <option value="ABE">ABE</option>
+                                <option value="SB">SB</option>
+                                <option value="CLS">CLS</option>
+                                <option value="SOC">SOC</option>
+                                <option value="EEE">EEE</option>
+                                <option value="MAD">MAD</option>
+                                <option value="MAE">MAE</option>
+                                <option value="SMA">SMA</option>
+                                <option value="internship">Internship</option>
+                                <option value="cca">CCA</option>
+                                <option value="events">Events</option>
+                                <option value="news">News</option>
+                            </select>
                             </div>
 
                             <!-- POST AS -->
@@ -256,19 +257,31 @@
                 <div class="d-flex justify-content-between align-items-center px-3 pb-4">
                     <!-- file uploads -->
                     <div class="d-flex align-items-center gap-2">
+
+                        <!-- Upload -->
                         <label for="postAttachment"
-                        class="btn btn-light border rounded-circle d-flex justify-content-center align-items-center"
-                        style="width:40px; height:40px;">
-                        <i class="fas fa-paperclip"></i>
+                            class="btn btn-light border rounded-circle d-flex justify-content-center align-items-center"
+                            style="width:40px;height:40px;">
+                            <i class="fas fa-paperclip"></i>
                         </label>
-                        <!-- file input -->
+
                         <input
-                        type="file"
-                        id="postAttachment"
-                        accept="image/*,.gif"
-                        style="display:none;">
-                        <!-- preview -->
+                            type="file"
+                            id="postAttachment"
+                            accept="image/*,.gif"
+                            hidden>
+
+                        <!-- gif button -->
+                        <button
+                            type="button"
+                            class="btn btn-light border rounded-circle d-flex justify-content-center align-items-center"
+                            id="openGifPicker"
+                            style="width:40px;height:40px;">
+                            <i class="fas fa-images"></i>
+                        </button>
+
                         <div id="attachmentPreviewContainer"></div>
+
                     </div>
                     <!-- psot actions -->
                     <div class="d-flex gap-2">
@@ -295,6 +308,40 @@
         <button class="auth-popup-btn" id="confirmOkBtn" style="background:var(--danger-color);border-color:var(--danger-color);">Delete</button>
         </div>
     </div>
+    </div>
+
+        <!-- GIF Modal -->
+    <div class="modal fade" id="gifPickerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Choose a GIF
+                    </h5>
+
+                    <button
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input
+                        class="form-control mb-3"
+                        id="gifSearchInput"
+                        placeholder="Search GIFs...">
+
+                    <div
+                        id="giphyResults"
+                        class="row g-2">
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
     </div>
 
     <!-- login required modal -->

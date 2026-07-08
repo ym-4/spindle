@@ -31,6 +31,7 @@ function feedToken() {
 }
 
 let uploadedAttachmentUrl = null;
+let selectedGiphyUrl = null;
 let currentCategory = 'all';
 let savedPostIds = new Set();
 
@@ -47,7 +48,7 @@ function initFeedPage() {
   try {
     populateFeedUser();
 
-    setupCategoryTabs();
+    setupCategoryPills();
     setupCreatePost();
 
     setupSearch();
@@ -55,6 +56,9 @@ function initFeedPage() {
     protectCreatePostUI();
   
     setupAttachmentUpload();
+    setupGifPicker();
+    setupGifSearch();
+
   } catch (err) {
     console.error('Feed setup error:', err);
   }
@@ -92,6 +96,73 @@ async function populateFeedUser() {
     postAs.innerHTML = `
       <option value="named">${escapeHtml(name)}</option>
       <option value="Anonymous">Anonymous</option>`;
+  }
+}
+
+// gif 
+function setupGifPicker() {
+  const modalEl = document.getElementById('gifPickerModal');
+  const openBtn = document.getElementById('openGifPicker');
+
+  if (!modalEl || !openBtn) return;
+
+  const gifModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  openBtn.addEventListener('click', () => {
+    gifModal.show();
+  });
+
+  modalEl.addEventListener('hidden.bs.modal', () => {
+    const gifSearchInput = document.getElementById('gifSearchInput');
+    const giphyResults = document.getElementById('giphyResults');
+    if (gifSearchInput) gifSearchInput.value = '';
+    if (giphyResults) giphyResults.innerHTML = '';
+  });
+}
+
+function clearSelectedMediaPreview() {
+  const previewContainer = document.getElementById('attachmentPreviewContainer');
+  if (previewContainer) previewContainer.innerHTML = '';
+  selectedGiphyUrl = null;
+  const attachmentInput = document.getElementById('postAttachment');
+  if (attachmentInput) attachmentInput.value = '';
+}
+
+function showSelectedGifPreview() {
+  const previewContainer = document.getElementById('attachmentPreviewContainer');
+  if (!previewContainer) return;
+
+  if (!selectedGiphyUrl) {
+    previewContainer.innerHTML = '';
+    return;
+  }
+
+  previewContainer.innerHTML = `
+    <div class="mt-2 position-relative d-inline-block">
+      <button
+        type="button"
+        class="btn btn-sm btn-dark rounded-circle position-absolute top-0 end-0 p-1"
+        style="width:24px; height:24px; line-height:1; z-index:2;"
+        data-action="remove-preview"
+        aria-label="Remove GIF"
+      >
+        <i class="fas fa-times" style="font-size:0.7rem;"></i>
+      </button>
+      <div class="small text-muted mb-1">GIF selected</div>
+      <img
+        src="${selectedGiphyUrl}"
+        alt="Selected GIF"
+        style="max-width:120px; max-height:120px; border-radius:12px; object-fit:cover;"
+      >
+    </div>
+  `;
+
+  const removeBtn = previewContainer.querySelector('[data-action="remove-preview"]');
+  if (removeBtn) {
+    removeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      clearSelectedMediaPreview();
+    });
   }
 }
 
@@ -202,12 +273,51 @@ function formatTimestamp(createdAt, updatedAt) {
   return { timeStr, wasEdited, editedStr };
 }
 
+const CATEGORIES = [
+  // Primary pills 
+  { value: 'all',        label: 'All',        primary: true  },
+  { value: 'general',    label: 'General',    primary: true  },
+  { value: 'events',     label: 'Events',     primary: true  },
+  { value: 'news',       label: 'News',       primary: true  },
+  { value: 'cca',        label: 'CCA',        primary: true  },
+  { value: 'internship', label: 'Internship', primary: true  },
+  // Secondary shown in "More" dropdown
+  { value: 'confession', label: 'Confession', primary: false },
+  { value: 'qna',        label: 'Q&A',        primary: false },
+  { value: 'SOC',        label: 'SOC',        primary: false },
+  { value: 'ABE',        label: 'ABE',        primary: false },
+  { value: 'SB',         label: 'SB',         primary: false },
+  { value: 'CLS',        label: 'CLS',        primary: false },
+  { value: 'EEE',        label: 'EEE',        primary: false },
+  { value: 'MAD',        label: 'MAD',        primary: false },
+  { value: 'MAE',        label: 'MAE',        primary: false },
+  { value: 'SMA',        label: 'SMA',        primary: false },
+];
+
 function getCategoryLabel(category) {
-  return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[category] || category;
+  const found = CATEGORIES.find(c => c.value === category);
+  return found ? found.label : category;
 }
 
 function getCategoryClass(category) {
-  return { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[category] || '';
+  const map = {
+    confession: 'category-confession',
+    qna:        'category-qna',
+    general:    'category-general',
+    events:     'category-events',
+    news:       'category-news',
+    internship: 'category-internship',
+    cca:        'category-cca',
+    SOC:        'category-SOC',
+    ABE:        'category-ABE',
+    SB:         'category-SB',
+    CLS:        'category-CLS',
+    EEE:        'category-EEE',
+    MAD:        'category-MAD',
+    MAE:        'category-MAE',
+    SMA:        'category-SMA',
+  };
+  return map[category] || 'category-general';
 }
 
 function getAvatarInitial(post) {
@@ -298,15 +408,17 @@ function buildPostCard(post) {
     <div class="post-content">
       ${escapeHtml(post.content)}
     </div>
-    ${post.attachment_url ? `
+    ${
+    (post.gif_url || post.giphy_url || post.attachment_url) ? `
       <div class="post-image-container mt-2">
         <img
-          src="${post.attachment_url}"
+          src="${post.gif_url || post.giphy_url || post.attachment_url}"
           class="img-fluid rounded post-image"
           alt="Post attachment"
         >
       </div>
-    ` : ''}
+    ` : ''
+    }
 
     <div class="post-actions">
       <button class="post-action-btn like-btn" data-post-id="${post.id}">
@@ -488,19 +600,103 @@ function resetHotPostsLoading() {
     <div class="spinner-border spinner-border-sm" role="status"></div></div>`;
 }
 
-function setupCategoryTabs() {
-  const tabLinks = document.querySelectorAll('.filter-tabs .nav-link');
-  tabLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      tabLinks.forEach(l => l.classList.remove('active'));
-      link.classList.add('active');
-      const category = link.dataset.category;
-      currentCategory = category;
-      if (category === 'all') loadPosts();
-      else loadPostsByCategory(category);
-    });
+function setupCategoryPills() {
+  const wrapper = document.getElementById('categoryPills');
+  if (!wrapper) return;
+
+  const primary   = CATEGORIES.filter(c => c.primary);
+  const secondary = CATEGORIES.filter(c => !c.primary);
+
+  // Render pills
+  primary.forEach(cat => {
+    const pill = document.createElement('button');
+    pill.className   = `category-pill${cat.value === 'all' ? ' active' : ''}`;
+    pill.textContent = cat.label;
+    pill.dataset.category = cat.value;
+    pill.addEventListener('click', () => selectCategory(cat.value));
+    wrapper.appendChild(pill);
   });
+
+  // "More" 
+  const moreWrapper = document.createElement('div');
+  moreWrapper.className = 'pill-more-wrapper';
+
+  const morePill = document.createElement('button');
+  morePill.className   = 'category-pill more-pill';
+  morePill.id          = 'morePill';
+  morePill.innerHTML   = 'More <i class="fas fa-chevron-down ms-1" style="font-size:0.7rem;"></i>';
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'pill-more-dropdown';
+  dropdown.id        = 'moreDropdown';
+  dropdown.style.display = 'none';
+  dropdown.style.position = 'absolute';
+  dropdown.style.zIndex = '9999';
+
+  secondary.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.textContent       = cat.label;
+    btn.dataset.category  = cat.value;
+    btn.addEventListener('click', () => {
+      selectCategory(cat.value);
+      dropdown.style.display = 'none';
+    });
+    dropdown.appendChild(btn);
+  });
+
+  function updateDropdownPosition() {
+    const pillRect = morePill.getBoundingClientRect();
+    dropdown.style.left = `${pillRect.left + window.scrollX}px`;
+    dropdown.style.top = `${pillRect.bottom + window.scrollY + 6}px`;
+    dropdown.style.minWidth = `${pillRect.width}px`;
+  }
+
+  morePill.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = dropdown.style.display === 'block';
+    if (isOpen) {
+      dropdown.style.display = 'none';
+      return;
+    }
+    updateDropdownPosition();
+    dropdown.style.display = 'block';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (dropdown.style.display === 'block' && !dropdown.contains(e.target) && e.target !== morePill) {
+      dropdown.style.display = 'none';
+    }
+  });
+
+  moreWrapper.appendChild(morePill);
+  wrapper.appendChild(moreWrapper);
+  document.body.appendChild(dropdown);
+}
+
+function selectCategory(category) {
+  currentCategory = category;
+
+  document.querySelectorAll('.category-pill:not(.more-pill)').forEach(p => {
+    p.classList.toggle('active', p.dataset.category === category);
+  });
+
+  // More dropdown
+  document.querySelectorAll('#moreDropdown button').forEach(b => {
+    b.classList.toggle('active', b.dataset.category === category);
+  });
+
+  const morePill = document.getElementById('morePill');
+  const selectedCategory = CATEGORIES.find(c => c.value === category);
+  const isSecondary = selectedCategory && !selectedCategory.primary;
+
+  if (morePill) {
+    morePill.classList.toggle('active', !!isSecondary);
+    const labelText = isSecondary ? selectedCategory.label : 'More';
+    morePill.innerHTML = `${labelText} <i class="fas fa-chevron-down ms-1" style="font-size:0.7rem;"></i>`;
+  }
+
+  if (category === 'all') loadPosts();
+  else loadPostsByCategory(category);
 }
 
 function renderTop3(posts) {
@@ -574,6 +770,10 @@ function setupCreatePost() {
     formData.append('content', content);
     formData.append('is_anonymous', isAnonymous);
 
+    if (selectedGiphyUrl) {
+      formData.append('gif_url', selectedGiphyUrl);
+    }
+
     const attachmentInput = document.getElementById('postAttachment');
 
     if (attachmentInput.files[0]) {
@@ -618,6 +818,7 @@ function setupCreatePost() {
     });
   });
 }
+
 // search bar
 function setupSearch() {
   const input = document.getElementById('searchInput');
@@ -782,9 +983,17 @@ function clearCreatePostForm() {
   document.getElementById('submitPostBtn').disabled = true;
 
   uploadedAttachmentUrl = null;
+  clearSelectedMediaPreview();
+  const giphyResults = document.getElementById('giphyResults');
+  if (giphyResults) giphyResults.innerHTML = '';
+  const gifSearchInput = document.getElementById('gifSearchInput');
+  if (gifSearchInput) gifSearchInput.value = '';
 
   const preview = document.getElementById('attachmentPreviewContainer');
   if (preview) preview.innerHTML = '';
+  if (selectedGiphyUrl) {
+    showSelectedGifPreview();
+  }
 
   const attachmentInput = document.getElementById('postAttachment');
   if (attachmentInput) attachmentInput.value = '';
@@ -810,26 +1019,38 @@ function setupAuthPopup() {
 }
 
 function protectCreatePostUI() {
-  const triggers = [
-    document.querySelector('.create-post-input'),
-    ...document.querySelectorAll('.create-post-option')
-  ];
-
-  triggers.forEach(trigger => {
-    if (!trigger) return;
-    trigger.removeAttribute('data-bs-toggle');
-    trigger.removeAttribute('data-bs-target');
-
-    trigger.addEventListener('click', (e) => {
+  // Input bar
+  const inputTrigger = document.querySelector('.create-post-input');
+  if (inputTrigger) {
+    inputTrigger.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (!isLoggedIn()) { showAuthPopup(); return; }
-      const modal = new bootstrap.Modal(document.getElementById('createPostModal'));
       clearCreatePostForm();
-      if (trigger.dataset.categoryShortcut) {
-        document.getElementById('postCategory').value = trigger.dataset.categoryShortcut;
+      new bootstrap.Modal(document.getElementById('createPostModal')).show();
+    });
+  }
+
+  document.querySelectorAll('.create-post-option[data-action]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isLoggedIn()) { showAuthPopup(); return; }
+
+      clearCreatePostForm();
+      const action = btn.dataset.action;
+
+      if (action === 'ask') {
+        // Preselect Q&A
+        document.getElementById('postCategory').value = 'qna';
+
+      } else if (action === 'confess') {
+        // Preselect Confession + check anonymous
+        document.getElementById('postCategory').value    = 'confession';
+        document.getElementById('postAnonymous').checked = true;
       }
-      modal.show();
+      // 'write' opens with default
+      new bootstrap.Modal(document.getElementById('createPostModal')).show();
     });
   });
 }
@@ -982,24 +1203,115 @@ function setupAttachmentUpload() {
       return;
     }
 
+    selectedGiphyUrl = null;
+
     const reader = new FileReader();
 
     reader.onload = function (e) {
       previewContainer.innerHTML = `
-        <img
-          src="${e.target.result}"
-          style="
-            max-width:120px;
-            max-height:120px;
-            border-radius:12px;
-            object-fit:cover;
-          "
-        >
+        <div class="mt-2 position-relative d-inline-block">
+          <button
+            type="button"
+            class="btn btn-sm btn-dark rounded-circle position-absolute top-0 end-0 p-1"
+            style="width:24px; height:24px; line-height:1; z-index:2;"
+            data-action="remove-preview"
+            aria-label="Remove attachment"
+          >
+            <i class="fas fa-times" style="font-size:0.7rem;"></i>
+          </button>
+          <img
+            src="${e.target.result}"
+            style="
+              max-width:120px;
+              max-height:120px;
+              border-radius:12px;
+              object-fit:cover;
+            "
+          >
+        </div>
       `;
+
+      const removeBtn = previewContainer.querySelector('[data-action="remove-preview"]');
+      if (removeBtn) {
+        removeBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          clearSelectedMediaPreview();
+        });
+      }
     };
 
     reader.readAsDataURL(file);
   });
+}
+
+function setupGifSearch() {
+    const input = document.getElementById('gifSearchInput');
+    const resultsContainer = document.getElementById('giphyResults');
+
+    if (!input || !resultsContainer) return;
+
+    let timeout;
+    input.addEventListener('input', () => {
+        clearTimeout(timeout);
+        const query = input.value.trim();
+
+        if (query.length < 2) {
+            resultsContainer.innerHTML = '';
+            return;
+        }
+
+        timeout = setTimeout(() => {
+            searchGiphy(query);
+        }, 300);
+    });
+}
+
+async function searchGiphy(query) {
+    if (!query.trim()) return;
+    const resultsContainer = document.getElementById('giphyResults');
+    if (!resultsContainer) return;
+    resultsContainer.innerHTML = 'Searching...';
+
+    try {
+        const response = await fetch(`/giphy/search?q=${encodeURIComponent(query)}`);
+        if (!response.ok) throw new Error('GIF search failed');
+
+        const gifs = await response.json();
+        resultsContainer.innerHTML = '';
+
+        if (!Array.isArray(gifs) || gifs.length === 0) {
+            resultsContainer.innerHTML = '<div class="text-muted small">No GIFs found.</div>';
+            return;
+        }
+
+        gifs.forEach((gif) => {
+            const previewUrl = gif?.images?.fixed_height_small?.url || gif?.images?.downsized_medium?.url || gif?.images?.original?.url || gif?.url;
+            const originalUrl = gif?.images?.original?.url || gif?.images?.downsized_large?.url || gif?.url || previewUrl;
+
+            if (!previewUrl || !originalUrl) return;
+
+            const img = document.createElement('img');
+            img.src = previewUrl;
+            img.className = 'giphy-thumb';
+            img.alt = 'GIF result';
+
+            img.onclick = () => {
+                selectedGiphyUrl = originalUrl;
+                showSelectedGifPreview();
+
+                resultsContainer
+                    .querySelectorAll('.selected')
+                    .forEach((x) => x.classList.remove('selected'));
+
+                img.classList.add('selected');
+            };
+            resultsContainer.appendChild(img);
+        });
+    } catch (err) {
+        console.error(err);
+        resultsContainer.innerHTML = 'Failed to load GIFs';
+    }
 }
 
 // Share dropdown

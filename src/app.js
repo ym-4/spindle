@@ -23,6 +23,7 @@ const searchRouter = require('./routers/Search.router');
 const groupRouter = require('./routers/Groups.router');
 const marketplaceRouter = require('./routers/Marketplace.router');
 const cartRouter = require('./routers/Cart.router');
+const giphyRouter = require("./routers/Giphy.router");
 
 const app = express();
 app.use(cors()); // Might remove later
@@ -72,6 +73,7 @@ app.use('/marketplace', marketplaceRouter);
 app.use('/cart', cartRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use("/giphy", giphyRouter);
 
 // 404 handler — if no route above matched the request,
 // create a 404 error and pass it to the error handler below.

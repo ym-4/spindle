@@ -47,6 +47,7 @@ let savedPostIds = new Set();
 let currentCommentSort = 'newest';
 let activeCommentPostId = null;
 let activeCommentsData = [];
+let pendingEditGifUrl = null;
 
 // Load saved IDs
 function loadSavedIds() {
@@ -150,6 +151,124 @@ function showConfirm(title, message, onConfirm) {
 
 function showLoginRequiredModal() {
   document.getElementById('authOverlay').classList.remove('d-none');
+}
+
+
+// gifs
+function clearEditGifPreview() {
+  pendingEditGifUrl = null;
+  const preview = document.getElementById('editGifPreview');
+  if (preview) preview.innerHTML = '';
+  const attachmentInput = document.getElementById('editAttachment');
+  if (attachmentInput) attachmentInput.value = '';
+}
+
+function renderEditGifPreview() {
+  const preview = document.getElementById('editGifPreview');
+  if (!preview) return;
+
+  if (!pendingEditGifUrl) {
+    preview.innerHTML = '';
+    return;
+  }
+
+  preview.innerHTML = `
+    <div class="mt-2 position-relative d-inline-block">
+      <button
+        type="button"
+        class="btn btn-sm btn-dark rounded-circle position-absolute top-0 end-0 p-1"
+        style="width:24px; height:24px; line-height:1; z-index:2;"
+        data-action="remove-edit-gif"
+        aria-label="Remove GIF"
+      >
+        <i class="fas fa-times" style="font-size:0.7rem;"></i>
+      </button>
+      <div class="small text-muted mb-1">GIF selected</div>
+      <img
+        src="${pendingEditGifUrl}"
+        alt="Selected GIF"
+        style="max-width:120px; max-height:120px; border-radius:12px; object-fit:cover;"
+      >
+    </div>
+  `;
+
+  const removeBtn = preview.querySelector('[data-action="remove-edit-gif"]');
+  if (removeBtn) {
+    removeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      clearEditGifPreview();
+    });
+  }
+}
+
+function setupEditGifPicker() {
+  const modalEl = document.getElementById('gifPickerModal');
+  const openBtn = document.getElementById('openEditGifPicker');
+
+  if (!modalEl || !openBtn) return;
+
+  const gifModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  openBtn.addEventListener('click', () => {
+    gifModal.show();
+  });
+
+  const input = document.getElementById('gifSearchInput');
+  const resultsContainer = document.getElementById('giphyResults');
+  if (!input || !resultsContainer) return;
+
+  let timeout;
+  input.addEventListener('input', () => {
+    clearTimeout(timeout);
+    const query = input.value.trim();
+    if (query.length < 2) {
+      resultsContainer.innerHTML = '';
+      return;
+    }
+    timeout = setTimeout(() => {
+      searchEditGifs(query);
+    }, 300);
+  });
+}
+
+async function searchEditGifs(query) {
+  const resultsContainer = document.getElementById('giphyResults');
+  if (!resultsContainer) return;
+  resultsContainer.innerHTML = 'Searching...';
+
+  try {
+    const response = await fetch(`/giphy/search?q=${encodeURIComponent(query)}`);
+    if (!response.ok) throw new Error('GIF search failed');
+
+    const gifs = await response.json();
+    resultsContainer.innerHTML = '';
+
+    if (!Array.isArray(gifs) || gifs.length === 0) {
+      resultsContainer.innerHTML = '<div class="text-muted small">No GIFs found.</div>';
+      return;
+    }
+
+    gifs.forEach((gif) => {
+      const previewUrl = gif?.images?.fixed_height_small?.url || gif?.images?.downsized_medium?.url || gif?.images?.original?.url || gif?.url;
+      const originalUrl = gif?.images?.original?.url || gif?.images?.downsized_large?.url || gif?.url || previewUrl;
+      if (!previewUrl || !originalUrl) return;
+
+      const img = document.createElement('img');
+      img.src = previewUrl;
+      img.className = 'giphy-thumb';
+      img.alt = 'GIF result';
+      img.onclick = () => {
+        pendingEditGifUrl = originalUrl;
+        renderEditGifPreview();
+        resultsContainer.querySelectorAll('.selected').forEach((x) => x.classList.remove('selected'));
+        img.classList.add('selected');
+      };
+      resultsContainer.appendChild(img);
+    });
+  } catch (err) {
+    console.error(err);
+    resultsContainer.innerHTML = 'Failed to load GIFs';
+  }
 }
 
 //Load post 
@@ -335,6 +454,18 @@ function renderPostEditMode(post) {
           <option value="confession" ${post.category === 'confession' ? 'selected' : ''}>Confession</option>
           <option value="qna"        ${post.category === 'qna'        ? 'selected' : ''}>Q&A</option>
           <option value="general"    ${post.category === 'general'    ? 'selected' : ''}>General Talk</option>
+          <option value="events"     ${post.category === 'events'     ? 'selected' : ''}>Events</option>
+          <option value="news"       ${post.category === 'news'       ? 'selected' : ''}>News</option>
+          <option value="cca"        ${post.category === 'cca'        ? 'selected' : ''}>CCA</option>
+          <option value="internship" ${post.category === 'internship' ? 'selected' : ''}>Internship</option>
+          <option value="SOC"        ${post.category === 'SOC'        ? 'selected' : ''}>SOC</option>
+          <option value="ABE"        ${post.category === 'ABE'        ? 'selected' : ''}>ABE</option>
+          <option value="SB"         ${post.category === 'SB'         ? 'selected' : ''}>SB</option>
+          <option value="CLS"        ${post.category === 'CLS'        ? 'selected' : ''}>CLS</option>
+          <option value="EEE"        ${post.category === 'EEE'        ? 'selected' : ''}>EEE</option>
+          <option value="MAD"        ${post.category === 'MAD'        ? 'selected' : ''}>MAD</option>
+          <option value="MAE"        ${post.category === 'MAE'        ? 'selected' : ''}>MAE</option>
+          <option value="SMA"        ${post.category === 'SMA'        ? 'selected' : ''}>SMA</option>
         </select>
       </div>
 
@@ -350,21 +481,30 @@ function renderPostEditMode(post) {
 
       <div class="mb-3">
         <label class="form-label fw-semibold">
-          Attachment
+          Attachment / GIF
         </label>
         <!-- current attachment preview -->
         <div id="currentAttachmentPreview" class="mb-2">
           ${renderEditAttachmentPreview(post)}
         </div>
-        <!-- upload new file -->
-        <input
-          type="file"
-          class="form-control"
-          id="editAttachment"
-          accept="image/*,video/*">
+        <div class="d-flex align-items-center gap-2 mt-2">
+          <input
+            type="file"
+            class="form-control"
+            id="editAttachment"
+            accept="image/*,video/*">
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            id="openEditGifPicker"
+          >
+            <i class="fas fa-images me-1"></i> GIF
+          </button>
+        </div>
+        <div id="editGifPreview" class="mt-2"></div>
         <!-- remove checkbox -->
         ${
-          post.attachment_url
+          post.attachment_url || post.gif_url || post.giphy_url
             ? `
               <div class="form-check mt-2">
                 <input
@@ -373,7 +513,7 @@ function renderPostEditMode(post) {
                   id="removeAttachment"
                 >
                 <label class="form-check-label" for="removeAttachment">
-                  Remove current attachment
+                  Remove current attachment/GIF
                 </label>
               </div>
             `
@@ -388,6 +528,10 @@ function renderPostEditMode(post) {
         <button class="btn btn-primary btn-sm" id="saveEditBtn">Save changes</button>
       </div>
     </div>`;
+
+  pendingEditGifUrl = post.gif_url || post.giphy_url || null;
+  renderEditGifPreview();
+  setupEditGifPicker();
 
   document.getElementById('cancelEditBtn').addEventListener('click', () => {
     const url = new URL(window.location.href);
@@ -439,6 +583,9 @@ function renderPostEditMode(post) {
     // new uploaded file
     if (attachmentInput.files.length > 0) {
       formData.append('attachment', attachmentInput.files[0]);
+    }
+    if (pendingEditGifUrl) {
+      formData.append('gif_url', pendingEditGifUrl);
     }
     // remove current attachment
     if (removeAttachmentCheckbox && removeAttachmentCheckbox.checked) {
@@ -928,8 +1075,45 @@ function formatTimestamp(createdAt, updatedAt) {
   return { timeStr, wasEdited, editedStr };
 }
 
-function getCategoryLabel(c) { return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[c] || c; }
-function getCategoryClass(c)  { return { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[c] || ''; }
+function getCategoryLabel(c) {
+  return {
+    confession: 'Confession',
+    qna:        'Q&A',
+    general:    'General Talk',
+    events:     'Events',
+    news:       'News',
+    cca:        'CCA',
+    internship: 'Internship',
+    SOC:        'SOC',
+    ABE:        'ABE',
+    SB:         'SB',
+    CLS:        'CLS',
+    EEE:        'EEE',
+    MAD:        'MAD',
+    MAE:        'MAE',
+    SMA:        'SMA',
+  }[c] || c;
+}
+
+function getCategoryClass(c) {
+  return {
+    confession: 'category-confession',
+    qna:        'category-qna',
+    general:    'category-general',
+    events:     'category-events',
+    news:       'category-news',
+    cca:        'category-cca',
+    internship: 'category-internship',
+    SOC:        'category-SOC',
+    ABE:        'category-ABE',
+    SB:         'category-SB',
+    CLS:        'category-CLS',
+    EEE:        'category-EEE',
+    MAD:        'category-MAD',
+    MAE:        'category-MAE',
+    SMA:        'category-SMA',
+  }[c] || 'category-general';
+}
 
 function getAvatarInitial(post) {
   if (post.is_anonymous) return 'A';
@@ -952,9 +1136,10 @@ function escapeHtml(str) {
 }
 
 function renderPostAttachment(post) {
-  if (!post.attachment_url) return '';
+  const mediaUrl = post.gif_url || post.giphy_url || post.attachment_url;
+  if (!mediaUrl) return '';
 
-  const fileUrl = post.attachment_url.toLowerCase();
+  const fileUrl = mediaUrl.toLowerCase();
 
   // image extensions
   const isImage =
@@ -974,7 +1159,7 @@ function renderPostAttachment(post) {
     return `
       <div class="post-attachment mt-3">
         <img
-          src="${post.attachment_url}"
+          src="${mediaUrl}"
           alt="Post attachment"
           class="img-fluid rounded"
           style="width:100%; max-height:500px; object-fit:cover;"
@@ -991,7 +1176,7 @@ function renderPostAttachment(post) {
           class="w-100 rounded"
           style="max-height:500px;"
         >
-          <source src="${post.attachment_url}">
+          <source src="${mediaUrl}">
         </video>
       </div>
     `;
@@ -1000,7 +1185,7 @@ function renderPostAttachment(post) {
   return `
     <div class="post-attachment mt-3">
       <a
-        href="${post.attachment_url}"
+        href="${mediaUrl}"
         target="_blank"
         class="btn btn-outline-secondary btn-sm"
       >
@@ -1012,7 +1197,8 @@ function renderPostAttachment(post) {
 }
 
 function renderEditAttachmentPreview(post) {
-  if (!post.attachment_url) {
+  const mediaUrl = post.gif_url || post.giphy_url || post.attachment_url;
+  if (!mediaUrl) {
     return `
       <div class="text-muted small">
         No attachment uploaded
@@ -1020,7 +1206,7 @@ function renderEditAttachmentPreview(post) {
     `;
   }
 
-  const fileUrl = post.attachment_url.toLowerCase();
+  const fileUrl = mediaUrl.toLowerCase();
 
   const isImage =
     fileUrl.endsWith('.png') ||
@@ -1037,7 +1223,7 @@ function renderEditAttachmentPreview(post) {
   if (isImage) {
     return `
       <img
-        src="${post.attachment_url}"
+        src="${mediaUrl}"
         class="img-fluid rounded"
         style="max-height:220px;"
       >
@@ -1051,14 +1237,14 @@ function renderEditAttachmentPreview(post) {
         class="rounded"
         style="max-height:220px; width:100%;"
       >
-        <source src="${post.attachment_url}">
+        <source src="${mediaUrl}">
       </video>
     `;
   }
 
   return `
     <a
-      href="${post.attachment_url}"
+      href="${mediaUrl}"
       target="_blank"
       class="btn btn-outline-secondary btn-sm"
     >
@@ -1273,7 +1459,6 @@ function loadYourGroups() {
     }
   }, 'GET', null, token);
 }
-
 
 function escapeHtml(str) {
   if (!str) return '';
