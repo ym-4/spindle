@@ -7,7 +7,9 @@ const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreato
 		getGroupMemberByUserID, insertGroupMember, updateMemberRoleToAdmin, updateMemberRoleToUser, 
         getAllGroupAdmin, insertGroupDiscussion, updateGroupDiscussion, getAllGroupDiscussionByGroupID, 
         getGroupDiscussionMatch, deleteGroupMemberByUserId, getGroupDiscussionByUserID, deleteGroupDiscussionByID, 
-		getGroupDiscussionByGroupIDAndChannelName } = require('../models/Groups.model');
+		getGroupDiscussionByGroupIDAndChannelName, getGroupAnnouncementsByGroupID, getGroupAnnouncements, 
+		insertGroupAnnouncement, updateGroupAnnouncement, deleteAnnouncementByID, 
+		deleteGroupChannelByChannelName } = require('../models/Groups.model');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
 
@@ -606,5 +608,204 @@ router.delete('/messages/delete/:user_id', authenticateJWT, (req, res, next) => 
 
 });
 
+// Delete group channel and its messages
+router.delete('/messages/channel/:group_id', authenticateJWT, (req, res, next) => {
+	if (req.body == undefined || req.body.channel_name == undefined) {
+		return res.status(400).json({"message": "Error: channel_name is undefined"});
+	} 
+
+	// Prevent deletion of default channel
+	if (data.channel_name === "general") {
+		return res.status(400).json({
+			message: "Cannot delete the default channel"
+		});
+	}
+
+	const data = {
+		user_id: req.user.id,
+		group_id: req.params.group_id,
+		channel_name: req.body.channel_name,
+	}
+
+	getAllGroupAdmin(data)
+		.then(admins => {
+			let found = admins.filter(admin => admin.user_id == data.user_id);
+			
+			// User is an admin
+			if (found.length > 0) {
+
+				// Delete group channel and messages
+				deleteGroupChannelByChannelName(data)
+					.then(results => {
+
+						if (results.length === 0) {
+							return res.status(404).json({
+								message: "Channel Name not found"
+							});
+						}
+
+						return res.status(204).send();
+					})
+					.catch(next);
+					
+					
+			// User is not an admin
+			} else {
+				res.status(403).json({"message": "User is not an admin"})
+			}
+
+		})
+		.catch(next); 
+
+});
+
+// ------------------------------------------------------------------
+// 							Group Annoucements
+// ------------------------------------------------------------------
+
+// GET all announcements by group id
+router.get('/announcements/:group_id', authenticateJWT, (req, res, next) => {
+  const data = {
+    group_id: req.params.group_id
+  }
+
+  getGroupAnnouncementsByGroupID(data)
+    .then((groupAnnouncements) => res.status(200).json(groupAnnouncements))
+    .catch(next);
+});
+
+// GET all announcements 
+router.get('/announcements', authenticateJWT, (req, res, next) => {
+
+  getGroupAnnouncements()
+    .then((groupAnnouncements) => res.status(200).json(groupAnnouncements))
+    .catch(next);
+});
+
+// Create new announcement (Only Admin)
+// Request: text
+router.post('/announcements/:group_id', authenticateJWT, (req, res, next) => {
+  if (req.body == undefined || req.body.text == undefined) {
+    
+	res.status(400).json({"message": "Error: text is undefined"});
+    return;
+  }
+
+  const data = {
+	user_id: req.user.id,
+    text: req.body.text, 
+    group_id: req.params.group_id, 
+  }
+
+  // Check that user is an admin
+  getAllGroupAdmin(data)
+  	.then(admins => {
+		let found = admins.filter(admin => admin.user_id == data.user_id);
+		
+		// User is an admin
+		if (found.length > 0) {
+
+			insertGroupAnnouncement(data)
+				.then(results => {
+					res.status(201).json(results);
+				})
+				.catch(next);
+				
+		// User is not an admin
+		} else {
+			res.status(403).json({"message": "User is not an admin"})
+		}
+
+	})
+	.catch(next); 
+
+});
+
+// Update announcement (Only Admin)
+// Request: text
+router.put('/announcements/:group_id/:announcement_id', authenticateJWT, (req, res, next) => {
+	if (req.body == undefined || req.body.text == undefined) {
+		res.status(400).json({"message": "Error: text is undefined"});
+		return;
+	}
+
+	const data = {
+		user_id: req.user.id, 
+		group_id: req.params.group_id, 
+		announcement_id: req.params.announcement_id,
+		text: req.body.text 
+	}
+
+	// Check that user is an admin
+	getAllGroupAdmin(data)
+		.then(admins => {
+			let found = admins.filter(admin => admin.user_id == data.user_id);
+			
+			// User is an admin
+			if (found.length > 0) {
+
+				updateGroupAnnouncement(data)
+					.then(results => {
+						if (results.length === 0) {
+							return res.status(404).json({
+								message: "Announcement not found"
+							});
+						}
+
+						res.status(200).json(results);
+					})
+					.catch(next);
+					
+			// User is not an admin
+			} else {
+				res.status(403).json({"message": "User is not an admin"})
+			}
+
+		})
+		.catch(next); 
+	
+});
+
+// Delete group announcement (Only Admin)
+router.delete('/announcements/:group_id/:announcement_id', authenticateJWT, (req, res, next) => {
+
+	const data = {
+		user_id: req.user.id,
+		group_id: req.params.group_id,
+		announcement_id: req.params.announcement_id,
+	}
+
+	// Check that user is an admin
+	getAllGroupAdmin(data)
+		.then(admins => {
+			let found = admins.filter(admin => admin.user_id == data.user_id);
+			
+			// User is an admin
+			if (found.length > 0) {
+
+				// Delete announcement
+				deleteAnnouncementByID(data)
+					.then(results => {
+
+						if (results.length === 0) {
+							return res.status(404).json({
+								message: "Announcement not found"
+							});
+						}
+
+						return res.status(204).send();
+					})
+					.catch(next);
+					
+			// User is not an admin
+			} else {
+				res.status(403).json({"message": "User is not an admin"})
+			}
+
+		})
+		.catch(next); 
+	
+
+});
 
 module.exports = router;
