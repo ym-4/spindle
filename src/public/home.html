@@ -4,12 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Spindle</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="css/auth.css" />
     <link rel="stylesheet" href="css/auth-brutalist.css" />
     <script src="js/api.js"></script>
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
       body {
         min-height: 100vh;
@@ -25,10 +32,10 @@
         inset: 0;
         z-index: 0;
         overflow: hidden;
-        background: radial-gradient(ellipse at 20% 50%, #1a1a3e 0%, transparent 60%),
-                    radial-gradient(ellipse at 80% 20%, #3a1a3e 0%, transparent 60%),
-                    radial-gradient(ellipse at 50% 80%, #1a3a3e 0%, transparent 60%),
-                    #0a0a1a;
+        background:
+          radial-gradient(ellipse at 20% 50%, #1a1a3e 0%, transparent 60%),
+          radial-gradient(ellipse at 80% 20%, #3a1a3e 0%, transparent 60%),
+          radial-gradient(ellipse at 50% 80%, #1a3a3e 0%, transparent 60%), #0a0a1a;
       }
 
       .marble {
@@ -40,60 +47,104 @@
       }
 
       .marble:nth-child(1) {
-        width: 700px; height: 700px;
+        width: 700px;
+        height: 700px;
         background: radial-gradient(circle at 30% 30%, #ff6b6b, #c850c0, #4158d0);
-        top: -15%; left: -10%;
-        animation: marbleDrift1 18s ease-in-out infinite alternate, hueShift 8s linear infinite;
+        top: -15%;
+        left: -10%;
+        animation:
+          marbleDrift1 18s ease-in-out infinite alternate,
+          hueShift 8s linear infinite;
       }
       .marble:nth-child(2) {
-        width: 500px; height: 500px;
+        width: 500px;
+        height: 500px;
         background: radial-gradient(circle at 70% 70%, #43e97b, #38f9d7, #4158d0);
-        bottom: -10%; right: -8%;
-        animation: marbleDrift2 20s ease-in-out infinite alternate, hueShift 10s linear infinite reverse;
+        bottom: -10%;
+        right: -8%;
+        animation:
+          marbleDrift2 20s ease-in-out infinite alternate,
+          hueShift 10s linear infinite reverse;
       }
       .marble:nth-child(3) {
-        width: 450px; height: 450px;
+        width: 450px;
+        height: 450px;
         background: radial-gradient(circle at 50% 50%, #f093fb, #f5576c, #ffcc70);
-        top: 40%; left: 50%;
+        top: 40%;
+        left: 50%;
         transform: translate(-50%, -50%);
-        animation: marbleDrift3 22s ease-in-out infinite alternate, hueShift 12s linear infinite;
+        animation:
+          marbleDrift3 22s ease-in-out infinite alternate,
+          hueShift 12s linear infinite;
       }
       .marble:nth-child(4) {
-        width: 300px; height: 300px;
+        width: 300px;
+        height: 300px;
         background: radial-gradient(circle at 40% 60%, #a18cd1, #fbc2eb);
-        top: 70%; left: 15%;
-        animation: marbleDrift4 16s ease-in-out infinite alternate, hueShift 9s linear infinite reverse;
+        top: 70%;
+        left: 15%;
+        animation:
+          marbleDrift4 16s ease-in-out infinite alternate,
+          hueShift 9s linear infinite reverse;
       }
       .marble:nth-child(5) {
-        width: 350px; height: 350px;
+        width: 350px;
+        height: 350px;
         background: radial-gradient(circle at 60% 40%, #ffecd2, #fcb69f);
-        top: 10%; left: 75%;
-        animation: marbleDrift5 19s ease-in-out infinite alternate, hueShift 11s linear infinite;
+        top: 10%;
+        left: 75%;
+        animation:
+          marbleDrift5 19s ease-in-out infinite alternate,
+          hueShift 11s linear infinite;
       }
 
       @keyframes marbleDrift1 {
-        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
-        100% { transform: translate(120px, 80px) scale(1.15) rotate(15deg); }
+        0% {
+          transform: translate(0, 0) scale(1) rotate(0deg);
+        }
+        100% {
+          transform: translate(120px, 80px) scale(1.15) rotate(15deg);
+        }
       }
       @keyframes marbleDrift2 {
-        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
-        100% { transform: translate(-100px, -60px) scale(1.1) rotate(-12deg); }
+        0% {
+          transform: translate(0, 0) scale(1) rotate(0deg);
+        }
+        100% {
+          transform: translate(-100px, -60px) scale(1.1) rotate(-12deg);
+        }
       }
       @keyframes marbleDrift3 {
-        0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
-        100% { transform: translate(calc(-50% + 80px), calc(-50% - 50px)) scale(1.2) rotate(8deg); }
+        0% {
+          transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        }
+        100% {
+          transform: translate(calc(-50% + 80px), calc(-50% - 50px)) scale(1.2) rotate(8deg);
+        }
       }
       @keyframes marbleDrift4 {
-        0% { transform: translate(0, 0) scale(1); }
-        100% { transform: translate(50px, -80px) scale(1.25); }
+        0% {
+          transform: translate(0, 0) scale(1);
+        }
+        100% {
+          transform: translate(50px, -80px) scale(1.25);
+        }
       }
       @keyframes marbleDrift5 {
-        0% { transform: translate(0, 0) scale(1); }
-        100% { transform: translate(-70px, 60px) scale(1.15); }
+        0% {
+          transform: translate(0, 0) scale(1);
+        }
+        100% {
+          transform: translate(-70px, 60px) scale(1.15);
+        }
       }
       @keyframes hueShift {
-        0% { filter: blur(60px) hue-rotate(0deg); }
-        100% { filter: blur(60px) hue-rotate(360deg); }
+        0% {
+          filter: blur(60px) hue-rotate(0deg);
+        }
+        100% {
+          filter: blur(60px) hue-rotate(360deg);
+        }
       }
 
       /* Extra sparkle particles */
@@ -106,26 +157,74 @@
       }
       .sparkle {
         position: absolute;
-        width: 4px; height: 4px;
+        width: 4px;
+        height: 4px;
         background: #fff;
         border-radius: 50%;
         opacity: 0;
         animation: sparkle 4s ease-in-out infinite;
       }
-      .sparkle:nth-child(1) { top: 15%; left: 20%; animation-delay: 0s; }
-      .sparkle:nth-child(2) { top: 30%; left: 70%; animation-delay: 0.8s; }
-      .sparkle:nth-child(3) { top: 65%; left: 30%; animation-delay: 1.6s; }
-      .sparkle:nth-child(4) { top: 80%; left: 80%; animation-delay: 2.4s; }
-      .sparkle:nth-child(5) { top: 50%; left: 50%; animation-delay: 3.2s; }
-      .sparkle:nth-child(6) { top: 10%; left: 85%; animation-delay: 0.4s; }
-      .sparkle:nth-child(7) { top: 75%; left: 10%; animation-delay: 1.2s; }
-      .sparkle:nth-child(8) { top: 40%; left: 90%; animation-delay: 2s; }
-      .sparkle:nth-child(9) { top: 90%; left: 45%; animation-delay: 2.8s; }
-      .sparkle:nth-child(10) { top: 20%; left: 40%; animation-delay: 3.6s; }
+      .sparkle:nth-child(1) {
+        top: 15%;
+        left: 20%;
+        animation-delay: 0s;
+      }
+      .sparkle:nth-child(2) {
+        top: 30%;
+        left: 70%;
+        animation-delay: 0.8s;
+      }
+      .sparkle:nth-child(3) {
+        top: 65%;
+        left: 30%;
+        animation-delay: 1.6s;
+      }
+      .sparkle:nth-child(4) {
+        top: 80%;
+        left: 80%;
+        animation-delay: 2.4s;
+      }
+      .sparkle:nth-child(5) {
+        top: 50%;
+        left: 50%;
+        animation-delay: 3.2s;
+      }
+      .sparkle:nth-child(6) {
+        top: 10%;
+        left: 85%;
+        animation-delay: 0.4s;
+      }
+      .sparkle:nth-child(7) {
+        top: 75%;
+        left: 10%;
+        animation-delay: 1.2s;
+      }
+      .sparkle:nth-child(8) {
+        top: 40%;
+        left: 90%;
+        animation-delay: 2s;
+      }
+      .sparkle:nth-child(9) {
+        top: 90%;
+        left: 45%;
+        animation-delay: 2.8s;
+      }
+      .sparkle:nth-child(10) {
+        top: 20%;
+        left: 40%;
+        animation-delay: 3.6s;
+      }
 
       @keyframes sparkle {
-        0%, 100% { opacity: 0; transform: scale(0) translateY(0); }
-        50% { opacity: 1; transform: scale(1) translateY(-20px); }
+        0%,
+        100% {
+          opacity: 0;
+          transform: scale(0) translateY(0);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1) translateY(-20px);
+        }
       }
 
       /* ---- content above background ---- */
@@ -146,9 +245,9 @@
         margin-bottom: 1rem;
       }
       .home-actions-top .wa-btn {
-        background: rgba(0,0,0,0.35);
+        background: rgba(0, 0, 0, 0.35);
         backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,0.25);
+        border: 1px solid rgba(255, 255, 255, 0.25);
         color: #fff;
         font-family: 'Courier New', monospace;
         font-weight: 700;
@@ -156,9 +255,11 @@
         padding: 0.5rem 1.25rem;
         cursor: pointer;
         transition: background 0.2s;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
       }
-      .home-actions-top .wa-btn:hover { background: rgba(255,255,255,0.22); }
+      .home-actions-top .wa-btn:hover {
+        background: rgba(255, 255, 255, 0.22);
+      }
 
       .home-hero {
         text-align: center;
@@ -172,11 +273,16 @@
         object-fit: contain;
         margin-bottom: 0.75rem;
         animation: logoFloat 3s ease-in-out infinite;
-        filter: drop-shadow(0 4px 30px rgba(65,88,208,0.4));
+        filter: drop-shadow(0 4px 30px rgba(65, 88, 208, 0.4));
       }
       @keyframes logoFloat {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-14px); }
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-14px);
+        }
       }
 
       .home-hero h1 {
@@ -185,7 +291,7 @@
         font-size: 3.2rem;
         margin-bottom: 0.25rem;
         letter-spacing: -1px;
-        text-shadow: 0 2px 40px rgba(0,0,0,0.4);
+        text-shadow: 0 2px 40px rgba(0, 0, 0, 0.4);
         background: linear-gradient(135deg, #f5af19, #f12711, #f5af19);
         background-size: 200% 200%;
         -webkit-background-clip: text;
@@ -194,8 +300,13 @@
         animation: shimmer 4s ease-in-out infinite;
       }
       @keyframes shimmer {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
       }
 
       .home-hero .subtitle {
@@ -206,7 +317,7 @@
         max-width: 600px;
         margin-left: auto;
         margin-right: auto;
-        text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
         font-weight: 500;
       }
 
@@ -220,12 +331,14 @@
         padding: 0.85rem 2.5rem;
         font-size: 1.1rem;
         cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 4px 25px rgba(65,88,208,0.35);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        box-shadow: 0 4px 25px rgba(65, 88, 208, 0.35);
       }
       .home-hero .home-cta:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 35px rgba(65,88,208,0.5);
+        box-shadow: 0 8px 35px rgba(65, 88, 208, 0.5);
       }
 
       /* ---- Stats bar ---- */
@@ -251,7 +364,7 @@
         display: block;
         font-size: 0.8rem;
         color: #ddd;
-        text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
         margin-top: 2px;
       }
 
@@ -265,17 +378,19 @@
         margin: 0 auto;
       }
       .features-grid .card {
-        background: rgba(255,255,255,0.06);
+        background: rgba(255, 255, 255, 0.06);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.10);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 16px;
         padding: 1.75rem 1.25rem;
         text-align: center;
-        transition: transform 0.25s, background 0.25s;
+        transition:
+          transform 0.25s,
+          background 0.25s;
       }
       .features-grid .card:hover {
         transform: translateY(-8px);
-        background: rgba(255,255,255,0.12);
+        background: rgba(255, 255, 255, 0.12);
       }
       .features-grid .card i {
         font-size: 2.2rem;
@@ -290,14 +405,14 @@
         font-size: 1rem;
         margin-bottom: 0.4rem;
         color: #fff;
-        text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
       }
       .features-grid .card p {
         font-size: 0.85rem;
         opacity: 0.85;
         line-height: 1.5;
         color: #fff;
-        text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
       }
 
       /* ---- How it works ---- */
@@ -312,13 +427,13 @@
         font-size: 1.4rem;
         margin-bottom: 0.5rem;
         color: #fff;
-        text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
       }
       .how-section > p {
         color: #ddd;
         font-size: 0.9rem;
         margin-bottom: 1.5rem;
-        text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
       }
       .how-steps {
         display: grid;
@@ -326,14 +441,15 @@
         gap: 1rem;
       }
       .how-steps .step {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px;
         padding: 1.25rem 1rem;
       }
       .how-steps .step .step-num {
         display: inline-block;
-        width: 32px; height: 32px;
+        width: 32px;
+        height: 32px;
         line-height: 32px;
         border-radius: 50%;
         background: linear-gradient(135deg, #4158d0, #c850c0);
@@ -364,19 +480,21 @@
         margin-top: 1rem;
       }
       #homeUser.home-hero .links a {
-        background: rgba(255,255,255,0.10);
+        background: rgba(255, 255, 255, 0.1);
         color: #fff;
         text-decoration: none;
         padding: 0.7rem 1.5rem;
         border-radius: 10px;
         font-weight: 700;
         font-family: 'Courier New', monospace;
-        transition: background 0.2s, transform 0.2s;
+        transition:
+          background 0.2s,
+          transform 0.2s;
         backdrop-filter: blur(6px);
-        border: 1px solid rgba(255,255,255,0.12);
+        border: 1px solid rgba(255, 255, 255, 0.12);
       }
       #homeUser.home-hero .links a:hover {
-        background: rgba(255,255,255,0.2);
+        background: rgba(255, 255, 255, 0.2);
         transform: translateY(-2px);
       }
       #homeUser.home-hero .links a.primary {
@@ -387,13 +505,14 @@
       /* Sidebar for logged-in users */
       .home-sidebar {
         position: fixed;
-        top: 0; left: 0;
+        top: 0;
+        left: 0;
         width: 260px;
         height: 100vh;
         z-index: 10;
-        background: rgba(10,10,26,0.85);
+        background: rgba(10, 10, 26, 0.85);
         backdrop-filter: blur(12px);
-        border-right: 1px solid rgba(255,255,255,0.08);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
         padding-top: 1rem;
         overflow-y: auto;
         display: none;
@@ -403,15 +522,17 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.65rem 1.25rem;
-        color: rgba(255,255,255,0.75);
+        color: rgba(255, 255, 255, 0.75);
         text-decoration: none;
         font-family: 'Courier New', monospace;
         font-size: 0.85rem;
-        transition: background 0.2s, color 0.2s;
+        transition:
+          background 0.2s,
+          color 0.2s;
       }
       .home-sidebar .sidebar-item:hover,
       .home-sidebar .sidebar-item.active {
-        background: rgba(255,255,255,0.08);
+        background: rgba(255, 255, 255, 0.08);
         color: #fff;
       }
       .home-sidebar .sidebar-item i {
@@ -420,23 +541,40 @@
       }
       .home-sidebar .sidebar-divider {
         height: 1px;
-        background: rgba(255,255,255,0.08);
+        background: rgba(255, 255, 255, 0.08);
         margin: 0.5rem 1rem;
       }
       .home-sidebar .sidebar-item .spinner-border {
         margin-left: 0.5rem;
       }
-      #navUser.hidden { display: none !important; }
-      body.logged-in .home-wrap { margin-left: 260px; }
-      body.logged-in .home-sidebar { display: block; }
+      #navUser.hidden {
+        display: none !important;
+      }
+      body.logged-in .home-wrap {
+        margin-left: 260px;
+      }
+      body.logged-in .home-sidebar {
+        display: block;
+      }
 
-      .hidden { display: none !important; }
+      .hidden {
+        display: none !important;
+      }
 
       @media (max-width: 600px) {
-        .home-hero h1 { font-size: 2.2rem; }
-        .stats-bar { gap: 1.5rem; }
-        .stats-bar .stat .num { font-size: 1.4rem; }
-        .home-actions-top { align-self: center; margin-bottom: 0.5rem; }
+        .home-hero h1 {
+          font-size: 2.2rem;
+        }
+        .stats-bar {
+          gap: 1.5rem;
+        }
+        .stats-bar .stat .num {
+          font-size: 1.4rem;
+        }
+        .home-actions-top {
+          align-self: center;
+          margin-bottom: 0.5rem;
+        }
       }
     </style>
   </head>
@@ -449,13 +587,35 @@
       <div class="marble"></div>
     </div>
     <div class="sparkle-container">
-      <div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div>
-      <div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div>
-      <div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div>
+      <div class="sparkle"></div>
+      <div class="sparkle"></div>
+      <div class="sparkle"></div>
+      <div class="sparkle"></div>
+      <div class="sparkle"></div>
+      <div class="sparkle"></div>
+      <div class="sparkle"></div>
+      <div class="sparkle"></div>
+      <div class="sparkle"></div>
       <div class="sparkle"></div>
     </div>
 
-    <aside class="sidebar" id="homeSidebar" style="position:fixed;top:0;left:0;width:260px;height:100vh;z-index:10;background:rgba(10,10,26,0.85);backdrop-filter:blur(12px);border-right:1px solid rgba(255,255,255,0.08);overflow-y:auto;display:none"></aside>
+    <aside
+      class="sidebar"
+      id="homeSidebar"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        height: 100vh;
+        z-index: 10;
+        background: rgba(10, 10, 26, 0.85);
+        backdrop-filter: blur(12px);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        overflow-y: auto;
+        display: none;
+      "
+    ></aside>
 
     <div class="home-wrap">
       <div class="home-actions-top" id="homeTopActions">
@@ -463,9 +623,9 @@
           <button type="button" class="wa-btn" id="btnOpenLogin">Log in</button>
           <button type="button" class="wa-btn" id="btnOpenRegister">Register</button>
         </div>
-        <div id="navUser" class="hidden" style="display:none;gap:0.5rem;align-items:center">
+        <div id="navUser" class="hidden" style="display: none; gap: 0.5rem; align-items: center">
           <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
-          <div id="waHeaderSlot" style="display:flex;gap:0.5rem;align-items:center"></div>
+          <div id="waHeaderSlot" style="display: flex; gap: 0.5rem; align-items: center"></div>
         </div>
       </div>
 
@@ -473,8 +633,8 @@
         <img src="images/Logo_Panda.png" alt="Spindle" class="home-logo" />
         <h1>Spindle</h1>
         <p class="subtitle">
-          Your all-in-one campus hub. Share posts, form study groups, trade on the Marketplace,
-          chat with friends, and stay connected — all built for students, by students.
+          Your all-in-one campus hub. Share posts, form study groups, trade on the Marketplace, chat
+          with friends, and stay connected — all built for students, by students.
         </p>
         <button type="button" class="home-cta" id="btnHeroLogin">Get started &nbsp;→</button>
 
@@ -482,19 +642,26 @@
           <div class="stat"><span class="num">8+</span><span class="label">Schools</span></div>
           <div class="stat"><span class="num">23</span><span class="label">Study Groups</span></div>
           <div class="stat"><span class="num">50+</span><span class="label">Listings</span></div>
-          <div class="stat"><span class="num">Real-time</span><span class="label">Chat &amp; Calls</span></div>
+          <div class="stat">
+            <span class="num">Real-time</span><span class="label">Chat &amp; Calls</span>
+          </div>
         </div>
 
         <div class="features-grid">
           <div class="card">
             <i class="fas fa-newspaper"></i>
             <h4>Feed</h4>
-            <p>Post confessions, questions, and announcements. Upvote, comment, and save what matters.</p>
+            <p>
+              Post confessions, questions, and announcements. Upvote, comment, and save what
+              matters.
+            </p>
           </div>
           <div class="card">
             <i class="fas fa-users"></i>
             <h4>Study Groups</h4>
-            <p>Join or create groups by school and module. Collaborate with channel-based chat rooms.</p>
+            <p>
+              Join or create groups by school and module. Collaborate with channel-based chat rooms.
+            </p>
           </div>
           <div class="card">
             <i class="fas fa-store"></i>
@@ -504,7 +671,10 @@
           <div class="card">
             <i class="fas fa-comments"></i>
             <h4>Chat &amp; Calls</h4>
-            <p>Real-time one-on-one messaging, group chats, and voice/video calls with anyone on campus.</p>
+            <p>
+              Real-time one-on-one messaging, group chats, and voice/video calls with anyone on
+              campus.
+            </p>
           </div>
         </div>
 
@@ -520,7 +690,9 @@
             <div class="step">
               <div class="step-num">2</div>
               <h5>Set up your profile</h5>
-              <p>Add your school, avatar, and bio so other students can find and connect with you.</p>
+              <p>
+                Add your school, avatar, and bio so other students can find and connect with you.
+              </p>
             </div>
             <div class="step">
               <div class="step-num">3</div>
@@ -534,7 +706,9 @@
       <div id="homeUser" class="home-hero hidden">
         <img src="images/Logo_Panda.png" alt="Spindle" class="home-logo" />
         <h1>Welcome back</h1>
-        <p class="subtitle">Jump back into the action. Your feed, groups, and messages are waiting.</p>
+        <p class="subtitle">
+          Jump back into the action. Your feed, groups, and messages are waiting.
+        </p>
         <div class="links">
           <a href="index.html" class="primary">Open Feed</a>
           <a href="chat.html">Chats</a>
@@ -547,7 +721,7 @@
     </div>
 
     <div id="authOverlay" class="auth-overlay" aria-hidden="true">
-      <div class="auth-modal" role="dialog" onclick="if(event.target===this)closeAuthModal()">
+      <div class="auth-modal" role="dialog" onclick="if (event.target === this) closeAuthModal();">
         <div class="auth-modal__panel">
           <button type="button" class="auth-close" id="authClose">&times;</button>
           <h1>LOGIN</h1>
@@ -591,7 +765,21 @@
             </div>
             <div class="field">
               <label for="registerCountry">COUNTRY</label>
-              <select id="registerCountry" class="form-select" required style="width:100%;padding:12px 15px;border:2px solid #000;background:#fff;font-family:'Courier New',monospace;font-size:16px;border-radius:0;color:#000">
+              <select
+                id="registerCountry"
+                class="form-select"
+                required
+                style="
+                  width: 100%;
+                  padding: 12px 15px;
+                  border: 2px solid #000;
+                  background: #fff;
+                  font-family: 'Courier New', monospace;
+                  font-size: 16px;
+                  border-radius: 0;
+                  color: #000;
+                "
+              >
                 <option value="">Select your country</option>
                 <option value="Singapore">Singapore</option>
                 <option value="Malaysia">Malaysia</option>
@@ -617,7 +805,13 @@
             </div>
             <div class="field">
               <label for="registerPassword">PASSWORD</label>
-              <input type="password" id="registerPassword" placeholder="••••••••" minlength="4" required />
+              <input
+                type="password"
+                id="registerPassword"
+                placeholder="••••••••"
+                minlength="4"
+                required
+              />
             </div>
             <button type="submit" class="auth-submit">REGISTER</button>
             <div class="auth-footer-row">
@@ -627,10 +821,19 @@
 
           <form id="verifyForm" class="auth-form">
             <h2 id="verifyTitle" class="auth-form-title">Verify your Gmail</h2>
-            <p id="verifyHint" class="auth-verify-hint">Enter the code sent to <strong id="verifyEmailDisplay"></strong></p>
+            <p id="verifyHint" class="auth-verify-hint">
+              Enter the code sent to <strong id="verifyEmailDisplay"></strong>
+            </p>
             <div class="field">
               <label for="verifyCode">6-digit code</label>
-              <input type="text" id="verifyCode" inputmode="numeric" maxlength="6" placeholder="000000" required />
+              <input
+                type="text"
+                id="verifyCode"
+                inputmode="numeric"
+                maxlength="6"
+                placeholder="000000"
+                required
+              />
             </div>
             <label id="verifyRememberRow" class="auth-remember hidden">
               <input type="checkbox" id="verifyRemember" />
@@ -652,8 +855,12 @@
     <script src="js/spindle-sidebar.js"></script>
     <script src="js/home.js"></script>
     <script>
-      document.getElementById('switchToRegister')?.addEventListener('click', () => switchAuthTab('register'));
-      document.getElementById('switchToLogin')?.addEventListener('click', () => switchAuthTab('login'));
+      document
+        .getElementById('switchToRegister')
+        ?.addEventListener('click', () => switchAuthTab('register'));
+      document
+        .getElementById('switchToLogin')
+        ?.addEventListener('click', () => switchAuthTab('login'));
     </script>
   </body>
 </html>

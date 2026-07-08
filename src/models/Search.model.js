@@ -4,7 +4,8 @@ module.exports.searchAll = async function searchAll(query) {
   const searchTerm = `%${query}%`;
   const VALUES = [searchTerm];
 
-  const { rows } = await pool.query(`
+  const { rows } = await pool.query(
+    `
     SELECT 'post' AS result_type, 
            p.id, p.title, p.content, p.category, p.created_at,
            per.name AS author_name, NULL AS description
@@ -30,7 +31,9 @@ module.exports.searchAll = async function searchAll(query) {
     WHERE per.name ILIKE $1
 
     ORDER BY created_at DESC NULLS LAST
-  `, VALUES);
+  `,
+    VALUES,
+  );
 
   return rows;
 };

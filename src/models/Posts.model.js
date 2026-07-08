@@ -55,7 +55,8 @@ module.exports.getAllPost = async function getAllPost() {
 module.exports.getPostByID = async function getPostByID(data) {
   const VALUES = [data.id];
 
-  const { rows } = await pool.query(`
+  const { rows } = await pool.query(
+    `
     SELECT 
       p.id,
       p.user_id,
@@ -100,18 +101,21 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.created_at,
       p.updated_at,
       per.name
-  `, VALUES);
+  `,
+    VALUES,
+  );
 
   return rows[0];
 };
 
 // GET Post by Category (confession/qna/general)
 module.exports.getPostByCategory = async function getPostByCategory(data) {
-  const categoryMap = { 'confession': 'confession', 'q&a': 'qna', 'qna': 'qna', 'general': 'general' };
+  const categoryMap = { confession: 'confession', 'q&a': 'qna', qna: 'qna', general: 'general' };
   const cat = categoryMap[(data.category || '').toLowerCase()] || data.category;
   const VALUES = [cat];
 
-  const { rows } = await pool.query(`
+  const { rows } = await pool.query(
+    `
     SELECT p.id,
       p.user_id,
       p.title,
@@ -157,7 +161,9 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       per.name
 
     ORDER BY p.created_at DESC
-  `, VALUES);
+  `,
+    VALUES,
+  );
 
   return rows;
 };
@@ -173,7 +179,9 @@ module.exports.getRelatedPosts = async function getRelatedPosts(data) {
     LEFT JOIN "Person" u ON p.user_id = u.id
     WHERE p.category = $1 AND p.id != $2
     ORDER BY RANDOM()
-    LIMIT 3`, VALUES);
+    LIMIT 3`,
+    VALUES,
+  );
   return rows;
 };
 
@@ -182,21 +190,33 @@ module.exports.getPostByUserID = async function getPostByUserID(data) {
   const VALUES = [data.user_id];
   const { rows } = await pool.query('SELECT * FROM "Person" WHERE email = ?', VALUES);
   return rows;
-}
+};
 
 // Create new post
 module.exports.insertPost = async function insertPost(data) {
-  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.is_anonymous];
-  const { rows } = await pool.query('INSERT INTO "Posts" (user_id, title, category, content, attachment_url, is_anonymous) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id', VALUES);
-  return rows[0]; 
-}
+  const VALUES = [
+    data.user_id,
+    data.title,
+    data.category,
+    data.content,
+    data.attachment_url,
+    data.is_anonymous,
+  ];
+  const { rows } = await pool.query(
+    'INSERT INTO "Posts" (user_id, title, category, content, attachment_url, is_anonymous) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+    VALUES,
+  );
+  return rows[0];
+};
 
 // update post by ID (owner only)
 module.exports.updatePostByID = async function updatePostByID(data) {
   const VALUES = [data.title, data.content, data.category, data.attachment_url, data.id];
 
   const { rows } = await pool.query(
-    `UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4,"updated_at" = CURRENT_TIMESTAMP WHERE "id" = $5 RETURNING *`, VALUES);
+    `UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4,"updated_at" = CURRENT_TIMESTAMP WHERE "id" = $5 RETURNING *`,
+    VALUES,
+  );
 
   return rows[0];
 };
@@ -220,11 +240,14 @@ module.exports.getSavedByUserID = async function getSavedByUserID(data) {
 // Create new save
 module.exports.insertSaved = async function insertSaved(data) {
   const VALUES = [data.user_id, data.post_id];
-  const { rows } = await pool.query('INSERT INTO "SavedPosts" (user_id, post_id) VALUES ($1, $2) RETURNING id', VALUES);
-  return rows[0]; 
-}
+  const { rows } = await pool.query(
+    'INSERT INTO "SavedPosts" (user_id, post_id) VALUES ($1, $2) RETURNING id',
+    VALUES,
+  );
+  return rows[0];
+};
 
-// delete a save 
+// delete a save
 module.exports.deleteSavedByID = async function deleteSavedByID(data) {
   const VALUES = [data.id];
   const { rows } = await pool.query('DELETE FROM "SavedPosts" WHERE "id" = $1 RETURNING *', VALUES);
@@ -239,27 +262,33 @@ module.exports.getReactionByUserID = async function getReactionByUserID(data) {
   return rows;
 };
 
-// like a post 
+// like a post
 module.exports.insertLike = async function insertLike(data) {
   const VALUES = [data.post_id, data.user_id, data.reaction_type];
-  const { rows } = await pool.query('INSERT INTO "PostReactions" (post_id, user_id, reaction_type) VALUES ($1, $2, $3) RETURNING id', VALUES);
-  return rows[0]; 
-}
-
-// update reaction type 
-module.exports.updateReaction = async function updateReaction(data) {
-  const VALUES = [data.reaction_type, data.user_id, data.id];
   const { rows } = await pool.query(
-    'UPDATE "PostReactions" SET "reaction_type" = $1 WHERE "user_id" = $2 and "id" = $3 RETURNING *',
-    VALUES
+    'INSERT INTO "PostReactions" (post_id, user_id, reaction_type) VALUES ($1, $2, $3) RETURNING id',
+    VALUES,
   );
   return rows[0];
 };
 
-// delete a reaction 
+// update reaction type
+module.exports.updateReaction = async function updateReaction(data) {
+  const VALUES = [data.reaction_type, data.user_id, data.id];
+  const { rows } = await pool.query(
+    'UPDATE "PostReactions" SET "reaction_type" = $1 WHERE "user_id" = $2 and "id" = $3 RETURNING *',
+    VALUES,
+  );
+  return rows[0];
+};
+
+// delete a reaction
 module.exports.deleteReaction = async function deleteReaction(data) {
   const VALUES = [data.id, data.user_id];
-  const { rows } = await pool.query('DELETE FROM "PostReactions" WHERE "id" = $1 and "user_id" = $2 RETURNING *', VALUES);
+  const { rows } = await pool.query(
+    'DELETE FROM "PostReactions" WHERE "id" = $1 and "user_id" = $2 RETURNING *',
+    VALUES,
+  );
   return rows[0];
 };
 
@@ -269,13 +298,22 @@ module.exports.insertReport = async function insertReport(data) {
     await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS description TEXT DEFAULT ''`);
   } catch {}
   const VALUES = [data.post_id, data.user_id, data.reason, data.description || ''];
-  const { rows } = await pool.query('INSERT INTO "Reports" (post_id, user_id, reason, description) VALUES ($1, $2, $3, $4) RETURNING *', VALUES);
-  return rows[0]; 
+  const { rows } = await pool.query(
+    'INSERT INTO "Reports" (post_id, user_id, reason, description) VALUES ($1, $2, $3, $4) RETURNING *',
+    VALUES,
+  );
+  return rows[0];
 };
 
 module.exports.getAllReports = async function getAllReports(includeDismissed) {
-  try { await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`); } catch {}
-  try { await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS description TEXT DEFAULT ''`); } catch {}
+  try {
+    await pool.query(
+      `ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`,
+    );
+  } catch {}
+  try {
+    await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS description TEXT DEFAULT ''`);
+  } catch {}
   const { rows } = await pool.query(
     `SELECT r.id, r.post_id, r.reason, r.description, r.created_at, r.dismissed,
             u.id AS reporter_id, u.name AS reporter_name, u.email AS reporter_email,
@@ -286,7 +324,7 @@ module.exports.getAllReports = async function getAllReports(includeDismissed) {
      JOIN "Posts" p ON r.post_id = p.id
      LEFT JOIN "Person" pa ON p.user_id = pa.id
      ${includeDismissed ? '' : 'WHERE (r.dismissed IS NULL OR r.dismissed = FALSE)'}
-      ORDER BY r.created_at DESC`
+      ORDER BY r.created_at DESC`,
   );
   return rows;
 };
@@ -294,12 +332,12 @@ module.exports.getAllReports = async function getAllReports(includeDismissed) {
 module.exports.searchAllPosts = async function searchAllPosts({ search, category, date } = {}) {
   // Map frontend category values to actual enum values
   const categoryMap = {
-    'confession': 'confession',
+    confession: 'confession',
     'q&a': 'qna',
-    'qna': 'qna',
-    'general': 'general',
+    qna: 'qna',
+    general: 'general',
   };
-  const mappedCategory = category ? (categoryMap[category.toLowerCase()] || null) : null;
+  const mappedCategory = category ? categoryMap[category.toLowerCase()] || null : null;
   let sql = `SELECT p.id, p.title, p.category, p.content, p.created_at,
              per.name AS author_name, per.id AS author_id
              FROM "Posts" p

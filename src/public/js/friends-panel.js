@@ -163,7 +163,9 @@ async function loadFriendsList() {
       ? '<li class="profile-list-empty">No friends yet — search above to connect.</li>'
       : friends
           .map((u) => {
-            const since = u.friends_since ? `Friends since ${new Date(u.friends_since).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}` : '';
+            const since = u.friends_since
+              ? `Friends since ${new Date(u.friends_since).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}`
+              : '';
             const actions = `
           <button type="button" class="btn-rel btn-rel--message" data-message="${u.id}">Message</button>
           <button type="button" class="btn-rel btn-rel--unfriend" data-unfriend="${u.id}" title="Unfriend">−</button>`;
@@ -176,7 +178,9 @@ async function loadFriendsList() {
   list.querySelectorAll('[data-message]').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelector('[data-section="messages"]')?.click();
-      window.dispatchEvent(new CustomEvent('open-dm', { detail: { userId: Number(btn.dataset.message) } }));
+      window.dispatchEvent(
+        new CustomEvent('open-dm', { detail: { userId: Number(btn.dataset.message) } }),
+      );
     });
   });
   list.querySelectorAll('[data-unfriend]').forEach((btn) => {

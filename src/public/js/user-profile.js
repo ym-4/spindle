@@ -8,7 +8,12 @@ function esc(t) {
 }
 
 function initials(name) {
-  return (name || '?').split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase();
+  return (name || '?')
+    .split(' ')
+    .map((p) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 function parseSkills(raw) {
@@ -18,7 +23,10 @@ function parseSkills(raw) {
       const p = JSON.parse(raw);
       return Array.isArray(p) ? p : [];
     } catch {
-      return raw.split(',').map((s) => s.trim()).filter(Boolean);
+      return raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
     }
   }
   return [];
@@ -79,19 +87,33 @@ function bindFriendActions(container) {
 function renderLinks(profile) {
   const items = [];
   if (profile.email) {
-    items.push(`<li><i class="fas fa-envelope text-muted"></i> <a href="mailto:${esc(profile.email)}">${esc(profile.email)}</a></li>`);
+    items.push(
+      `<li><i class="fas fa-envelope text-muted"></i> <a href="mailto:${esc(profile.email)}">${esc(profile.email)}</a></li>`,
+    );
   }
   if (profile.link_portfolio) {
-    const url = profile.link_portfolio.startsWith('http') ? profile.link_portfolio : `https://${profile.link_portfolio}`;
-    items.push(`<li><i class="fas fa-globe text-muted"></i> <a href="${esc(url)}" target="_blank" rel="noopener">Portfolio</a></li>`);
+    const url = profile.link_portfolio.startsWith('http')
+      ? profile.link_portfolio
+      : `https://${profile.link_portfolio}`;
+    items.push(
+      `<li><i class="fas fa-globe text-muted"></i> <a href="${esc(url)}" target="_blank" rel="noopener">Portfolio</a></li>`,
+    );
   }
   if (profile.link_github) {
-    const url = profile.link_github.startsWith('http') ? profile.link_github : `https://github.com/${profile.link_github.replace(/^@/, '')}`;
-    items.push(`<li><i class="fab fa-github text-muted"></i> <a href="${esc(url)}" target="_blank" rel="noopener">GitHub</a></li>`);
+    const url = profile.link_github.startsWith('http')
+      ? profile.link_github
+      : `https://github.com/${profile.link_github.replace(/^@/, '')}`;
+    items.push(
+      `<li><i class="fab fa-github text-muted"></i> <a href="${esc(url)}" target="_blank" rel="noopener">GitHub</a></li>`,
+    );
   }
   if (profile.link_linkedin) {
-    const url = profile.link_linkedin.startsWith('http') ? profile.link_linkedin : `https://linkedin.com/in/${profile.link_linkedin}`;
-    items.push(`<li><i class="fab fa-linkedin text-muted"></i> <a href="${esc(url)}" target="_blank" rel="noopener">LinkedIn</a></li>`);
+    const url = profile.link_linkedin.startsWith('http')
+      ? profile.link_linkedin
+      : `https://linkedin.com/in/${profile.link_linkedin}`;
+    items.push(
+      `<li><i class="fab fa-linkedin text-muted"></i> <a href="${esc(url)}" target="_blank" rel="noopener">LinkedIn</a></li>`,
+    );
   }
   if (items.length === 0) return '<p class="text-muted small mb-0">No links added yet.</p>';
   return `<ul class="pro-profile__links">${items.join('')}</ul>`;
@@ -110,7 +132,8 @@ function renderView(profile) {
     : esc(initials(name));
 
   const headlineLoc = [profile.headline, profile.location].filter(Boolean).join(' · ');
-  const metaExtra = profile.mutual_friends != null ? `${profile.mutual_friends} mutual friends` : '';
+  const metaExtra =
+    profile.mutual_friends != null ? `${profile.mutual_friends} mutual friends` : '';
   const since = profile.member_since
     ? `Member since ${new Date(profile.member_since).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}`
     : '';
@@ -120,10 +143,14 @@ function renderView(profile) {
       ${isOwnProfile ? `<label class="btn btn-sm btn-light pro-profile__cover-edit"><i class="fas fa-camera"></i> Cover<input type="file" id="coverFile" accept="image/*" hidden /></label>` : ''}
     </div>
     <div class="pro-profile__head">
-      ${isOwnProfile ? `<div class="pro-profile__actions-top">
+      ${
+        isOwnProfile
+          ? `<div class="pro-profile__actions-top">
         <button type="button" class="btn btn-outline-danger btn-sm" id="btnEditProfile">Edit profile</button>
         <a href="settings.html" class="btn btn-outline-secondary btn-sm">Settings</a>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
       <div class="pro-profile__avatar-wrap">
         <div class="pro-profile__avatar">${avatarInner}</div>
         ${isOwnProfile ? `<label class="btn btn-sm btn-light pro-profile__avatar-edit"><i class="fas fa-camera"></i><input type="file" id="avatarFile" accept="image/*" hidden /></label>` : ''}
@@ -156,7 +183,9 @@ function renderView(profile) {
 
   if (!isOwnProfile) bindFriendActions(document.getElementById('friendActions'));
   if (isOwnProfile) {
-    document.getElementById('btnEditProfile')?.addEventListener('click', () => showEditForm(profile));
+    document
+      .getElementById('btnEditProfile')
+      ?.addEventListener('click', () => showEditForm(profile));
     document.getElementById('avatarFile')?.addEventListener('change', uploadAvatar);
     document.getElementById('coverFile')?.addEventListener('change', uploadCover);
   }
@@ -196,7 +225,11 @@ function showEditForm(profile) {
 async function saveProfile(e) {
   e.preventDefault();
   const skillsRaw = document.getElementById('editSkills').value;
-  const skills = skillsRaw.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 20);
+  const skills = skillsRaw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 20);
   try {
     const updated = await authFetch('/auth/profile', {
       method: 'PUT',

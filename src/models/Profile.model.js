@@ -73,7 +73,10 @@ module.exports.updateSecuritySettings = async function updateSecuritySettings(us
   return module.exports.getAllSettings(userId);
 };
 
-module.exports.updateNotificationSettings = async function updateNotificationSettings(userId, data) {
+module.exports.updateNotificationSettings = async function updateNotificationSettings(
+  userId,
+  data,
+) {
   await ensureSettingsRow(userId);
   await pool.query(
     `UPDATE "UserSettings"
@@ -113,7 +116,12 @@ module.exports.updatePrivacySettings = async function updatePrivacySettings(user
          activity_tracking = COALESCE($2, activity_tracking),
          cookie_preferences = COALESCE($3, cookie_preferences)
      WHERE user_id = $4`,
-    [data.public_profile ?? null, data.activity_tracking ?? null, data.cookie_preferences ?? null, userId],
+    [
+      data.public_profile ?? null,
+      data.activity_tracking ?? null,
+      data.cookie_preferences ?? null,
+      userId,
+    ],
   );
   return module.exports.getAllSettings(userId);
 };
@@ -228,10 +236,7 @@ module.exports.listJoinedGroups = async function listJoinedGroups(userId) {
 };
 
 module.exports.findPersonById = async function findPersonById(userId) {
-  const { rows } = await pool.query(
-    `SELECT id, name, role FROM "Person" WHERE id = $1`,
-    [userId],
-  );
+  const { rows } = await pool.query(`SELECT id, name, role FROM "Person" WHERE id = $1`, [userId]);
   return rows[0] ?? null;
 };
 

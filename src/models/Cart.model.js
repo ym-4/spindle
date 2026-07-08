@@ -4,7 +4,7 @@ const pool = require('./db');
 module.exports.addToCart = async function addToCart(data) {
   const { rows } = await pool.query(
     'INSERT INTO "UserCart" (seller_id, user_id, item_id, amount) VALUES ($1, $2, $3, $4) RETURNING *',
-    [data.seller_id, data.user_id, data.item_id, data.amount]
+    [data.seller_id, data.user_id, data.item_id, data.amount],
   );
   return rows[0];
 };
@@ -34,16 +34,15 @@ module.exports.updateCartItem = async function updateCartItem(data) {
 module.exports.removeCartItem = async function removeCartItem(id, user_id) {
   const { rows } = await pool.query(
     'DELETE FROM "UserCart" WHERE "item_id" = $1 AND "user_id" = $2 RETURNING *',
-    [id, user_id]
+    [id, user_id],
   );
   return rows[0];
 };
 
 // DELETE ALL items in a user cart
 module.exports.clearCart = async function clearCart(user_id) {
-  const { rows } = await pool.query(
-    'DELETE FROM "UserCart" WHERE "user_id" = $1 RETURNING *',
-    [user_id]
-  );
+  const { rows } = await pool.query('DELETE FROM "UserCart" WHERE "user_id" = $1 RETURNING *', [
+    user_id,
+  ]);
   return rows[0];
 };

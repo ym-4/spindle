@@ -37,8 +37,8 @@ form.addEventListener('submit', (e) => {
     name: titleInput.value.trim(),
     description: descInput.value.trim(),
     price: parseFloat(document.getElementById('listingPrice').value),
-    quality: "Brand New",
-    meetup: "Dover MRT",
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
   };
 
   fetchMethod(

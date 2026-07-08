@@ -81,7 +81,9 @@ router.put('/settings/password', async (req, res, next) => {
   try {
     const { current_password, new_password, new_password_confirm, code } = req.body ?? {};
     if (!current_password || !new_password || !code?.trim()) {
-      return res.status(400).json({ error: 'Current password, new password, and 2FA code required.' });
+      return res
+        .status(400)
+        .json({ error: 'Current password, new password, and 2FA code required.' });
     }
     if (new_password.length < 4) {
       return res.status(400).json({ error: 'New password must be at least 4 characters.' });

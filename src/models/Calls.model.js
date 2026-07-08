@@ -37,6 +37,9 @@ module.exports.listForUser = async function listForUser(userId, limit = 50) {
     created_at: r.created_at,
     direction: r.caller_id === userId ? 'outgoing' : 'incoming',
     peer_id: r.caller_id === userId ? r.callee_id : r.caller_id,
-    peer_name: r.caller_id === userId ? r.callee_display || r.callee_name : r.caller_display || r.caller_name,
+    peer_name:
+      r.caller_id === userId
+        ? r.callee_display || r.callee_name
+        : r.caller_display || r.caller_name,
   }));
 };

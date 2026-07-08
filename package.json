@@ -10,18 +10,20 @@
     "multer": "^2.2.0",
     "nodemon": "^3.1.14",
     "pg": "^8.20.0",
+    "playwright": "^1.61.1",
     "ws": "^8.19.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
     "@types/node": "^20.19.41",
-    "eslint": "^10.1.0",
+    "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.4.0",
-    "jest": "^30.3.0",
-    "prettier": "^3.8.1",
+    "husky": "^9.1.7",
+    "jest": "^30.4.2",
+    "prettier": "^3.9.4",
     "supertest": "^7.2.2",
     "typescript": "^6.0.3"
   },
@@ -40,7 +42,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "report": "node scripts/qa-report.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "prepare": "husky"
   },
   "jest": {
     "testMatch": [

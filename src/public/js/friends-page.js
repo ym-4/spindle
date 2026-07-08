@@ -15,7 +15,8 @@ function avatarHtml(u) {
 function friendActionButton(u) {
   const st = u.relationship || 'none';
   if (st === 'friends') return '<span class="badge bg-success">Friends</span>';
-  if (st === 'pending_sent') return '<button class="btn btn-sm btn-secondary" disabled>Pending</button>';
+  if (st === 'pending_sent')
+    return '<button class="btn btn-sm btn-secondary" disabled>Pending</button>';
   if (st === 'pending_received') {
     return `<button class="btn btn-sm btn-primary" data-accept="${u.request_id}">Accept</button>
       <button class="btn btn-sm btn-outline-secondary" data-decline="${u.request_id}">Decline</button>`;
@@ -81,7 +82,8 @@ async function searchUsers(q) {
   const query = q.trim();
   if (!query) {
     list.innerHTML = '';
-    if (hint) hint.textContent = 'Click a name to view their profile, or tap Add to send a request.';
+    if (hint)
+      hint.textContent = 'Click a name to view their profile, or tap Add to send a request.';
     return;
   }
 

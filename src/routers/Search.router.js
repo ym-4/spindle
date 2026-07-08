@@ -10,7 +10,7 @@ router.get('/', (req, res, next) => {
   }
 
   searchAll(query.trim())
-    .then(results => res.status(200).json(results))
+    .then((results) => res.status(200).json(results))
     .catch(next);
 });
 

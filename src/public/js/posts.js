@@ -18,13 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
   loadYourGroups();
   setupCommentSortUI();
 
-  const params  = new URLSearchParams(window.location.search);
-  const postId  = params.get('id');
+  const params = new URLSearchParams(window.location.search);
+  const postId = params.get('id');
   const editMode = params.get('edit') === 'true';
 
-  if (!postId) { showError('No post ID found in URL.'); return; }
+  if (!postId) {
+    showError('No post ID found in URL.');
+    return;
+  }
 
-    loadSavedIds().then(() => {
+  loadSavedIds().then(() => {
     loadPost(postId, editMode);
   });
 
@@ -37,12 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
 });
 
 const REACTIONS_BASE = `${currentUrl}/posts`;
 let currentReaction = null;
-let openReplyThreads = new Set(); 
+let openReplyThreads = new Set();
 let savedPostIds = new Set();
 let currentCommentSort = 'newest';
 let activeCommentPostId = null;
@@ -51,23 +53,29 @@ let activeCommentsData = [];
 // Load saved IDs
 function loadSavedIds() {
   const userId = localStorage.getItem('loggedInUserId');
-  const token  = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
   if (!userId || !token) return Promise.resolve();
 
   return new Promise((resolve) => {
-    fetchMethod(`${currentUrl}/posts/saved/${userId}`, (status, data) => {
-      if (status === 200 && Array.isArray(data)) {
-        savedPostIds = new Set(data.map(row => parseInt(row.post_id)));
-      }
-      resolve();
-    }, 'GET', null, token);
+    fetchMethod(
+      `${currentUrl}/posts/saved/${userId}`,
+      (status, data) => {
+        if (status === 200 && Array.isArray(data)) {
+          savedPostIds = new Set(data.map((row) => parseInt(row.post_id)));
+        }
+        resolve();
+      },
+      'GET',
+      null,
+      token,
+    );
   });
 }
 
 // Save post
 function savePost(postId, onSuccess) {
-  const token  = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
   const userId = localStorage.getItem('loggedInUserId');
 
   if (!token) {
@@ -75,22 +83,28 @@ function savePost(postId, onSuccess) {
     return;
   }
 
-  fetchMethod(`${currentUrl}/posts/saved`, (status, data) => {
-    if (status === 201) {
-      savedPostIds.add(parseInt(postId));
-      if (onSuccess) onSuccess(true);
-    } else {
-      alert(data.message || 'Failed to save post.');
-    }
-  }, 'POST', {
-    user_id: userId,
-    post_id: postId
-  }, token);
+  fetchMethod(
+    `${currentUrl}/posts/saved`,
+    (status, data) => {
+      if (status === 201) {
+        savedPostIds.add(parseInt(postId));
+        if (onSuccess) onSuccess(true);
+      } else {
+        alert(data.message || 'Failed to save post.');
+      }
+    },
+    'POST',
+    {
+      user_id: userId,
+      post_id: postId,
+    },
+    token,
+  );
 }
 
 // Unsave post
 function unsavePost(postId, onSuccess) {
-  const token  = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
   const userId = localStorage.getItem('loggedInUserId');
 
   if (!token) {
@@ -98,42 +112,51 @@ function unsavePost(postId, onSuccess) {
     return;
   }
 
-  fetchMethod(`${currentUrl}/posts/saved/${userId}`, (status, data) => {
-    if (status !== 200) return;
+  fetchMethod(
+    `${currentUrl}/posts/saved/${userId}`,
+    (status, data) => {
+      if (status !== 200) return;
 
-    const row = data.find(
-      r => parseInt(r.post_id) === parseInt(postId)
-    );
+      const row = data.find((r) => parseInt(r.post_id) === parseInt(postId));
 
-    if (!row) return;
+      if (!row) return;
 
-    fetchMethod(`${currentUrl}/posts/saved/${row.id}`, (delStatus) => {
-      if (delStatus === 200) {
-        savedPostIds.delete(parseInt(postId));
-        if (onSuccess) onSuccess(false);
-      } else {
-        alert('Failed to unsave post.');
-      }
-    }, 'DELETE', null, token);
-
-  }, 'GET', null, token);
+      fetchMethod(
+        `${currentUrl}/posts/saved/${row.id}`,
+        (delStatus) => {
+          if (delStatus === 200) {
+            savedPostIds.delete(parseInt(postId));
+            if (onSuccess) onSuccess(false);
+          } else {
+            alert('Failed to unsave post.');
+          }
+        },
+        'DELETE',
+        null,
+        token,
+      );
+    },
+    'GET',
+    null,
+    token,
+  );
 }
 
 // Confirm modal
 function showConfirm(title, message, onConfirm) {
-  const overlay   = document.getElementById('confirmOverlay');
-  const titleEl   = document.getElementById('confirmTitle');
-  const msgEl     = document.getElementById('confirmMessage');
-  const okBtn     = document.getElementById('confirmOkBtn');
+  const overlay = document.getElementById('confirmOverlay');
+  const titleEl = document.getElementById('confirmTitle');
+  const msgEl = document.getElementById('confirmMessage');
+  const okBtn = document.getElementById('confirmOkBtn');
   const cancelBtn = document.getElementById('confirmCancelBtn');
 
   titleEl.textContent = title;
-  msgEl.textContent   = message;
+  msgEl.textContent = message;
   overlay.classList.remove('d-none');
   document.body.style.overflow = 'hidden';
 
   // clone to remove previous listeners
-  const newOk     = okBtn.cloneNode(true);
+  const newOk = okBtn.cloneNode(true);
   const newCancel = cancelBtn.cloneNode(true);
   okBtn.replaceWith(newOk);
   cancelBtn.replaceWith(newCancel);
@@ -143,16 +166,25 @@ function showConfirm(title, message, onConfirm) {
     document.body.style.overflow = '';
   }
 
-  newOk.addEventListener('click', () => { close(); onConfirm(); });
+  newOk.addEventListener('click', () => {
+    close();
+    onConfirm();
+  });
   newCancel.addEventListener('click', close);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); }, { once: true });
+  overlay.addEventListener(
+    'click',
+    (e) => {
+      if (e.target === overlay) close();
+    },
+    { once: true },
+  );
 }
 
 function showLoginRequiredModal() {
   document.getElementById('authOverlay').classList.remove('d-none');
 }
 
-//Load post 
+//Load post
 function loadPost(postId, editMode = false) {
   fetchMethod(`${currentUrl}/posts/${postId}`, (status, data) => {
     if (status === 200 && data) {
@@ -167,14 +199,14 @@ function loadPost(postId, editMode = false) {
   });
 }
 
-// Render post 
+// Render post
 function renderPost(post) {
   document.title = `${escapeHtml(post.title || 'Post')} - Spindle`;
 
   const { timeStr, wasEdited } = formatTimestamp(post.created_at, post.updated_at);
   const categoryLabel = getCategoryLabel(post.category);
   const categoryClass = getCategoryClass(post.category);
-  const initial    = getAvatarInitial(post);
+  const initial = getAvatarInitial(post);
   const authorName = getAuthorName(post);
 
   const isLoggedIn = !!localStorage.getItem('token');
@@ -182,14 +214,16 @@ function renderPost(post) {
   const isOwner = loggedInUserId && parseInt(post.user_id) === loggedInUserId;
   const isSaved = savedPostIds.has(parseInt(post.id));
 
-  const ownerOptions = isOwner ? `
+  const ownerOptions = isOwner
+    ? `
     <li><hr class="dropdown-divider"></li>
     <li><button class="dropdown-item edit-post-btn">
       <i class="fas fa-pen me-2"></i>Edit post
     </button></li>
     <li><button class="dropdown-item text-danger delete-post-btn">
       <i class="fas fa-trash-alt me-2"></i>Delete post
-    </button></li>` : '';
+    </button></li>`
+    : '';
 
   document.getElementById('postDetailContainer').innerHTML = `
     <div class="post-card" data-post-id="${post.id}" style="cursor: default;">
@@ -207,7 +241,9 @@ function renderPost(post) {
             <i class="fas fa-ellipsis-h"></i>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
-            ${isLoggedIn ? `
+            ${
+              isLoggedIn
+                ? `
               <li>
                 <button 
                   class="dropdown-item save-post-btn"
@@ -216,7 +252,9 @@ function renderPost(post) {
                   <i class="fa${isSaved ? 's' : 'r'} fa-bookmark me-2"></i>
                   ${isSaved ? 'Unsave post' : 'Save post'}
                 </button>
-              </li>` : ''}
+              </li>`
+                : ''
+            }
             <li>
               <button class="dropdown-item report-post-btn">
                 Report
@@ -258,42 +296,42 @@ function renderPost(post) {
       </div>
     </div>`;
 
-    setupReactionButtons(post.id);
-    loadRelatedPosts(post.id, post.category);
+  setupReactionButtons(post.id);
+  loadRelatedPosts(post.id, post.category);
 
-    // Share button
-    document.querySelector('.share-btn')?.addEventListener('click', (e) => {
+  // Share button
+  document.querySelector('.share-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openShareDropdown(e.currentTarget, post.id);
+  });
+
+  // save / unsave
+  const saveBtn = document.querySelector('.save-post-btn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      openShareDropdown(e.currentTarget, post.id);
-    });
 
-    // save / unsave
-    const saveBtn = document.querySelector('.save-post-btn');
-    if (saveBtn) {
-      saveBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
+      const currentlySaved = saveBtn.dataset.saved === 'true';
 
-        const currentlySaved = saveBtn.dataset.saved === 'true';
-
-        if (currentlySaved) {
-          unsavePost(post.id, () => {
-            saveBtn.dataset.saved = 'false';
-            saveBtn.innerHTML = `
+      if (currentlySaved) {
+        unsavePost(post.id, () => {
+          saveBtn.dataset.saved = 'false';
+          saveBtn.innerHTML = `
               <i class="far fa-bookmark me-2"></i>
               Save post
             `;
-          });
-        } else {
-          savePost(post.id, () => {
-            saveBtn.dataset.saved = 'true';
-            saveBtn.innerHTML = `
+        });
+      } else {
+        savePost(post.id, () => {
+          saveBtn.dataset.saved = 'true';
+          saveBtn.innerHTML = `
               <i class="fas fa-bookmark me-2"></i>
               Unsave post
             `;
-          });
-        }
-      });
-    }
+        });
+      }
+    });
+  }
 
   if (isOwner) {
     document.querySelector('.edit-post-btn').addEventListener('click', () => {
@@ -306,11 +344,17 @@ function renderPost(post) {
         'This will permanently remove the post and all its comments.',
         () => {
           const token = localStorage.getItem('token');
-          fetchMethod(`${currentUrl}/posts/${post.id}`, (status, data) => {
-            if (status === 200) window.location.href = 'index.html';
-            else alert(data.message || 'Failed to delete post.');
-          }, 'DELETE', null, token);
-        }
+          fetchMethod(
+            `${currentUrl}/posts/${post.id}`,
+            (status, data) => {
+              if (status === 200) window.location.href = 'index.html';
+              else alert(data.message || 'Failed to delete post.');
+            },
+            'DELETE',
+            null,
+            token,
+          );
+        },
       );
     });
   }
@@ -333,8 +377,8 @@ function renderPostEditMode(post) {
       <div class="mb-2">
         <select class="form-select form-select-sm" id="editCategory" style="width:auto;">
           <option value="confession" ${post.category === 'confession' ? 'selected' : ''}>Confession</option>
-          <option value="qna"        ${post.category === 'qna'        ? 'selected' : ''}>Q&A</option>
-          <option value="general"    ${post.category === 'general'    ? 'selected' : ''}>General Talk</option>
+          <option value="qna"        ${post.category === 'qna' ? 'selected' : ''}>Q&A</option>
+          <option value="general"    ${post.category === 'general' ? 'selected' : ''}>General Talk</option>
         </select>
       </div>
 
@@ -397,14 +441,13 @@ function renderPostEditMode(post) {
   });
 
   document.getElementById('saveEditBtn').addEventListener('click', () => {
-    const title    = document.getElementById('editTitle').value.trim();
-    const content  = document.getElementById('editContent').value.trim();
+    const title = document.getElementById('editTitle').value.trim();
+    const content = document.getElementById('editContent').value.trim();
     const category = document.getElementById('editCategory').value;
 
     const attachmentInput = document.getElementById('editAttachment');
 
-    const removeAttachmentCheckbox =
-      document.getElementById('removeAttachment');
+    const removeAttachmentCheckbox = document.getElementById('removeAttachment');
 
     const errEl = document.getElementById('editError');
 
@@ -422,7 +465,7 @@ function renderPostEditMode(post) {
 
     errEl.classList.add('d-none');
 
-    const token   = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
     const user_id = localStorage.getItem('loggedInUserId');
 
     const saveBtn = document.getElementById('saveEditBtn');
@@ -448,39 +491,37 @@ function renderPostEditMode(post) {
     fetch(`${currentUrl}/posts/${post.id}`, {
       method: 'PUT',
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: formData
+      body: formData,
     })
-    .then(async (res) => {
-      const data = await res.json();
+      .then(async (res) => {
+        const data = await res.json();
 
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save changes';
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save changes';
 
-      if (res.ok) {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('edit');
+        if (res.ok) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('edit');
 
-        window.history.replaceState({}, '', url);
-        loadPost(post.id);
+          window.history.replaceState({}, '', url);
+          loadPost(post.id);
+        } else {
+          errEl.textContent = data.message || 'Failed to save changes.';
 
-      } else {
-        errEl.textContent =
-          data.message || 'Failed to save changes.';
+          errEl.classList.remove('d-none');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
 
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save changes';
+
+        errEl.textContent = 'Something went wrong.';
         errEl.classList.remove('d-none');
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save changes';
-
-      errEl.textContent = 'Something went wrong.';
-      errEl.classList.remove('d-none');
-    });
+      });
   });
 }
 // COMMENTS
@@ -508,9 +549,9 @@ function sortCommentsForDisplay(comments, sortType, allComments = comments) {
   const list = [...comments];
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
   const getCreatedAt = (comment) => new Date(comment.created_at || 0).getTime();
-  const getReplyCount = (comment) => allComments.filter(
-    (entry) => parseInt(entry.parent_comment_id) === parseInt(comment.id)
-  ).length;
+  const getReplyCount = (comment) =>
+    allComments.filter((entry) => parseInt(entry.parent_comment_id) === parseInt(comment.id))
+      .length;
   const isOwnComment = (comment) => loggedInUserId && parseInt(comment.user_id) === loggedInUserId;
 
   return list.sort((a, b) => {
@@ -550,7 +591,11 @@ function renderCommentsForPost(postId, comments) {
     return;
   }
 
-  const sortedComments = sortCommentsForDisplay(activeCommentsData, currentCommentSort, activeCommentsData);
+  const sortedComments = sortCommentsForDisplay(
+    activeCommentsData,
+    currentCommentSort,
+    activeCommentsData,
+  );
   sortedComments
     .filter((comment) => !comment.parent_comment_id)
     .forEach((comment) => appendCommentToDOM(comment, postId, sortedComments));
@@ -567,36 +612,55 @@ function loadComments(postId) {
 
   const token = localStorage.getItem('token');
 
-  fetchMethod(`${COMMENTS_BASE}/${postId}`, (status, data) => {
-    if (status === 200) {
-      const comments = Array.isArray(data) ? data : data.rows || [];
-      renderCommentsForPost(postId, comments);
-    } else {
-      container.innerHTML = `<div class="text-muted text-center py-3">Could not load comments.</div>`;
-    }
-  }, 'GET', null, token);
+  fetchMethod(
+    `${COMMENTS_BASE}/${postId}`,
+    (status, data) => {
+      if (status === 200) {
+        const comments = Array.isArray(data) ? data : data.rows || [];
+        renderCommentsForPost(postId, comments);
+      } else {
+        container.innerHTML = `<div class="text-muted text-center py-3">Could not load comments.</div>`;
+      }
+    },
+    'GET',
+    null,
+    token,
+  );
 }
 
-// Submit comment 
+// Submit comment
 function setupCommentSubmit(postId) {
-  const commentInput   = document.getElementById('commentInput');
-  const submitBtn      = document.getElementById('submitCommentBtn');
-  const authOverlay    = document.getElementById('authOverlay');
+  const commentInput = document.getElementById('commentInput');
+  const submitBtn = document.getElementById('submitCommentBtn');
+  const authOverlay = document.getElementById('authOverlay');
   const closeAuthPopup = document.getElementById('closeAuthPopup');
 
-  function openAuthPopup()    { authOverlay.classList.remove('d-none'); }
-  function closeAuthPopupFn() { authOverlay.classList.add('d-none'); }
+  function openAuthPopup() {
+    authOverlay.classList.remove('d-none');
+  }
+  function closeAuthPopupFn() {
+    authOverlay.classList.add('d-none');
+  }
 
   if (closeAuthPopup) closeAuthPopup.addEventListener('click', closeAuthPopupFn);
-  if (authOverlay)    authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) closeAuthPopupFn(); });
+  if (authOverlay)
+    authOverlay.addEventListener('click', (e) => {
+      if (e.target === authOverlay) closeAuthPopupFn();
+    });
 
   commentInput.addEventListener('focus', () => {
-    if (!localStorage.getItem('token')) { commentInput.blur(); openAuthPopup(); }
+    if (!localStorage.getItem('token')) {
+      commentInput.blur();
+      openAuthPopup();
+    }
   });
 
   submitBtn.addEventListener('click', () => {
     const token = localStorage.getItem('token');
-    if (!token) { openAuthPopup(); return; }
+    if (!token) {
+      openAuthPopup();
+      return;
+    }
 
     const content = commentInput.value.trim();
     if (!content) return;
@@ -604,19 +668,25 @@ function setupCommentSubmit(postId) {
     const user_id = localStorage.getItem('loggedInUserId');
     submitBtn.disabled = true;
 
-    fetchMethod(`${COMMENTS_BASE}/${postId}`, (status, data) => {
-      submitBtn.disabled = false;
-      if (status === 200 || status === 201) {
-        commentInput.value = '';
-        loadComments(postId);
-      } else {
-        alert(data.error || data.message || 'Failed to post comment.');
-      }
-    }, 'POST', { user_id, content }, token);
+    fetchMethod(
+      `${COMMENTS_BASE}/${postId}`,
+      (status, data) => {
+        submitBtn.disabled = false;
+        if (status === 200 || status === 201) {
+          commentInput.value = '';
+          loadComments(postId);
+        } else {
+          alert(data.error || data.message || 'Failed to post comment.');
+        }
+      },
+      'POST',
+      { user_id, content },
+      token,
+    );
   });
 }
 
-//  Build comment 
+//  Build comment
 function appendCommentToDOM(comment, postId, allComments) {
   if (comment.parent_comment_id) return;
 
@@ -630,22 +700,20 @@ function appendCommentToDOM(comment, postId, allComments) {
   group.appendChild(el);
 
   const replies = sortCommentsForDisplay(
-    allComments.filter(
-      r => parseInt(r.parent_comment_id) === parseInt(comment.id)
-    ),
+    allComments.filter((r) => parseInt(r.parent_comment_id) === parseInt(comment.id)),
     currentCommentSort,
-    allComments
+    allComments,
   );
 
   if (replies.length === 0) return;
 
-  // replies wrapper 
+  // replies wrapper
   const repliesWrapper = document.createElement('div');
   repliesWrapper.className = 'replies-wrapper';
   const wasOpen = openReplyThreads.has(parseInt(comment.id));
   repliesWrapper.style.display = wasOpen ? 'block' : 'none';
 
-  replies.forEach(reply => {
+  replies.forEach((reply) => {
     repliesWrapper.appendChild(buildCommentEl(reply, postId, true, comment.id));
   });
 
@@ -683,7 +751,9 @@ function buildCommentEl(comment, postId, isReply, rootParentId = null) {
 
   const initial = comment.author_name
     ? comment.author_name.charAt(0).toUpperCase()
-    : (comment.user_id ? String(comment.user_id).charAt(0) : 'U');
+    : comment.user_id
+      ? String(comment.user_id).charAt(0)
+      : 'U';
   const authorDisplay = comment.author_name || `User ${comment.user_id}`;
 
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
@@ -695,7 +765,9 @@ function buildCommentEl(comment, postId, isReply, rootParentId = null) {
         <i class="fas fa-flag me-2"></i>Report
       </button>
     </li>
-    ${isOwner ? `
+    ${
+      isOwner
+        ? `
       <li>
         <button class="dropdown-item edit-comment-btn">
           <i class="fas fa-pen me-2"></i>Edit
@@ -705,7 +777,9 @@ function buildCommentEl(comment, postId, isReply, rootParentId = null) {
         <button class="dropdown-item text-danger delete-comment-btn">
           <i class="fas fa-trash-alt me-2"></i>Delete
         </button>
-      </li>` : ''}`;
+      </li>`
+        : ''
+    }`;
 
   const el = document.createElement('div');
   el.className = isReply ? 'comment-item comment-reply' : 'comment-item';
@@ -751,22 +825,28 @@ function buildCommentEl(comment, postId, isReply, rootParentId = null) {
     });
     el.querySelector('.delete-comment-btn').addEventListener('click', (e) => {
       e.stopPropagation();
-      showConfirm('Delete comment?', 'This will permanently remove your comment.',
-        () => deleteComment(comment.id, el, postId));
+      showConfirm('Delete comment?', 'This will permanently remove your comment.', () =>
+        deleteComment(comment.id, el, postId),
+      );
     });
   }
 
   el.querySelector('.report-comment-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     const token = localStorage.getItem('token');
-    if (!token) { showLoginRequiredModal(); return; }
+    if (!token) {
+      showLoginRequiredModal();
+      return;
+    }
     alert('Report functionality WIP.');
   });
 
   el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
-  el.querySelector('.save-edit-comment-btn').addEventListener('click', () => saveCommentEdit(comment.id, el));
+  el.querySelector('.save-edit-comment-btn').addEventListener('click', () =>
+    saveCommentEdit(comment.id, el),
+  );
 
-  // Reply button 
+  // Reply button
   const replyBtn = el.querySelector('.reply-btn');
   if (replyBtn) {
     replyBtn.addEventListener('click', () => toggleReplyBox(el, comment, postId, rootParentId));
@@ -778,13 +858,19 @@ function buildCommentEl(comment, postId, isReply, rootParentId = null) {
 // comment replies
 function toggleReplyBox(commentEl, comment, postId, rootParentId) {
   const existing = commentEl.querySelector('.reply-input-box');
-  if (existing) { existing.remove(); return; }
+  if (existing) {
+    existing.remove();
+    return;
+  }
 
   const token = localStorage.getItem('token');
-  if (!token) { showLoginRequiredModal(); return; }
+  if (!token) {
+    showLoginRequiredModal();
+    return;
+  }
 
   const parentCommentId = rootParentId || comment.id;
-  const replyingToName  = comment.author_name || 'User';
+  const replyingToName = comment.author_name || 'User';
 
   const replyBox = document.createElement('div');
   replyBox.className = 'reply-input-box mt-2';
@@ -816,22 +902,28 @@ function toggleReplyBox(commentEl, comment, postId, rootParentId) {
     const content = rawContent.startsWith('@') ? rawContent : mention + rawContent;
 
     const submitBtn = replyBox.querySelector('.submit-reply-btn');
-    submitBtn.disabled    = true;
+    submitBtn.disabled = true;
     submitBtn.textContent = 'Posting...';
 
     openReplyThreads.add(parseInt(parentCommentId));
 
-    fetchMethod(`${COMMENTS_BASE}/${postId}`, (status, data) => {
-      submitBtn.disabled    = false;
-      submitBtn.textContent = 'Reply';
+    fetchMethod(
+      `${COMMENTS_BASE}/${postId}`,
+      (status, data) => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Reply';
 
-      if (status === 201 || status === 200) {
-        replyBox.remove();
-        loadComments(postId);
-      } else {
-        alert(data.message || 'Failed to post reply.');
-      }
-    }, 'POST', { content, parent_comment_id: parentCommentId }, token);
+        if (status === 201 || status === 200) {
+          replyBox.remove();
+          loadComments(postId);
+        } else {
+          alert(data.message || 'Failed to post reply.');
+        }
+      },
+      'POST',
+      { content, parent_comment_id: parentCommentId },
+      token,
+    );
   });
 }
 
@@ -854,7 +946,7 @@ function exitEditMode(commentEl) {
 function saveCommentEdit(commentId, commentEl) {
   const input = commentEl.querySelector('.comment-edit-input');
   const newContent = input.value.trim();
-  
+
   if (!newContent) {
     alert('Comment cannot be empty.');
     return;
@@ -862,35 +954,47 @@ function saveCommentEdit(commentId, commentEl) {
 
   const token = localStorage.getItem('token');
   const saveBtn = commentEl.querySelector('.save-edit-comment-btn');
-  
+
   saveBtn.disabled = true;
   saveBtn.textContent = 'Saving...';
 
-  fetchMethod(`${currentUrl}/comments/${commentId}`, (status, data) => {
-    saveBtn.disabled = false;
-    saveBtn.textContent = 'Save';
+  fetchMethod(
+    `${currentUrl}/comments/${commentId}`,
+    (status, data) => {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save';
 
-    if (status === 200) {
-      // Update the displayed text
-      commentEl.querySelector('.comment-text-display').textContent = newContent;
-      exitEditMode(commentEl);
-    } else {
-      alert(data.message || 'Failed to update comment.');
-    }
-  }, 'PUT', { content: newContent }, token);
+      if (status === 200) {
+        // Update the displayed text
+        commentEl.querySelector('.comment-text-display').textContent = newContent;
+        exitEditMode(commentEl);
+      } else {
+        alert(data.message || 'Failed to update comment.');
+      }
+    },
+    'PUT',
+    { content: newContent },
+    token,
+  );
 }
 
-//  Delete comment 
+//  Delete comment
 function deleteComment(commentId, commentEl, postId) {
   const token = localStorage.getItem('token');
 
-  fetchMethod(`${currentUrl}/comments/${commentId}`, (status, data) => {
-    if (status === 200) {
-      loadComments(postId);
-    } else {
-      alert('Failed to delete comment. Please try again.');
-    }
-  }, 'DELETE', null, token);
+  fetchMethod(
+    `${currentUrl}/comments/${commentId}`,
+    (status, data) => {
+      if (status === 200) {
+        loadComments(postId);
+      } else {
+        alert('Failed to delete comment. Please try again.');
+      }
+    },
+    'DELETE',
+    null,
+    token,
+  );
 }
 
 function showNoComments() {
@@ -916,20 +1020,30 @@ function formatTimestamp(createdAt, updatedAt) {
   if (diffMins < 1) timeStr = 'Just now';
   else if (diffMins < 60) timeStr = `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
   else if (diffHours < 24) timeStr = `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-  else if (diffDays === 1) timeStr = `Yesterday at ${created.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  else if (diffDays === 1)
+    timeStr = `Yesterday at ${created.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   else if (diffDays < 7) timeStr = `${diffDays} days ago`;
-  else timeStr = created.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+  else
+    timeStr = created.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
 
   let editedStr = null;
   if (wasEdited) {
-    editedStr = updated.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })
-      + ', ' + updated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    editedStr =
+      updated.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) +
+      ', ' +
+      updated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
   return { timeStr, wasEdited, editedStr };
 }
 
-function getCategoryLabel(c) { return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[c] || c; }
-function getCategoryClass(c)  { return { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[c] || ''; }
+function getCategoryLabel(c) {
+  return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[c] || c;
+}
+function getCategoryClass(c) {
+  return (
+    { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[c] || ''
+  );
+}
 
 function getAvatarInitial(post) {
   if (post.is_anonymous) return 'A';
@@ -948,7 +1062,12 @@ function getAuthorName(post) {
 
 function escapeHtml(str) {
   if (!str) return '';
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function renderPostAttachment(post) {
@@ -965,10 +1084,7 @@ function renderPostAttachment(post) {
     fileUrl.endsWith('.webp');
 
   // video extensions
-  const isVideo =
-    fileUrl.endsWith('.mp4') ||
-    fileUrl.endsWith('.webm') ||
-    fileUrl.endsWith('.mov');
+  const isVideo = fileUrl.endsWith('.mp4') || fileUrl.endsWith('.webm') || fileUrl.endsWith('.mov');
 
   if (isImage) {
     return `
@@ -1029,10 +1145,7 @@ function renderEditAttachmentPreview(post) {
     fileUrl.endsWith('.gif') ||
     fileUrl.endsWith('.webp');
 
-  const isVideo =
-    fileUrl.endsWith('.mp4') ||
-    fileUrl.endsWith('.webm') ||
-    fileUrl.endsWith('.mov');
+  const isVideo = fileUrl.endsWith('.mp4') || fileUrl.endsWith('.webm') || fileUrl.endsWith('.mov');
 
   if (isImage) {
     return `
@@ -1102,22 +1215,26 @@ function setupReactionButtons(postId) {
   if (!token || !userId) return;
 
   // get existing user reaction
-  fetchMethod(`${REACTIONS_BASE}/reaction/${userId}`, (status, data) => {
-    if (status !== 200 || !Array.isArray(data)) return;
+  fetchMethod(
+    `${REACTIONS_BASE}/reaction/${userId}`,
+    (status, data) => {
+      if (status !== 200 || !Array.isArray(data)) return;
 
-    const existingReaction = data.find(
-      r => parseInt(r.post_id) === parseInt(postId)
-    );
+      const existingReaction = data.find((r) => parseInt(r.post_id) === parseInt(postId));
 
-    if (existingReaction) {
-      currentReaction = {
-        id: existingReaction.id,
-        reaction_type: existingReaction.reaction_type
-      };
+      if (existingReaction) {
+        currentReaction = {
+          id: existingReaction.id,
+          reaction_type: existingReaction.reaction_type,
+        };
 
-      updateReactionUI(existingReaction.reaction_type);
-    }
-  }, 'GET', null, token);
+        updateReactionUI(existingReaction.reaction_type);
+      }
+    },
+    'GET',
+    null,
+    token,
+  );
 }
 
 function handleReaction(postId, newReactionType) {
@@ -1130,52 +1247,66 @@ function handleReaction(postId, newReactionType) {
   }
 
   if (!currentReaction) {
-    fetchMethod(`${REACTIONS_BASE}/like`, (status, data) => {
-      if (status === 201) {
-        currentReaction = {
-          id: data.id,
-          reaction_type: newReactionType
-        };
-        updateReactionUI(newReactionType);
-        updateReactionCounts(null, newReactionType);
-      }
-    }, 'POST', {
-      post_id: postId,
-      user_id: userId,
-      reaction_type: newReactionType
-    }, token);
+    fetchMethod(
+      `${REACTIONS_BASE}/like`,
+      (status, data) => {
+        if (status === 201) {
+          currentReaction = {
+            id: data.id,
+            reaction_type: newReactionType,
+          };
+          updateReactionUI(newReactionType);
+          updateReactionCounts(null, newReactionType);
+        }
+      },
+      'POST',
+      {
+        post_id: postId,
+        user_id: userId,
+        reaction_type: newReactionType,
+      },
+      token,
+    );
     return;
   }
 
   //remove reaction
   if (currentReaction.reaction_type === newReactionType) {
-    fetchMethod(`${REACTIONS_BASE}/reaction/${currentReaction.id}`, (status) => {
-      if (status === 200) {
-        updateReactionCounts(currentReaction.reaction_type, null);
-        currentReaction = null;
-        updateReactionUI(null);
-      }
-    }, 'DELETE', {
-      user_id: userId
-    }, token);
+    fetchMethod(
+      `${REACTIONS_BASE}/reaction/${currentReaction.id}`,
+      (status) => {
+        if (status === 200) {
+          updateReactionCounts(currentReaction.reaction_type, null);
+          currentReaction = null;
+          updateReactionUI(null);
+        }
+      },
+      'DELETE',
+      {
+        user_id: userId,
+      },
+      token,
+    );
     return;
   }
 
   // change reaction
-  fetchMethod(`${REACTIONS_BASE}/reaction/${currentReaction.id}`, (status, data) => {
-    if (status === 200) {
-      updateReactionCounts(
-        currentReaction.reaction_type,
-        newReactionType
-      );
-      currentReaction.reaction_type = newReactionType;
-      updateReactionUI(newReactionType);
-    }
-  }, 'PUT', {
-    user_id: userId,
-    reaction_type: newReactionType
-  }, token);
-
+  fetchMethod(
+    `${REACTIONS_BASE}/reaction/${currentReaction.id}`,
+    (status, data) => {
+      if (status === 200) {
+        updateReactionCounts(currentReaction.reaction_type, newReactionType);
+        currentReaction.reaction_type = newReactionType;
+        updateReactionUI(newReactionType);
+      }
+    },
+    'PUT',
+    {
+      user_id: userId,
+      reaction_type: newReactionType,
+    },
+    token,
+  );
 }
 
 // updates solid icons
@@ -1246,42 +1377,49 @@ function loadYourGroups() {
     return;
   }
 
-  fetchMethod(`${currentUrl}/groups/joined_groups`, (status, data) => {
-    if (status === 200 && Array.isArray(data) && data.length > 0) {
-      // Reveal the container sections setup in posts.html
-      document.getElementById('yourGroupsDivider').style.display = 'block';
-      document.getElementById('yourGroupsSection').style.display = 'block';
+  fetchMethod(
+    `${currentUrl}/groups/joined_groups`,
+    (status, data) => {
+      if (status === 200 && Array.isArray(data) && data.length > 0) {
+        // Reveal the container sections setup in posts.html
+        document.getElementById('yourGroupsDivider').style.display = 'block';
+        document.getElementById('yourGroupsSection').style.display = 'block';
 
-      const container = document.getElementById('yourGroupsContainer');
-      container.innerHTML = ''; 
+        const container = document.getElementById('yourGroupsContainer');
+        container.innerHTML = '';
 
-      data.forEach(group => {
-        const groupEl = document.createElement('a');
-        groupEl.href = `group-details.html?id=${group.id}`;
-        groupEl.className = 'sidebar-item px-3 py-2 d-flex align-items-center text-decoration-none';
-        groupEl.style.fontSize = '0.9rem';
-        
-        groupEl.innerHTML = `
+        data.forEach((group) => {
+          const groupEl = document.createElement('a');
+          groupEl.href = `group-details.html?id=${group.id}`;
+          groupEl.className =
+            'sidebar-item px-3 py-2 d-flex align-items-center text-decoration-none';
+          groupEl.style.fontSize = '0.9rem';
+
+          groupEl.innerHTML = `
           <i class="fas fa-gradient fa-folder me-2 text-primary" style="font-size: 0.85rem;"></i>
           <span class="text-truncate">${escapeHtml(group.name)}</span>
         `;
-        container.appendChild(groupEl);
-      });
-    } else {
-      document.getElementById('yourGroupsDivider').style.display = 'none';
-      document.getElementById('yourGroupsSection').style.display = 'none';
-    }
-  }, 'GET', null, token);
+          container.appendChild(groupEl);
+        });
+      } else {
+        document.getElementById('yourGroupsDivider').style.display = 'none';
+        document.getElementById('yourGroupsSection').style.display = 'none';
+      }
+    },
+    'GET',
+    null,
+    token,
+  );
 }
-
 
 function escapeHtml(str) {
   if (!str) return '';
-  return str.replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function renderYourGroups(groups) {
@@ -1293,7 +1431,7 @@ function renderYourGroups(groups) {
   if (!groups.length) {
     // no study groups yet
     const emptyState = document.createElement('a');
-    emptyState.href      = 'groups.html';
+    emptyState.href = 'groups.html';
     emptyState.className = 'sidebar-item d-flex align-items-center text-decoration-none';
     emptyState.style.cssText = `
       border: 1.5px dashed var(--border-color);
@@ -1308,19 +1446,19 @@ function renderYourGroups(groups) {
     `;
     emptyState.addEventListener('mouseenter', () => {
       emptyState.style.borderColor = 'var(--primary-color)';
-      emptyState.style.color       = 'var(--primary-color)';
+      emptyState.style.color = 'var(--primary-color)';
     });
     emptyState.addEventListener('mouseleave', () => {
       emptyState.style.borderColor = 'var(--border-color)';
-      emptyState.style.color       = 'var(--text-secondary)';
+      emptyState.style.color = 'var(--text-secondary)';
     });
     container.appendChild(emptyState);
     return;
   }
 
-  groups.forEach(group => {
+  groups.forEach((group) => {
     const item = document.createElement('a');
-    item.href      = `groups.html?id=${group.id}`;
+    item.href = `groups.html?id=${group.id}`;
     item.className = 'sidebar-item';
     item.innerHTML = `
       <i class="fas fa-circle" style="font-size:0.5rem; color:#1877f2;"></i>
@@ -1330,7 +1468,7 @@ function renderYourGroups(groups) {
   });
 
   const seeAll = document.createElement('a');
-  seeAll.href      = 'groups.html';
+  seeAll.href = 'groups.html';
   seeAll.className = 'sidebar-item';
   seeAll.innerHTML = `
     <i class="fas fa-plus-circle"></i>
@@ -1361,18 +1499,18 @@ function loadRelatedPosts(postId, category) {
 
     const categoryBadgeClass = {
       confession: 'bg-danger',
-      qna:        'bg-primary',
-      general:    'bg-secondary'
+      qna: 'bg-primary',
+      general: 'bg-secondary',
     };
 
-    data.forEach(related => {
+    data.forEach((related) => {
       const item = document.createElement('a');
-      item.href      = `posts.html?id=${related.id}`;
+      item.href = `posts.html?id=${related.id}`;
       item.className = 'list-group-item list-group-item-action';
 
       const badgeClass = categoryBadgeClass[related.category] || 'bg-secondary';
-      const label      = getCategoryLabel(related.category);
-      const authorText = related.is_anonymous ? 'Anonymous' : (related.author_name || 'User');
+      const label = getCategoryLabel(related.category);
+      const authorText = related.is_anonymous ? 'Anonymous' : related.author_name || 'User';
       const commentCount = related.comment_count ?? 0;
 
       item.innerHTML = `
@@ -1458,12 +1596,12 @@ function openReportModal(postId) {
   if (existing) existing.remove();
 
   const reasons = [
-    { icon: 'fas fa-ban',                  label: 'Spam or misleading' },
+    { icon: 'fas fa-ban', label: 'Spam or misleading' },
     { icon: 'fas fa-exclamation-triangle', label: 'Harassment or bullying' },
-    { icon: 'fas fa-heart-broken',         label: 'Harmful or dangerous content' },
-    { icon: 'fas fa-user-slash',           label: 'Hate speech or discrimination' },
-    { icon: 'fas fa-copyright',            label: 'Intellectual property violation' },
-    { icon: 'fas fa-flag',                 label: 'Other' },
+    { icon: 'fas fa-heart-broken', label: 'Harmful or dangerous content' },
+    { icon: 'fas fa-user-slash', label: 'Hate speech or discrimination' },
+    { icon: 'fas fa-copyright', label: 'Intellectual property violation' },
+    { icon: 'fas fa-flag', label: 'Other' },
   ];
 
   const overlay = document.createElement('div');
@@ -1475,11 +1613,15 @@ function openReportModal(postId) {
       <h5>Report post</h5>
       <p class="report-modal-sub">Why are you reporting this post?</p>
       <div id="reportReasonsContainer">
-        ${reasons.map(r => `
+        ${reasons
+          .map(
+            (r) => `
           <button class="report-reason-btn" data-reason="${r.label}">
             <i class="${r.icon}"></i> ${r.label}
           </button>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </div>
       <div id="reportThanks" style="display:none; text-align:center; padding:1rem 0;"></div>
       <div class="report-modal-actions">
@@ -1491,42 +1633,49 @@ function openReportModal(postId) {
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
 
-  overlay.querySelectorAll('.report-reason-btn').forEach(btn => {
+  overlay.querySelectorAll('.report-reason-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const token   = localStorage.getItem('token');
+      const token = localStorage.getItem('token');
       const user_id = localStorage.getItem('loggedInUserId');
 
-      fetchMethod(`${feedApiBase()}/posts/${postId}/report`, (status, data) => {
-        const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
-        const thanksEl         = overlay.querySelector('#reportThanks');
-        const cancelBtn        = overlay.querySelector('#reportCancelBtn');
+      fetchMethod(
+        `${feedApiBase()}/posts/${postId}/report`,
+        (status, data) => {
+          const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
+          const thanksEl = overlay.querySelector('#reportThanks');
+          const cancelBtn = overlay.querySelector('#reportCancelBtn');
 
-        reasonsContainer.style.display = 'none';
-        cancelBtn.textContent = 'Close';
+          reasonsContainer.style.display = 'none';
+          cancelBtn.textContent = 'Close';
 
-        if (status === 409) {
-          thanksEl.innerHTML = `
+          if (status === 409) {
+            thanksEl.innerHTML = `
             <i class="fas fa-info-circle fa-2x mb-2 d-block" style="color:var(--primary-color);"></i>
             <div class="fw-bold">Already reported</div>
             <div class="text-muted small mt-1">You've already submitted a report for this post.</div>
           `;
-        } else {
-          thanksEl.innerHTML = `
+          } else {
+            thanksEl.innerHTML = `
             <i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i>
             <div class="fw-bold">Thanks for your report</div>
             <div class="text-muted small mt-1">We'll review this post and take action if needed.</div>
           `;
-        }
+          }
 
-        thanksEl.style.display = 'block';
-        setTimeout(() => closeReportModal(), 2500);
-
-      }, 'POST', { user_id, reason: btn.dataset.reason }, token);
+          thanksEl.style.display = 'block';
+          setTimeout(() => closeReportModal(), 2500);
+        },
+        'POST',
+        { user_id, reason: btn.dataset.reason },
+        token,
+      );
     });
   });
 
   overlay.querySelector('#reportCancelBtn').addEventListener('click', closeReportModal);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeReportModal(); });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeReportModal();
+  });
 }
 
 function closeReportModal() {

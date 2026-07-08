@@ -2,17 +2,17 @@
 // FETCH METHOD
 // This function uses the fetch API to make a request to the server.
 //=====================================================================================
-function fetchMethod(url, callback, method = "GET", data = null, token = null) {
-  console.log("fetchMethod: ", url, method, data, token);
+function fetchMethod(url, callback, method = 'GET', data = null, token = null) {
+  console.log('fetchMethod: ', url, method, data, token);
 
   const headers = {};
 
   if (data) {
-    headers["Content-Type"] = "application/json";
+    headers['Content-Type'] = 'application/json';
   }
 
   if (token) {
-    headers["Authorization"] = "Bearer " + token;
+    headers['Authorization'] = 'Bearer ' + token;
   }
 
   let options = {
@@ -20,7 +20,7 @@ function fetchMethod(url, callback, method = "GET", data = null, token = null) {
     headers: headers,
   };
 
-  if (method.toUpperCase() !== "GET" && data !== null) {
+  if (method.toUpperCase() !== 'GET' && data !== null) {
     options.body = JSON.stringify(data);
   }
 
