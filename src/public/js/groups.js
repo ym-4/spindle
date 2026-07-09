@@ -7,29 +7,28 @@
 */
 
 /* HTML Templates */
-let groupCardTemplate = `
-    <div class="group-card" data-group-id="curr-group-id">
-        <div class="group-top">
+// let groupCardTemplate = `
+//     <div class="group-card" data-group-id="curr-group-id">
+//         <div class="group-top">
 
-            <div class="group-info">
-                <img src="images/Groups_SOC_Building.png" class="group-icon">
-                <h3>Genshin Impact Official</h3>
-            </div>
+//             <div class="group-info">
+//                 <img src="images/Groups_SOC_Building.png" class="group-icon">
+//                 <h3>Genshin Impact Official</h3>
+//             </div>
 
-            <div class="card-line"></div>
-        </div>
+//             <div class="card-line"></div>
+//         </div>
 
+//         <p>
+//             Lorem ipsum dolor sit amet consectetur adipisicing elit.
+//         </p>
 
-        <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
-        </p>
-
-        <div class="group-footer">
-            <span>🟢 Online</span>
-            <span>10K Members</span>
-        </div>
-    </div>
-`;
+//         <div class="group-footer">
+//             <span>🟢 Online</span>
+//             <span>10K Members</span>
+//         </div>
+//     </div>
+// `;
 
 const user_id = localStorage.getItem('loggedInUserId');
 const token = localStorage.getItem('token');
@@ -58,6 +57,7 @@ let groupMembers = [];
 let currentSchool = '';
 let popularGroupsContainer;
 let joinedGroupsContainer;
+let joinRequests = [];
 
 let toast;
 
@@ -116,6 +116,9 @@ if (currentURL == 'http://localhost:3000/groups_page.html') {
       // Get groups user joined
       joinedGroups = await fetchJoinedGroups();
       console.log('joinedGroups', joinedGroups);
+
+      // Get join requests
+      joinRequests = await fetchGroupJoinRequestsByUser();
 
       console.log('School: ', school);
       // Display all joined groups
@@ -464,13 +467,22 @@ async function handleJoinButton() {
   // Get group id
   const modalElement = document.getElementById('join-group-modal');
   const groupId = modalElement.dataset.groupId;
+  let currGroup = groups.find((group) => group.id == groupId);
 
   try {
-    await createMember({ group_id: groupId });
+    // Group is public
+    if (currGroup.public) {
+      await createMember({ group_id: groupId });
+      displayToast('success', `Joined group: You have successfully joined ${currGroup.name}`);
 
-    let currGroup = groups.find((group) => group.id == groupId);
-
-    displayToast('success', `Joined group: You have successfully joined ${currGroup.name}`);
+      // Group is private
+    } else {
+      await createJoinRequest(groupId);
+      displayToast(
+        'success',
+        `Joined Request Sent: You have sent a join request to ${currGroup.name}`,
+      );
+    }
 
     // Show new data
     refreshGroupPage();
@@ -497,6 +509,11 @@ async function handleJoinButton() {
       displayToast('error', 'Join group Failed: Group not found');
     } else if (err.type == 'bad request') {
       alert('Missing information');
+    } else if (err.type == 'forbidden') {
+      displayToast(
+        'error',
+        'Join request Failed: You already have a join request for this group. ',
+      );
     } else {
       alert('Something went wrong');
     }
@@ -637,6 +654,8 @@ function displayGroupInfo(groupId) {
     return group.group_id == groupId;
   });
 
+  const hasPendingRequest = joinRequests.find((request) => request.group_id == groupId);
+
   // Update modal details
   document.getElementById('joinGroupName').innerText = currGroup.name;
   document.getElementById('joinGroupMembers').innerText = members.length;
@@ -656,14 +675,26 @@ function displayGroupInfo(groupId) {
 
   // Check if user is a member
   // Is a member (hide join button and show leave button)
-  if (isJoined) {
-    document.getElementById('leave-group-btn').style.display = 'block';
-    document.getElementById('join-group-btn').style.display = 'none';
+  const joinBtn = document.getElementById('join-group-btn');
+  const leaveBtn = document.getElementById('leave-group-btn');
+  const requestBtn = document.getElementById('request-group-btn');
 
-    // Not a member (hide leave button and show join button)
+  if (isJoined) {
+    leaveBtn.style.display = 'block';
+    joinBtn.style.display = 'none';
+    requestBtn.style.display = 'none';
+  } else if (hasPendingRequest) {
+    leaveBtn.style.display = 'none';
+    joinBtn.style.display = 'none';
+    requestBtn.style.display = 'block';
+    joinBtn.disabled = true;
   } else {
-    document.getElementById('join-group-btn').style.display = 'block';
-    document.getElementById('leave-group-btn').style.display = 'none';
+    leaveBtn.style.display = 'none';
+    joinBtn.style.display = 'block';
+    requestBtn.style.display = 'none';
+    joinBtn.disabled = false;
+
+    joinBtn.innerText = currGroup.public ? 'Join Group' : 'Request to Join Group';
   }
 }
 
@@ -771,6 +802,28 @@ function fetchGroupMembers(groupId) {
     };
 
     fetchMethod(url, callback);
+  });
+}
+
+async function fetchGroupJoinRequestsByUser() {
+  return new Promise((resolve, reject) => {
+    const url = `http://localhost:3000/groups/join-requests/user`;
+
+    const callback = (responseStatus, responseData) => {
+      console.log('fetchGroupJoinRequests', responseData);
+
+      if (responseStatus == 200) {
+        resolve(responseData);
+
+        // Token expired
+      } else if (responseStatus == 401) {
+        window.location.href = './home.html';
+      } else {
+        reject(responseData);
+      }
+    };
+
+    fetchMethod(url, callback, 'GET', null, token);
   });
 }
 
@@ -915,6 +968,43 @@ function createGeneralChannel(groupId) {
   });
 }
 
+async function createJoinRequest(groupId) {
+  return new Promise((resolve, reject) => {
+    const url = `http://localhost:3000/groups/join-requests/${groupId}`;
+
+    const callback = (responseStatus, responseData) => {
+      console.log('createJoinRequest', responseData);
+
+      // message created: success
+      if (responseStatus == 201) {
+        resolve(responseData);
+
+        // Token expired
+      } else if (responseStatus == 401) {
+        window.location.href = './home.html';
+
+        // bad request: missing info
+      } else if (responseStatus == 400) {
+        reject({
+          type: 'bad request',
+          message: 'Missing required fields',
+        });
+
+        // Conflict already a member or already has join request
+      } else if (responseStatus == 409) {
+        reject({
+          type: 'forbidden',
+          message: 'User is already a group member OR User already has a pending join request',
+        });
+      } else {
+        reject(responseData);
+      }
+    };
+
+    fetchMethod(url, callback, 'POST', null, token);
+  });
+}
+
 // -------------------------------------------------------------------------------------
 //                              Delete Functions
 // -------------------------------------------------------------------------------------
@@ -987,6 +1077,8 @@ async function refreshGroupPage() {
   // Reset page numbers
   currentPopularPage = 1;
   currentJoinedPage = 1;
+
+  joinRequests = await fetchGroupJoinRequestsByUser();
 
   // Display with new data
   // Popular groups

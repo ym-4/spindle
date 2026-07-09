@@ -567,51 +567,186 @@ module.exports = marketplaceItems;
 // Seed data for groups
 // Example Groups
 const groups = [
+  // ===== SOC (5 groups) =====
   {
     name: 'SOC Study Buddies',
     creatorEmail: 'alice@example.com',
-    description: 'A group for SOC students to revise and share notes.',
+    description: 'General CS study group.',
     school: 'SOC',
     module: 'CS1010',
     public: true,
   },
   {
-    name: 'MAD Project Team',
+    name: 'SOC Algorithms',
     creatorEmail: 'bob@example.com',
-    description: 'Mobile App Development project collaboration group.',
+    description: 'Algorithms and data structures.',
+    school: 'SOC',
+    module: 'CS2040',
+    public: true,
+  },
+  {
+    name: 'SOC Database Club',
+    creatorEmail: 'carol@example.com',
+    description: 'Database systems discussions.',
+    school: 'SOC',
+    module: 'CS2102',
+    public: false,
+  },
+  {
+    name: 'SOC Software Engineering',
+    creatorEmail: 'dave@example.com',
+    description: 'Software engineering project help.',
+    school: 'SOC',
+    module: 'CS2103',
+    public: false,
+  },
+  {
+    name: 'SOC AI Learners',
+    creatorEmail: 'eve@example.com',
+    description: 'Artificial Intelligence study group.',
+    school: 'SOC',
+    module: 'CS3243',
+    public: true,
+  },
+
+  // ===== Other Schools =====
+  {
+    name: 'MAD Project Team',
+    creatorEmail: 'frank@example.com',
+    description: 'Mobile app development.',
     school: 'MAD',
     module: 'CP2106',
+    public: true,
+  },
+  {
+    name: 'SMA Dream Team',
+    creatorEmail: 'beni@example.com',
+    description: 'Marine Ships.',
+    school: 'SMA',
+    module: 'SM1029',
     public: false,
   },
   {
     name: 'EEE Circuit Masters',
-    creatorEmail: 'carol@example.com',
-    description: 'Discuss circuits, labs, and exam prep for EEE modules.',
+    creatorEmail: 'grace@example.com',
+    description: 'Circuits and electronics.',
     school: 'EEE',
     module: 'EE2020',
     public: true,
+  },
+  {
+    name: 'Business Case Club',
+    creatorEmail: 'heidi@example.com',
+    description: 'Business presentations and case studies.',
+    school: 'SB',
+    module: 'BM1010',
+    public: false,
+  },
+  {
+    name: 'Design Studio',
+    creatorEmail: 'ivan@example.com',
+    description: 'Design critiques and portfolio reviews.',
+    school: 'MAD',
+    module: 'DX1001',
+    public: true,
+  },
+  {
+    name: 'Engineering Mechanics',
+    creatorEmail: 'judy@example.com',
+    description: 'Mechanical engineering study group.',
+    school: 'MAE',
+    module: 'ME2001',
+    public: true,
+  },
+  {
+    name: 'Applied Science Hub',
+    creatorEmail: 'mallory@example.com',
+    description: 'Applied science discussions.',
+    school: 'CLS',
+    module: 'CH101',
+    public: false,
   },
 ];
 
 // Example GroupMembers
 const groupMembers = [
-  // SOC group
+  // ===== SOC Study Buddies =====
   { groupName: 'SOC Study Buddies', userEmail: 'alice@example.com', role: 'admin' },
   { groupName: 'SOC Study Buddies', userEmail: 'bob@example.com', role: 'user' },
   { groupName: 'SOC Study Buddies', userEmail: 'carol@example.com', role: 'user' },
-  { groupName: 'SOC Study Buddies', userEmail: 'beni@example.com', role: 'admin' },
-  { groupName: 'SOC Study Buddies', userEmail: 'emataso@example.com', role: 'user' },
-  { groupName: 'SOC Study Buddies', userEmail: 'hinano@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'dave@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'eve@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'beni@example.com', role: 'user' },
 
-  // MAD group
-  { groupName: 'MAD Project Team', userEmail: 'bob@example.com', role: 'admin' },
-  { groupName: 'MAD Project Team', userEmail: 'dave@example.com', role: 'user' },
-  { groupName: 'MAD Project Team', userEmail: 'eve@example.com', role: 'user' },
+  // ===== SOC Algorithms =====
+  { groupName: 'SOC Algorithms', userEmail: 'bob@example.com', role: 'admin' },
+  { groupName: 'SOC Algorithms', userEmail: 'alice@example.com', role: 'user' },
+  { groupName: 'SOC Algorithms', userEmail: 'frank@example.com', role: 'user' },
+  { groupName: 'SOC Algorithms', userEmail: 'grace@example.com', role: 'user' },
+  { groupName: 'SOC Algorithms', userEmail: 'heidi@example.com', role: 'user' },
+  { groupName: 'SOC Algorithms', userEmail: 'ivan@example.com', role: 'user' },
 
-  // EEE group
-  { groupName: 'EEE Circuit Masters', userEmail: 'carol@example.com', role: 'admin' },
+  // ===== SOC Database Club =====
+  { groupName: 'SOC Database Club', userEmail: 'carol@example.com', role: 'admin' },
+  { groupName: 'SOC Database Club', userEmail: 'judy@example.com', role: 'user' },
+  { groupName: 'SOC Database Club', userEmail: 'leo@example.com', role: 'user' },
+  { groupName: 'SOC Database Club', userEmail: 'oscar@example.com', role: 'user' },
+  { groupName: 'SOC Database Club', userEmail: 'peggy@example.com', role: 'user' },
+  { groupName: 'SOC Database Club', userEmail: 'trent@example.com', role: 'user' },
+
+  // ===== SOC Software Engineering =====
+  { groupName: 'SOC Software Engineering', userEmail: 'dave@example.com', role: 'admin' },
+  { groupName: 'SOC Software Engineering', userEmail: 'victor@example.com', role: 'user' },
+  { groupName: 'SOC Software Engineering', userEmail: 'walter@example.com', role: 'user' },
+  { groupName: 'SOC Software Engineering', userEmail: 'xavier@example.com', role: 'user' },
+  { groupName: 'SOC Software Engineering', userEmail: 'yvonne@example.com', role: 'user' },
+  { groupName: 'SOC Software Engineering', userEmail: 'zara@example.com', role: 'user' },
+
+  // ===== SOC AI Learners =====
+  { groupName: 'SOC AI Learners', userEmail: 'eve@example.com', role: 'admin' },
+  { groupName: 'SOC AI Learners', userEmail: 'alice@example.com', role: 'user' },
+  { groupName: 'SOC AI Learners', userEmail: 'beni@example.com', role: 'user' },
+  { groupName: 'SOC AI Learners', userEmail: 'emataso@example.com', role: 'user' },
+  { groupName: 'SOC AI Learners', userEmail: 'hinano@example.com', role: 'user' },
+  { groupName: 'SOC AI Learners', userEmail: 'leo@example.com', role: 'user' },
+
+  // ===== MAD =====
+  { groupName: 'MAD Project Team', userEmail: 'frank@example.com', role: 'admin' },
+  { groupName: 'MAD Project Team', userEmail: 'grace@example.com', role: 'user' },
+  { groupName: 'MAD Project Team', userEmail: 'heidi@example.com', role: 'user' },
+  { groupName: 'MAD Project Team', userEmail: 'ivan@example.com', role: 'user' },
+  { groupName: 'MAD Project Team', userEmail: 'judy@example.com', role: 'user' },
+
+  // ===== EEE =====
+  { groupName: 'EEE Circuit Masters', userEmail: 'grace@example.com', role: 'admin' },
   { groupName: 'EEE Circuit Masters', userEmail: 'frank@example.com', role: 'user' },
-  { groupName: 'EEE Circuit Masters', userEmail: 'grace@example.com', role: 'user' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'mallory@example.com', role: 'user' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'oscar@example.com', role: 'user' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'peggy@example.com', role: 'user' },
+
+  // ===== SB =====
+  { groupName: 'Business Case Club', userEmail: 'heidi@example.com', role: 'admin' },
+  { groupName: 'Business Case Club', userEmail: 'trent@example.com', role: 'user' },
+  { groupName: 'Business Case Club', userEmail: 'victor@example.com', role: 'user' },
+  { groupName: 'Business Case Club', userEmail: 'walter@example.com', role: 'user' },
+
+  // ===== DMAD =====
+  { groupName: 'Design Studio', userEmail: 'ivan@example.com', role: 'admin' },
+  { groupName: 'Design Studio', userEmail: 'xavier@example.com', role: 'user' },
+  { groupName: 'Design Studio', userEmail: 'yvonne@example.com', role: 'user' },
+  { groupName: 'Design Studio', userEmail: 'zara@example.com', role: 'user' },
+
+  // ===== MAE =====
+  { groupName: 'Engineering Mechanics', userEmail: 'judy@example.com', role: 'admin' },
+  { groupName: 'Engineering Mechanics', userEmail: 'alice@example.com', role: 'user' },
+  { groupName: 'Engineering Mechanics', userEmail: 'bob@example.com', role: 'user' },
+  { groupName: 'Engineering Mechanics', userEmail: 'carol@example.com', role: 'user' },
+
+  // ===== SAS =====
+  { groupName: 'Applied Science Hub', userEmail: 'mallory@example.com', role: 'admin' },
+  { groupName: 'Applied Science Hub', userEmail: 'leo@example.com', role: 'user' },
+  { groupName: 'Applied Science Hub', userEmail: 'beni@example.com', role: 'user' },
+  { groupName: 'Applied Science Hub', userEmail: 'emataso@example.com', role: 'user' },
 ];
 
 // Example Group Discussions

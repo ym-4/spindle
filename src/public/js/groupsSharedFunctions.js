@@ -170,6 +170,29 @@ async function fetchGroupAnnouncements() {
   });
 }
 
+// Fetch group join requests
+async function fetchGroupJoinRequests() {
+  return new Promise((resolve, reject) => {
+    const url = `http://localhost:3000/groups/join-requests/${groupId}`;
+
+    const callback = (responseStatus, responseData) => {
+      console.log('fetchGroupJoinRequests', responseData);
+
+      if (responseStatus == 200) {
+        resolve(responseData);
+
+        // Token expired
+      } else if (responseStatus == 401) {
+        window.location.href = './home.html';
+      } else {
+        reject(responseData);
+      }
+    };
+
+    fetchMethod(url, callback, 'GET', null, token);
+  });
+}
+
 // -------------------------------------------------------------------------------------
 //                         Create/Update/Delete Functions
 // -------------------------------------------------------------------------------------
@@ -852,6 +875,172 @@ async function updateRoleToUser(userBeingDemotedUserId) {
     };
 
     fetchMethod(url, callback, 'PUT', null, token);
+  });
+}
+
+// Create join request
+async function createJoinRequest() {
+  return new Promise((resolve, reject) => {
+    const url = `http://localhost:3000/groups/join-requests/${groupId}`;
+
+    const callback = (responseStatus, responseData) => {
+      console.log('createJoinRequest', responseData);
+
+      // message created: success
+      if (responseStatus == 201) {
+        resolve(responseData);
+
+        // Token expired
+      } else if (responseStatus == 401) {
+        window.location.href = './home.html';
+
+        // bad request: missing info
+      } else if (responseStatus == 400) {
+        reject({
+          type: 'bad request',
+          message: 'Missing required fields',
+        });
+
+        // Conflict already a member or already has join request
+      } else if (responseStatus == 409) {
+        reject({
+          type: 'forbidden',
+          message: 'User is already a group member OR User already has a pending join request',
+        });
+      } else {
+        reject(responseData);
+      }
+    };
+
+    fetchMethod(url, callback, 'POST', null, token);
+  });
+}
+
+// Accept join request
+async function acceptJoinRequest(acceptedUserId) {
+  return new Promise((resolve, reject) => {
+    const url = `http://localhost:3000/groups/join-requests/accept/${groupId}/${acceptedUserId}`;
+
+    const callback = (responseStatus, responseData) => {
+      console.log('acceptJoinRequest', responseData);
+
+      // message edited: success
+      if (responseStatus == 200) {
+        resolve(responseData);
+
+        // Token expired
+      } else if (responseStatus == 401) {
+        window.location.href = './home.html';
+
+        // bad request: missing info
+      } else if (responseStatus == 400) {
+        reject({
+          type: 'bad request',
+          message: 'Missing required fields',
+        });
+
+        // User has no permissions
+      } else if (responseStatus == 403) {
+        reject({
+          type: 'forbidden',
+          message: 'You are not a group admin',
+        });
+
+        // Group not found
+      } else if (responseStatus == 404) {
+        reject({
+          type: 'not found',
+          message: 'Join request not found',
+        });
+      } else {
+        reject(responseData);
+      }
+    };
+
+    fetchMethod(url, callback, 'PUT', null, token);
+  });
+}
+
+// Decline join request
+async function declineJoinRequest(declinedUserId) {
+  return new Promise((resolve, reject) => {
+    const url = `http://localhost:3000/groups/join-requests/decline/${groupId}/${declinedUserId}`;
+
+    const callback = (responseStatus, responseData) => {
+      console.log('declineJoinRequest', responseData);
+
+      // message edited: success
+      if (responseStatus == 200) {
+        resolve(responseData);
+
+        // Token expired
+      } else if (responseStatus == 401) {
+        window.location.href = './home.html';
+
+        // bad request: missing info
+      } else if (responseStatus == 400) {
+        reject({
+          type: 'bad request',
+          message: 'Missing required fields',
+        });
+
+        // User has no permissions
+      } else if (responseStatus == 403) {
+        reject({
+          type: 'forbidden',
+          message: 'You are not a group admin',
+        });
+
+        // Group not found
+      } else if (responseStatus == 404) {
+        reject({
+          type: 'not found',
+          message: 'Join request not found',
+        });
+      } else {
+        reject(responseData);
+      }
+    };
+
+    fetchMethod(url, callback, 'PUT', null, token);
+  });
+}
+
+// Delete join request
+async function deleteJoinRequest(beingDeletedUserId) {
+  return new Promise((resolve, reject) => {
+    const url = `http://localhost:3000/groups/join-requests/${groupId}/${beingDeletedUserId}`;
+
+    const callback = (responseStatus, responseData) => {
+      console.log('deleteJoinRequest', responseData);
+
+      // membership deleted: success
+      if (responseStatus == 204) {
+        resolve(responseData);
+
+        // Token expired
+      } else if (responseStatus == 401) {
+        window.location.href = './home.html';
+
+        // bad request: missing info
+      } else if (responseStatus == 400) {
+        reject({
+          type: 'bad request',
+          message: 'Missing required fields',
+        });
+
+        // User is not a member
+      } else if (responseStatus == 404) {
+        reject({
+          type: 'not found',
+          message: 'Join request not found',
+        });
+      } else {
+        reject(responseData);
+      }
+    };
+
+    fetchMethod(url, callback, 'DELETE', null, token);
   });
 }
 

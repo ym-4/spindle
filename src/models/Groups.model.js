@@ -331,3 +331,69 @@ module.exports.deleteAnnouncementByID = async function deleteAnnouncementByID(da
   );
   return rows;
 };
+
+// -----------------------------------------------------------------------------------------------------
+//                           Groups Join Requests Table
+// -----------------------------------------------------------------------------------------------------
+
+// GET join requests by group id
+module.exports.getGroupJoinRequestsByGroupId = async function getGroupJoinRequestsByGroupId(data) {
+  const VALUES = [data.group_id];
+  const { rows } = await pool.query(
+    'SELECT * FROM "GroupJoinRequests" WHERE group_id = $1',
+    VALUES,
+  );
+  return rows;
+};
+
+// GEt join requests by group and user
+module.exports.getGroupJoinRequestByGroupAndUser = async function getGroupJoinRequestByGroupAndUser(
+  data,
+) {
+  const VALUES = [data.group_id, data.user_id];
+
+  const { rows } = await pool.query(
+    `SELECT *
+    FROM "GroupJoinRequests"
+    WHERE group_id = $1 AND user_id = $2`,
+    VALUES,
+  );
+
+  return rows;
+};
+
+module.exports.getGroupJoinRequestByUser = async function getGroupJoinRequestByUser(data) {
+  const VALUES = [data.user_id];
+  const { rows } = await pool.query('SELECT * FROM "GroupJoinRequests" WHERE user_id = $1', VALUES);
+  return rows;
+};
+
+// POST join requests by group id and user_id
+module.exports.insertGroupJoinRequest = async function insertGroupJoinRequest(data) {
+  const VALUES = [data.group_id, data.user_id];
+  const { rows } = await pool.query(
+    'INSERT INTO "GroupJoinRequests" (group_id, user_id) VALUES ($1, $2) RETURNING *',
+    VALUES,
+  );
+  return rows;
+};
+
+// PUT join requests by group id and user id
+module.exports.updateGroupJoinRequest = async function updateGroupJoinRequest(data) {
+  const VALUES = [data.group_id, data.user_id, data.status];
+  const { rows } = await pool.query(
+    'UPDATE "GroupJoinRequests" SET status = $3 WHERE group_id = $1 AND user_id = $2 RETURNING *',
+    VALUES,
+  );
+  return rows;
+};
+
+// DELETE join requests by group id and user id
+module.exports.deleteGroupJoinRequest = async function updateGroupJoinRequest(data) {
+  const VALUES = [data.group_id, data.user_id];
+  const { rows } = await pool.query(
+    `DELETE FROM "GroupJoinRequests" WHERE group_id = $1 AND user_id = $2 RETURNING *`,
+    VALUES,
+  );
+  return rows;
+};

@@ -14,6 +14,7 @@ let groupMembers;
 let groupChannels;
 let groupAnnouncements;
 let users;
+let groupJoinRequests;
 
 window.addEventListener('DOMContentLoaded', async () => {
   toggleButtons();
@@ -25,11 +26,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     groupChannels = await fetchGroupChannels();
     groupAnnouncements = await fetchGroupAnnouncements();
     users = await fetchAllUsers();
+    groupJoinRequests = await fetchGroupJoinRequests();
 
     displayGroupDetails();
     displayGroupMembers();
     displayGroupChannels();
     displayGroupAnnouncements();
+    displayJoinRequests();
 
     setupPermissions();
   } catch (err) {
@@ -104,6 +107,20 @@ function addEventListeners() {
 
     if (button.classList.contains('delete-channel')) {
       deleteChannel(channel);
+    }
+  });
+
+  // Join Requests
+  document.querySelector('#join-requests .card-body').addEventListener('click', (e) => {
+    const button = e.target.closest('button');
+    if (!button) return;
+
+    const userId = button.dataset.id;
+
+    if (button.classList.contains('approve-request')) {
+      acceptingJoinRequest(userId);
+    } else if (button.classList.contains('reject-request')) {
+      rejectingJoinRequest(userId);
     }
   });
 }
@@ -194,6 +211,43 @@ async function updateGroup(data) {
     updateGroupModule(data.module),
     updateGroupPublicity(data.public),
   ]);
+}
+
+async function acceptingJoinRequest(acceptedUserId) {
+  try {
+    await acceptJoinRequest(acceptedUserId);
+    // Delete join request
+    await deleteJoinRequest(acceptedUserId);
+
+    // Refresh data
+    groupJoinRequests = await fetchGroupJoinRequests();
+    groupMembers = await fetchGroupMembers(groupId);
+    displayToast('success', 'Join request approved!');
+
+    displayJoinRequests();
+    displayGroupMembers();
+  } catch (err) {
+    console.error(err);
+    displayToast('error', 'Failed to approve join request');
+  }
+}
+
+async function rejectingJoinRequest(rejectedUserId) {
+  try {
+    await declineJoinRequest(rejectedUserId);
+    // Delete join request
+    await deleteJoinRequest(rejectedUserId);
+
+    // Refresh data
+    groupJoinRequests = await fetchGroupJoinRequests();
+
+    displayJoinRequests();
+
+    displayToast('success', 'Join request rejected!');
+  } catch (err) {
+    console.error(err);
+    displayToast('error', 'Failed to reject join request');
+  }
 }
 
 // -------------------------------------------------------------------------------------
@@ -393,4 +447,57 @@ function setupPermissions() {
     // Hide Delete Group button
     document.querySelector('#adminNav .text-danger').style.display = 'none';
   }
+}
+
+function displayJoinRequests() {
+  const container = document.querySelector('#join-requests .card-body');
+  const requestCount = document.getElementById('requestCount');
+
+  container.innerHTML = '';
+
+  if (!groupJoinRequests || groupJoinRequests.length === 0) {
+    requestCount.textContent = '0 Pending';
+
+    container.innerHTML = `
+      <div class="p-4 text-center text-muted">
+        No pending join requests.
+      </div>
+    `;
+    return;
+  }
+
+  requestCount.textContent = `${groupJoinRequests.length} Pending`;
+
+  groupJoinRequests.forEach((request) => {
+    const user = users.find((u) => u.id == request.user_id);
+
+    const div = document.createElement('div');
+    div.className = 'p-3 border-bottom d-flex justify-content-between align-items-center';
+
+    div.innerHTML = `
+      <div>
+        <strong>${user?.name ?? 'Unknown User'}</strong><br>
+        <small class="text-muted">
+          Requested ${request.requested_at ? new Date(request.requested_at).toLocaleString() : ''}
+        </small>
+      </div>
+
+      <div>
+        <button
+          class="btn btn-success btn-sm me-2 approve-request"
+          data-id="${request.user_id}">
+          <i class="bi bi-check-lg"></i>
+          Approve
+        </button>
+
+        <button
+          class="btn btn-outline-danger btn-sm reject-request"
+          data-id="${request.user_id}">
+          Reject
+        </button>
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
 }

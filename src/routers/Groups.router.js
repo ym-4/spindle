@@ -34,6 +34,12 @@ const {
   deleteAnnouncementByID,
   deleteGroupChannelByChannelName,
   updateGroupModule,
+  getGroupJoinRequestsByGroupId,
+  insertGroupJoinRequest,
+  updateGroupJoinRequest,
+  deleteGroupJoinRequest,
+  getGroupJoinRequestByGroupAndUser,
+  getGroupJoinRequestByUser,
 } = require('../models/Groups.model');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
@@ -948,5 +954,171 @@ router.delete('/announcements/:group_id/:announcement_id', authenticateJWT, (req
     })
     .catch(next);
 });
+
+// ------------------------------------------------------------------
+// 							Group Join Requests
+// ------------------------------------------------------------------
+// Get join request by user id
+router.get('/join-requests/user', authenticateJWT, (req, res, next) => {
+  const data = {
+    user_id: req.user.id,
+  };
+
+  getGroupJoinRequestByUser(data)
+    .then((results) => res.status(200).json(results))
+    .catch(next);
+});
+
+// GET join requests by group_id
+router.get('/join-requests/:group_id', authenticateJWT, (req, res, next) => {
+  const data = {
+    group_id: req.params.group_id,
+  };
+
+  getGroupJoinRequestsByGroupId(data)
+    .then((results) => res.status(200).json(results))
+    .catch(next);
+});
+
+// Create join requests
+router.post('/join-requests/:group_id', authenticateJWT, async (req, res, next) => {
+  try {
+    const data = {
+      user_id: req.user.id,
+      group_id: req.params.group_id,
+    };
+
+    // Check if already a member
+    const members = await getGroupMemberByGroupID(data);
+
+    if (members.find((member) => member.user_id == data.user_id)) {
+      return res.status(409).json({
+        message: 'You are already a member',
+      });
+    }
+
+    // TODO: Check if a join request already exists
+    const joinRequests = await getGroupJoinRequestByGroupAndUser(data);
+    if (joinRequests.length > 0) {
+      return res.status(409).json({ message: 'You already requested to join this group. ' });
+    } else {
+      const results = await insertGroupJoinRequest(data);
+      return res.status(201).json(results);
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Accept join request
+router.put(
+  '/join-requests/accept/:group_id/:accepted_user_id',
+  authenticateJWT,
+  (req, res, next) => {
+    const data = {
+      admin_user_id: req.user.id,
+      group_id: req.params.group_id,
+      user_id: req.params.accepted_user_id,
+      status: 'accepted',
+    };
+
+    // Check that user is an admin
+    getAllGroupAdmin(data)
+      .then((admins) => {
+        let found = admins.filter((admin) => admin.user_id == data.admin_user_id);
+
+        // User is an admin
+        if (found.length > 0) {
+          updateGroupJoinRequest(data)
+            .then((results) => {
+              if (results.length === 0) {
+                return res.status(404).json({
+                  message: 'Join Request not found',
+                });
+              }
+
+              // add group member
+              insertGroupMember({
+                group_id: data.group_id,
+                user_id: data.user_id,
+              })
+                .then((results) => res.status(200).json(results))
+                .catch(next);
+            })
+            .catch(next);
+
+          // User is not an admin
+        } else {
+          res.status(403).json({ message: 'User is not an admin' });
+        }
+      })
+      .catch(next);
+  },
+);
+
+// Decline join request
+router.put(
+  '/join-requests/decline/:group_id/:declined_user_id',
+  authenticateJWT,
+  (req, res, next) => {
+    const data = {
+      admin_user_id: req.user.id,
+      group_id: req.params.group_id,
+      user_id: req.params.declined_user_id,
+      status: 'denied',
+    };
+
+    // Check that user is an admin
+    getAllGroupAdmin(data)
+      .then((admins) => {
+        let found = admins.filter((admin) => admin.user_id == data.admin_user_id);
+
+        // User is an admin
+        if (found.length > 0) {
+          updateGroupJoinRequest(data)
+            .then((results) => {
+              if (results.length === 0) {
+                return res.status(404).json({
+                  message: 'Join Request not found',
+                });
+              }
+
+              res.status(200).json(results);
+            })
+            .catch(next);
+
+          // User is not an admin
+        } else {
+          res.status(403).json({ message: 'User is not an admin' });
+        }
+      })
+      .catch(next);
+  },
+);
+
+// Delete join request
+router.delete(
+  '/join-requests/:group_id/:being_deleted_user_id',
+  authenticateJWT,
+  (req, res, next) => {
+    const data = {
+      group_id: req.params.group_id,
+      user_id: req.params.being_deleted_user_id,
+    };
+
+    // Delete join request
+    deleteGroupJoinRequest(data)
+      .then((results) => {
+        if (results.length === 0) {
+          return res.status(404).json({
+            message: 'Join request not found',
+          });
+        }
+
+        return res.status(204).send();
+      })
+      .catch(next);
+  },
+);
 
 module.exports = router;
