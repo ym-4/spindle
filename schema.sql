@@ -155,6 +155,17 @@ CREATE TABLE "SavedPosts" (
   UNIQUE(user_id, post_id)
 );
 
+CREATE TABLE "SavedComments" (
+  "id" SERIAL NOT NULL,
+  "user_id" INT NOT NULL,
+  "comment_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("comment_id") REFERENCES "PostComments"("id") ON DELETE CASCADE,
+  CONSTRAINT "SavedComments_pkey" PRIMARY KEY ("id"),
+  UNIQUE("user_id", "comment_id")
+);
+
 CREATE TABLE "Reports" (
   "id"        SERIAL PRIMARY KEY,
   "post_id"   INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,

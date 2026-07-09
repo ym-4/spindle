@@ -44,6 +44,7 @@ const REACTIONS_BASE = `${currentUrl}/posts`;
 let currentReaction = null;
 let openReplyThreads = new Set(); 
 let savedPostIds = new Set();
+let savedCommentMap = new Map();
 let currentCommentSort = 'newest';
 let activeCommentPostId = null;
 let activeCommentsData = [];
@@ -61,7 +62,16 @@ function loadSavedIds() {
       if (status === 200 && Array.isArray(data)) {
         savedPostIds = new Set(data.map(row => parseInt(row.post_id)));
       }
-      resolve();
+      // load saved comments
+      fetchMethod(`${currentUrl}/comments/saved/${userId}`, (cStatus, cData) => {
+        if (cStatus === 200 && Array.isArray(cData)) {
+          cData.forEach(row => {
+            const saveId = row.save_id || row.id;
+            savedCommentMap.set(parseInt(row.comment_id), saveId);
+          });
+        }
+        resolve();
+      }, 'GET', null, token);
     }, 'GET', null, token);
   });
 }
@@ -133,7 +143,6 @@ function showConfirm(title, message, onConfirm) {
   overlay.classList.remove('d-none');
   document.body.style.overflow = 'hidden';
 
-  // clone to remove previous listeners
   const newOk     = okBtn.cloneNode(true);
   const newCancel = cancelBtn.cloneNode(true);
   okBtn.replaceWith(newOk);
@@ -630,6 +639,7 @@ function renderPostEditMode(post) {
     });
   });
 }
+
 // COMMENTS
 function setupCommentSortUI() {
   document.querySelectorAll('.comment-sort-option').forEach((option) => {
@@ -763,7 +773,7 @@ function setupCommentSubmit(postId) {
   });
 }
 
-//  Build comment 
+//  Build comment thread
 function appendCommentToDOM(comment, postId, allComments) {
   if (comment.parent_comment_id) return;
 
@@ -825,37 +835,47 @@ function appendCommentToDOM(comment, postId, allComments) {
 }
 
 // comment box
-function buildCommentEl(comment, postId, isReply, rootParentId = null) {
+function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
   const { timeStr } = formatTimestamp(comment.created_at, null);
 
-  const initial = comment.author_name
-    ? comment.author_name.charAt(0).toUpperCase()
-    : (comment.user_id ? String(comment.user_id).charAt(0) : 'U');
+  const initial       = comment.author_name ? comment.author_name.charAt(0).toUpperCase() : 'U';
   const authorDisplay = comment.author_name || `User ${comment.user_id}`;
 
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
-  const isOwner = loggedInUserId && parseInt(comment.user_id) === loggedInUserId;
+  const isLoggedIn     = !!localStorage.getItem('token');
+  const isOwner        = isLoggedIn && parseInt(comment.user_id) === loggedInUserId;
 
   const menuOptions = `
+    ${isLoggedIn ? `
+    <li>
+      <button class="dropdown-item save-comment-btn"
+        data-comment-id="${comment.id}"
+        data-saved="false"
+        data-save-row-id="">
+        <i class="far fa-bookmark me-2"></i>Save
+      </button>
+    </li>
+    <li><hr class="dropdown-divider"></li>` : ''}
     <li>
       <button class="dropdown-item report-comment-btn">
         <i class="fas fa-flag me-2"></i>Report
       </button>
     </li>
     ${isOwner ? `
-      <li>
-        <button class="dropdown-item edit-comment-btn">
-          <i class="fas fa-pen me-2"></i>Edit
-        </button>
-      </li>
-      <li>
-        <button class="dropdown-item text-danger delete-comment-btn">
-          <i class="fas fa-trash-alt me-2"></i>Delete
-        </button>
-      </li>` : ''}`;
+    <li><hr class="dropdown-divider"></li>
+    <li>
+      <button class="dropdown-item edit-comment-btn">
+        <i class="fas fa-pen me-2"></i>Edit
+      </button>
+    </li>
+    <li>
+      <button class="dropdown-item text-danger delete-comment-btn">
+        <i class="fas fa-trash-alt me-2"></i>Delete
+      </button>
+    </li>` : ''}`;
 
   const el = document.createElement('div');
-  el.className = isReply ? 'comment-item comment-reply' : 'comment-item';
+  el.className         = isReply ? 'comment-item comment-reply' : 'comment-item';
   el.dataset.commentId = comment.id;
 
   el.innerHTML = `
@@ -866,23 +886,26 @@ function buildCommentEl(comment, postId, isReply, rootParentId = null) {
           <div class="d-flex align-items-start justify-content-between">
             <div class="comment-author">${escapeHtml(authorDisplay)}</div>
             <div class="dropdown ms-2">
-              <button class="btn btn-sm p-0 px-1 comment-menu-btn" data-bs-toggle="dropdown" style="line-height:1;">
-                <i class="fas fa-ellipsis-h" style="font-size:0.8rem; color:var(--text-secondary);"></i>
+              <button class="btn btn-sm p-0 px-1 comment-menu-btn"
+                data-bs-toggle="dropdown" style="line-height:1;">
+                <i class="fas fa-ellipsis-h"
+                  style="font-size:0.8rem;color:var(--text-secondary);"></i>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">${menuOptions}</ul>
             </div>
           </div>
           <div class="comment-text-display">${escapeHtml(comment.content)}</div>
           <div class="comment-edit-form" style="display:none;">
-            <textarea class="form-control form-control-sm comment-edit-input" rows="2">${escapeHtml(comment.content)}</textarea>
+            <textarea class="form-control form-control-sm comment-edit-input"
+              rows="2">${escapeHtml(comment.content)}</textarea>
             <div class="mt-2 d-flex gap-2">
               <button class="btn btn-sm btn-outline-secondary cancel-edit-comment-btn">Cancel</button>
               <button class="btn btn-sm btn-primary save-edit-comment-btn">Save</button>
             </div>
           </div>
           <div class="comment-actions">
-            <button class="comment-action-link">Like</button>
-            <button class="comment-action-link reply-btn">Reply</button>
+            <button class="comment-action-link" data-action="like">Like</button>
+            <button class="comment-action-link" data-action="reply">Reply</button>
             <span class="comment-timestamp">${timeStr}</span>
           </div>
         </div>
@@ -891,32 +914,77 @@ function buildCommentEl(comment, postId, isReply, rootParentId = null) {
 
   el.querySelector('.comment-menu-btn').addEventListener('click', (e) => e.stopPropagation());
 
-  if (isOwner) {
-    el.querySelector('.edit-comment-btn').addEventListener('click', (e) => {
+  el.querySelector('.report-comment-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!localStorage.getItem('token')) { showLoginRequiredModal(); return; }
+    openReportModal(comment.id, 'comment');
+  });
+
+  const replyBtn = el.querySelector('[data-action="reply"]');
+  if (replyBtn) {
+    replyBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      enterEditMode(el);
-    });
-    el.querySelector('.delete-comment-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      showConfirm('Delete comment?', 'This will permanently remove your comment.',
-        () => deleteComment(comment.id, el, postId));
+      toggleReplyBox(el, comment, postId, rootParentId);
     });
   }
 
-  el.querySelector('.report-comment-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    const token = localStorage.getItem('token');
-    if (!token) { showLoginRequiredModal(); return; }
-    alert('Report functionality WIP.');
-  });
+  // Save comment
+  const saveCommentBtn = el.querySelector('.save-comment-btn');
+  if (saveCommentBtn) {
+    const savedRowId = savedCommentMap.get(parseInt(comment.id));
+    if (savedRowId) {
+      saveCommentBtn.dataset.saved = 'true';
+      saveCommentBtn.dataset.saveRowId = savedRowId;
+      saveCommentBtn.innerHTML = `<i class="fas fa-bookmark me-2"></i>Unsave`;
+    }
+    saveCommentBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const token     = localStorage.getItem('token');
+      const user_id   = localStorage.getItem('loggedInUserId');
+      const commentId = saveCommentBtn.dataset.commentId;
+      const isSaved   = saveCommentBtn.dataset.saved === 'true';
+      const saveRowId = saveCommentBtn.dataset.saveRowId;
 
-  el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
-  el.querySelector('.save-edit-comment-btn').addEventListener('click', () => saveCommentEdit(comment.id, el));
+      if (isSaved) {
+        fetchMethod(`${feedApiBase()}/comments/saved/${saveRowId}`, (status) => {
+          if (status === 200) {
+            saveCommentBtn.dataset.saved     = 'false';
+            saveCommentBtn.dataset.saveRowId = '';
+            saveCommentBtn.innerHTML = `<i class="far fa-bookmark me-2"></i>Save`;
+          } else {
+            alert('Failed to unsave comment.');
+          }
+        }, 'DELETE', null, token);
+      } else {
+        fetchMethod(`${feedApiBase()}/comments/saved`, (status, data) => {
+          if (status === 201) {
+            saveCommentBtn.dataset.saved     = 'true';
+            saveCommentBtn.dataset.saveRowId = data.id;
+            saveCommentBtn.innerHTML = `<i class="fas fa-bookmark me-2"></i>Unsave`;
+          } else if (status === 409) {
+            saveCommentBtn.dataset.saved = 'true';
+            saveCommentBtn.innerHTML = `<i class="fas fa-bookmark me-2"></i>Unsave`;
+          } else {
+            alert('Failed to save comment.');
+          }
+        }, 'POST', { user_id, comment_id: commentId }, token);
+      }
+    });
+  }
 
-  // Reply button 
-  const replyBtn = el.querySelector('.reply-btn');
-  if (replyBtn) {
-    replyBtn.addEventListener('click', () => toggleReplyBox(el, comment, postId, rootParentId));
+  if (isOwner) {
+    el.querySelector('.edit-comment-btn').addEventListener('click', () => enterEditMode(el));
+
+    el.querySelector('.delete-comment-btn').addEventListener('click', () => {
+      showConfirm(
+        'Delete comment?',
+        'This will permanently remove your comment.',
+        () => deleteComment(comment.id, el, postId)
+      );
+    });
+
+    el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
+    el.querySelector('.save-edit-comment-btn').addEventListener('click',   () => saveCommentEdit(comment.id, el));
   }
 
   return el;
@@ -1047,6 +1115,7 @@ function showNoComments() {
       No comments yet. Be the first!
     </div>`;
 }
+
 
 function formatTimestamp(createdAt, updatedAt) {
   const created = new Date(createdAt);

@@ -1,6 +1,6 @@
 const pool = require('./db');
 
-// Get all Comments NO
+// Get all Comments 
 module.exports.getAllComments = async function getAllComments() {
   const { rows } = await pool.query('SELECT * FROM "PostComments"');
   return rows;
@@ -55,5 +55,45 @@ module.exports.updateCommentsByID = async function updateCommentsByID(data) {
 module.exports.deleteCommentsByID = async function deleteCommentsByID(data) {
   const VALUES = [data.id, data.user_id];
   const { rows } = await pool.query('DELETE FROM "PostComments" WHERE "id" = $1 AND "user_id" = $2 RETURNING *', VALUES);
+  return rows[0];
+};
+
+// post comments actions
+// save comments
+// GET saved comments by user ID
+module.exports.getSavedCommentsByUserID = async function getSavedCommentsByUserID(data) {
+  const VALUES = [data.user_id];
+  const { rows } = await pool.query(`
+    SELECT
+      sc.id AS save_id,
+      sc.user_id AS save_user_id,
+      sc.comment_id,
+      sc.created_at AS saved_at,
+      pc.content,
+      pc.created_at AS created_at,
+      pc.post_id,
+      p.title AS post_title,
+      per.name AS author_name
+    FROM "SavedComments" sc
+    JOIN "PostComments" pc ON sc.comment_id = pc.id
+    JOIN "Posts" p ON pc.post_id = p.id
+    LEFT JOIN "Person" per ON pc.user_id = per.id
+    WHERE sc.user_id = $1
+    ORDER BY sc.created_at DESC
+  `, VALUES);
+  return rows;
+};
+
+// Save a comment
+module.exports.insertSavedComment = async function insertSavedComment(data) {
+  const VALUES = [data.user_id, data.comment_id];
+  const { rows } = await pool.query('INSERT INTO "SavedComments" (user_id, comment_id) VALUES ($1, $2) RETURNING id', VALUES);
+  return rows[0]; 
+}
+
+// Delete a saved comment
+module.exports.deleteSavedCommentByID = async function deleteSavedCommentByID(data) {
+  const VALUES = [data.id];
+  const { rows } = await pool.query('DELETE FROM "SavedComments" WHERE "id" = $1 RETURNING *', VALUES);
   return rows[0];
 };

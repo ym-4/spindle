@@ -69,17 +69,35 @@
         </aside>
 
         <main class="content-area">
-            <div class="d-flex align-items-center gap-2 mb-3">
-                <i class="fas fa-bookmark" style="color:var(--primary-color); font-size:1.2rem;"></i>
-                <h5 class="mb-0 fw-bold">Saved Posts</h5>
-            </div>
-            <div id="savedContainer">
-                <div class="post-card text-center py-4 text-muted">
-                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                    Loading...
+            <!-- Tabs -->
+            <div class="card mb-3">
+                <div class="card-body p-2">
+                <ul class="nav nav-tabs border-0">
+                    <li class="nav-item">
+                    <a class="nav-link active" href="#" id="savedPostsTab">
+                        Posts
+                    </a>
+                    </li>
+                    <li class="nav-item">
+                    <a class="nav-link" href="#" id="savedCommentsTab">
+                        Comments
+                    </a>
+                    </li>
+                </ul>
                 </div>
             </div>
-        </main>
+
+            <!-- Saved Posts tab -->
+            <div id="savedPostsPanel">
+                <div id="savedContainer"></div>
+            </div>
+
+            <!-- Saved Comments tab -->
+            <div id="savedCommentsPanel" style="display:none;">
+                <div id="savedCommentsContainer"></div>
+            </div>
+
+            </main>
 
         <aside class="right-sidebar">
             <div class="card">
