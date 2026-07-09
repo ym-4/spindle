@@ -7,7 +7,9 @@ const { getAllGroups, getGroupsByGroupID, getGroupsByGroupName, getGroupByCreato
 		getGroupMemberByUserID, insertGroupMember, updateMemberRoleToAdmin, updateMemberRoleToUser, 
         getAllGroupAdmin, insertGroupDiscussion, updateGroupDiscussion, getAllGroupDiscussionByGroupID, 
         getGroupDiscussionMatch, deleteGroupMemberByUserId, getGroupDiscussionByUserID, deleteGroupDiscussionByID, 
-		getGroupDiscussionByGroupIDAndChannelName } = require('../models/Groups.model');
+		getGroupDiscussionByGroupIDAndChannelName, getGroupAnnouncementsByGroupID, getGroupAnnouncements, 
+		insertGroupAnnouncement, updateGroupAnnouncement, deleteAnnouncementByID, 
+		deleteGroupChannelByChannelName, updateGroupModule } = require('../models/Groups.model');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
 
@@ -95,7 +97,7 @@ router.post('/create/:creator_id', authenticateJWT, (req, res, next) => {
 				insertGroupMember(data)
 					.then(results => {
 						// Add group creator to admin list
-						updateMemberRoleToAdmin({user_id: data.creator_id, group_id: group.id})
+						updateMemberRoleToAdmin({user_being_promoted_user_id: data.creator_id, group_id: group.id})
 							.then(results => res.status(201).json(group))
 							.catch(next);
 					})
@@ -109,8 +111,8 @@ router.post('/create/:creator_id', authenticateJWT, (req, res, next) => {
 
 // Update Group name (creator_id, new name) - only creator
 router.put('/name/:group_id', authenticateJWT, (req, res, next) => {
-  if (req.body == undefined || req.body.name == undefined || req.body.creator_id == undefined) {
-    res.status(400).json({"message": "Error: name or creator_id is undefined"});
+  if (req.body == undefined || req.body.name == undefined) {
+    res.status(400).json({"message": "Error: name is undefined"});
     return;
   } 
 
@@ -152,8 +154,8 @@ router.put('/name/:group_id', authenticateJWT, (req, res, next) => {
 
 // Update Group description (user_id, description) - only creator/admins
 router.put('/description/:group_id', authenticateJWT, (req, res, next) => {
-  if (req.body == undefined || req.body.description == undefined || req.body.user_id == undefined) {
-    res.status(400).json({"message": "Error: description or creator_id is undefined"});
+  if (req.body == undefined || req.body.description == undefined) {
+    res.status(400).json({"message": "Error: description is undefined"});
     return;
   } 
 
@@ -184,14 +186,14 @@ router.put('/description/:group_id', authenticateJWT, (req, res, next) => {
 
 // Update Group publicity (creator_id, public) (Can only be done by group's creator)
 router.put('/public/:group_id', authenticateJWT, (req, res, next) => {
-  if (req.body == undefined || req.body.creator_id == undefined || req.body.public == undefined) {
+  if (req.body == undefined || req.body.public == undefined) {
     res.status(400).json({"message": "Error: public or creator_id is undefined"});
     return;
   } 
 
 	const data = {
 		group_id: req.params.group_id, 
-		creator_id: res.locals.userId,
+		creator_id: req.user.id,
 		public: req.body.public // true or false
 	}
 
@@ -215,16 +217,44 @@ router.put('/public/:group_id', authenticateJWT, (req, res, next) => {
 		.catch(next);
 });
 
-// Delete Group (creator_id) (Can only be done by the group's creator)
-router.delete('/:group_id', authenticateJWT, (req, res, next) => {
-  if (req.body == undefined || req.body.creator_id == undefined) {
-    res.status(400).json({"message": "Error: creator_id is undefined"});
+// Update Group module (user_id, module) - only creator/admins
+router.put('/module/:group_id', authenticateJWT, (req, res, next) => {
+  if (req.body == undefined || req.body.module == undefined) {
+    res.status(400).json({"message": "Error: module is undefined"});
     return;
   } 
 
 	const data = {
 		group_id: req.params.group_id, 
-		creator_id: res.locals.userId,
+		user_id: req.user.id,
+		module: req.body.module
+	}
+
+	// Gets all admin from the group
+	getAllGroupAdmin(data) 
+		.then(results => {
+			// user is the group's creator or admin (check that user id is part the admin arr)
+			if (results.filter(person => person.user_id == data.user_id).length > 0) {
+				// update group module
+				updateGroupModule(data)
+					.then(results => res.status(200).json(results[0]))
+					.catch(next);
+		
+			// user is not the group's creator or admin
+			} else {
+				res.status(403).json({"message": "Error: User is not the group's creator or an admin"});
+				return;
+			}
+	})
+	.catch(next);
+});
+
+// Delete Group (creator_id) (Can only be done by the group's creator)
+router.delete('/:group_id', authenticateJWT, (req, res, next) => {
+
+	const data = {
+		group_id: req.params.group_id, 
+		creator_id: req.user.id,
 	}
 
 	// Get all groups where user is the creator
@@ -381,6 +411,130 @@ router.delete('/leave/:group_id', authenticateJWT, (req, res, next) => {
 		.catch(next);
 
 
+});
+
+router.delete('/kick/:group_id/:removed_user_id', authenticateJWT, (req, res, next) => {
+
+	const data = {
+		group_id: req.params.group_id, 
+		user_id: req.user.id, 
+		removed_user_id: req.params.removed_user_id
+	}
+
+	getAllGroupAdmin(data) 
+	.then(results => {
+		if (results.filter(person => person.user_id == data.user_id).length > 0) {
+
+			// Remove member
+			// Check that user is a member
+			getGroupMemberByUserID({user_id: data.removed_user_id})
+				.then((groups) => {
+					let found = groups.find(groups => groups.group_id == data.group_id);
+
+					// User is a member
+					if (found) {
+						if (found.creator_id == data.removed_user_id) {
+							return res.status(409).json({"message": "User cannot leave the group as its creator"});
+
+						} else {
+							// Let user leave
+							deleteGroupMemberByUserId({group_id: data.group_id, user_id: data.removed_user_id})
+								.then(results => {
+									res.status(204).send();
+								})
+								.catch(next);
+						}
+						
+					// User is not a member
+					} else {
+						return res.status(404).json({"message": "User is not a member"})
+					}
+
+				})
+				.catch(next);
+
+		} else {
+				res.status(403).json({"message": "Error: User is not the group's creator or an admin"});
+				return;
+		}
+
+	})
+
+});
+
+// Update role from user to admin (admin/creator only)
+router.put('/roleToAdmin/:group_id/:user_being_promoted_user_id', authenticateJWT, (req, res, next) => {
+
+	const data = {
+		user_being_promoted_user_id: req.params.user_being_promoted_user_id, 
+		group_id: req.params.group_id, 
+		user_id: req.user.id
+	}
+
+	// Gets all admin from the group
+	getAllGroupAdmin(data) 
+		.then(results => {
+			// user is the group's creator or admin (check that user id is part the admin arr)
+			if (results.filter(person => person.user_id == data.user_id).length > 0) {
+
+				// update role
+				updateMemberRoleToAdmin(data)
+					.then(results => {
+
+						if (results.length === 0) {
+							return res.status(404).json({message: "Group member not found."});
+						}
+
+						res.status(200).json(results[0]);
+					})
+					.catch(next);
+		
+			// user is not the group's creator or admin
+			} else {
+				res.status(403).json({"message": "Error: User is not the group's creator or an admin"});
+				return;
+			}
+	})
+	.catch(next);
+});
+
+// Update role from admin to user (creator only)
+router.put('/roleToUser/:group_id/:user_being_demoted_user_id', authenticateJWT, (req, res, next) => {
+
+	const data = {
+		user_being_demoted_user_id: req.params.user_being_demoted_user_id, 
+		group_id: req.params.group_id, 
+		user_id: req.user.id, 
+		creator_id: req.user.id
+	}
+
+	// Get all groups where user is the creator
+	getGroupByCreatorID(data) 
+		.then(results => {
+			// user is the group's creator (see if any id matches with this group)
+			if (results.filter(group => group.id == data.group_id).length > 0) {
+
+				// update role
+				updateMemberRoleToUser(data)
+					.then(results => {
+
+						if (results.length === 0) {
+							return res.status(404).json({message: "Group member not found."});
+						}
+
+						res.status(200).json(results[0]);
+					})
+					.catch(next);
+
+
+			} else {
+				res.status(403).json({"message": "Error: User is not the group's creator"});
+				return;
+			}
+
+	})
+	.catch(next);
+	
 });
 
 // ------------------------------------------------------------------
@@ -606,5 +760,203 @@ router.delete('/messages/delete/:user_id', authenticateJWT, (req, res, next) => 
 
 });
 
+// Delete group channel and its messages
+router.delete('/messages/channel/:group_id', authenticateJWT, (req, res, next) => {
+	if (req.body == undefined || req.body.channel_name == undefined) {
+		return res.status(400).json({"message": "Error: channel_name is undefined"});
+	} 
+
+	const data = {
+		user_id: req.user.id,
+		group_id: req.params.group_id,
+		channel_name: req.body.channel_name,
+	}
+
+	// Prevent deletion of default channel
+	if (data.channel_name === "general") {
+		return res.status(400).json({
+			message: "Cannot delete the default channel"
+		});
+	}
+	getAllGroupAdmin(data)
+		.then(admins => {
+			let found = admins.filter(admin => admin.user_id == data.user_id);
+			
+			// User is an admin
+			if (found.length > 0) {
+
+				// Delete group channel and messages
+				deleteGroupChannelByChannelName(data)
+					.then(results => {
+
+						if (results.length === 0) {
+							return res.status(404).json({
+								message: "Channel Name not found"
+							});
+						}
+
+						return res.status(204).send();
+					})
+					.catch(next);
+					
+					
+			// User is not an admin
+			} else {
+				res.status(403).json({"message": "User is not an admin"})
+			}
+
+		})
+		.catch(next); 
+
+});
+
+// ------------------------------------------------------------------
+// 							Group Annoucements
+// ------------------------------------------------------------------
+
+// GET all announcements by group id
+router.get('/announcements/:group_id', authenticateJWT, (req, res, next) => {
+  const data = {
+    group_id: req.params.group_id
+  }
+
+  getGroupAnnouncementsByGroupID(data)
+    .then((groupAnnouncements) => res.status(200).json(groupAnnouncements))
+    .catch(next);
+});
+
+// GET all announcements 
+router.get('/announcements', authenticateJWT, (req, res, next) => {
+
+  getGroupAnnouncements()
+    .then((groupAnnouncements) => res.status(200).json(groupAnnouncements))
+    .catch(next);
+});
+
+// Create new announcement (Only Admin)
+// Request: text
+router.post('/announcements/:group_id', authenticateJWT, (req, res, next) => {
+  if (req.body == undefined || req.body.text == undefined) {
+    
+	res.status(400).json({"message": "Error: text is undefined"});
+    return;
+  }
+
+  const data = {
+	user_id: req.user.id,
+    text: req.body.text, 
+    group_id: req.params.group_id, 
+  }
+
+  // Check that user is an admin
+  getAllGroupAdmin(data)
+  	.then(admins => {
+		let found = admins.filter(admin => admin.user_id == data.user_id);
+		
+		// User is an admin
+		if (found.length > 0) {
+
+			insertGroupAnnouncement(data)
+				.then(results => {
+					res.status(201).json(results);
+				})
+				.catch(next);
+				
+		// User is not an admin
+		} else {
+			res.status(403).json({"message": "User is not an admin"})
+		}
+
+	})
+	.catch(next); 
+
+});
+
+// Update announcement (Only Admin)
+// Request: text
+router.put('/announcements/:group_id/:announcement_id', authenticateJWT, (req, res, next) => {
+	if (req.body == undefined || req.body.text == undefined) {
+		res.status(400).json({"message": "Error: text is undefined"});
+		return;
+	}
+
+	const data = {
+		user_id: req.user.id, 
+		group_id: req.params.group_id, 
+		announcement_id: req.params.announcement_id,
+		text: req.body.text 
+	}
+
+	// Check that user is an admin
+	getAllGroupAdmin(data)
+		.then(admins => {
+			let found = admins.filter(admin => admin.user_id == data.user_id);
+			
+			// User is an admin
+			if (found.length > 0) {
+
+				updateGroupAnnouncement(data)
+					.then(results => {
+						if (results.length === 0) {
+							return res.status(404).json({
+								message: "Announcement not found"
+							});
+						}
+
+						res.status(200).json(results);
+					})
+					.catch(next);
+					
+			// User is not an admin
+			} else {
+				res.status(403).json({"message": "User is not an admin"})
+			}
+
+		})
+		.catch(next); 
+	
+});
+
+// Delete group announcement (Only Admin)
+router.delete('/announcements/:group_id/:announcement_id', authenticateJWT, (req, res, next) => {
+
+	const data = {
+		user_id: req.user.id,
+		group_id: req.params.group_id,
+		announcement_id: req.params.announcement_id,
+	}
+
+	// Check that user is an admin
+	getAllGroupAdmin(data)
+		.then(admins => {
+			let found = admins.filter(admin => admin.user_id == data.user_id);
+			
+			// User is an admin
+			if (found.length > 0) {
+
+				// Delete announcement
+				deleteAnnouncementByID(data)
+					.then(results => {
+
+						if (results.length === 0) {
+							return res.status(404).json({
+								message: "Announcement not found"
+							});
+						}
+
+						return res.status(204).send();
+					})
+					.catch(next);
+					
+			// User is not an admin
+			} else {
+				res.status(403).json({"message": "User is not an admin"})
+			}
+
+		})
+		.catch(next); 
+	
+
+});
 
 module.exports = router;

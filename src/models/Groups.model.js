@@ -60,6 +60,14 @@ module.exports.updateGroupDescription = async function updateGroupDescription(da
   return rows;
 }
 
+// Update Group module (group id, module) - only creator/admins
+module.exports.updateGroupModule = async function updateGroupModule(data) {
+  const VALUES = [data.group_id, data.module];
+  const { rows } = await pool.query('UPDATE "Groups" SET module = $2 WHERE id = $1 RETURNING *', VALUES);
+  return rows;
+}
+
+
 // Delete Group (Can only be done by the group's creator)
 module.exports.deleteGroup = async function deleteGroup(data) {
   const VALUES = [data.group_id, data.creator_id];
@@ -69,8 +77,8 @@ module.exports.deleteGroup = async function deleteGroup(data) {
 
 // Update Group publicity (Can only be done by group's creator)
 module.exports.updateGroupPublicity = async function updateGroupPublicity(data) {
-  const VALUES = [data.group_id, data.creator_id, data.public];
-  const { rows } = await pool.query('UPDATE "Groups" SET public = $3 WHERE id = $1 AND creator_id = $2 RETURNING *', VALUES);
+  const VALUES = [data.group_id, data.public];
+  const { rows } = await pool.query('UPDATE "Groups" SET public = $2 WHERE id = $1 RETURNING *', VALUES);
   return rows;
 }
 
@@ -126,14 +134,14 @@ module.exports.insertGroupMember = async function insertGroupMember(data) {
 
 // Update member role (user to admin)
 module.exports.updateMemberRoleToAdmin = async function updateMemberRoleToAdmin(data) {
-  const VALUES = [data.group_id, data.user_id];
+  const VALUES = [data.group_id, data.user_being_promoted_user_id];
   const { rows } = await pool.query(`UPDATE "GroupMembers" SET role = 'admin' WHERE group_id = $1 AND user_id = $2 RETURNING *`, VALUES);
   return rows; 
 }
 
 // Update member role (admin to user) - not applicable to group's creator
 module.exports.updateMemberRoleToUser = async function updateMemberRoleToUser(data) {
-  const VALUES = [data.group_id, data.user_id];
+  const VALUES = [data.group_id, data.user_being_demoted_user_id];
   const { rows } = await pool.query(`UPDATE "GroupMembers" SET role = 'user' WHERE group_id = $1 AND user_id = $2 RETURNING *`, VALUES);
   return rows; 
 }
@@ -202,5 +210,50 @@ module.exports.getGroupDiscussionByGroupIDAndChannelName = async function getGro
 module.exports.deleteGroupDiscussionByID = async function deleteGroupDiscussionByID(data) {
   const VALUES = [data.id, data.user_id];
   const { rows } = await pool.query(`DELETE FROM "GroupDiscussions" WHERE id = $1 AND user_id = $2 RETURNING *`, VALUES);
+  return rows; 
+}
+
+// DELETE group channel by channel name 
+module.exports.deleteGroupChannelByChannelName = async function deleteGroupChannelByChannelName(data) {
+  const VALUES = [data.group_id, data.channel_name];
+  const { rows } = await pool.query(`DELETE FROM "GroupDiscussions" WHERE group_id = $1 AND channel_name = $2 RETURNING *`, VALUES);
+  return rows; 
+}
+
+// -----------------------------------------------------------------------------------------------------
+//                           Groups Announcements Table
+// -----------------------------------------------------------------------------------------------------
+
+// GET all group announcements by group_id
+module.exports.getGroupAnnouncementsByGroupID = async function getGroupAnnouncementsByGroupID(data) {
+  const VALUES = [data.group_id];
+  const { rows } = await pool.query('SELECT * FROM "GroupAnnouncements" WHERE group_id = $1', VALUES);
+  return rows;
+}
+
+// GET all group announcements by group_id
+module.exports.getGroupAnnouncements = async function getGroupAnnouncements(data) {
+  const { rows } = await pool.query('SELECT * FROM "GroupAnnouncements"');
+  return rows;
+}
+
+// Create new group announcement (group_id, user_id, message, channel_name)
+module.exports.insertGroupAnnouncement = async function insertGroupAnnouncement(data) {
+  const VALUES = [data.group_id, data.user_id, data.text];
+  const { rows } = await pool.query('INSERT INTO "GroupAnnouncements" (group_id, user_id, text) VALUES ($1, $2, $3) RETURNING *', VALUES);
+  return rows; 
+}
+
+// Update group announcement (text)
+module.exports.updateGroupAnnouncement = async function updateGroupAnnouncement(data) {
+  const VALUES = [data.text, data.announcement_id];
+  const { rows } = await pool.query('UPDATE "GroupAnnouncements" SET text = $1 WHERE announcement_id = $2 RETURNING *', VALUES);
+  return rows; 
+}
+
+// DELETE announcement by ID
+module.exports.deleteAnnouncementByID = async function deleteAnnouncementByID(data) {
+  const VALUES = [data.announcement_id];
+  const { rows } = await pool.query(`DELETE FROM "GroupAnnouncements" WHERE announcement_id = $1 RETURNING *`, VALUES);
   return rows; 
 }
