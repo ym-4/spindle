@@ -1,36 +1,77 @@
-function addListing(seller_id, id, name, description, price) {
+// Escape user-submitted text before it's dropped into innerHTML.
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function qualityBadgeClass(rawQuality) {
+  const q = String(rawQuality || '').trim().toLowerCase();
+  if (q === 'new') return 'new';
+  if (q === 'like new' || q === 'likenew') return 'likenew';
+  if (q === 'good') return 'good';
+  if (q === 'fair') return 'fair';
+  return 'default';
+}
+
+function addListing(seller_id, id, name, description, price, quality, meetup) {
   const container = document.getElementById('listings-container');
 
   const card = document.createElement('div');
+  card.className = 'spindle-card';
+  card.dataset.sellerId = seller_id;
+  card.dataset.id = id;
+
+  const badgeMarkup = quality
+    ? `<span class="spindle-badge spindle-badge--${qualityBadgeClass(quality)}">${escapeHtml(quality)}</span>`
+    : '';
+  const meetupMarkup = meetup
+    ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(meetup)}</p>`
+    : '';
+
   card.innerHTML = `
-   <div class="card h-100 mb-4" data-seller-id="${seller_id}" data-id="${id}">
-      <img class="card-img-top" src="https://placehold.co/450x350" alt="..." />
-      <div class="card-body p-4">
-        <div class="text-center">
-          <h5 class="fw-bolder">${name}</h5>
-          <p class="card-text">${description}</p>
-          $${Number(price).toFixed(2)}
-        </div>
+    <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(id)}">
+      <div class="spindle-card-media">
+        <img src="https://placehold.co/450x450" alt="${escapeHtml(name)}" loading="lazy" />
+        ${badgeMarkup}
       </div>
-      <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-        <div class="text-center">
-          <button class="btn btn-outline-dark mt-auto add-to-cart-btn"
-            data-bs-toggle="modal" data-bs-target="#addedToCartModal">
-            Add to cart
-          </button>
-          <div class="input-group justify-content-center mt-3">
-            <input type="number" class="form-control text-center qty-input"
-              value="1" min="1" max="99" style="max-width: 60px;" />
-          </div>
-        </div>
+      <div class="spindle-card-body">
+        <h3 class="spindle-card-title">${escapeHtml(name)}</h3>
+        <p class="spindle-card-price">$${Number(price).toFixed(2)}</p>
+        ${meetupMarkup}
       </div>
+    </a>
+    <div class="spindle-card-footer">
+      <div class="spindle-qty">
+        <button type="button" class="spindle-qty-btn" data-step="-1" aria-label="Decrease quantity">−</button>
+        <input type="number" class="form-control qty-input spindle-qty-input" value="1" min="1" max="99" />
+        <button type="button" class="spindle-qty-btn" data-step="1" aria-label="Increase quantity">+</button>
+      </div>
+      <button class="spindle-add-btn add-to-cart-btn" data-bs-toggle="modal" data-bs-target="#addedToCartModal" type="button" aria-label="Add to cart">
+        <i class="fas fa-cart-plus"></i>
+      </button>
     </div>
   `;
 
+  const qtyInput = card.querySelector('.qty-input');
+
+  card.querySelectorAll('.spindle-qty-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const step = Number(btn.dataset.step);
+      const next = Number(qtyInput.value) + step;
+      qtyInput.value = Math.min(99, Math.max(1, next));
+    });
+  });
+
   card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
-    let amount = card.querySelector('.qty-input').value;
+    const amount = qtyInput.value;
     addToCart(seller_id, id, localStorage.loggedInUserId, amount);
   });
+
   container.appendChild(card);
 }
 
@@ -40,9 +81,33 @@ const container = document.getElementById('listings-container');
 const emptyState = document.getElementById('no-listings-state');
 
 const LISTINGS_PER_PAGE = 20;
-let currentPage = 1;
 
 async function loadListings() {
+  // Update Page Navigation Bar
+  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
+    let totalListings = data.length;
+    let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
+
+    const controls = document.getElementById('pagination-controls');
+    const nextItem = document.getElementById('next-page-item');
+
+    // Clear old page-number buttons first
+    controls.querySelectorAll('.page-num').forEach((el) => el.remove());
+
+    for (let i = 1; i <= totalPages; i++) {
+      const li = document.createElement('li');
+      li.className = `page-item page-num ${i === currentPage ? 'active' : ''}`;
+      li.innerHTML = `<button class="page-link">${i}</button>`;
+      li.querySelector('button').addEventListener('click', () => {
+        currentPage = i;
+        container.innerHTML = '';
+        loadListings();
+      });
+      nextItem.before(li);
+    }
+  });
+
+  // Fetch and Load Listings
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
     if (status === 200) {
       if (data.length == 0 || !data) {
@@ -51,12 +116,15 @@ async function loadListings() {
         emptyState.classList.add('d-none');
 
         for (i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
+          if (!data[i]) continue;
           addListing(
             data[i].seller_id,
             data[i].id,
             data[i].name,
             data[i].description,
             data[i].price,
+            data[i].quality,
+            data[i].meetup,
           );
         }
       }
@@ -72,7 +140,15 @@ async function loadUserListings() {
     if (status === 200) {
       data.forEach((item) => {
         if (item.seller_id == localStorage.loggedInUserId) {
-          addListing(item.seller_id, item.id, item.name, item.description, item.price);
+          addListing(
+            item.seller_id,
+            item.id,
+            item.name,
+            item.description,
+            item.price,
+            item.quality,
+            item.meetup,
+          );
         }
       });
     } else {
@@ -90,12 +166,12 @@ function addCartItem(seller_id, id, name, description, price, quantity) {
     <div class="card mb-3">
       <div class="row g-0 align-items-center">
         <div class="col-md-3">
-          <img src="https://placehold.co/150x120" class="img-fluid rounded-start" alt="${name}" />
+          <img src="https://placehold.co/150x120" class="img-fluid rounded-start" alt="${escapeHtml(name)}" />
         </div>
         <div class="col-md-6">
           <div class="card-body">
-            <h5 class="card-title">${name}</h5>
-            <p class="card-text text-muted">${description}</p>
+            <h5 class="card-title">${escapeHtml(name)}</h5>
+            <p class="card-text text-muted">${escapeHtml(description)}</p>
             <p class="card-price fw-bold">$${Number(price).toFixed(2)}</p>
           </div>
         </div>
@@ -197,40 +273,23 @@ async function loadCart() {
   });
 }
 
-// Insert the correct items based on the name of the document ;-D
-if (document.title == 'Marketplace') {
-  document.getElementById('prev-page-btn').addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      container.innerHTML = '';
-      loadListings();
-    }
-  });
-  document.getElementById('next-page-btn').addEventListener('click', () => {
-    currentPage++;
+let currentPage = 1;
+
+document.getElementById('prev-page-btn').addEventListener('click', () => {
+  if (currentPage > 1) {
+    currentPage--;
     container.innerHTML = '';
     loadListings();
-  });
+  }
+});
+document.getElementById('next-page-btn').addEventListener('click', () => {
+  currentPage++;
+  container.innerHTML = '';
+  loadListings();
+});
 
-  let totalListings = 0;
-  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
-    let totalListings = data.length;
-    let totalPages = Math.floor(totalListings / LISTINGS_PER_PAGE);
-
-    const nextItem = document.getElementById('next-page-item');
-    for (let i = 1; i <= totalPages; i++) {
-      const li = document.createElement('li');
-      li.className = `page-item page-num ${i === currentPage ? 'active' : ''}`;
-      li.innerHTML = `<button class="page-link">${i}</button>`;
-      li.querySelector('button').addEventListener('click', () => {
-        currentPage = i;
-        container.innerHTML = '';
-        loadListings();
-      });
-      nextItem.before(li);
-    }
-  });
-
+// Insert the correct items based on the name of the document ;-D
+if (document.title == 'Marketplace') {
   loadListings();
 } else if (document.title == 'Cart') {
   loadCart();
