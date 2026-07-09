@@ -1,0 +1,171 @@
+/* Spindle marketplace card revamp — Shopee/Lazada-style listing cards */
+
+:root {
+  --sp-accent: #ee4d2d;
+  --sp-accent-dark: #c9391c;
+  --sp-navy: #14213d;
+  --sp-bg: #f7f7fb;
+  --sp-surface: #ffffff;
+  --sp-border: #e8e8ed;
+  --sp-text: #1a1a1e;
+  --sp-muted: #6b7280;
+  --sp-quality-new: #1d4ed8;
+  --sp-quality-likenew: #2e7d32;
+  --sp-quality-good: #b7791f;
+  --sp-quality-fair: #9d4b16;
+  --sp-quality-default: #4b5563;
+}
+
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.spindle-card {
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.spindle-card:hover {
+  box-shadow: 0 6px 18px rgba(20, 33, 61, 0.1);
+  transform: translateY(-2px);
+}
+
+.spindle-card-link {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+}
+
+.spindle-card-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: var(--sp-bg);
+  overflow: hidden;
+}
+
+.spindle-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.spindle-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.spindle-badge--new { background: var(--sp-quality-new); }
+.spindle-badge--likenew { background: var(--sp-quality-likenew); }
+.spindle-badge--good { background: var(--sp-quality-good); }
+.spindle-badge--fair { background: var(--sp-quality-fair); }
+.spindle-badge--default { background: var(--sp-quality-default); }
+
+.spindle-card-body {
+  padding: 10px 12px 4px;
+}
+
+.spindle-card-title {
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.3;
+  margin: 0 0 6px;
+  color: var(--sp-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.spindle-card-price {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--sp-accent);
+  margin: 0 0 4px;
+}
+
+.spindle-card-meetup {
+  font-size: 0.75rem;
+  color: var(--sp-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spindle-card-meetup i {
+  color: var(--sp-accent);
+  margin-right: 4px;
+}
+
+.spindle-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px 12px;
+}
+
+.spindle-qty {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--sp-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.spindle-qty-btn {
+  background: var(--sp-bg);
+  border: none;
+  width: 26px;
+  height: 26px;
+  line-height: 1;
+  font-size: 0.95rem;
+  color: var(--sp-text);
+  cursor: pointer;
+}
+
+.spindle-qty-input {
+  width: 34px;
+  height: 26px;
+  text-align: center;
+  border: none;
+  border-left: 1px solid var(--sp-border);
+  border-right: 1px solid var(--sp-border);
+  font-size: 0.8rem;
+  padding: 0;
+}
+
+.spindle-add-btn {
+  background: var(--sp-accent);
+  color: #fff;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.spindle-add-btn:hover {
+  background: var(--sp-accent-dark);
+}
