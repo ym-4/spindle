@@ -224,8 +224,19 @@ module.exports.deleteGroupChannelByChannelName = async function deleteGroupChann
 //                           Groups Announcements Table
 // -----------------------------------------------------------------------------------------------------
 
+function ensureGroupAnnouncementsTable() {
+  return pool.query(`CREATE TABLE IF NOT EXISTS "GroupAnnouncements" (
+    "announcement_id" SERIAL PRIMARY KEY,
+    "user_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+    "group_id" INT NOT NULL REFERENCES "Groups"("id") ON DELETE CASCADE,
+    "text" TEXT NOT NULL,
+    "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`).catch(function () {});
+}
+
 // GET all group announcements by group_id
 module.exports.getGroupAnnouncementsByGroupID = async function getGroupAnnouncementsByGroupID(data) {
+  await ensureGroupAnnouncementsTable();
   const VALUES = [data.group_id];
   const { rows } = await pool.query('SELECT * FROM "GroupAnnouncements" WHERE group_id = $1', VALUES);
   return rows;
@@ -233,12 +244,14 @@ module.exports.getGroupAnnouncementsByGroupID = async function getGroupAnnouncem
 
 // GET all group announcements by group_id
 module.exports.getGroupAnnouncements = async function getGroupAnnouncements(data) {
+  await ensureGroupAnnouncementsTable();
   const { rows } = await pool.query('SELECT * FROM "GroupAnnouncements"');
   return rows;
 }
 
 // Create new group announcement (group_id, user_id, message, channel_name)
 module.exports.insertGroupAnnouncement = async function insertGroupAnnouncement(data) {
+  await ensureGroupAnnouncementsTable();
   const VALUES = [data.group_id, data.user_id, data.text];
   const { rows } = await pool.query('INSERT INTO "GroupAnnouncements" (group_id, user_id, text) VALUES ($1, $2, $3) RETURNING *', VALUES);
   return rows; 
@@ -246,6 +259,7 @@ module.exports.insertGroupAnnouncement = async function insertGroupAnnouncement(
 
 // Update group announcement (text)
 module.exports.updateGroupAnnouncement = async function updateGroupAnnouncement(data) {
+  await ensureGroupAnnouncementsTable();
   const VALUES = [data.text, data.announcement_id];
   const { rows } = await pool.query('UPDATE "GroupAnnouncements" SET text = $1 WHERE announcement_id = $2 RETURNING *', VALUES);
   return rows; 
@@ -253,6 +267,7 @@ module.exports.updateGroupAnnouncement = async function updateGroupAnnouncement(
 
 // DELETE announcement by ID
 module.exports.deleteAnnouncementByID = async function deleteAnnouncementByID(data) {
+  await ensureGroupAnnouncementsTable();
   const VALUES = [data.announcement_id];
   const { rows } = await pool.query(`DELETE FROM "GroupAnnouncements" WHERE announcement_id = $1 RETURNING *`, VALUES);
   return rows; 

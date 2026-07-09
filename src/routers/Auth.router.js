@@ -566,4 +566,22 @@ router.post('/check-ban', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Admin: Global search
+router.get('/admin/global-search', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const term = req.query.q || '';
+    const results = await Auth.globalSearch(term);
+    res.status(200).json(results);
+  } catch (err) { next(err); }
+});
+
+// Admin: User activity drill-down
+router.get('/admin/users/:id/activity', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    const activity = await Auth.getUserActivity(userId);
+    res.status(200).json(activity);
+  } catch (err) { next(err); }
+});
+
 module.exports = router;
