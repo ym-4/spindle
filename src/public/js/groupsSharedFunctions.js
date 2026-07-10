@@ -372,6 +372,7 @@ async function deleteGroupDiscussionMessage(messageId) {
   });
 }
 
+// Delete Group Channel
 async function deleteGroupDiscussionChannel(channel_name) {
   return new Promise((resolve, reject) => {
     const url = `http://localhost:3000/groups/messages/channel/${groupId}`;
@@ -1013,6 +1014,44 @@ async function deleteJoinRequest(beingDeletedUserId) {
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteJoinRequest', responseData);
+
+      // membership deleted: success
+      if (responseStatus == 204) {
+        resolve(responseData);
+
+        // Token expired
+      } else if (responseStatus == 401) {
+        window.location.href = './home.html';
+
+        // bad request: missing info
+      } else if (responseStatus == 400) {
+        reject({
+          type: 'bad request',
+          message: 'Missing required fields',
+        });
+
+        // User is not a member
+      } else if (responseStatus == 404) {
+        reject({
+          type: 'not found',
+          message: 'Join request not found',
+        });
+      } else {
+        reject(responseData);
+      }
+    };
+
+    fetchMethod(url, callback, 'DELETE', null, token);
+  });
+}
+
+// Delete group (creator only)
+async function deleteGroup() {
+  return new Promise((resolve, reject) => {
+    const url = `http://localhost:3000/groups/${groupId}`;
+
+    const callback = (responseStatus, responseData) => {
+      console.log('deleteGroup', responseData);
 
       // membership deleted: success
       if (responseStatus == 204) {
