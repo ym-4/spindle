@@ -11,6 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug environment
+        run: |
+          node -v
+          npx prettier --version
+          echo "===== marketplace.html ====="
+          nl -ba src/public/marketplace.html | sed -n '60,90p'
+
       - name: Checkout
         uses: actions/checkout@v4
 
