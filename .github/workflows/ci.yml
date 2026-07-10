@@ -11,6 +11,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install dependencies
+        run: npm install
+
+      - name: Debug
+        run: |
+          pwd
+          ls
+          ls src
+          ls src/public
+          find . -name "marketplace.html"
       - name: Debug environment
         run: |
           node -v
@@ -20,9 +30,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: npm install
 
       - name: Prettier check
         run: npm run format-check
