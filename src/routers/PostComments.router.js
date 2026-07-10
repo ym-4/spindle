@@ -9,7 +9,11 @@ const {
   deleteCommentsByID,
   getSavedCommentsByUserID,
   insertSavedComment,
-  deleteSavedCommentByID
+  deleteSavedCommentByID,
+  getCommentReactionByUserID,   
+  insertCommentLike,             
+  updateCommentReaction,         
+  deleteCommentReaction  
 } = require('../models/PostComments.model');
 
 const router = express.Router();
@@ -68,6 +72,74 @@ router.delete('/saved/:id', (req, res, next) => {
     })
 });
 
+// get comment reactions by user
+router.get('/reaction/:user_id', authenticateJWT, (req, res, next) => {
+  const data = {
+    user_id: req.params.user_id
+  }
+  
+  getCommentReactionByUserID(data)
+    .then(results => res.status(200).json(results))
+    .catch(next);
+});
+
+// Insert comment reaction
+router.post('/like', authenticateJWT, (req, res, next) => {
+  if (!req.body?.comment_id) {
+    return res.status(400).json({ message: 'Error: comment_id is undefined' });
+  }
+  const data = {
+    comment_id: req.body.comment_id,
+    user_id: req.user.id,
+    reaction_type: req.body.reaction_type
+  };
+  insertCommentLike(data)
+    .then(results => res.status(201).json({
+      id:            results.id,
+      comment_id: data.comment_id,
+      user_id: data.user_id,
+      reaction_type: data.reaction_type
+    }))
+    .catch((error) => {
+      console.error('Error insertCommentLike: ' + error);
+      res.status(500).json(error);
+    });
+});
+
+// Update comment reaction
+router.put('/reaction/:id', (req, res, next) => {
+  const data = {
+    id: req.params.id,
+    user_id: req.body.user_id,
+    reaction_type: req.body.reaction_type
+  };
+  updateCommentReaction(data)
+    .then(results => {
+      if (!results) return res.status(404).json({ error: 'Reaction not found' });
+      res.status(200).json(results);
+    })
+    .catch((error) => {
+      console.error('Error updateCommentReaction: ' + error);
+      res.status(500).json(error);
+    });
+});
+
+// Delete comment reaction
+router.delete('/reaction/:id', (req, res, next) => {
+  const data = {
+    id: req.params.id,
+    user_id: req.body.user_id
+  };
+  deleteCommentReaction(data)
+    .then(results => {
+      if (!results) return res.status(404).json({ error: 'Reaction not found' });
+      res.status(200).json(results);
+    })
+    .catch((error) => {
+      console.error('Error deleteCommentReaction: ' + error);
+      res.status(500).json(error);
+    });
+});
 
 // Get Comments by post ID
 router.get('/:post_id', (req, res, next) => {

@@ -91,9 +91,37 @@ module.exports.insertSavedComment = async function insertSavedComment(data) {
   return rows[0]; 
 }
 
-// Delete a saved comment
+// unsave comment
 module.exports.deleteSavedCommentByID = async function deleteSavedCommentByID(data) {
   const VALUES = [data.id];
   const { rows } = await pool.query('DELETE FROM "SavedComments" WHERE "id" = $1 RETURNING *', VALUES);
+  return rows[0];
+};
+
+// GET comment reactions by user ID
+module.exports.getCommentReactionByUserID = async function getCommentReactionByUserID(data) {
+  const VALUES = [data.user_id];
+  const { rows } = await pool.query('SELECT * FROM "CommentReactions" WHERE user_id = $1', VALUES);
+  return rows;
+};
+
+// Insert comment reaction (like a comment)
+module.exports.insertCommentLike = async function insertCommentLike(data) {
+  const VALUES = [data.comment_id, data.user_id, data.reaction_type];
+  const { rows } = await pool.query('INSERT INTO "CommentReactions" (comment_id, user_id, reaction_type) VALUES ($1, $2, $3) RETURNING id', VALUES);
+  return rows[0];
+};
+
+// Update comment reaction (like > dislike vice versa)
+module.exports.updateCommentReaction = async function updateCommentReaction(data) {
+  const VALUES = [data.reaction_type, data.user_id, data.id];
+  const { rows } = await pool.query('UPDATE "CommentReactions" SET "reaction_type" = $1 WHERE "user_id" = $2 AND "id" = $3 RETURNING *', VALUES);
+  return rows[0];
+};
+
+// Delete comment reaction (removes like/dislike)
+module.exports.deleteCommentReaction = async function deleteCommentReaction(data) {
+  const VALUES = [data.id, data.user_id];
+  const { rows } = await pool.query('DELETE FROM "CommentReactions" WHERE "id" = $1 AND "user_id" = $2 RETURNING *', VALUES);
   return rows[0];
 };

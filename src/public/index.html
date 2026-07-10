@@ -254,42 +254,58 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center px-3 pb-4">
-                    <!-- file uploads -->
-                    <div class="d-flex align-items-center gap-2">
+                <div class="modal-body pt-0">
+                    <!-- GIF picker (hidden) -->
+                    <div class="gif-picker-panel" id="gifPickerPanel">
+                        <div class="gif-search-bar">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="gifSearchInput" placeholder="Search GIFs...">
+                        </div>
+                        <div class="gif-grid" id="giphyResults"></div>
+                    </div>
 
-                        <!-- Upload -->
+                    <!-- GIF selected preview -->
+                    <div class="gif-selected-preview" id="gifSelectedPreview">
+                        <img id="gifSelectedImg" src="" alt="Selected GIF">
+                        <button class="remove-gif-btn" id="removeGifBtn" title="Remove GIF">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center px-3 pb-4">
+                    <!-- file uploads + GIF -->
+                    <div class="d-flex align-items-center gap-2">
                         <label for="postAttachment"
                             class="btn btn-light border rounded-circle d-flex justify-content-center align-items-center"
-                            style="width:40px;height:40px;">
+                            style="width:40px; height:40px;"
+                            title="Attach image">
                             <i class="fas fa-paperclip"></i>
                         </label>
-
                         <input
                             type="file"
                             id="postAttachment"
                             accept="image/*,.gif"
-                            hidden>
+                            style="display:none;">
 
-                        <!-- gif button -->
-                        <button
-                            type="button"
+                        <!-- GIF button -->
+                        <button type="button"
                             class="btn btn-light border rounded-circle d-flex justify-content-center align-items-center"
-                            id="openGifPicker"
-                            style="width:40px;height:40px;">
-                            <i class="fas fa-images"></i>
+                            id="gifToggleBtn"
+                            title="Add GIF"
+                            style="width:40px; height:40px;">
+                            <span style="font-size:0.65rem; font-weight:700; color:var(--text-secondary);">GIF</span>
                         </button>
 
                         <div id="attachmentPreviewContainer"></div>
-
                     </div>
-                    <!-- psot actions -->
+                    <!-- post actions -->
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                        Cancel
+                            Cancel
                         </button>
                         <button type="button" class="btn btn-primary" id="submitPostBtn">
-                        Post
+                            Post
                         </button>
                     </div>
                 </div>
@@ -308,40 +324,6 @@
         <button class="auth-popup-btn" id="confirmOkBtn" style="background:var(--danger-color);border-color:var(--danger-color);">Delete</button>
         </div>
     </div>
-    </div>
-
-        <!-- GIF Modal -->
-    <div class="modal fade" id="gifPickerModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        Choose a GIF
-                    </h5>
-
-                    <button
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                    </button>
-                </div>
-
-                <div class="modal-body">
-
-                    <input
-                        class="form-control mb-3"
-                        id="gifSearchInput"
-                        placeholder="Search GIFs...">
-
-                    <div
-                        id="giphyResults"
-                        class="row g-2">
-                    </div>
-
-                </div>
-
-            </div>
-        </div>
     </div>
 
     <!-- login required modal -->

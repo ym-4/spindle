@@ -101,21 +101,29 @@ async function populateFeedUser() {
 
 // gif 
 function setupGifPicker() {
-  const modalEl = document.getElementById('gifPickerModal');
-  const openBtn = document.getElementById('openGifPicker');
+  const toggleBtn = document.getElementById('gifToggleBtn');
+  const panel     = document.getElementById('gifPickerPanel');
+  const removeBtn = document.getElementById('removeGifBtn');
 
-  if (!modalEl || !openBtn) return;
+  if (!toggleBtn || !panel) return;
 
-  const gifModal = bootstrap.Modal.getOrCreateInstance(modalEl);
-  openBtn.addEventListener('click', () => {
-    gifModal.show();
+  toggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) {
+      document.getElementById('gifSearchInput')?.focus();
+    }
   });
 
-  modalEl.addEventListener('hidden.bs.modal', () => {
-    const gifSearchInput = document.getElementById('gifSearchInput');
-    const giphyResults = document.getElementById('giphyResults');
-    if (gifSearchInput) gifSearchInput.value = '';
-    if (giphyResults) giphyResults.innerHTML = '';
+  removeBtn?.addEventListener('click', () => {
+    clearSelectedMediaPreview();
+  });
+
+  // Close panel
+  document.addEventListener('click', (e) => {
+    if (!panel.contains(e.target) && e.target !== toggleBtn) {
+      panel.classList.remove('open');
+    }
   });
 }
 
@@ -750,11 +758,11 @@ function setupCreatePost() {
   });
 
   submitBtn.addEventListener('click', () => {
-    const title    = titleInput.value.trim();
+    const title = titleInput.value.trim();
     const category = categoryInput.value;
     const content  = contentInput.value.trim();
     const user_id  = localStorage.getItem('loggedInUserId');
-    const token    = localStorage.getItem('token');
+    const token  = localStorage.getItem('token');
     const isAnonymous = document.getElementById('postAnonymous').checked;
 
     if (!token) { window.location.href = 'login.html'; return; }
@@ -770,14 +778,12 @@ function setupCreatePost() {
     formData.append('content', content);
     formData.append('is_anonymous', isAnonymous);
 
-    if (selectedGiphyUrl) {
-      formData.append('gif_url', selectedGiphyUrl);
-    }
-
     const attachmentInput = document.getElementById('postAttachment');
 
     if (attachmentInput.files[0]) {
       formData.append('attachment', attachmentInput.files[0]);
+    } else if (selectedGiphyUrl) {
+      formData.append('gif_url', selectedGiphyUrl);
     }
 
     fetch(`${API_BASE}/posts`, {
@@ -976,27 +982,31 @@ function showModalError(message) {
 function clearCreatePostForm() {
   const errEl = document.getElementById('postModalError');
   if (errEl) errEl.style.display = 'none';
+
   document.getElementById('postTitle').value = '';
   document.getElementById('postContent').value = '';
   document.getElementById('postCategory').value = 'confession';
   document.getElementById('postAnonymous').checked = false;
   document.getElementById('submitPostBtn').disabled = true;
 
+  // Reset attachment
   uploadedAttachmentUrl = null;
-  clearSelectedMediaPreview();
-  const giphyResults = document.getElementById('giphyResults');
-  if (giphyResults) giphyResults.innerHTML = '';
-  const gifSearchInput = document.getElementById('gifSearchInput');
-  if (gifSearchInput) gifSearchInput.value = '';
-
-  const preview = document.getElementById('attachmentPreviewContainer');
-  if (preview) preview.innerHTML = '';
-  if (selectedGiphyUrl) {
-    showSelectedGifPreview();
-  }
+  selectedGiphyUrl      = null;
 
   const attachmentInput = document.getElementById('postAttachment');
   if (attachmentInput) attachmentInput.value = '';
+
+  const preview = document.getElementById('attachmentPreviewContainer');
+  if (preview) preview.innerHTML = '';
+
+  // Reset GIF picker
+  const gifPanel = document.getElementById('gifPickerPanel');
+  const gifSearch = document.getElementById('gifSearchInput');
+  const gifResults = document.getElementById('giphyResults');
+
+  if (gifPanel) gifPanel.classList.remove('open');
+  if (gifSearch) gifSearch.value  = '';
+  if (gifResults) gifResults.innerHTML = '';
 }
 
 function feedIsLoggedIn() { return !!feedToken(); }

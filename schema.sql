@@ -144,6 +144,18 @@ CREATE TABLE "PostReactions" (
   UNIQUE ("post_id", "user_id")
 );
 
+CREATE TABLE "CommentReactions" (
+  "id" SERIAL NOT NULL,
+  "comment_id" INT NOT NULL,
+  "user_id" INT NOT NULL,
+  "reaction_type" reaction_types NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY ("comment_id") REFERENCES "PostComments"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  CONSTRAINT "CommentReactions_pkey" PRIMARY KEY ("id"),
+  UNIQUE ("comment_id", "user_id")
+);
+
 CREATE TABLE "SavedPosts" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,

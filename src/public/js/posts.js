@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const REACTIONS_BASE = `${currentUrl}/posts`;
 let currentReaction = null;
+let commentReactions = new Map(); 
 let openReplyThreads = new Set(); 
 let savedPostIds = new Set();
 let savedCommentMap = new Map();
@@ -49,6 +50,7 @@ let currentCommentSort = 'newest';
 let activeCommentPostId = null;
 let activeCommentsData = [];
 let pendingEditGifUrl = null;
+let removeCurrentAttachment = false;
 
 // Load saved IDs
 function loadSavedIds() {
@@ -172,6 +174,13 @@ function clearEditGifPreview() {
   if (attachmentInput) attachmentInput.value = '';
 }
 
+function clearCurrentAttachmentPreviewUI() {
+  const preview = document.getElementById('currentAttachmentPreview');
+  if (preview) {
+    preview.innerHTML = `<div class="text-muted small">Current attachment will be replaced on save</div>`;
+  }
+}
+
 function renderEditGifPreview() {
   const preview = document.getElementById('editGifPreview');
   if (!preview) return;
@@ -211,7 +220,7 @@ function renderEditGifPreview() {
   }
 }
 
-function setupEditGifPicker() {
+function setupEditGifPicker(post) {
   const modalEl = document.getElementById('gifPickerModal');
   const openBtn = document.getElementById('openEditGifPicker');
 
@@ -221,6 +230,19 @@ function setupEditGifPicker() {
   openBtn.addEventListener('click', () => {
     gifModal.show();
   });
+
+  const attachmentInput = document.getElementById('editAttachment');
+  if (attachmentInput) {
+    attachmentInput.addEventListener('change', () => {
+      if (attachmentInput.files.length > 0) {
+        pendingEditGifUrl = null;
+        removeCurrentAttachment = false;
+        renderEditGifPreview();
+        clearCurrentAttachmentPreviewUI();
+        autoSaveAttachmentChange(post);
+      }
+    });
+  }
 
   const input = document.getElementById('gifSearchInput');
   const resultsContainer = document.getElementById('giphyResults');
@@ -235,12 +257,12 @@ function setupEditGifPicker() {
       return;
     }
     timeout = setTimeout(() => {
-      searchEditGifs(query);
+      searchEditGifs(query, post, gifModal);
     }, 300);
   });
 }
 
-async function searchEditGifs(query) {
+async function searchEditGifs(query, post, gifModal) {
   const resultsContainer = document.getElementById('giphyResults');
   if (!resultsContainer) return;
   resultsContainer.innerHTML = 'Searching...';
@@ -268,9 +290,13 @@ async function searchEditGifs(query) {
       img.alt = 'GIF result';
       img.onclick = () => {
         pendingEditGifUrl = originalUrl;
+        removeCurrentAttachment = false;
         renderEditGifPreview();
+        clearCurrentAttachmentPreviewUI();
         resultsContainer.querySelectorAll('.selected').forEach((x) => x.classList.remove('selected'));
         img.classList.add('selected');
+        if (gifModal) gifModal.hide();
+        autoSaveAttachmentChange(post);
       };
       resultsContainer.appendChild(img);
     });
@@ -282,16 +308,35 @@ async function searchEditGifs(query) {
 
 //Load post 
 function loadPost(postId, editMode = false) {
-  fetchMethod(`${currentUrl}/posts/${postId}`, (status, data) => {
-    if (status === 200 && data) {
-      if (editMode) renderPostEditMode(data);
-      else renderPost(data);
-      document.getElementById('commentsSection').style.display = 'block';
-      loadComments(postId);
-      setupCommentSubmit(postId);
-    } else {
-      showError('Post not found.');
-    }
+  const token  = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  // Load comment reactions
+  const reactionsPromise = (token && userId)
+    ? new Promise((resolve) => {
+        fetchMethod(`${currentUrl}/comments/reaction/${userId}`, (status, data) => {
+          if (status === 200 && Array.isArray(data)) {
+            commentReactions = new Map(
+              data.map(r => [parseInt(r.comment_id), { id: r.id, reaction_type: r.reaction_type }])
+            );
+          }
+          resolve();
+        }, 'GET', null, token);
+      })
+    : Promise.resolve();
+
+  reactionsPromise.then(() => {
+    fetchMethod(`${currentUrl}/posts/${postId}`, (status, data) => {
+      if (status === 200 && data) {
+        if (editMode) renderPostEditMode(data);
+        else renderPost(data);
+        document.getElementById('commentsSection').style.display = 'block';
+        loadComments(postId);
+        setupCommentSubmit(postId);
+      } else {
+        showError('Post not found.');
+      }
+    });
   });
 }
 
@@ -444,6 +489,82 @@ function renderPost(post) {
   }
 }
 
+function submitPostEdit(post) {
+  const title    = document.getElementById('editTitle').value.trim();
+  const content  = document.getElementById('editContent').value.trim();
+  const category = document.getElementById('editCategory').value;
+
+  const attachmentInput = document.getElementById('editAttachment');
+  const errEl = document.getElementById('editError');
+
+  if (!title) {
+    errEl.textContent = 'Title cannot be empty.';
+    errEl.classList.remove('d-none');
+    return Promise.reject(new Error('Title cannot be empty.'));
+  }
+
+  if (!content) {
+    errEl.textContent = 'Content cannot be empty.';
+    errEl.classList.remove('d-none');
+    return Promise.reject(new Error('Content cannot be empty.'));
+  }
+
+  errEl.classList.add('d-none');
+
+  const token   = localStorage.getItem('token');
+  const user_id = localStorage.getItem('loggedInUserId');
+
+  const formData = new FormData();
+  formData.append('user_id', user_id);
+  formData.append('title', title);
+  formData.append('content', content);
+  formData.append('category', category);
+
+  if (attachmentInput.files.length > 0) {
+    formData.append('attachment', attachmentInput.files[0]);
+  } else if (pendingEditGifUrl) {
+    formData.append('gif_url', pendingEditGifUrl);
+  } else if (removeCurrentAttachment) {
+    formData.append('remove_attachment', 'true');
+  }
+
+  return fetch(`${currentUrl}/posts/${post.id}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData
+  })
+  .then(async (res) => {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to save changes.');
+    return data;
+  })
+  .catch((err) => {
+    errEl.textContent = err.message || 'Something went wrong.';
+    errEl.classList.remove('d-none');
+    throw err;
+  });
+}
+
+function autoSaveAttachmentChange(post) {
+  const saveBtn = document.getElementById('saveEditBtn');
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+  }
+
+  submitPostEdit(post)
+    .then(() => {
+      loadPost(post.id, true); 
+    })
+    .catch((err) => {
+      console.error(err);
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save changes';
+      }
+    });
+}
+
 //Render post (edit mode)
 function renderPostEditMode(post) {
   document.title = `Editing: ${escapeHtml(post.title || 'Post')} - Spindle`;
@@ -461,20 +582,20 @@ function renderPostEditMode(post) {
       <div class="mb-2">
         <select class="form-select form-select-sm" id="editCategory" style="width:auto;">
           <option value="confession" ${post.category === 'confession' ? 'selected' : ''}>Confession</option>
-          <option value="qna"        ${post.category === 'qna'        ? 'selected' : ''}>Q&A</option>
-          <option value="general"    ${post.category === 'general'    ? 'selected' : ''}>General Talk</option>
-          <option value="events"     ${post.category === 'events'     ? 'selected' : ''}>Events</option>
-          <option value="news"       ${post.category === 'news'       ? 'selected' : ''}>News</option>
-          <option value="cca"        ${post.category === 'cca'        ? 'selected' : ''}>CCA</option>
+          <option value="qna" ${post.category === 'qna' ? 'selected' : ''}>Q&A</option>
+          <option value="general" ${post.category === 'general' ? 'selected' : ''}>General Talk</option>
+          <option value="events" ${post.category === 'events' ? 'selected' : ''}>Events</option>
+          <option value="news" ${post.category === 'news' ? 'selected' : ''}>News</option>
+          <option value="cca" ${post.category === 'cca' ? 'selected' : ''}>CCA</option>
           <option value="internship" ${post.category === 'internship' ? 'selected' : ''}>Internship</option>
-          <option value="SOC"        ${post.category === 'SOC'        ? 'selected' : ''}>SOC</option>
-          <option value="ABE"        ${post.category === 'ABE'        ? 'selected' : ''}>ABE</option>
-          <option value="SB"         ${post.category === 'SB'         ? 'selected' : ''}>SB</option>
-          <option value="CLS"        ${post.category === 'CLS'        ? 'selected' : ''}>CLS</option>
-          <option value="EEE"        ${post.category === 'EEE'        ? 'selected' : ''}>EEE</option>
-          <option value="MAD"        ${post.category === 'MAD'        ? 'selected' : ''}>MAD</option>
-          <option value="MAE"        ${post.category === 'MAE'        ? 'selected' : ''}>MAE</option>
-          <option value="SMA"        ${post.category === 'SMA'        ? 'selected' : ''}>SMA</option>
+          <option value="SOC" ${post.category === 'SOC' ? 'selected' : ''}>SOC</option>
+          <option value="ABE" ${post.category === 'ABE' ? 'selected' : ''}>ABE</option>
+          <option value="SB" ${post.category === 'SB' ? 'selected' : ''}>SB</option>
+          <option value="CLS" ${post.category === 'CLS' ? 'selected' : ''}>CLS</option>
+          <option value="EEE" ${post.category === 'EEE' ? 'selected' : ''}>EEE</option>
+          <option value="MAD" ${post.category === 'MAD' ? 'selected' : ''}>MAD</option>
+          <option value="MAE" ${post.category === 'MAE' ? 'selected' : ''}>MAE</option>
+          <option value="SMA" ${post.category === 'SMA' ? 'selected' : ''}>SMA</option>
         </select>
       </div>
 
@@ -494,7 +615,7 @@ function renderPostEditMode(post) {
         </label>
         <!-- current attachment preview -->
         <div id="currentAttachmentPreview" class="mb-2">
-          ${renderEditAttachmentPreview(post)}
+          ${renderCurrentAttachmentBlock(post)}
         </div>
         <div class="d-flex align-items-center gap-2 mt-2">
           <input
@@ -507,27 +628,10 @@ function renderPostEditMode(post) {
             class="btn btn-outline-secondary btn-sm"
             id="openEditGifPicker"
           >
-            <i class="fas fa-images me-1"></i> GIF
+            GIF
           </button>
         </div>
         <div id="editGifPreview" class="mt-2"></div>
-        <!-- remove checkbox -->
-        ${
-          post.attachment_url || post.gif_url || post.giphy_url
-            ? `
-              <div class="form-check mt-2">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="removeAttachment"
-                >
-                <label class="form-check-label" for="removeAttachment">
-                  Remove current attachment/GIF
-                </label>
-              </div>
-            `
-            : ''
-        }
       </div>
 
       <div id="editError" class="alert alert-danger py-2 d-none"></div>
@@ -538,10 +642,14 @@ function renderPostEditMode(post) {
       </div>
     </div>`;
 
-  pendingEditGifUrl = post.gif_url || post.giphy_url || null;
+  pendingEditGifUrl = null;
+  removeCurrentAttachment = false;
   renderEditGifPreview();
-  setupEditGifPicker();
-
+  // setupEditGifPicker();
+  // setupRemoveAttachmentButton();
+  setupEditGifPicker(post);
+  setupRemoveAttachmentButton(post);
+  
   document.getElementById('cancelEditBtn').addEventListener('click', () => {
     const url = new URL(window.location.href);
     url.searchParams.delete('edit');
@@ -550,93 +658,24 @@ function renderPostEditMode(post) {
   });
 
   document.getElementById('saveEditBtn').addEventListener('click', () => {
-    const title    = document.getElementById('editTitle').value.trim();
-    const content  = document.getElementById('editContent').value.trim();
-    const category = document.getElementById('editCategory').value;
-
-    const attachmentInput = document.getElementById('editAttachment');
-
-    const removeAttachmentCheckbox =
-      document.getElementById('removeAttachment');
-
-    const errEl = document.getElementById('editError');
-
-    if (!title) {
-      errEl.textContent = 'Title cannot be empty.';
-      errEl.classList.remove('d-none');
-      return;
-    }
-
-    if (!content) {
-      errEl.textContent = 'Content cannot be empty.';
-      errEl.classList.remove('d-none');
-      return;
-    }
-
-    errEl.classList.add('d-none');
-
-    const token   = localStorage.getItem('token');
-    const user_id = localStorage.getItem('loggedInUserId');
-
     const saveBtn = document.getElementById('saveEditBtn');
-
     saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
 
-    const formData = new FormData();
-    formData.append('user_id', user_id);
-    formData.append('title', title);
-    formData.append('content', content);
-    formData.append('category', category);
-
-    // new uploaded file
-    if (attachmentInput.files.length > 0) {
-      formData.append('attachment', attachmentInput.files[0]);
-    }
-    if (pendingEditGifUrl) {
-      formData.append('gif_url', pendingEditGifUrl);
-    }
-    // remove current attachment
-    if (removeAttachmentCheckbox && removeAttachmentCheckbox.checked) {
-      formData.append('remove_attachment', 'true');
-    }
-
-    fetch(`${currentUrl}/posts/${post.id}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: formData
-    })
-    .then(async (res) => {
-      const data = await res.json();
-
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save changes';
-
-      if (res.ok) {
+    submitPostEdit(post)
+      .then(() => {
         const url = new URL(window.location.href);
         url.searchParams.delete('edit');
-
         window.history.replaceState({}, '', url);
         loadPost(post.id);
-
-      } else {
-        errEl.textContent =
-          data.message || 'Failed to save changes.';
-
-        errEl.classList.remove('d-none');
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save changes';
-
-      errEl.textContent = 'Something went wrong.';
-      errEl.classList.remove('d-none');
-    });
+      })
+      .catch((err) => {
+        console.error(err);
+      })
+      .finally(() => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save changes';
+      });
   });
 }
 
@@ -838,12 +877,12 @@ function appendCommentToDOM(comment, postId, allComments) {
 function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
   const { timeStr } = formatTimestamp(comment.created_at, null);
 
-  const initial       = comment.author_name ? comment.author_name.charAt(0).toUpperCase() : 'U';
+  const initial = comment.author_name ? comment.author_name.charAt(0).toUpperCase() : 'U';
   const authorDisplay = comment.author_name || `User ${comment.user_id}`;
 
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
-  const isLoggedIn     = !!localStorage.getItem('token');
-  const isOwner        = isLoggedIn && parseInt(comment.user_id) === loggedInUserId;
+  const isLoggedIn = !!localStorage.getItem('token');
+  const isOwner = isLoggedIn && parseInt(comment.user_id) === loggedInUserId;
 
   const menuOptions = `
     ${isLoggedIn ? `
@@ -904,8 +943,15 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
             </div>
           </div>
           <div class="comment-actions">
-            <button class="comment-action-link" data-action="like">Like</button>
-            <button class="comment-action-link" data-action="reply">Reply</button>
+            <button class="comment-like-btn" data-comment-id="${comment.id}">
+              <i class="far fa-thumbs-up"></i>
+              <span class="comment-like-count">0</span>
+            </button>
+            <button class="comment-dislike-btn" data-comment-id="${comment.id}">
+              <i class="far fa-thumbs-down"></i>
+              <span class="comment-dislike-count">0</span>
+            </button>
+            <button class="comment-action-link reply-btn" data-comment-id="${comment.id}" data-author="${escapeHtml(authorDisplay)}">Reply</button>
             <span class="comment-timestamp">${timeStr}</span>
           </div>
         </div>
@@ -920,7 +966,7 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
     openReportModal(comment.id, 'comment');
   });
 
-  const replyBtn = el.querySelector('[data-action="reply"]');
+  const replyBtn = el.querySelector('.reply-btn');
   if (replyBtn) {
     replyBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -939,8 +985,8 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
     }
     saveCommentBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const token     = localStorage.getItem('token');
-      const user_id   = localStorage.getItem('loggedInUserId');
+      const token = localStorage.getItem('token');
+      const user_id = localStorage.getItem('loggedInUserId');
       const commentId = saveCommentBtn.dataset.commentId;
       const isSaved   = saveCommentBtn.dataset.saved === 'true';
       const saveRowId = saveCommentBtn.dataset.saveRowId;
@@ -984,8 +1030,27 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
     });
 
     el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
-    el.querySelector('.save-edit-comment-btn').addEventListener('click',   () => saveCommentEdit(comment.id, el));
+    el.querySelector('.save-edit-comment-btn').addEventListener('click', () => saveCommentEdit(comment.id, el));
   }
+
+  // Comment reactions
+  const likeBtn = el.querySelector('.comment-like-btn');
+  const dislikeBtn = el.querySelector('.comment-dislike-btn');
+
+  const existingReaction = commentReactions.get(parseInt(comment.id));
+  if (existingReaction) {
+    applyCommentReactionUI(likeBtn, dislikeBtn, existingReaction.reaction_type);
+  }
+
+  likeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleCommentReaction(comment.id, 'like', likeBtn, dislikeBtn);
+  });
+
+  dislikeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleCommentReaction(comment.id, 'dislike', likeBtn, dislikeBtn);
+  });
 
   return el;
 }
@@ -1095,7 +1160,7 @@ function saveCommentEdit(commentId, commentEl) {
   }, 'PUT', { content: newContent }, token);
 }
 
-//  Delete comment 
+// delete comment
 function deleteComment(commentId, commentEl, postId) {
   const token = localStorage.getItem('token');
 
@@ -1114,6 +1179,81 @@ function showNoComments() {
       <i class="fas fa-comments fa-2x mb-2 d-block"></i>
       No comments yet. Be the first!
     </div>`;
+}
+
+// ==========================
+// COMMENT REACTIONS
+// ==========================
+function handleCommentReaction(commentId, newType, likeBtn, dislikeBtn) {
+  const token  = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  if (!token) { showLoginRequiredModal(); return; }
+
+  const existing = commentReactions.get(parseInt(commentId));
+
+  if (!existing) {
+    // post
+    fetchMethod(`${feedApiBase()}/comments/like`, (status, data) => {
+      if (status === 201) {
+        commentReactions.set(parseInt(commentId), { id: data.id, reaction_type: newType });
+        applyCommentReactionUI(likeBtn, dislikeBtn, newType);
+        updateCommentReactionCount(likeBtn, dislikeBtn, null, newType);
+      }
+    }, 'POST', { comment_id: parseInt(commentId), user_id: userId, reaction_type: newType }, token);
+
+  } else if (existing.reaction_type === newType) {
+    // delete
+    fetchMethod(`${feedApiBase()}/comments/reaction/${existing.id}`, (status) => {
+      if (status === 200) {
+        updateCommentReactionCount(likeBtn, dislikeBtn, existing.reaction_type, null);
+        commentReactions.delete(parseInt(commentId));
+        applyCommentReactionUI(likeBtn, dislikeBtn, null);
+      }
+    }, 'DELETE', { user_id: userId }, token);
+
+  } else {
+    // put
+    fetchMethod(`${feedApiBase()}/comments/reaction/${existing.id}`, (status) => {
+      if (status === 200) {
+        updateCommentReactionCount(likeBtn, dislikeBtn, existing.reaction_type, newType);
+        commentReactions.set(parseInt(commentId), { ...existing, reaction_type: newType });
+        applyCommentReactionUI(likeBtn, dislikeBtn, newType);
+      }
+    }, 'PUT', { user_id: userId, reaction_type: newType }, token);
+  }
+}
+
+function applyCommentReactionUI(likeBtn, dislikeBtn, reactionType) {
+  // Reset both
+  likeBtn.classList.remove('active');
+  dislikeBtn.classList.remove('active');
+  likeBtn.querySelector('i').className = 'far fa-thumbs-up';
+  dislikeBtn.querySelector('i').className = 'far fa-thumbs-down';
+
+  if (reactionType === 'like') {
+    likeBtn.classList.add('active');
+    likeBtn.querySelector('i').className = 'fas fa-thumbs-up';
+  } else if (reactionType === 'dislike') {
+    dislikeBtn.classList.add('active');
+    dislikeBtn.querySelector('i').className = 'fas fa-thumbs-down';
+  }
+}
+
+function updateCommentReactionCount(likeBtn, dislikeBtn, oldType, newType) {
+  const likeCountEl = likeBtn.querySelector('.comment-like-count');
+  const dislikeCountEl = dislikeBtn.querySelector('.comment-dislike-count');
+
+  let likes    = parseInt(likeCountEl.textContent) || 0;
+  let dislikes = parseInt(dislikeCountEl.textContent) || 0;
+
+  if (oldType === 'like') likes = Math.max(0, likes - 1);
+  if (oldType === 'dislike') dislikes = Math.max(0, dislikes - 1);
+  if (newType === 'like') likes++;
+  if (newType === 'dislike') dislikes++;
+
+  likeCountEl.textContent = likes;
+  dislikeCountEl.textContent = dislikes;
 }
 
 
@@ -1263,6 +1403,48 @@ function renderPostAttachment(post) {
       </a>
     </div>
   `;
+}
+
+function renderCurrentAttachmentBlock(post) {
+  const hasAttachment = !!(post.attachment_url || post.gif_url || post.giphy_url);
+  if (!hasAttachment) return renderEditAttachmentPreview(post);
+
+  return `
+    <div class="position-relative d-inline-block">
+      <button
+        type="button"
+        class="btn btn-sm btn-dark rounded-circle position-absolute top-0 end-0 p-1"
+        style="width:24px; height:24px; line-height:1; z-index:2;"
+        id="removeCurrentAttachmentBtn"
+        aria-label="Remove attachment"
+        title="Remove attachment"
+      >
+        <i class="fas fa-times" style="font-size:0.7rem;"></i>
+      </button>
+      ${renderEditAttachmentPreview(post)}
+    </div>
+  `;
+}
+
+function setupRemoveAttachmentButton(post) {
+  const btn = document.getElementById('removeCurrentAttachmentBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    removeCurrentAttachment = true;
+    pendingEditGifUrl = null;
+
+    const attachmentInput = document.getElementById('editAttachment');
+    if (attachmentInput) attachmentInput.value = '';
+    renderEditGifPreview();
+
+    const preview = document.getElementById('currentAttachmentPreview');
+    if (preview) {
+      preview.innerHTML = `<div class="text-muted small">No attachment uploaded</div>`;
+    }
+
+    autoSaveAttachmentChange(post);
+  });
 }
 
 function renderEditAttachmentPreview(post) {
