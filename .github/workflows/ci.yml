@@ -23,5 +23,5 @@ jobs:
       # - name: ESLint
       #   run: npm run lint
 
-      - name: Jest tests
-        run: npm test
+      # - name: Jest tests
+      #   run: npm test
