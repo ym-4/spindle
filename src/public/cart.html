@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="css/marketplace.css" />
     <title>Cart</title>
   </head>
-  <body>
+  <body data-page="marketplace">
     <!-- Navigation-->
     <nav class="navbar">
       <div class="container-fluid px-4 d-flex align-items-center">
@@ -61,57 +61,7 @@
     <!-- Main Container -->
     <div class="main-container">
       <!-- Left Sidebar -->
-      <aside class="sidebar">
-        <a href="index.html" class="sidebar-item">
-          <i class="fas fa-home"></i>
-          <span>Home</span>
-        </a>
-        <a href="groups.html" class="sidebar-item">
-          <i class="fas fa-users"></i>
-          <span>Study Groups</span>
-        </a>
-        <a href="marketplace.html" class="sidebar-item">
-          <i class="fas fa-store"></i>
-          <span>Marketplace</span>
-        </a>
-        <a href="profile.html" class="sidebar-item">
-          <i class="fas fa-user"></i>
-          <span>Profile</span>
-        </a>
-
-        <div class="sidebar-divider"></div>
-
-        <div class="sidebar-item">
-          <i class="fas fa-bookmark"></i>
-          <span>Saved Posts</span>
-        </div>
-        <div class="sidebar-item">
-          <i class="fas fa-clock"></i>
-          <span>Recent</span>
-        </div>
-        <div class="sidebar-item">
-          <i class="fas fa-cog"></i>
-          <span>Settings</span>
-        </div>
-
-        <div class="sidebar-divider"></div>
-
-        <h6 class="px-3 mt-3 mb-2 text-muted" style="font-size: 0.85rem; font-weight: 600">
-          YOUR GROUPS
-        </h6>
-        <div class="sidebar-item">
-          <i class="fas fa-circle" style="font-size: 0.5rem; color: #42b72a"></i>
-          <span>CS101 Study Group</span>
-        </div>
-        <div class="sidebar-item">
-          <i class="fas fa-circle" style="font-size: 0.5rem; color: #1877f2"></i>
-          <span>Math Assignment Help</span>
-        </div>
-        <div class="sidebar-item">
-          <i class="fas fa-plus-circle"></i>
-          <span>See all groups</span>
-        </div>
-      </aside>
+      <aside class="sidebar"></aside>
 
       <main id="content-area">
         <!-- Header -->
@@ -245,25 +195,8 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        if (typeof injectWaHeader === 'function') {
-          injectWaHeader('Marketplace');
-        }
         if (typeof injectNotificationsOnly === 'function') {
           injectNotificationsOnly('spindleNotifSlot');
-        }
-      });
-    </script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        const logoutBtn = document.getElementById('logoutButton');
-        if (logoutBtn) {
-          logoutBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            // Call the clear logic
-            clearAuth();
-            // Force browser to fully reload/redirect
-            window.location.href = 'home.html';
-          });
         }
       });
     </script>

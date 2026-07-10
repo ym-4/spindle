@@ -107,7 +107,9 @@ module.exports.getPostByID = async function getPostByID(data) {
 
 // GET Post by Category (confession/qna/general)
 module.exports.getPostByCategory = async function getPostByCategory(data) {
-  const VALUES = [data.category];
+  const categoryMap = { 'confession': 'confession', 'q&a': 'qna', 'qna': 'qna', 'general': 'general' };
+  const cat = categoryMap[(data.category || '').toLowerCase()] || data.category;
+  const VALUES = [cat];
 
   const { rows } = await pool.query(`
     SELECT p.id,
@@ -271,9 +273,11 @@ module.exports.insertReport = async function insertReport(data) {
   return rows[0]; 
 };
 
-module.exports.getAllReports = async function getAllReports() {
+module.exports.getAllReports = async function getAllReports(includeDismissed) {
+  try { await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`); } catch {}
+  try { await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS description TEXT DEFAULT ''`); } catch {}
   const { rows } = await pool.query(
-    `SELECT r.id, r.post_id, r.reason, r.description, r.created_at,
+    `SELECT r.id, r.post_id, r.reason, r.description, r.created_at, r.dismissed,
             u.id AS reporter_id, u.name AS reporter_name, u.email AS reporter_email,
             p.title AS post_title, p.user_id AS post_author_id,
             pa.name AS post_author_name
@@ -281,12 +285,21 @@ module.exports.getAllReports = async function getAllReports() {
      JOIN "Person" u ON r.user_id = u.id
      JOIN "Posts" p ON r.post_id = p.id
      LEFT JOIN "Person" pa ON p.user_id = pa.id
+     ${includeDismissed ? '' : 'WHERE (r.dismissed IS NULL OR r.dismissed = FALSE)'}
       ORDER BY r.created_at DESC`
   );
   return rows;
 };
 
-module.exports.searchAllPosts = async function searchAllPosts({ search, category } = {}) {
+module.exports.searchAllPosts = async function searchAllPosts({ search, category, date } = {}) {
+  // Map frontend category values to actual enum values
+  const categoryMap = {
+    'confession': 'confession',
+    'q&a': 'qna',
+    'qna': 'qna',
+    'general': 'general',
+  };
+  const mappedCategory = category ? (categoryMap[category.toLowerCase()] || null) : null;
   let sql = `SELECT p.id, p.title, p.category, p.content, p.created_at,
              per.name AS author_name, per.id AS author_id
              FROM "Posts" p
@@ -299,10 +312,16 @@ module.exports.searchAllPosts = async function searchAllPosts({ search, category
     params.push(`%${search}%`);
     idx++;
   }
-  if (category) {
+  if (mappedCategory) {
     sql += ` AND p.category = $${idx}`;
-    params.push(category);
+    params.push(mappedCategory);
     idx++;
+  }
+  if (date) {
+    const hours = parseInt(date, 10);
+    if (hours > 0) {
+      sql += ` AND p.created_at > NOW() - INTERVAL '${hours} hours'`;
+    }
   }
   sql += ` ORDER BY p.created_at DESC LIMIT 200`;
   const { rows } = await pool.query(sql, params);

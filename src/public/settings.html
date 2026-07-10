@@ -5,11 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Settings — Spindle</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="css/posts.css" />
     <link rel="stylesheet" href="css/settings-spindle.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
+
     <script src="js/api.js"></script>
+    <style>
+      .set-accordion { border: 1px solid #e4e6eb; border-radius: 12px; overflow: hidden; background: #fff; }
+      .set-accordion-item { border-bottom: 1px solid #e4e6eb; }
+      .set-accordion-item:last-child { border-bottom: none; }
+      .set-accordion-header { display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 1rem 1.25rem; background: none; border: none; text-align: left; font-size: 0.95rem; cursor: pointer; transition: background 0.15s; }
+      .set-accordion-header:hover { background: #f7f8fa; }
+      .set-accordion-header .set-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+      .set-accordion-header .set-chevron { margin-left: auto; transition: transform 0.2s; color: #65676b; }
+      .set-accordion-header[aria-expanded="true"] .set-chevron { transform: rotate(180deg); }
+      .set-accordion-body { padding: 0 1.25rem 1.25rem; display: none; }
+      .set-accordion-body.open { display: block; }
+      .settings-pane-card { background: #f7f8fa; border-radius: 10px; padding: 1.25rem; margin-top: 0.5rem; }
+      .settings-pane-card label { font-size: 0.85rem; font-weight: 600; color: #333; display: block; margin-top: 0.75rem; }
+      .settings-pane-card label:first-child { margin-top: 0; }
+      .settings-pane-card .form-control, .settings-pane-card .form-select { font-size: 0.9rem; margin-top: 0.25rem; }
+      .set-section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; }
+      .set-section-desc { font-size: 0.8rem; color: #65676b; margin-bottom: 1rem; }
+    </style>
   </head>
   <body class="settings-spindle-page" data-page="settings">
     <nav class="navbar">
@@ -32,115 +53,128 @@
       <aside class="sidebar"></aside>
 
       <main class="content-area">
-        <h1 class="h4 mb-3">Settings</h1>
-        <p class="text-muted small mb-3">Account, security, and preferences. Edit your public profile on <a href="profile.html">Profile</a>.</p>
+        <h1 class="h4 mb-1">Settings</h1>
+        <p class="text-muted small mb-3">Manage your account, security, and preferences.</p>
 
-        <div id="settingsMenuView">
-          <div class="settings-menu-card">
-            <button type="button" class="settings-menu-item" data-open="account">
-              <span class="settings-menu-icon"><i class="fas fa-envelope"></i></span>
-              <span><strong>Account</strong><br /><small class="text-muted">Email, language, timezone</small></span>
+        <div class="set-accordion" id="settingsAccordion">
+
+          <!-- Account -->
+          <div class="set-accordion-item">
+            <button class="set-accordion-header" aria-expanded="false" data-target="accBody">
+              <span class="set-icon" style="background:#e7f3ff;color:#1877f2;"><i class="fas fa-envelope"></i></span>
+              <span><strong>Account</strong><br /><small class="text-muted">Email, phone, language, timezone</small></span>
+              <i class="fas fa-chevron-down set-chevron"></i>
             </button>
-            <button type="button" class="settings-menu-item" data-open="security">
-              <span class="settings-menu-icon"><i class="fas fa-lock"></i></span>
-              <span><strong>Security</strong><br /><small class="text-muted">2FA, password, devices</small></span>
+            <div class="set-accordion-body" id="accBody">
+              <div class="settings-pane-card">
+                <label>Display name</label>
+                <input type="text" id="accDisplayName" class="form-control" />
+                <label>Email</label>
+                <div class="input-group"><input type="email" id="accEmail" class="form-control" /><button class="btn btn-outline-secondary btn-sm" id="btnChangeEmail" type="button">Change</button></div>
+                <label>Phone number</label>
+                <input type="tel" id="accPhone" class="form-control" placeholder="+65 9123 4567" />
+                <label>Language</label>
+                <select id="accLanguage" class="form-select"><option value="en">English</option><option value="zh">中文</option><option value="ms">Bahasa Melayu</option><option value="ta">தமிழ்</option></select>
+                <label>Time zone</label>
+                <select id="accTimezone" class="form-select"><option value="Asia/Singapore">Asia/Singapore (UTC+8)</option><option value="Asia/Kuala_Lumpur">Asia/Kuala Lumpur</option><option value="Asia/Jakarta">Asia/Jakarta</option><option value="Asia/Tokyo">Asia/Tokyo</option><option value="Asia/Shanghai">Asia/Shanghai</option><option value="UTC">UTC</option><option value="America/New_York">America/New York</option><option value="Europe/London">Europe/London</option></select>
+                <button type="button" class="btn btn-primary mt-3" id="btnSaveAccount">Save changes</button>
+                <div id="accSaveFeedback" class="small text-success mt-1" style="display:none;"><i class="fas fa-check-circle"></i> Saved</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div class="set-accordion-item">
+            <button class="set-accordion-header" aria-expanded="false" data-target="secBody">
+              <span class="set-icon" style="background:#e6f9ee;color:#1b9c4b;"><i class="fas fa-lock"></i></span>
+              <span><strong>Security</strong><br /><small class="text-muted">2FA, password, linked devices</small></span>
+              <i class="fas fa-chevron-down set-chevron"></i>
             </button>
-            <button type="button" class="settings-menu-item" data-open="appearance">
-              <span class="settings-menu-icon"><i class="fas fa-palette"></i></span>
-              <span><strong>Appearance</strong><br /><small class="text-muted">Theme and display</small></span>
+            <div class="set-accordion-body" id="secBody">
+              <div class="settings-pane-card">
+                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="sec2fa" /><label class="form-check-label" for="sec2fa">Two-factor authentication</label></div>
+                <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="secLoginNotify" /><label class="form-check-label" for="secLoginNotify">Email on new login</label></div>
+                <hr />
+                <h6>Change password</h6>
+                <label>Current password</label><input type="password" id="curPassword" class="form-control" />
+                <label>New password</label><input type="password" id="newPassword" class="form-control" minlength="4" />
+                <label>Confirm new password</label><input type="password" id="newPasswordConfirm" class="form-control" minlength="4" />
+                <label>Email code</label><div class="input-group"><input type="text" id="pwd2faCode" class="form-control" maxlength="6" placeholder="6-digit code" /><button class="btn btn-outline-secondary" id="btnRequestPwdCode" type="button">Send code</button></div>
+                <button type="button" class="btn btn-primary mt-3" id="btnUpdatePassword">Update password</button>
+                <hr />
+                <h6>Linked devices</h6>
+                <ul id="sessionsList" class="list-group mb-0"></ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Appearance -->
+          <div class="set-accordion-item">
+            <button class="set-accordion-header" aria-expanded="false" data-target="appBody">
+              <span class="set-icon" style="background:#fef3e2;color:#e67e22;"><i class="fas fa-palette"></i></span>
+              <span><strong>Appearance</strong><br /><small class="text-muted">Theme, font size, display</small></span>
+              <i class="fas fa-chevron-down set-chevron"></i>
             </button>
-            <button type="button" class="settings-menu-item" data-open="privacy">
-              <span class="settings-menu-icon"><i class="fas fa-shield-alt"></i></span>
-              <span><strong>Privacy</strong><br /><small class="text-muted">Visibility and data</small></span>
+            <div class="set-accordion-body" id="appBody">
+              <div class="settings-pane-card">
+                <label>Theme</label>
+                <select id="appTheme" class="form-select"><option value="light">Light</option><option value="dark">Dark</option></select>
+                <label>Font size</label>
+                <select id="appFontSize" class="form-select"><option value="small">Small</option><option value="medium" selected>Medium</option><option value="large">Large</option></select>
+                <div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="appCompact" /><label class="form-check-label" for="appCompact">Compact mode</label></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Privacy -->
+          <div class="set-accordion-item">
+            <button class="set-accordion-header" aria-expanded="false" data-target="privBody">
+              <span class="set-icon" style="background:#e8f0fe;color:#4285f4;"><i class="fas fa-shield-alt"></i></span>
+              <span><strong>Privacy</strong><br /><small class="text-muted">Profile visibility, data</small></span>
+              <i class="fas fa-chevron-down set-chevron"></i>
             </button>
-            <button type="button" class="settings-menu-item" data-open="payment">
-              <span class="settings-menu-icon"><i class="fas fa-credit-card"></i></span>
+            <div class="set-accordion-body" id="privBody">
+              <div class="settings-pane-card">
+                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="privPublic" /><label class="form-check-label" for="privPublic">Public profile (visible to everyone)</label></div>
+                <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="privTracking" /><label class="form-check-label" for="privTracking">Activity tracking</label></div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnExportData"><i class="fas fa-download me-1"></i>Export my data</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment -->
+          <div class="set-accordion-item">
+            <button class="set-accordion-header" aria-expanded="false" data-target="payBody">
+              <span class="set-icon" style="background:#fce8e6;color:#d93025;"><i class="fas fa-credit-card"></i></span>
               <span><strong>Payment</strong><br /><small class="text-muted">Marketplace checkout</small></span>
+              <i class="fas fa-chevron-down set-chevron"></i>
             </button>
-            <button type="button" class="settings-menu-item" data-open="danger">
-              <span class="settings-menu-icon"><i class="fas fa-exclamation-triangle text-danger"></i></span>
+            <div class="set-accordion-body" id="payBody">
+              <div class="settings-pane-card">
+                <label>Name on account</label><input type="text" id="paymentBillingName" class="form-control" />
+                <label>Method</label><select id="paymentMethod" class="form-select"><option value="">Choose…</option><option value="card">Card</option><option value="paynow">PayNow</option><option value="grabpay">GrabPay</option></select>
+                <label>Card (last 4 saved)</label><input type="text" id="paymentCardInput" class="form-control" placeholder="1234 5678 9012 3456" />
+                <button type="button" class="btn btn-primary mt-3" id="btnSavePayment">Save</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account actions -->
+          <div class="set-accordion-item">
+            <button class="set-accordion-header" aria-expanded="false" data-target="dangerBody">
+              <span class="set-icon" style="background:#fee;color:#e41e3f;"><i class="fas fa-exclamation-triangle"></i></span>
               <span><strong class="text-danger">Account actions</strong><br /><small class="text-muted">Deactivate or delete</small></span>
+              <i class="fas fa-chevron-down set-chevron"></i>
             </button>
-          </div>
-        </div>
-
-        <div id="settingsDetailView" class="is-hidden mt-3">
-          <button type="button" class="btn btn-link ps-0 mb-2" id="settingsBack">← Back</button>
-
-          <div id="pane-account" class="settings-pane is-hidden settings-pane-card">
-            <h2 class="h5 mb-3">Account</h2>
-            <form id="accountForm">
-              <label>Display name<input type="text" id="accDisplayName" class="form-control" /></label>
-              <label>Email<input type="email" id="accEmail" class="form-control" /></label>
-              <label>Language<select id="accLanguage" class="form-select"><option value="en">English</option><option value="zh">中文</option></select></label>
-              <label>Time zone<select id="accTimezone" class="form-select"><option value="Asia/Singapore">Asia/Singapore</option><option value="UTC">UTC</option></select></label>
-              <button type="submit" class="btn btn-primary mt-2">Save account</button>
-            </form>
-          </div>
-
-          <div id="pane-security" class="settings-pane is-hidden settings-pane-card">
-            <h2 class="h5 mb-3">Security</h2>
-            <div class="form-check mb-2">
-              <input class="form-check-input" type="checkbox" id="sec2fa" data-autosave="security" data-field="two_factor_enabled" />
-              <label class="form-check-label" for="sec2fa">Two-factor authentication</label>
+            <div class="set-accordion-body" id="dangerBody">
+              <div class="settings-pane-card">
+                <p class="small text-muted">These affect your entire Spindle account.</p>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnDeactivate"><i class="fas fa-pause-circle me-1"></i>Deactivate account</button>
+                <button type="button" class="btn btn-outline-danger btn-sm ms-2" id="btnDeleteAccount"><i class="fas fa-trash-alt me-1"></i>Delete permanently</button>
+              </div>
             </div>
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="secLoginNotify" data-autosave="security" data-field="login_notifications" />
-              <label class="form-check-label" for="secLoginNotify">Email on new login</label>
-            </div>
-            <h3 class="h6">Linked devices</h3>
-            <ul id="sessionsList" class="list-group mb-3"></ul>
-            <h3 class="h6">Change password</h3>
-            <p class="small text-muted">Requires email 2FA.</p>
-            <form id="passwordForm">
-              <label>Current<input type="password" id="curPassword" class="form-control" required /></label>
-              <label>New password<input type="password" id="newPassword" class="form-control" minlength="4" required /></label>
-              <label>Confirm new password<input type="password" id="newPasswordConfirm" class="form-control" minlength="4" required /></label>
-              <label>Email 2FA code<input type="text" id="pwd2faCode" class="form-control" maxlength="6" required /></label>
-              <button type="button" class="btn btn-outline-secondary" id="btnRequestPwdCode">Send code to email</button>
-              <button type="submit" class="btn btn-primary mt-2">Update password</button>
-            </form>
           </div>
 
-          <div id="pane-appearance" class="settings-pane is-hidden settings-pane-card">
-            <h2 class="h5 mb-3">Appearance</h2>
-            <label>Theme<select id="appTheme" class="form-select" data-autosave="appearance" data-field="theme"><option value="dark">Dark</option><option value="light">Light</option></select></label>
-            <div class="form-check my-2">
-              <input class="form-check-input" type="checkbox" id="appCompact" data-autosave="appearance" data-field="compact_mode" />
-              <label class="form-check-label" for="appCompact">Compact mode</label>
-            </div>
-            <label>Font size<select id="appFontSize" class="form-select" data-autosave="appearance" data-field="font_size"><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></label>
-          </div>
-
-          <div id="pane-privacy" class="settings-pane is-hidden settings-pane-card">
-            <h2 class="h5 mb-3">Privacy</h2>
-            <div class="form-check mb-2">
-              <input class="form-check-input" type="checkbox" id="privPublic" data-autosave="privacy" data-field="public_profile" />
-              <label class="form-check-label" for="privPublic">Public profile</label>
-            </div>
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="privTracking" data-autosave="privacy" data-field="activity_tracking" />
-              <label class="form-check-label" for="privTracking">Activity tracking</label>
-            </div>
-            <button type="button" class="btn btn-outline-secondary" id="btnExportData">Export my data</button>
-          </div>
-
-          <div id="pane-payment" class="settings-pane is-hidden settings-pane-card">
-            <h2 class="h5 mb-3">Payment</h2>
-            <form id="paymentForm">
-              <label>Name on account<input type="text" id="paymentBillingName" class="form-control" required /></label>
-              <label>Method<select id="paymentMethod" class="form-select" required><option value="">Choose…</option><option value="card">Card</option><option value="paynow">PayNow</option><option value="grabpay">GrabPay</option></select></label>
-              <label>Card (last 4 only saved)<input type="text" id="paymentCardInput" class="form-control" placeholder="1234 5678 9012 3456" /></label>
-              <button type="submit" class="btn btn-primary mt-2">Save payment</button>
-            </form>
-          </div>
-
-          <div id="pane-danger" class="settings-pane is-hidden settings-pane-card">
-            <h2 class="h5 text-danger mb-3">Account actions</h2>
-            <p class="small text-muted">These affect your entire Spindle account.</p>
-            <button type="button" class="btn btn-outline-secondary" id="btnDeactivate">Deactivate account</button>
-            <button type="button" class="btn btn-danger mt-2" id="btnDeleteAccount">Delete permanently</button>
-          </div>
         </div>
       </main>
     </div>
@@ -154,6 +188,12 @@
           <button type="button" class="btn btn-outline-secondary" id="dangerModalCancel">Cancel</button>
           <button type="button" class="btn btn-danger" id="dangerModalConfirm">Confirm</button>
         </div>
+      </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
+      <div id="settingsToast" class="toast align-items-center text-white border-0" role="alert">
+        <div class="d-flex"><div class="toast-body" id="settingsToastBody"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
       </div>
     </div>
 

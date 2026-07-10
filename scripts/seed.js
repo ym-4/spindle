@@ -712,6 +712,45 @@ const groupDiscussions = [
   },
 ];
 
+// Example Group Announcements
+const groupAnnouncements = [
+  {
+    announcementId: 1,
+    groupName: 'SOC Study Buddies',
+    userEmail: 'alice@example.com',
+    text: '📢 Welcome to SOC Study Buddies! Please introduce yourself in the general channel.',
+  },
+  {
+    announcementId: 2,
+    groupName: 'SOC Study Buddies',
+    userEmail: 'beni@example.com',
+    text: 'Reminder: CS1010 assignment is due this Friday at 11:59 PM.',
+  },
+  {
+    announcementId: 3,
+    groupName: 'MAD Project Team',
+    userEmail: 'bob@example.com',
+    text: 'Sprint 2 starts tomorrow. Please update your assigned tasks.',
+  },
+  {
+    announcementId: 4,
+    groupName: 'MAD Project Team',
+    userEmail: 'bob@example.com',
+    text: 'Team meeting this Thursday at 3:00 PM in Classroom T203.',
+  },
+  {
+    announcementId: 5,
+    groupName: 'EEE Circuit Masters',
+    userEmail: 'carol@example.com',
+    text: 'Lab report submission deadline has been extended to Wednesday.',
+  },
+  {
+    announcementId: 6,
+    groupName: 'EEE Circuit Masters',
+    userEmail: 'carol@example.com',
+    text: 'Exam revision session will be held this Saturday at 10 AM.',
+  },
+];
 
 async function seed() {
   console.log('Seeding data...');
@@ -994,6 +1033,36 @@ async function seed() {
 
     }
   }
+
+  // Insert group announcements
+  for (const announcement of groupAnnouncements) {
+    const userRes = await pool.query(
+      `SELECT id FROM "Person" WHERE email = $1`,
+      [announcement.userEmail]
+    );
+
+    const groupRes = await pool.query(
+      `SELECT id FROM "Groups" WHERE name = $1`,
+      [announcement.groupName]
+    );
+
+    if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO "GroupAnnouncements"
+        ("announcement_id", "user_id", "group_id", "text")
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT ("announcement_id") DO NOTHING`,
+        [
+          announcement.announcementId,
+          userRes.rows[0].id,
+          groupRes.rows[0].id,
+          announcement.text,
+        ]
+      );
+    }
+  }
+
+console.log(`Inserted ${groupAnnouncements.length} group announcements.`);
 
   console.log(`Inserted ${groupDiscussions.length} group discussions.`);
 

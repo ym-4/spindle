@@ -15,10 +15,8 @@
       rel="stylesheet"
     />
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
     />
     <link rel="stylesheet" href="css/posts.css" />
     <link rel="stylesheet" href="css/temp.css" />
@@ -26,15 +24,6 @@
     <link rel="stylesheet" href="css/marketplace-cards.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
     <link rel="stylesheet" href="css/profile-page.css" />
-
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
 
     <!-- Font Awesome -->
     <link
@@ -85,63 +74,16 @@
                 </a>
                 <button class="btn-navbar-logout d-none" id="logoutButton" type="button">Log Out</button>
             </div>
+          <a href="cart.html" class="btn-navbar-login">Cart</a>
+          <a href="create_listing.html" class="btn-navbar-login">+New Listing</a>
+        </div>
       </div>
     </nav>
 
     <!-- Main Container -->
     <div class="main-container">
       <!-- Left Sidebar -->
-      <aside class="sidebar">
-        <a href="index.html" class="sidebar-item">
-          <i class="fas fa-home"></i>
-          <span>Home</span>
-        </a>
-        <a href="groups.html" class="sidebar-item">
-          <i class="fas fa-users"></i>
-          <span>Study Groups</span>
-        </a>
-        <a href="marketplace.html" class="sidebar-item active">
-          <i class="fas fa-store"></i>
-          <span>Marketplace</span>
-        </a>
-        <a href="profile.html" class="sidebar-item">
-          <i class="fas fa-user"></i>
-          <span>Profile</span>
-        </a>
-
-        <div class="sidebar-divider"></div>
-
-        <div class="sidebar-item">
-          <i class="fas fa-bookmark"></i>
-          <span>Saved Posts</span>
-        </div>
-        <div class="sidebar-item">
-          <i class="fas fa-clock"></i>
-          <span>Recent</span>
-        </div>
-        <div class="sidebar-item">
-          <i class="fas fa-cog"></i>
-          <span>Settings</span>
-        </div>
-
-        <div class="sidebar-divider"></div>
-
-        <h6 class="px-3 mt-3 mb-2 text-muted" style="font-size: 0.85rem; font-weight: 600">
-          YOUR GROUPS
-        </h6>
-        <div class="sidebar-item">
-          <i class="fas fa-circle" style="font-size: 0.5rem; color: #42b72a"></i>
-          <span>CS101 Study Group</span>
-        </div>
-        <div class="sidebar-item">
-          <i class="fas fa-circle" style="font-size: 0.5rem; color: #1877f2"></i>
-          <span>Math Assignment Help</span>
-        </div>
-        <div class="sidebar-item">
-          <i class="fas fa-plus-circle"></i>
-          <span>See all groups</span>
-        </div>
-      </aside>
+      <aside class="sidebar"></aside>
 
       <main id="content-area">
         <!-- Header-->
@@ -238,45 +180,22 @@
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-
     <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-      crossorigin="anonymous"
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
     ></script>
     <script src="js/queryCmds.js" type="text/javascript"></script>
     <script src="js/getCurrentURL.js" type="text/javascript"></script>
-
     <script src="js/insertMarketplaceItems.js" type="text/javascript"></script>
     <script src="js/cartFunctions.js"></script>
     <script src="js/searchBar-Marketplace.js"></script>
     <script src="js/api.js"></script>
-
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>
     <script src="js/spindle-sidebar.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        if (typeof injectWaHeader === 'function') {
-          injectWaHeader('Marketplace');
-        }
         if (typeof injectNotificationsOnly === 'function') {
           injectNotificationsOnly('spindleNotifSlot');
-        }
-      });
-    </script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        const logoutBtn = document.getElementById('logoutButton');
-        if (logoutBtn) {
-          logoutBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            // Call the clear logic
-            clearAuth();
-            // Force browser to fully reload/redirect
-            window.location.href = 'home.html';
-          });
         }
       });
     </script>

@@ -121,23 +121,19 @@ function isLoggedIn() {
 
 /** Send guests to home login; after login they return to the protected page. */
 function redirectToLogin(returnPath) {
-  const params = new URLSearchParams(location.search);
-
-  // Already on the login page
-  if (
-    location.pathname.endsWith("home.html") &&
-    params.get("login") === "1"
-  ) {
+  // Prevent nesting: if already on home.html with login=1, do nothing
+  const page = window.location.pathname.split('/').pop() || '';
+  if (page === 'home.html' && window.location.search.includes('login=1')) {
     return;
   }
-
-  const qs = new URLSearchParams({ login: "1" });
-
+  const params = new URLSearchParams({ login: '1' });
   if (returnPath) {
-    qs.set("return", returnPath);
+    const clean = returnPath.split('?')[0]; // strip any existing query
+    if (/^[a-zA-Z0-9_-]+\.html$/.test(clean)) {
+      params.set('return', clean);
+    }
   }
-
-  location.replace(`home.html?${qs}`);
+  window.location.replace(`home.html?${params.toString()}`);
 }
 
 function getSafeReturnPath() {
@@ -169,14 +165,6 @@ function getWsUrl() {
   const url = new URL(base);
   return `${proto}//${url.host}/ws`;
 }
-
-const THEME_STORAGE_KEY = 'spindleTheme';
-
-function applyStoredTheme() {
-  document.documentElement.dataset.theme = 'light';
-  try { localStorage.removeItem(THEME_STORAGE_KEY); } catch {}
-}
-applyStoredTheme();
 
 function mediaUrl(path) {
   if (!path) return '';

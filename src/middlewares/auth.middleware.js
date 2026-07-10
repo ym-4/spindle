@@ -25,9 +25,10 @@ async function authenticateJWT(req, res, next) {
     // Check if user is suspended
     try {
       await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ`);
+      await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
     } catch {}
     const { rows: userRows } = await pool.query(
-      `SELECT suspended_until FROM "Person" WHERE id = $1`,
+      `SELECT suspended_until, banned_reason FROM "Person" WHERE id = $1`,
       [payload.id],
     );
     if (userRows.length > 0 && userRows[0].suspended_until) {
