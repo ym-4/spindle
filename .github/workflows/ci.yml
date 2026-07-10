@@ -17,6 +17,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Debug marketplace
+        run: |
+          pwd
+          node -v
+          npx prettier --version
+          echo "==== FILE ===="
+          cat -n src/public/marketplace.html | sed -n '65,85p'
+
       - name: Prettier check
         run: npm run format-check
 
