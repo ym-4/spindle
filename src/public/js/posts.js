@@ -184,6 +184,9 @@ function renderPost(post) {
 
   const ownerOptions = isOwner ? `
     <li><hr class="dropdown-divider"></li>
+    <li><button class="dropdown-item pin-post-btn">
+      <i class="fas fa-thumbtack me-2"></i>${post.pinned ? 'Unpin post' : 'Pin post'}
+    </button></li>
     <li><button class="dropdown-item edit-post-btn">
       <i class="fas fa-pen me-2"></i>Edit post
     </button></li>
@@ -227,7 +230,11 @@ function renderPost(post) {
         </div>
       </div>
 
-      <span class="post-category ${categoryClass}">${categoryLabel}</span>
+      <div class="d-flex gap-1 align-items-center flex-wrap mb-1">
+        <span class="post-category ${categoryClass}">${categoryLabel}</span>
+        ${post.visibility === 'friends_only' ? '<span class="badge bg-warning text-dark" style="font-size:0.65rem;"><i class="fas fa-user-friends me-1"></i>Friends</span>' : ''}
+        ${post.pinned ? '<span class="badge bg-info text-dark" style="font-size:0.65rem;"><i class="fas fa-thumbtack me-1"></i>Pinned</span>' : ''}
+      </div>
 
       ${post.title ? `<div class="fw-bold mt-2 mb-1" style="font-size:1.05rem;">${escapeHtml(post.title)}</div>` : ''}
       <div class="post-content">${escapeHtml(post.content)}</div>
@@ -296,6 +303,15 @@ function renderPost(post) {
     }
 
   if (isOwner) {
+    document.querySelector('.pin-post-btn').addEventListener('click', async () => {
+      try {
+        const data = await authFetch(`/posts/${post.id}/pin`, { method: 'POST' });
+        loadPost(post.id);
+      } catch (err) {
+        alert(err.message || 'Failed to toggle pin.');
+      }
+    });
+
     document.querySelector('.edit-post-btn').addEventListener('click', () => {
       renderPostEditMode(post);
     });
@@ -330,11 +346,15 @@ function renderPostEditMode(post) {
         </div>
       </div>
 
-      <div class="mb-2">
+      <div class="mb-2 d-flex gap-2">
         <select class="form-select form-select-sm" id="editCategory" style="width:auto;">
           <option value="confession" ${post.category === 'confession' ? 'selected' : ''}>Confession</option>
           <option value="qna"        ${post.category === 'qna'        ? 'selected' : ''}>Q&A</option>
           <option value="general"    ${post.category === 'general'    ? 'selected' : ''}>General Talk</option>
+        </select>
+        <select class="form-select form-select-sm" id="editVisibility" style="width:auto;">
+          <option value="everyone" ${post.visibility !== 'friends_only' ? 'selected' : ''}>Everyone</option>
+          <option value="friends_only" ${post.visibility === 'friends_only' ? 'selected' : ''}>Friends only</option>
         </select>
       </div>
 
@@ -400,6 +420,7 @@ function renderPostEditMode(post) {
     const title    = document.getElementById('editTitle').value.trim();
     const content  = document.getElementById('editContent').value.trim();
     const category = document.getElementById('editCategory').value;
+    const visibility = document.getElementById('editVisibility').value;
 
     const attachmentInput = document.getElementById('editAttachment');
 
@@ -435,6 +456,7 @@ function renderPostEditMode(post) {
     formData.append('title', title);
     formData.append('content', content);
     formData.append('category', category);
+    formData.append('visibility', visibility);
 
     // new uploaded file
     if (attachmentInput.files.length > 0) {

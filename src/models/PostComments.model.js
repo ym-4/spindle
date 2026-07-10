@@ -57,3 +57,12 @@ module.exports.deleteCommentsByID = async function deleteCommentsByID(data) {
   const { rows } = await pool.query('DELETE FROM "PostComments" WHERE "id" = $1 AND "user_id" = $2 RETURNING *', VALUES);
   return rows[0];
 };
+
+// Delete comment by post owner
+module.exports.deleteCommentByPostOwner = async function deleteCommentByPostOwner(data) {
+  const { rows } = await pool.query(
+    `DELETE FROM "PostComments" WHERE id = $1 AND post_id IN (SELECT id FROM "Posts" WHERE user_id = $2) RETURNING *`,
+    [data.id, data.user_id],
+  );
+  return rows[0] || null;
+};

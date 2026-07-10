@@ -2,6 +2,8 @@ const pool = require('./db');
 
 // Get all Posts
 module.exports.getAllPost = async function getAllPost() {
+  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS visibility TEXT DEFAULT 'everyone'`);
+  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`);
   const { rows } = await pool.query(`
   SELECT 
     p.id,
@@ -13,6 +15,8 @@ module.exports.getAllPost = async function getAllPost() {
     p.created_at,
     p.updated_at,
     p.is_anonymous,
+    p.visibility,
+    p.pinned,
     per.name AS author_name,
 
     COUNT(DISTINCT pc.id)::int AS comment_count,
@@ -43,9 +47,11 @@ module.exports.getAllPost = async function getAllPost() {
     p.attachment_url,
     p.created_at,
     p.updated_at,
+    p.visibility,
+    p.pinned,
     per.name
 
-  ORDER BY p.created_at DESC
+  ORDER BY p.pinned DESC, p.created_at DESC
   `);
 
   return rows;
@@ -53,6 +59,8 @@ module.exports.getAllPost = async function getAllPost() {
 
 // GET post by id
 module.exports.getPostByID = async function getPostByID(data) {
+  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS visibility TEXT DEFAULT 'everyone'`);
+  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`);
   const VALUES = [data.id];
 
   const { rows } = await pool.query(`
@@ -66,6 +74,8 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.created_at,
       p.updated_at,
       p.is_anonymous,
+      p.visibility,
+      p.pinned,
 
       per.name AS author_name,
 
@@ -99,6 +109,8 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.attachment_url,
       p.created_at,
       p.updated_at,
+      p.visibility,
+      p.pinned,
       per.name
   `, VALUES);
 
@@ -107,6 +119,8 @@ module.exports.getPostByID = async function getPostByID(data) {
 
 // GET Post by Category (confession/qna/general)
 module.exports.getPostByCategory = async function getPostByCategory(data) {
+  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS visibility TEXT DEFAULT 'everyone'`);
+  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`);
   const categoryMap = { 'confession': 'confession', 'q&a': 'qna', 'qna': 'qna', 'general': 'general' };
   const cat = categoryMap[(data.category || '').toLowerCase()] || data.category;
   const VALUES = [cat];
@@ -121,6 +135,8 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.created_at,
       p.updated_at,
       p.is_anonymous,
+      p.visibility,
+      p.pinned,
 
       per.name AS author_name,
 
@@ -154,9 +170,11 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.attachment_url,
       p.created_at,
       p.updated_at,
+      p.visibility,
+      p.pinned,
       per.name
 
-    ORDER BY p.created_at DESC
+    ORDER BY p.pinned DESC, p.created_at DESC
   `, VALUES);
 
   return rows;
@@ -186,19 +204,33 @@ module.exports.getPostByUserID = async function getPostByUserID(data) {
 
 // Create new post
 module.exports.insertPost = async function insertPost(data) {
-  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.is_anonymous];
-  const { rows } = await pool.query('INSERT INTO "Posts" (user_id, title, category, content, attachment_url, is_anonymous) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id', VALUES);
+  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS visibility TEXT DEFAULT 'everyone'`);
+  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`);
+  const visibility = data.visibility || 'everyone';
+  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.is_anonymous, visibility];
+  const { rows } = await pool.query(
+    'INSERT INTO "Posts" (user_id, title, category, content, attachment_url, is_anonymous, visibility) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+    VALUES
+  );
   return rows[0]; 
 }
 
 // update post by ID (owner only)
 module.exports.updatePostByID = async function updatePostByID(data) {
-  const VALUES = [data.title, data.content, data.category, data.attachment_url, data.id];
+  const VALUES = [data.title, data.content, data.category, data.attachment_url, data.visibility || 'everyone', data.id];
 
   const { rows } = await pool.query(
-    `UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4,"updated_at" = CURRENT_TIMESTAMP WHERE "id" = $5 RETURNING *`, VALUES);
+    `UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4, "visibility" = $5, "updated_at" = CURRENT_TIMESTAMP WHERE "id" = $6 RETURNING *`, VALUES);
 
   return rows[0];
+};
+
+module.exports.togglePin = async function togglePin(postId, userId) {
+  const { rows } = await pool.query(
+    `UPDATE "Posts" SET pinned = NOT COALESCE(pinned, FALSE) WHERE id = $1 AND user_id = $2 RETURNING pinned`,
+    [postId, userId],
+  );
+  return rows[0] || null;
 };
 
 // delete a post (owner only)

@@ -574,3 +574,19 @@ module.exports.getUserActivity = async function getUserActivity(userId) {
     appeals: appealsRes.rows,
   };
 };
+
+module.exports.reportUser = async function reportUser(reporterId, reportedId, reason, description) {
+  await pool.query(`CREATE TABLE IF NOT EXISTS "UserReports" (
+    id SERIAL PRIMARY KEY,
+    reporter_id INTEGER NOT NULL REFERENCES "Person"(id),
+    reported_id INTEGER NOT NULL REFERENCES "Person"(id),
+    reason TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    dismissed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`);
+  await pool.query(
+    `INSERT INTO "UserReports" (reporter_id, reported_id, reason, description) VALUES ($1, $2, $3, $4)`,
+    [reporterId, reportedId, reason, description || ''],
+  );
+};

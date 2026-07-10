@@ -117,8 +117,20 @@ module.exports.getPublicProfile = async function getPublicProfile(viewerId, targ
 
   const relationship = await getRelationship(viewerId, targetId);
   const mutual_friends = await mutualFriendsCount(viewerId, targetId);
+
+  let isPrivate = false;
+  if (relationship === 'none') {
+    const { rows: settingsRows } = await pool.query(
+      `SELECT public_profile FROM "UserSettings" WHERE user_id = $1`,
+      [targetId],
+    );
+    if (settingsRows.length > 0 && settingsRows[0].public_profile === false) {
+      isPrivate = true;
+    }
+  }
+
   return {
-    ...formatUser(rows[0], { relationship, mutual_friends }),
+    ...formatUser(rows[0], { relationship, mutual_friends, is_private: isPrivate }),
     member_since: rows[0].created_at,
   };
 };

@@ -6,13 +6,17 @@
     <title>Status — Spindle</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="css/wa.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/posts.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
+    <link rel="stylesheet" href="css/stories.css" />
     <script src="js/api.js"></script>
     <script src="js/page-guard.js" data-require-login data-return="stories.html"></script>
   </head>
-  <body data-page="stories">
+  <body data-page="stories" class="stories-page">
     <nav class="navbar">
       <div class="container-fluid px-0 d-flex align-items-center">
         <a class="navbar-brand" href="index.html">
@@ -31,32 +35,143 @@
 
     <div class="main-container">
       <aside class="sidebar"></aside>
-      <main class="content-area" style="flex:1;overflow-y:auto;padding:2rem;">
-        <h1 class="h4 mb-3">Status</h1>
-        <p class="text-muted small">Share what's happening — friends see this for 24 hours.</p>
+      <main class="content-area">
+        <div class="stories-page-content">
+          <!-- Rings row -->
+          <section class="stories-rings-section" aria-label="Story rings">
+            <div class="stories-rings-scroll" id="ringsRow" role="list">
+              <div class="story-ring-wrap story-ring-mine" id="ownRingWrap" role="listitem">
+                <div class="story-ring" tabindex="0" id="ownRingBtn" aria-label="My status">
+                  <div class="story-ring-inner">
+                    <span class="story-ring-avatar" id="ownRingAvatar"></span>
+                  </div>
+                </div>
+                <span class="story-ring-label">My status</span>
+              </div>
+            </div>
+          </section>
 
-        <div class="card mb-4 shadow-sm" style="max-width:500px;">
-          <div class="card-body">
-            <form id="storyForm">
-              <div class="mb-2">
-                <label class="form-label small fw-semibold">Photo</label>
-                <input type="file" id="storyFile" accept="image/*" class="form-control form-control-sm" required />
+          <!-- Composer -->
+          <section class="stories-composer-section" aria-label="New status">
+            <div class="stories-composer-card" id="composerCard">
+              <div class="stories-composer-row">
+                <button class="stories-camera-btn" id="cameraBtn" type="button" aria-label="Choose image">
+                  <i class="fas fa-camera"></i>
+                </button>
+                <input
+                  type="text"
+                  class="stories-caption-input"
+                  id="captionInput"
+                  maxlength="200"
+                  placeholder="Type a caption..."
+                  autocomplete="off"
+                  aria-label="Status caption"
+                />
+                <input type="file" id="storyFile" accept="image/*" hidden />
+                <button
+                  class="stories-privacy-toggle"
+                  id="privToggle"
+                  type="button"
+                  data-privacy="public"
+                  aria-label="Toggle privacy"
+                  title="Visible to everyone"
+                >
+                  <i class="fas fa-globe-asia"></i>
+                </button>
+                <button class="stories-send-btn" id="sendBtn" type="button" disabled aria-label="Post status" title="Post your status">
+                  <i class="fas fa-arrow-up"></i>
+                </button>
               </div>
-              <div class="mb-2">
-                <label class="form-label small fw-semibold">Caption</label>
-                <input type="text" id="storyCaption" maxlength="200" class="form-control form-control-sm" placeholder="What's happening?" />
+              <div class="stories-composer-actions">
+                <button class="stories-draft-btn" id="saveDraftBtn" type="button" disabled><i class="fas fa-save"></i> Save draft</button>
               </div>
-              <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-plus-circle me-1"></i>Post status</button>
-            </form>
-          </div>
+              <div class="stories-preview-wrap hidden" id="previewWrap">
+                <img id="previewImg" alt="Preview of selected image" />
+                <button class="stories-preview-remove" id="previewRemove" type="button" aria-label="Remove selected image">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div class="stories-rotator" id="rotatorText">Share a moment from your day</div>
+              <div class="stories-desc-section">
+                <button class="stories-add-desc" id="addDescBtn" type="button"><i class="fas fa-plus"></i> Add description</button>
+                <div class="stories-desc-wrap hidden" id="descWrap">
+                  <textarea class="stories-desc-input" id="descInput" maxlength="500" placeholder="Add a longer description..." aria-label="Story description"></textarea>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Drafts list -->
+          <section class="stories-drafts-section hidden" id="draftsSection" aria-label="Saved drafts">
+            <h3 class="stories-list-heading">Saved drafts</h3>
+            <div id="draftsList"></div>
+          </section>
+
+          <!-- Empty state -->
+          <section class="stories-empty-state hidden" id="emptyState" aria-label="No stories yet">
+            <div class="stories-empty-icon"><i class="far fa-clock"></i></div>
+            <h2 class="stories-empty-title">No stories yet</h2>
+            <p class="stories-empty-desc">Post your first story to share a moment with friends.</p>
+          </section>
+
+          <!-- Loading skeleton -->
+          <section class="stories-loading-state" id="loadingState" aria-label="Loading stories">
+            <div class="stories-skeleton"><div class="stories-skeleton-ring"></div><div class="stories-skeleton-line"></div></div>
+            <div class="stories-skeleton"><div class="stories-skeleton-ring"></div><div class="stories-skeleton-line"></div></div>
+            <div class="stories-skeleton"><div class="stories-skeleton-ring"></div><div class="stories-skeleton-line"></div></div>
+          </section>
+
+          <!-- Stories list -->
+          <section class="stories-list-section hidden" id="listSection" aria-label="Recent status updates">
+            <h3 class="stories-list-heading">Recent updates</h3>
+            <div id="storiesList"></div>
+          </section>
         </div>
-
-        <div id="storiesGrid" class="row g-3"></div>
-        <p id="storiesEmpty" class="text-muted text-center py-4 hidden">No status updates yet. Post one above!</p>
       </main>
     </div>
 
-    <script src="js/wa-nav.js"></script>
+    <!-- Full-screen viewer overlay -->
+    <div class="stories-viewer-overlay hidden" id="viewerOverlay" role="dialog" aria-modal="true" aria-label="Story viewer">
+      <div class="stories-viewer" id="viewerContent">
+        <!-- Progress bars -->
+        <div class="stories-progress-row" id="progressRow" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+        <!-- Viewer header -->
+        <div class="stories-viewer-header">
+          <div class="stories-viewer-author">
+            <span class="stories-viewer-avatar" id="viewerAvatar"></span>
+            <span class="stories-viewer-name" id="viewerName"></span>
+            <span class="stories-viewer-time" id="viewerTime"></span>
+          </div>
+          <div class="stories-viewer-header-actions">
+            <button class="stories-viewer-delete hidden" id="viewerDelete" type="button" aria-label="Delete story"><i class="fas fa-trash"></i></button>
+            <button class="stories-viewer-close" id="viewerClose" type="button" aria-label="Close viewer"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+
+        <!-- Viewer body -->
+        <div class="stories-viewer-body" id="viewerBody">
+          <div class="stories-viewer-tap-left" id="tapPrev" aria-label="Previous story"></div>
+          <div class="stories-viewer-media-wrap" id="mediaWrap">
+            <img id="viewerMedia" src="" alt="" class="stories-viewer-media" />
+            <div class="stories-viewer-text-status hidden" id="viewerTextStatus">
+              <div class="stories-viewer-text-bg" id="viewerTextBg"></div>
+              <p class="stories-viewer-text-caption" id="viewerTextCaption"></p>
+            </div>
+          </div>
+          <div class="stories-viewer-tap-right" id="tapNext" aria-label="Next story"></div>
+        </div>
+
+        <!-- Viewer footer caption -->
+        <div class="stories-viewer-footer hidden" id="viewerFooter">
+          <p class="stories-viewer-caption" id="viewerCaption"></p>
+        </div>
+        <div class="stories-viewer-add-wrap hidden" id="viewerAddWrap">
+          <button class="stories-viewer-add" id="viewerAddBtn" type="button"><i class="fas fa-plus"></i> Add another</button>
+        </div>
+      </div>
+    </div>
+
     <script src="js/queryCmds.js"></script>
     <script src="js/getCurrentURL.js"></script>
     <script src="js/socket-client.js"></script>
