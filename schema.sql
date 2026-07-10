@@ -303,7 +303,8 @@ CREATE TABLE "UserCart" (
   "user_id" INT NOT NULL,
   "item_id" INT NOT NULL,
   "amount" INT NOT NULL,
-  CONSTRAINT "UserCart_pkey" PRIMARY KEY ("id"), 
+  CONSTRAINT "UserCart_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT unique_user_item UNIQUE (user_id, item_id),
   FOREIGN KEY ("seller_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("item_id") REFERENCES "MarketplaceItems"("id") ON DELETE CASCADE

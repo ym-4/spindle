@@ -1,24 +1,24 @@
 .main-container {
-    display: flex;
-    min-height: 100vh;
+  display: flex;
+  min-height: 100vh;
 }
 
 .navbar {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 1050;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1050;
 }
 
 .sidebar {
-    width: 250px;
-    background-color: #fff;
-    border-right: 1px solid #ddd;
-    flex-shrink: 0;
+  width: 250px;
+  background-color: #fff;
+  border-right: 1px solid #ddd;
+  flex-shrink: 0;
 }
 
 #content-area {
-    flex: 1;
-    width: 100%;
+  flex: 1;
+  width: 100%;
 }
 
 .listings-grid {
@@ -73,4 +73,28 @@
 .empty-cart-state h4 {
   margin-bottom: 0.5rem;
   color: #343a40;
+}
+
+#marketplace-header {
+  background-image: url('../images/Marketplace_Background.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#cart-header {
+  background-image: url('../images/Cart_Background.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#my-listings-header {
+  background-image: url('../images/My_listings_Background.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#create-listing-header {
+  background-image: url('../images/New_listing_Background.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
 }

@@ -10,8 +10,10 @@ function escapeHtml(str) {
 }
 
 function qualityBadgeClass(rawQuality) {
-  const q = String(rawQuality || '').trim().toLowerCase();
-  if (q === 'new') return 'new';
+  const q = String(rawQuality || '')
+    .trim()
+    .toLowerCase();
+  if (q === 'new' || q === 'brand new' || q === 'brandnew') return 'new';
   if (q === 'like new' || q === 'likenew') return 'likenew';
   if (q === 'good') return 'good';
   if (q === 'fair') return 'fair';
@@ -80,7 +82,7 @@ function addListing(seller_id, id, name, description, price, quality, meetup) {
 const container = document.getElementById('listings-container');
 const emptyState = document.getElementById('no-listings-state');
 
-const LISTINGS_PER_PAGE = 20;
+const LISTINGS_PER_PAGE = 10;
 
 async function loadListings() {
   // Update Page Navigation Bar
@@ -136,21 +138,54 @@ async function loadListings() {
 
 // Fetch users Listings
 async function loadUserListings() {
+  // Update Page Navigation Bar
+  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
+    const userListings = data.filter((item) => item.seller_id == localStorage.loggedInUserId);
+    let totalListings = userListings.length;
+    let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
+
+    const controls = document.getElementById('pagination-controls');
+    const nextItem = document.getElementById('next-page-item');
+
+    // Clear old page-number buttons first
+    controls.querySelectorAll('.page-num').forEach((el) => el.remove());
+
+    for (let i = 1; i <= totalPages; i++) {
+      const li = document.createElement('li');
+      li.className = `page-item page-num ${i === currentPage ? 'active' : ''}`;
+      li.innerHTML = `<button class="page-link">${i}</button>`;
+      li.querySelector('button').addEventListener('click', () => {
+        currentPage = i;
+        container.innerHTML = '';
+        loadUserListings();
+      });
+      nextItem.before(li);
+    }
+  });
+
+  // Fetch and Load Listings
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
     if (status === 200) {
-      data.forEach((item) => {
-        if (item.seller_id == localStorage.loggedInUserId) {
+      const userListings = data.filter((item) => item.seller_id == localStorage.loggedInUserId);
+
+      if (userListings.length == 0) {
+        emptyState.classList.remove('d-none');
+      } else {
+        emptyState.classList.add('d-none');
+
+        for (let i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
+          if (!userListings[i]) continue;
           addListing(
-            item.seller_id,
-            item.id,
-            item.name,
-            item.description,
-            item.price,
-            item.quality,
-            item.meetup,
+            userListings[i].seller_id,
+            userListings[i].id,
+            userListings[i].name,
+            userListings[i].description,
+            userListings[i].price,
+            userListings[i].quality,
+            userListings[i].meetup,
           );
         }
-      });
+      }
     } else {
       console.error('Failed to load listings:', status, data);
     }
@@ -275,24 +310,39 @@ async function loadCart() {
 
 let currentPage = 1;
 
-document.getElementById('prev-page-btn').addEventListener('click', () => {
-  if (currentPage > 1) {
-    currentPage--;
-    container.innerHTML = '';
-    loadListings();
-  }
-});
-document.getElementById('next-page-btn').addEventListener('click', () => {
-  currentPage++;
-  container.innerHTML = '';
-  loadListings();
-});
-
 // Insert the correct items based on the name of the document ;-D
 if (document.title == 'Marketplace') {
+
+  document.getElementById('prev-page-btn').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      container.innerHTML = '';
+      loadListings();
+    }
+  });
+  document.getElementById('next-page-btn').addEventListener('click', () => {
+    currentPage++;
+    container.innerHTML = '';
+    loadListings();
+  });
+
   loadListings();
 } else if (document.title == 'Cart') {
   loadCart();
 } else if (document.title == 'Marketplace - Your Listings') {
+
+  document.getElementById('prev-page-btn').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      container.innerHTML = '';
+      loadListings();
+    }
+  });
+  document.getElementById('next-page-btn').addEventListener('click', () => {
+    currentPage++;
+    container.innerHTML = '';
+    loadListings();
+  });
+
   loadUserListings();
 }
