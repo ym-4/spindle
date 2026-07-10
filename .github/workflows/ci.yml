@@ -14,6 +14,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Debug checkout
+        run: |
+          git rev-parse HEAD
+          git branch -a
+          git log --oneline -1
+          echo "===== marketplace.html ====="
+          sed -n '60,90p' src/public/marketplace.html
+
       - name: Install dependencies
         run: npm install
 
