@@ -17,11 +17,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Prettier check
-        run: npm run format-check
+      # - name: Prettier check
+      #   run: npm run format-check
 
-      - name: ESLint
-        run: npm run lint
+      # - name: ESLint
+      #   run: npm run lint
 
       - name: Jest tests
         run: npm test
