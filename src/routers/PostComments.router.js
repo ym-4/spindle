@@ -6,7 +6,8 @@ const {
   getCommentsByPostID,  
   insertComments,
   updateCommentsByID,
-  deleteCommentsByID
+  deleteCommentsByID,
+  deleteCommentByPostOwner
 } = require('../models/PostComments.model');
 
 const router = express.Router();
@@ -83,7 +84,7 @@ router.put('/:id',
     })
 });
 
-// delete Comments (owner only)
+// delete Comments (owner or post owner)
 router.delete('/:id', 
   authenticateJWT,
   (req, res, next) => {
@@ -92,12 +93,15 @@ router.delete('/:id',
     id: req.params.id,
     user_id: req.user.id
   }
+  // First try as comment owner
   deleteCommentsByID(data)
     .then((results) => {
-      if (!results) {
-        return res.status(404).json({ error: 'Comments not found' });
-      }
-      res.status(200).json(results);
+      if (results) return res.status(200).json(results);
+      // If not comment owner, try as post owner
+      return deleteCommentByPostOwner(data).then((r) => {
+        if (!r) return res.status(404).json({ error: 'Comment not found or not authorized.' });
+        res.status(200).json(r);
+      });
     })
     .catch((error) => {
         console.error("Error deleteCommentsByID: " + error);

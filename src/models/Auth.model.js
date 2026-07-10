@@ -483,3 +483,110 @@ module.exports.getTrendStats = async function getTrendStats() {
   );
   return rows[0];
 };
+
+module.exports.globalSearch = async function globalSearch(term) {
+  try {
+    await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`);
+  } catch {}
+
+  const like = `%${term}%`;
+
+  const usersPromise = pool.query(
+    `SELECT id, display_name, name, email, role
+     FROM "Person"
+     WHERE (name ILIKE $1 OR display_name ILIKE $1 OR email ILIKE $1)
+       AND deleted_at IS NULL
+     LIMIT 10`,
+    [like]
+  );
+
+  const postsPromise = pool.query(
+    `SELECT id, title, LEFT(content, 100) AS content,
+            (SELECT display_name FROM "Person" WHERE id = p.user_id) AS author_name,
+            created_at
+     FROM "Posts" p
+     WHERE title ILIKE $1 OR content ILIKE $1
+     LIMIT 10`,
+    [like]
+  );
+
+  const reportsPromise = pool.query(
+    `SELECT r.id, r.post_id, r.reason,
+            (SELECT display_name FROM "Person" WHERE id = r.user_id) AS reporter_name,
+            r.created_at
+     FROM "Reports" r
+     WHERE r.reason ILIKE $1
+     LIMIT 10`,
+    [like]
+  );
+
+  const [usersRes, postsRes, reportsRes] = await Promise.all([usersPromise, postsPromise, reportsPromise]);
+
+  return {
+    users: usersRes.rows,
+    posts: postsRes.rows,
+    reports: reportsRes.rows,
+  };
+};
+
+module.exports.getUserActivity = async function getUserActivity(userId) {
+  const postsPromise = pool.query(
+    `SELECT id, title, category, created_at
+     FROM "Posts"
+     WHERE user_id = $1
+     ORDER BY created_at DESC
+     LIMIT 20`,
+    [userId]
+  );
+
+  const reportsAgainstPromise = pool.query(
+    `SELECT r.id, r.reason, r.created_at, r.dismissed
+     FROM "Reports" r
+     JOIN "Posts" p ON p.id = r.post_id
+     WHERE p.user_id = $1
+     ORDER BY r.created_at DESC`,
+    [userId]
+  );
+
+  const bansPromise = pool.query(
+    `SELECT suspended_until, banned_reason
+     FROM "Person"
+     WHERE id = $1`,
+    [userId]
+  );
+
+  const appealsPromise = pool.query(
+    `SELECT message, status, created_at, resolved_at
+     FROM "BanAppeals"
+     WHERE user_id = $1
+     ORDER BY created_at DESC`,
+    [userId]
+  );
+
+  const [postsRes, reportsRes, bansRes, appealsRes] = await Promise.all([
+    postsPromise, reportsAgainstPromise, bansPromise, appealsPromise,
+  ]);
+
+  return {
+    posts: postsRes.rows,
+    reports_against: reportsRes.rows,
+    bans: bansRes.rows,
+    appeals: appealsRes.rows,
+  };
+};
+
+module.exports.reportUser = async function reportUser(reporterId, reportedId, reason, description) {
+  await pool.query(`CREATE TABLE IF NOT EXISTS "UserReports" (
+    id SERIAL PRIMARY KEY,
+    reporter_id INTEGER NOT NULL REFERENCES "Person"(id),
+    reported_id INTEGER NOT NULL REFERENCES "Person"(id),
+    reason TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    dismissed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`);
+  await pool.query(
+    `INSERT INTO "UserReports" (reporter_id, reported_id, reason, description) VALUES ($1, $2, $3, $4)`,
+    [reporterId, reportedId, reason, description || ''],
+  );
+};
