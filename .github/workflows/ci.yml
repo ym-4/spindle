@@ -16,22 +16,17 @@ jobs:
 
       - name: Debug checkout
         run: |
+          echo "HEAD:"
           git rev-parse HEAD
-          git branch -a
+          echo
           git log --oneline -1
-          echo "===== marketplace.html ====="
-          sed -n '60,90p' src/public/marketplace.html
+          echo
+          git status
+          echo
+          nl -ba src/public/marketplace.html | sed -n '60,90p'
 
       - name: Install dependencies
         run: npm install
-
-      - name: Debug marketplace
-        run: |
-          pwd
-          node -v
-          npx prettier --version
-          echo "==== FILE ===="
-          cat -n src/public/marketplace.html | sed -n '65,85p'
 
       - name: Prettier check
         run: npm run format-check
