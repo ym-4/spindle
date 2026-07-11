@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById } = require('../models/Marketplace.model');
+const {
+  createItem,
+  getAllItems,
+  updateItem,
+  deleteItem,
+  getAllItemsById,
+} = require('../models/Marketplace.model');
 
 // Create a new item
 router.post('/', (req, res, next) => {

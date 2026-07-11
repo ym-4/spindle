@@ -42,10 +42,10 @@ module.exports.unreadCount = async function unreadCount(userId) {
 };
 
 module.exports.markRead = async function markRead(userId, notificationId) {
-  await pool.query(
-    `UPDATE "Notifications" SET read = TRUE WHERE id = $1 AND user_id = $2`,
-    [notificationId, userId],
-  );
+  await pool.query(`UPDATE "Notifications" SET read = TRUE WHERE id = $1 AND user_id = $2`, [
+    notificationId,
+    userId,
+  ]);
 };
 
 module.exports.markAllRead = async function markAllRead(userId) {

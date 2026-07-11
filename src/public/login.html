@@ -1,107 +1,122 @@
-<!--
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Log In - Spindle</title>
-    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <link rel="stylesheet" href="/css/auth.css">
-</head>
-<body>
-
+    <link
+      href="https://fonts.googleapis.com/css2?family=Freckle+Face&family=DM+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/auth.css" />
+  </head>
+  <body>
     <div class="top-bar">
-        <a href="index.html" class="brand">spindle</a>
+      <a href="index.html" class="brand">spindle</a>
     </div>
 
     <div class="page-wrapper">
-        <div class="auth-container">
-
-            <div class="hero-panel">
-                <div class="hero-title">Your campus,<br>connected.</div>
-                <p class="hero-subtitle">Join thousands of students sharing confessions, getting help, and studying together.</p>
-                <div class="hero-features">
-                    <div class="hero-feature">
-                        <div class="hero-feature-icon"><i class="fas fa-mask"></i></div>
-                        Post anonymously without judgment
-                    </div>
-                    <div class="hero-feature">
-                        <div class="hero-feature-icon"><i class="fas fa-users"></i></div>
-                        Join study groups for your modules
-                    </div>
-                    <div class="hero-feature">
-                        <div class="hero-feature-icon"><i class="fas fa-store"></i></div>
-                        Buy and sell within your campus
-                    </div>
-                    <div class="hero-feature">
-                        <div class="hero-feature-icon"><i class="fas fa-question-circle"></i></div>
-                        Get answers from peers who get it
-                    </div>
-                </div>
+      <div class="auth-container">
+        <div class="hero-panel">
+          <div class="hero-title">Your campus,<br />connected.</div>
+          <p class="hero-subtitle">
+            Join thousands of students sharing confessions, getting help, and studying together.
+          </p>
+          <div class="hero-features">
+            <div class="hero-feature">
+              <div class="hero-feature-icon"><i class="fas fa-mask"></i></div>
+              Post anonymously without judgment
             </div>
-
-            <div class="auth-card">
-                <h2>Welcome back</h2>
-                <p class="card-sub">Log in to your Spindle account</p>
-
-                <div class="warning-card d-none" id="warningCard">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span id="warningText"></span>
-                </div>
-
-                <form id="loginForm" novalidate>
-
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="username" name="username" placeholder="Your username" autocomplete="username" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-lock"></i>
-                            <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
-                            <button class="toggle-password" type="button" onclick="togglePw('password', this)">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                        <a href="#" class="forgot-link">Forgot password?</a>
-                    </div>
-
-                    <button type="submit" class="btn-submit">Log In</button>
-
-                </form>
-
-                <div class="divider">or</div>
-
-                <div class="switch-link">
-                    New to Spindle? <a href="register.html">Create an account</a>
-                </div>
+            <div class="hero-feature">
+              <div class="hero-feature-icon"><i class="fas fa-users"></i></div>
+              Join study groups for your modules
             </div>
-
+            <div class="hero-feature">
+              <div class="hero-feature-icon"><i class="fas fa-store"></i></div>
+              Buy and sell within your campus
+            </div>
+            <div class="hero-feature">
+              <div class="hero-feature-icon"><i class="fas fa-question-circle"></i></div>
+              Get answers from peers who get it
+            </div>
+          </div>
         </div>
+
+        <div class="auth-card">
+          <h2>Welcome back</h2>
+          <p class="card-sub">Log in to your Spindle account</p>
+
+          <div class="warning-card d-none" id="warningCard">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="warningText"></span>
+          </div>
+
+          <form id="loginForm" novalidate>
+            <div class="form-group">
+              <label for="username">Username</label>
+              <div class="input-wrapper">
+                <i class="fas fa-user"></i>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  placeholder="Your username"
+                  autocomplete="username"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div class="input-wrapper">
+                <i class="fas fa-lock"></i>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  required
+                />
+                <button class="toggle-password" type="button" onclick="togglePw('password', this)">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+              <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn-submit">Log In</button>
+          </form>
+
+          <div class="divider">or</div>
+
+          <div class="switch-link">
+            New to Spindle? <a href="register.html">Create an account</a>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="js/queryCmds.js"></script>
     <script src="js/getCurrentURL.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        function togglePw(inputId, btn) {
-            const input = document.getElementById(inputId);
-            const icon = btn.querySelector('i');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
+      function togglePw(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+          input.type = 'password';
+          icon.classList.replace('fa-eye-slash', 'fa-eye');
         }
+      }
     </script>
-</body>
+  </body>
 </html>
--->

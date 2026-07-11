@@ -1,157 +1,150 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- CSS Files -->
-    <link rel="stylesheet" href="css/posts.css">
-    <link rel="stylesheet" href="css/groups_page.css">
-    <link rel="stylesheet" href="css/groups_feed.css">
-    <link rel="stylesheet" href="css/spindle-notif.css">
-    <link rel="stylesheet" href="css/profile-page.css">
+    <link rel="stylesheet" href="css/posts.css" />
+    <link rel="stylesheet" href="css/groups_page.css" />
+    <link rel="stylesheet" href="css/groups_feed.css" />
+    <link rel="stylesheet" href="css/spindle-notif.css" />
+    <link rel="stylesheet" href="css/profile-page.css" />
     <script src="js/api.js"></script>
+    <script src="js/groupsSharedFunctions.js" defer></script>
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap"
+      rel="stylesheet"
+    />
 
     <title>Groups feed</title>
-</head>
-<body>
+  </head>
+  <body>
     <!---Navbar-->
     <nav class="navbar">
-        <div class="container-fluid px-4 d-flex align-items-center">
+      <div class="container-fluid px-4 d-flex align-items-center">
+        <!-- Brand (left) -->
+        <a class="navbar-brand" href="index.html">
+          <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
+          <span class="brand-name">spindle</span>
+        </a>
 
-            <!-- Brand (left) -->
-            <a class="navbar-brand" href="index.html">
-                <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo">
-                <span class="brand-name">spindle</span>
-            </a>
-
-            <!-- Searchbar-->
-            <div class="navbar-search">
-                <input class="form-control" id="searchInput" type="search" 
-                    placeholder="Search posts, groups, items..." aria-label="Search">
-            </div>
-
-            
-            <div class="navbar-right">
-                <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
-                <a href="profile.html" class="btn-navbar-profile" id="profileButton">
-                    <i class="fas fa-user-circle"></i> Profile
-                </a>
-                <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
-            </div>
-
+        <!-- Searchbar-->
+        <div class="navbar-search">
+          <input
+            class="form-control"
+            id="searchInput"
+            type="search"
+            placeholder="Search posts, groups, items..."
+            aria-label="Search"
+          />
         </div>
+
+        <div class="navbar-right">
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a href="profile.html" class="btn-navbar-profile" id="profileButton">
+            <i class="fas fa-user-circle"></i> Profile
+          </a>
+          <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+        </div>
+      </div>
     </nav>
 
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Left Sidebar -->
-        <aside class="sidebar">
-            <a href="index.html" class="sidebar-item">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
-            </a>
-            <a href="groups.html" class="sidebar-item active">
-                <i class="fas fa-users"></i>
-                <span>Study Groups</span>
-            </a>
-            <a href="marketplace.html" class="sidebar-item">
-                <i class="fas fa-store"></i>
-                <span>Marketplace</span>
-            </a>
-            <a href="profile.html" class="sidebar-item">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
-            </a>
-            
-            <div class="sidebar-divider"></div>
-            
-            <div class="sidebar-item">
-                <i class="fas fa-bookmark"></i>
-                <span>Saved Posts</span>
-            </div>
-            <div class="sidebar-item">
-                <i class="fas fa-clock"></i>
-                <span>Recent</span>
-            </div>
-            <div class="sidebar-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </div>
-        </aside>
+      <!-- Left Sidebar -->
+      <aside class="sidebar"></aside>
 
-        <main id="content-area">
-            <!-- Back button -->
-            <a href="groups_page.html" class="text-decoration-none back-btn">
-                <i class="fas fa-arrow-left"></i> Back
-            </a>
+      <main id="content-area">
+        <!-- Back button -->
+        <a href="groups_page.html" class="text-decoration-none back-btn">
+          <i class="fas fa-arrow-left"></i> Back
+        </a>
 
-            <div class="container-fluid mt-3">
+        <div class="container-fluid mt-3">
+          <!-- GROUP BANNER -->
+          <div class="group-banner mb-3 position-relative">
+            <img
+              src="images/Groups_Group_Banner.jpg"
+              class="w-100 rounded-4 banner-img"
+              alt="Group Banner"
+            />
 
-                <!-- GROUP BANNER -->
-                <div class="group-banner mb-3 position-relative">
-
-                    <img src="images/Groups_Group_Banner.jpg" class="w-100 rounded-4 banner-img" alt="Group Banner">
-
-                    <div class="banner-overlay p-3 p-lg-4 rounded-4">
-
-                    <div class="d-flex justify-content-between align-items-end h-100 w-100">
-
-                        <!-- LEFT: Group Info -->
-                        <div class="text-white">
-                            <h2 class="fw-bold mb-1" id="bannerGroupName">SOC Study Group</h2>
-                            <small id="bannerGroupDetails">CS1010 • School of Computing • 120 members</small>
-                        </div>
-
-                        <!-- RIGHT: Quick actions -->
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-light btn" id="membersButton">
-                                <i class="bi bi-people"></i> Members
-                            </button>
-
-                            <button class="btn btn-primary btn" id="leaveButton">
-                                Leave
-                            </button>
-                        </div>
-
-                    </div>
-
-                    </div>
+            <div class="banner-overlay p-3 p-lg-4 rounded-4">
+              <div class="d-flex justify-content-between align-items-end h-100 w-100">
+                <!-- LEFT: Group Info -->
+                <div class="text-white">
+                  <h2 class="fw-bold mb-1" id="bannerGroupName">SOC Study Group</h2>
+                  <small id="bannerGroupDetails">CS1010 • School of Computing • 120 members</small>
                 </div>
 
-                <!-- MAIN GRID -->
-                <div class="row g-3">
+                <!-- RIGHT: Quick actions -->
+                <div class="d-flex gap-2">
+                  <!-- ADMIN ONLY VIEW -->
+                  <a href="groups_admin.html" style="text-decoration: none">
+                    <button class="btn btn-warning btn" id="manageGroupButton">
+                      <i class="bi bi-gear-fill"></i> Manage Group
+                    </button>
+                  </a>
 
-                    <!-- LEFT PANEL: INFO + FILES -->
-                    <div class="col-lg-3">
+                  <button class="btn btn-light btn" id="membersButton">
+                    <i class="bi bi-people"></i> Members
+                  </button>
 
-                        <!-- Group Info Card -->
-                        <div class="card shadow-sm mb-3">
-                        <div class="card-body">
-                            <h6 class="fw-bold">Group Info</h6>
-                            <p class="text-muted small mb-2" id="groupInfoDescription">
-                                A group for SOC students to share notes, ask questions and revise.
-                            </p>
+                  <button class="btn btn-primary btn" id="leaveButton">Leave</button>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                            <div class="small">
-                                <div><i class="bi bi-book"></i> <span id="groupInfoModule">CS1010</span></div>
-                                <div><i class="bi bi-people"></i> <span id="groupInfoMemberCount">120</span> Members</div>
-                                <div><i class="bi bi-globe"></i> <span id="groupInfoPublicity">Public</span> Group</div>
-                            </div>
-                        </div>
-                        </div>
+          <!-- MAIN GRID -->
+          <div class="row g-3">
+            <!-- LEFT PANEL: INFO + FILES -->
+            <div class="col-lg-3">
+              <!-- Group Info Card -->
+              <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                  <h6 class="fw-bold">Group Info</h6>
+                  <p class="text-muted small mb-2" id="groupInfoDescription">
+                    A group for SOC students to share notes, ask questions and revise.
+                  </p>
 
-                        <!-- Files -->
-                        <!-- <div class="card shadow-sm">
+                  <div class="small">
+                    <div><i class="bi bi-book"></i> <span id="groupInfoModule">CS1010</span></div>
+                    <div>
+                      <i class="bi bi-people"></i>
+                      <span id="groupInfoMemberCount">120</span> Members
+                    </div>
+                    <div>
+                      <i class="bi bi-globe"></i> <span id="groupInfoPublicity">Public</span> Group
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Files -->
+              <!-- <div class="card shadow-sm">
                             <div class="card-body">
                                 <h6 class="fw-bold">Files</h6>
 
@@ -197,447 +190,398 @@
                             </div>
                         </div>
                         -->
-                        
-                        <!-- Annoucements -->
-                        <div class="card shadow-sm mb-3">
-                            <div class="card-body">
 
-                                <h6 class="fw-bold"><i class="bi bi-megaphone me-2"></i>Announcements</h6>
+              <!-- Annoucements -->
+              <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                  <h6 class="fw-bold"><i class="bi bi-megaphone me-2"></i>Announcements</h6>
 
-                                <div class="alert p-2 small mb-2 announcement-color">
-                                    Assignment 1 Released
-                                </div>
+                  <div id="announcementContainer">
+                    <div class="alert p-2 small mb-2 announcement-color">Assignment 1 Released</div>
 
-                                <div class="alert p-2 small announcement-color">
-                                    CA2 DUE NEXT WEEK
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Members -->
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h6 class="fw-bold">Admins</h6>
-                                <div id="adminContainer">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <img src="images/Groups_profile_2.png" class="rounded-circle me-2" width="30" height="30">
-                                        <span>Alex</span>
-                                    </div>
-
-                                    <div class="d-flex align-items-center mb-2">
-                                        <img src="images/Groups_profile_2.png" class="rounded-circle me-2" width="30" height="30">
-                                        <span>Jamie</span>
-                                    </div>
-
-                                    <div class="d-flex align-items-center">
-                                        <img src="images/Groups_profile_1.png" class="rounded-circle me-2" width="30" height="30">
-                                        <span>You</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- CENTER: CHAT -->
-                    <div class="col-lg-6 d-flex flex-column">
-
-                        <!-- TABS -->
-                        <div class="btn-group w-100 mb-2 custom-tabs">
-                            <button class="btn btn-outline-secondary active flex-fill" id="chatBtn">Chat</button>
-                            <button class="btn btn-outline-secondary flex-fill" id="filesBtn">Files</button>
-                            <button class="btn btn-outline-secondary flex-fill" id="wikiBtn">Wiki</button>
-                            <!-- OR change to calendar-->
-                            <button class="btn btn-outline-secondary flex-fill" id="tasksBtn">Tasks</button>
-                        </div>
-
-                        <!-- CHAT CARD -->
-                        <div class="card shadow-sm d-flex flex-column flex-grow-1">
-
-                            <!-- CHAT HEADER -->
-                            <div class="card-header chat-header">
-                                <strong id="channelHeader"># general</strong>
-                            </div>
-
-                            <!-- MESSAGES -->
-                            <div class="card-body flex-grow-1 overflow-auto" style="height: 0;">
-                                
-                                <!-- messages -->
-                                <div class="chat-messages" id="message-container">
-                                 
-                                    <div class="chat-divider"><span> 20 May 2026 </span></div>
-
-                                    <div class="msg msg-left">
-                                        <div class="meta">
-                                            <b class="name">Beni</b>
-                                            <small>20/5/2026 18:54 AM</small>
-                                        </div>
-
-                                        <div class="bubble">
-                                            When is the CA2 due? 
-                                        </div>
-                                    </div>
-
-                                    <div class="msg msg-left">
-                                        <div class="meta">
-                                            <b class="name">Emataso</b>
-                                            <small>20/5/2026 20:49 AM</small>
-                                        </div>
-
-                                        <div class="bubble">
-                                            Next week
-                                        </div>
-                                    </div>
-
-                                    <div class="msg msg-left">
-                                        <div class="meta">
-                                            <b class="name">Beni</b>
-                                            <small>20/5/2026 23:19 AM</small>
-                                        </div>
-
-                                        <div class="bubble">
-                                            😭
-                                        </div>
-                                    </div>
-
-
-                                    <div class="chat-divider"><span> Today </span></div>
-
-                                    <div class="msg msg-left">
-                                        <div class="meta">
-                                            <b class="name">Hinano</b>
-                                            <small>23/5/2026 10:32 AM</small>
-                                        </div>
-
-                                        <div class="bubble">
-                                            Hey, did you finish the assignment?
-                                        </div>
-                                    </div>
-
-                                    <div class="msg msg-right">
-                                        <div class="meta">
-                                            <b class="name">You</b>
-                                            <small>23/5/2026 10:33 AM</small>
-                                        </div>
-
-                                        <div class="bubble">
-                                            Yeah, I just submitted it 👍
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <!-- INPUT -->
-                            <div class="card-footer bg-white">
-                                <div class="input-group" id="messageDiv">
-                                    <input type="text" class="form-control" placeholder="Message #general...">
-                                    <button class="btn" id="sendChatBtn">
-                                        <i class="bi bi-send"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- Right side -->
-                    <div class="col-lg-3">
-
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-
-                                <h6 class="fw-bold mb-3">Channels</h6>
-
-                                <!-- CHANNEL LIST -->
-                                <div class="list-group list-group-flush" id="channel-container">
-                                    <a href="#" class="list-group-item list-group-item-action active d-flex align-items-center channel-color" id="generalChannel">
-                                        <span class="me-2">#</span> general
-                                    </a>
-
-                                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center channel-color" id="assignmentChannel">
-                                        <span class="me-2">#</span> assignment-help
-                                    </a>
-
-                                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center channel-color" id="examChannel">
-                                        <span class="me-2">#</span> exam-prep
-                                    </a>
-
-                                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center channel-color" id="randomChannel">
-                                        <span class="me-2">#</span> random
-                                    </a>
-
-                                </div>
-
-                                <hr>
-
-                                <!-- ADMINS ONLY -->
-                                <button class="btn btn-sm w-100 mt-2" id="createChannelBtn">
-                                    + Create Channel
-                                </button>
-
-                            </div>
-                        </div>
-
-                    </div>
-
+                    <div class="alert p-2 small announcement-color">CA2 DUE NEXT WEEK</div>
+                  </div>
                 </div>
+              </div>
 
+              <!-- Members -->
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h6 class="fw-bold">Admins</h6>
+                  <div id="adminContainer">
+                    <div class="d-flex align-items-center mb-2">
+                      <img
+                        src="images/Groups_profile_2.png"
+                        class="rounded-circle me-2"
+                        width="30"
+                        height="30"
+                      />
+                      <span>Alex</span>
+                    </div>
+
+                    <div class="d-flex align-items-center mb-2">
+                      <img
+                        src="images/Groups_profile_2.png"
+                        class="rounded-circle me-2"
+                        width="30"
+                        height="30"
+                      />
+                      <span>Jamie</span>
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                      <img
+                        src="images/Groups_profile_1.png"
+                        class="rounded-circle me-2"
+                        width="30"
+                        height="30"
+                      />
+                      <span>You</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-        </main>
+            <!-- CENTER: CHAT -->
+            <div class="col-lg-6 d-flex flex-column">
+              <!-- TABS -->
+              <div class="btn-group w-100 mb-2 custom-tabs">
+                <button class="btn btn-outline-secondary active flex-fill" id="chatBtn">
+                  Chat
+                </button>
+                <button class="btn btn-outline-secondary flex-fill" id="filesBtn">Files</button>
+                <button class="btn btn-outline-secondary flex-fill" id="wikiBtn">Wiki</button>
+                <!-- OR change to calendar-->
+                <button class="btn btn-outline-secondary flex-fill" id="tasksBtn">Tasks</button>
+              </div>
 
-
-    </div>
-
-    <!-- Message Options Modal -->
-    <div class="modal fade" id="messageModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-
-                <!-- Header -->
-                <div class="modal-header border-0 pb-0">
-                    <div>
-                        <h5 class="modal-title fw-bold">
-                            Message Options
-                        </h5>
-                        <small class="text-muted">
-                            Edit or delete your message
-                        </small>
-                    </div>
-
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              <!-- CHAT CARD -->
+              <div class="card shadow-sm d-flex flex-column flex-grow-1">
+                <!-- CHAT HEADER -->
+                <div class="card-header chat-header">
+                  <strong id="channelHeader"># general</strong>
                 </div>
 
-                <!-- Body -->
-                <div class="modal-body pt-3">
+                <!-- MESSAGES -->
+                <div class="card-body flex-grow-1 overflow-auto" style="height: 0">
+                  <!-- messages -->
+                  <div class="chat-messages" id="message-container">
+                    <div class="chat-divider"><span> 20 May 2026 </span></div>
 
-                    <!-- Preview -->
-                    <div class="message-preview p-3 rounded-4 mb-3">
-                        <small class="text-muted d-block mb-1">
-                            Current message
-                        </small>
+                    <div class="msg msg-left">
+                      <div class="meta">
+                        <b class="name">Beni</b>
+                        <small>20/5/2026 18:54 AM</small>
+                      </div>
 
-                        <div id="modalMessageText" class="fw-medium">
-                            Hello world
-                        </div>
+                      <div class="bubble">When is the CA2 due?</div>
                     </div>
 
-                    <!-- Edit Input -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">
-                            Edit message
-                        </label>
+                    <div class="msg msg-left">
+                      <div class="meta">
+                        <b class="name">Emataso</b>
+                        <small>20/5/2026 20:49 AM</small>
+                      </div>
 
-                        <textarea 
-                            class="form-control rounded-4"
-                            rows="4"
-                            id="editMessageInput"
-                            placeholder="Edit your message..."
-                        ></textarea>
+                      <div class="bubble">Next week</div>
                     </div>
 
+                    <div class="msg msg-left">
+                      <div class="meta">
+                        <b class="name">Beni</b>
+                        <small>20/5/2026 23:19 AM</small>
+                      </div>
+
+                      <div class="bubble">😭</div>
+                    </div>
+
+                    <div class="chat-divider"><span> Today </span></div>
+
+                    <div class="msg msg-left">
+                      <div class="meta">
+                        <b class="name">Hinano</b>
+                        <small>23/5/2026 10:32 AM</small>
+                      </div>
+
+                      <div class="bubble">Hey, did you finish the assignment?</div>
+                    </div>
+
+                    <div class="msg msg-right">
+                      <div class="meta">
+                        <b class="name">You</b>
+                        <small>23/5/2026 10:33 AM</small>
+                      </div>
+
+                      <div class="bubble">Yeah, I just submitted it 👍</div>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Footer -->
-                <div class="modal-footer border-0 d-flex justify-content-between">
-
-                    <button 
-                        class="btn btn-danger rounded-pill px-4"
-                        id="deleteMessageBtn"
-                    >
-                        <i class="bi bi-trash3 me-1"></i>
-                        Delete
+                <!-- INPUT -->
+                <div class="card-footer bg-white">
+                  <div class="input-group" id="messageDiv">
+                    <input type="text" class="form-control" placeholder="Message #general..." />
+                    <button class="btn" id="sendChatBtn">
+                      <i class="bi bi-send"></i>
                     </button>
-
-                    <div class="d-flex gap-2">
-                        <button 
-                            class="btn btn-light rounded-pill px-4"
-                            data-bs-dismiss="modal"
-                        >
-                            Cancel
-                        </button>
-
-                        <button 
-                            class="btn btn-primary rounded-pill px-4"
-                            id="saveMessageBtn"
-                        >
-                            <i class="bi bi-check2 me-1"></i>
-                            Save Changes
-                        </button>
-                    </div>
-
+                  </div>
                 </div>
-
+              </div>
             </div>
+
+            <!-- Right side -->
+            <div class="col-lg-3">
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3">Channels</h6>
+
+                  <!-- CHANNEL LIST -->
+                  <div class="list-group list-group-flush" id="channel-container">
+                    <a
+                      href="#"
+                      class="list-group-item list-group-item-action active d-flex align-items-center channel-color"
+                      id="generalChannel"
+                    >
+                      <span class="me-2">#</span> general
+                    </a>
+
+                    <a
+                      href="#"
+                      class="list-group-item list-group-item-action d-flex align-items-center channel-color"
+                      id="assignmentChannel"
+                    >
+                      <span class="me-2">#</span> assignment-help
+                    </a>
+
+                    <a
+                      href="#"
+                      class="list-group-item list-group-item-action d-flex align-items-center channel-color"
+                      id="examChannel"
+                    >
+                      <span class="me-2">#</span> exam-prep
+                    </a>
+
+                    <a
+                      href="#"
+                      class="list-group-item list-group-item-action d-flex align-items-center channel-color"
+                      id="randomChannel"
+                    >
+                      <span class="me-2">#</span> random
+                    </a>
+                  </div>
+
+                  <hr />
+
+                  <!-- ADMINS ONLY -->
+                  <button class="btn btn-sm w-100 mt-2" id="createChannelBtn">
+                    + Create Channel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-    </div>
-
-    <!-- Create Channel Modal -->
-    <div class="modal fade" id="createChannelModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content channel-modal">
-
-            <!-- Header -->
-            <div class="modal-header border-0">
-                <div>
-                <h5 class="modal-title fw-bold">Create Channel</h5>
-                <small class="text-muted">Add a new space for discussions</small>
-                </div>
-
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <!-- Body -->
-            <div class="modal-body">
-
-                <label class="form-label">Channel Name</label>
-                <div class="input-group mb-3">
-                <span class="input-group-text">#</span>
-                <input type="text" class="form-control channel-input" id="channelNameInput"
-                        placeholder="e.g. announcements">
-                </div>
-                <!-- 
-                    <label class="form-label">Description (optional)</label>
-                    <textarea class="form-control channel-input" id="channelDescInput"
-                        rows="3" placeholder="What is this channel for?">
-                    </textarea> 
-                -->
-
-                <div class="form-check mt-3">
-                <input class="form-check-input" type="checkbox" id="isPrivateChannel">
-                <label class="form-check-label">
-                    Private channel (admins only) - does not work yet
-                </label>
-                </div>
-
-            </div>
-
-            <!-- Footer -->
-            <div class="modal-footer border-0 d-flex justify-content-between">
-
-                <button class="btn btn-light" data-bs-dismiss="modal" id="cancelCreateChannelModal">
-                    Cancel
-                </button>
-
-                <button class="btn btn-primary px-4" id="createNewChannelBtn">
-                    Create Channel
-                </button>
-
-            </div>
-
-            </div>
-        </div>
+      </main>
     </div>
 
     <!-- Toast -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer">
-        <div id="groupsFeedToast" class="toast app-toast align-items-center text-white border-0" role="alert">
-            <div class="d-flex">
-            
-                <div class="toast-body d-flex align-items-center gap-2" id="toastBody">
-                    <!-- icon + message here -->
-                </div>
-
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
+      <div
+        id="groupsFeedToast"
+        class="toast app-toast align-items-center text-white border-0"
+        role="alert"
+      >
+        <div class="d-flex">
+          <div class="toast-body d-flex align-items-center gap-2" id="toastBody"></div>
+          <button
+            type="button"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+          ></button>
         </div>
+      </div>
     </div>
 
-    <!-- OffCanvas -->
+    <!-- Members OffCanvas -->
     <div class="offcanvas offcanvas-end members-offcanvas" tabindex="-1" id="membersOffcanvas">
-    
-        <div class="offcanvas-header">
-            <div>
-            <h5 class="offcanvas-title fw-bold">Group Members</h5>
-            <small class="text-muted"><span id="memberCountOffcanvas">120</span> members in this group</small>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+      <div class="offcanvas-header">
+        <div>
+          <h5 class="offcanvas-title fw-bold">Group Members</h5>
+          <small class="text-muted"
+            ><span id="memberCountOffcanvas">120</span> members in this group</small
+          >
         </div>
-
-        <div class="offcanvas-body">
-
-            <!-- Search -->
-            <input type="text" class="form-control mb-3 member-search" placeholder="Search members..." id="searchMemberInput">
-
-            <!-- Admin section -->
-            <h6 class="text-muted small fw-bold mb-2" id="adminHeaderOffcanvas">Admins</h6>
-
-            <div class="member-list mb-3" id="adminListOffcanvas">
-
-                <div class="member-card creator">
-                    <img src="images/Groups_profile_2.png">
-                    <div>
-                        <div class="name">Alice</div>
-                        <small>Creator</small>
-                    </div>
-                </div>
-
-                <div class="member-card admin">
-                    <img src="images/Groups_profile_2.png">
-                    <div>
-                        <div class="name">Beni</div>
-                        <small>Admin</small>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Members -->
-            <h6 class="text-muted small fw-bold mb-2" id="memberHeaderOffcanvas">Members</h6>
-
-            <div class="member-list" id="userListOffcanvas">
-
-                <div class="member-card">
-                    <img src="images/Groups_profile_1.png">
-                    <div>
-                        <div class="name">You</div>
-                        <small>User</small>
-                    </div>
-                </div>
-
-                <div class="member-card">
-                    <img src="images/Groups_profile_2.png">
-                    <div>
-                        <div class="name">Hinano</div>
-                        <small>User</small>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body">
+        <input
+          type="text"
+          class="form-control mb-3 member-search"
+          placeholder="Search members..."
+          id="searchMemberInput"
+        />
+        <h6 class="text-muted small fw-bold mb-2" id="adminHeaderOffcanvas">Admins</h6>
+        <div class="member-list mb-3" id="adminListOffcanvas"></div>
+        <h6 class="text-muted small fw-bold mb-2" id="memberHeaderOffcanvas">Members</h6>
+        <div class="member-list" id="userListOffcanvas"></div>
+      </div>
     </div>
-    
-    <!-- JS files -->
+
+    <!-- Message Options Modal -->
+    <div class="modal fade" id="messageModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+          <div class="modal-header border-0 pb-0">
+            <div>
+              <h5 class="modal-title fw-bold">Message Options</h5>
+              <small class="text-muted">Edit or delete your message</small>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body pt-3">
+            <div class="message-preview p-3 rounded-4 mb-3">
+              <small class="text-muted d-block mb-1">Current message</small>
+              <div id="modalMessageText" class="fw-medium">Hello world</div>
+            </div>
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-semibold mb-0">Edit message</label>
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  id="emojiPickerBtn"
+                  type="button"
+                  title="Add emoji"
+                >
+                  😊
+                </button>
+              </div>
+              <textarea
+                class="form-control rounded-4"
+                rows="4"
+                id="editMessageInput"
+                placeholder="Edit your message..."
+              ></textarea>
+              <div
+                id="emojiPickerContainer"
+                class="mt-1 p-2 border rounded-4 d-none"
+                style="max-height: 160px; overflow-y: auto"
+              >
+                <div class="d-flex flex-wrap gap-1" id="emojiGrid">
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">😀</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">😂</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">🥰</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">😍</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">😎</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">🤔</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">👍</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">👏</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">🔥</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">💯</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">❤️</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">🎉</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">🙏</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">🥺</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">😢</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">😭</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">🤣</span>
+                  <span class="emoji-option" style="cursor: pointer; font-size: 1.3rem">😅</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-0 d-flex justify-content-between">
+            <button class="btn btn-danger rounded-pill px-4" id="deleteMessageBtn">
+              <i class="bi bi-trash3 me-1"></i> Delete
+            </button>
+            <div class="d-flex gap-2">
+              <button class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">
+                Cancel
+              </button>
+              <button class="btn btn-primary rounded-pill px-4" id="saveMessageBtn">
+                <i class="bi bi-check2 me-1"></i> Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Channel Modal -->
+    <div class="modal fade" id="createChannelModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content channel-modal">
+          <div class="modal-header border-0">
+            <div>
+              <h5 class="modal-title fw-bold">Create Channel</h5>
+              <small class="text-muted">Add a new space for discussions</small>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <label class="form-label">Channel Name</label>
+            <div class="input-group mb-3">
+              <span class="input-group-text">#</span>
+              <input
+                type="text"
+                class="form-control channel-input"
+                id="channelNameInput"
+                placeholder="e.g. announcements"
+              />
+            </div>
+            <div class="form-check mt-3">
+              <input class="form-check-input" type="checkbox" id="isPrivateChannel" />
+              <label class="form-check-label"
+                >Private channel (admins only) - does not work yet</label
+              >
+            </div>
+          </div>
+          <div class="modal-footer border-0 d-flex justify-content-between">
+            <button class="btn btn-light" data-bs-dismiss="modal" id="cancelCreateChannelModal">
+              Cancel
+            </button>
+            <button class="btn btn-primary px-4" id="createNewChannelBtn">Create Channel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/getCurrentURL.js"></script>
+    <script src="js/spindle-page.js" defer></script>
     <script src="js/queryCmds.js"></script>
     <script src="js/userNavBarToggle.js"></script>
+    <script src="js/page-guard.js" data-require-login defer></script>
     <script src="js/groupsFeed.js" defer></script>
-
     <script src="js/spindle-sidebar.js" defer></script>
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>
     <script src="js/spindle-sidebar.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof injectWaHeader === 'function') {
-                injectWaHeader('Study Groups Feed');
-            }
-            if (typeof injectNotificationsOnly === 'function') {
-                injectNotificationsOnly('spindleNotifSlot');
-            }
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof injectWaHeader === 'function') {
+          injectWaHeader('Study Groups Feed');
+        }
+        if (typeof injectNotificationsOnly === 'function') {
+          injectNotificationsOnly('spindleNotifSlot');
+        }
+        // Emoji picker for edit message
+        document.getElementById('emojiPickerBtn')?.addEventListener('click', function () {
+          const container = document.getElementById('emojiPickerContainer');
+          container.classList.toggle('d-none');
         });
+        document.querySelectorAll('.emoji-option').forEach(function (el) {
+          el.addEventListener('click', function () {
+            const input = document.getElementById('editMessageInput');
+            const emoji = this.textContent;
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            input.value = input.value.substring(0, start) + emoji + input.value.substring(end);
+            input.selectionStart = input.selectionEnd = start + emoji.length;
+            input.focus();
+          });
+        });
+      });
     </script>
-</body>
+  </body>
 </html>
-
-
-
-
-
-
-
-

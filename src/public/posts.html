@@ -1,188 +1,196 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Post - Spindle</title>
-    
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/spindle-notif.css">
-    <link rel="stylesheet" href="/css/posts.css">
-    
-</head>
-<body>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/spindle-notif.css" />
+    <link rel="stylesheet" href="/css/posts.css" />
+  </head>
+  <body>
     <!---Navbar-->
     <nav class="navbar">
-        <div class="container-fluid px-0 d-flex align-items-center">
+      <div class="container-fluid px-0 d-flex align-items-center">
+        <a class="navbar-brand" href="index.html">
+          <img src="./images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
+          <span class="brand-name">spindle</span>
+        </a>
 
-            <a class="navbar-brand" href="index.html">
-                <img src="./images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo">
-                <span class="brand-name">spindle</span>
-            </a>
-
-            <!-- Searchbar-->
-            <div class="navbar-search">
-                <input class="form-control" id="searchInput" type="search" 
-                    placeholder="Search posts, groups, items..." aria-label="Search">
-            </div>
-
-            
-            <div class="navbar-right">
-                <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
-                <a href="profile.html" class="btn-navbar-profile" id="profileButton">
-                    <i class="fas fa-user-circle"></i> Profile
-                </a>
-                <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
-            </div>
-
+        <!-- Searchbar-->
+        <div class="navbar-search">
+          <input
+            class="form-control"
+            id="searchInput"
+            type="search"
+            placeholder="Search posts, groups, items..."
+            aria-label="Search"
+          />
         </div>
+
+        <div class="navbar-right">
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a href="profile.html" class="btn-navbar-profile" id="profileButton">
+            <i class="fas fa-user-circle"></i> Profile
+          </a>
+          <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+        </div>
+      </div>
     </nav>
 
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Left Sidebar -->
-        <aside class="sidebar">
-            <a href="index.html" class="sidebar-item">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
-            </a>
+      <!-- Left Sidebar -->
+      <aside class="sidebar"></aside>
 
-            <a href="groups.html" class="sidebar-item">
-                <i class="fas fa-users"></i>
-                <span>Study Groups</span>
-            </a>
+      <!-- Main Content Area -->
+      <main class="content-area">
+        <!-- Back Button -->
+        <div class="mb-3">
+          <a href="index.html" class="btn btn-link text-decoration-none">
+            <i class="fas fa-arrow-left"></i> Back to Feed
+          </a>
+        </div>
 
-            <a href="marketplace.html" class="sidebar-item">
-                <i class="fas fa-store"></i>
-                <span>Marketplace</span>
-            </a>
+        <!-- Single post by id -->
+        <div id="postDetailContainer">
+          <div class="post-card text-center py-4 text-muted">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            Loading post...
+          </div>
+        </div>
 
-            <a href="profile.html" class="sidebar-item">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
-            </a>
-
-            <div class="sidebar-divider"></div>
-
-            <a href="saved.html" class="sidebar-item">
-                <i class="fas fa-bookmark"></i>
-                <span>Saved</span>
-            </a>
-
-            <div class="sidebar-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
+        <!-- Comments section -->
+        <div class="card mt-3" id="commentsSection" style="display: none">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+              <strong>Comments</strong>
+              <span class="text-muted ms-1" id="totalCommentsLabel"></span>
             </div>
-
-            <div class="sidebar-divider" id="yourGroupsDivider" style="display:none;"></div>
-            <div id="yourGroupsSection" style="display:none;">
-                <h6 class="px-3 mt-3 mb-2 text-muted" style="font-size: 0.85rem; font-weight: 600;">
-                    YOUR GROUPS
-                </h6>
-                <div id="yourGroupsContainer"></div>
+            <div class="dropdown">
+              <button
+                class="btn btn-link btn-sm p-0 text-muted"
+                type="button"
+                id="commentSortBtn"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Sort comments"
+              >
+                <i class="fas fa-sort-amount-desc"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <button
+                    class="dropdown-item comment-sort-option active"
+                    data-sort="newest"
+                    type="button"
+                  >
+                    Newest
+                  </button>
+                </li>
+                <li>
+                  <button
+                    class="dropdown-item comment-sort-option"
+                    data-sort="oldest"
+                    type="button"
+                  >
+                    Oldest
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item comment-sort-option" data-sort="top" type="button">
+                    Top
+                  </button>
+                </li>
+              </ul>
             </div>
-        </aside>
-
-        <!-- Main Content Area -->
-        <main class="content-area">
-            <!-- Back Button -->
-            <div class="mb-3">
-                <a href="index.html" class="btn btn-link text-decoration-none">
-                    <i class="fas fa-arrow-left"></i> Back to Feed
-                </a>
-            </div>
-
-            <!-- Single post by id -->
-            <div id="postDetailContainer">
-                <div class="post-card text-center py-4 text-muted">
-                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                    Loading post...
+          </div>
+          <div class="card-body">
+            <!-- Comment input -->
+            <div class="comment-input-box mb-3">
+              <div class="d-flex">
+                <div class="post-avatar me-2">U</div>
+                <div class="flex-grow-1">
+                  <textarea
+                    class="form-control"
+                    id="commentInput"
+                    rows="2"
+                    placeholder="Write a comment..."
+                  ></textarea>
+                  <div class="mt-2 text-end">
+                    <button class="btn btn-primary btn-sm" id="submitCommentBtn">
+                      <i class="fas fa-paper-plane"></i> Comment
+                    </button>
+                  </div>
                 </div>
+              </div>
             </div>
 
-            <!-- Comments section -->
-            <div class="card mt-3" id="commentsSection" style="display:none;">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>Comments</strong>
-                        <span class="text-muted ms-1" id="totalCommentsLabel"></span>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-link btn-sm p-0 text-muted" type="button" id="commentSortBtn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Sort comments">
-                            <i class="fas fa-sort-amount-desc"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><button class="dropdown-item comment-sort-option active" data-sort="newest" type="button">Newest</button></li>
-                            <li><button class="dropdown-item comment-sort-option" data-sort="oldest" type="button">Oldest</button></li>
-                            <li><button class="dropdown-item comment-sort-option" data-sort="top" type="button">Top</button></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <!-- Comment input -->
-                    <div class="comment-input-box mb-3">
-                        <div class="d-flex">
-                            <div class="post-avatar me-2">U</div>
-                            <div class="flex-grow-1">
-                                <textarea class="form-control" id="commentInput" rows="2" placeholder="Write a comment..."></textarea>
-                                <div class="mt-2 text-end">
-                                    <button class="btn btn-primary btn-sm" id="submitCommentBtn">
-                                        <i class="fas fa-paper-plane"></i> Comment
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- dynamic comments -->
-                    <div id="commentsContainer">
-                        <div class="text-muted text-center py-3" id="commentsPlaceholder">
-                            <i class="fas fa-comments fa-2x mb-2 d-block"></i>
-                            No comments yet.
-                        </div>
-                    </div>
-                </div>
+            <!-- dynamic comments -->
+            <div id="commentsContainer">
+              <div class="text-muted text-center py-3" id="commentsPlaceholder">
+                <i class="fas fa-comments fa-2x mb-2 d-block"></i>
+                No comments yet.
+              </div>
             </div>
-        </main>
+          </div>
+        </div>
+      </main>
 
-        <!-- Right Sidebar -->
-        <aside class="right-sidebar">
-            <div class="card">
-            <div class="card-header">Related Posts</div>
-                <div class="list-group list-group-flush" id="relatedPostsContainer">
-                    <div class="list-group-item text-muted small text-center py-3">
-                    <div class="spinner-border spinner-border-sm" role="status"></div>
-                    </div>
-                </div>
+      <!-- Right Sidebar -->
+      <aside class="right-sidebar">
+        <div class="card">
+          <div class="card-header">Related Posts</div>
+          <div class="list-group list-group-flush" id="relatedPostsContainer">
+            <div class="list-group-item text-muted small text-center py-3">
+              <div class="spinner-border spinner-border-sm" role="status"></div>
             </div>
+          </div>
+        </div>
 
-            <div class="card mt-3">
-                <div class="card-header">Community Guidelines</div>
-                <div class="card-body">
-                    <p class="small mb-2">✓ Be respectful and kind</p>
-                    <p class="small mb-2">✓ No harassment or hate speech</p>
-                    <p class="small mb-2">✓ Keep discussions on topic</p>
-                    <p class="small mb-0">✓ Report inappropriate content</p>
-                </div>
-            </div>
-        </aside>
+        <div class="card mt-3">
+          <div class="card-header">Community Guidelines</div>
+          <div class="card-body">
+            <p class="small mb-2">✓ Be respectful and kind</p>
+            <p class="small mb-2">✓ No harassment or hate speech</p>
+            <p class="small mb-2">✓ Keep discussions on topic</p>
+            <p class="small mb-0">✓ Report inappropriate content</p>
+          </div>
+        </div>
+      </aside>
     </div>
 
     <!-- Confirm delete modal -->
     <div id="confirmOverlay" class="auth-overlay d-none">
-    <div class="auth-popup-card" style="max-width:360px;">
-        <h2 id="confirmTitle" style="font-size:1.2rem;">Are you sure?</h2>
+      <div class="auth-popup-card" style="max-width: 360px">
+        <h2 id="confirmTitle" style="font-size: 1.2rem">Are you sure?</h2>
         <p class="auth-popup-sub" id="confirmMessage">This action cannot be undone.</p>
         <div class="auth-popup-actions">
-        <button class="auth-popup-btn secondary" id="confirmCancelBtn">Cancel</button>
-        <button class="auth-popup-btn" id="confirmOkBtn" style="background:var(--danger-color);border-color:var(--danger-color);">Delete</button>
+          <button class="auth-popup-btn secondary" id="confirmCancelBtn">Cancel</button>
+          <button
+            class="auth-popup-btn"
+            id="confirmOkBtn"
+            style="background: var(--danger-color); border-color: var(--danger-color)"
+          >
+            Delete
+          </button>
         </div>
-    </div>
+      </div>
     </div>
 
     <!-- GIF Modal -->
@@ -203,24 +211,27 @@
 
     <!-- login required modal -->
     <div id="authOverlay" class="auth-overlay d-none">
-    <div class="auth-popup-card">
+      <div class="auth-popup-card">
         <button class="auth-popup-close" id="closeAuthPopup">
-        <i class="fas fa-times"></i>
+          <i class="fas fa-times"></i>
         </button>
-        <img src="./images/Logo_Panda.png" alt="Spindle" class="auth-popup-logo">
+        <img src="./images/Logo_Panda.png" alt="Spindle" class="auth-popup-logo" />
         <h2>Sign in to continue</h2>
         <p class="auth-popup-sub">
-        You need an account to post discussions in the forum. Join the SP community today!
+          You need an account to post discussions in the forum. Join the SP community today!
         </p>
         <div class="auth-popup-actions">
-        <a href="home.html?login=1&tab=login&return=posts.html" class="auth-popup-btn primary">
+          <a href="home.html?login=1&tab=login&return=posts.html" class="auth-popup-btn primary">
             Login
-        </a>
-        <a href="home.html?login=1&tab=register&return=posts.html" class="auth-popup-btn secondary">
+          </a>
+          <a
+            href="home.html?login=1&tab=register&return=posts.html"
+            class="auth-popup-btn secondary"
+          >
             Create Account
-        </a>
+          </a>
         </div>
-    </div>
+      </div>
     </div>
 
     <!--scripts -->
@@ -237,14 +248,14 @@
     <script src="js/socket-client.js"></script>
     <script src="js/spindle-sidebar.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof injectWaHeader === 'function') {
-                injectWaHeader('Post page');
-            }
-            if (typeof injectNotificationsOnly === 'function') {
-                injectNotificationsOnly('spindleNotifSlot');
-            }
-        });
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof injectWaHeader === 'function') {
+          injectWaHeader('Post page');
+        }
+        if (typeof injectNotificationsOnly === 'function') {
+          injectNotificationsOnly('spindleNotifSlot');
+        }
+      });
     </script>
-</body>
+  </body>
 </html>

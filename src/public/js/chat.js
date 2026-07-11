@@ -238,7 +238,8 @@ async function openChat(userId, name) {
     }
     loadContacts();
   } catch (err) {
-    document.getElementById('chatMessages').innerHTML = `<p class="wa-empty">${esc(err.message)}</p>`;
+    document.getElementById('chatMessages').innerHTML =
+      `<p class="wa-empty">${esc(err.message)}</p>`;
     showToast(err.message, true);
   }
 }
@@ -318,7 +319,9 @@ function bindMsgMenu() {
         });
         const el = document.querySelector(`.wa-bubble-row[data-msg-id="${id}"]`);
         if (el) {
-          const chips = reactions.map((r) => `<span class="wa-reaction-chip">${r.emoji}</span>`).join('');
+          const chips = reactions
+            .map((r) => `<span class="wa-reaction-chip">${r.emoji}</span>`)
+            .join('');
           let row = el.querySelector('.wa-bubble-reactions');
           if (!row) {
             row = document.createElement('div');
@@ -334,10 +337,7 @@ function bindMsgMenu() {
     }
     const msg = window.__msgMenuTarget || { id, body: '', sender_id: currentUserId };
     const bubble = document.querySelector(`.wa-bubble-row[data-msg-id="${id}"] .wa-bubble`);
-    const text =
-      msg.body ||
-      bubble?.textContent?.replace(/edited/gi, '').trim() ||
-      '';
+    const text = msg.body || bubble?.textContent?.replace(/edited/gi, '').trim() || '';
     if (btn.dataset.action === 'copy') {
       await navigator.clipboard.writeText(text.replace('[Message deleted]', '').trim());
       showToast('Copied');
@@ -555,7 +555,12 @@ async function ensurePeerConnection() {
   peerConnection = new RTCPeerConnection({ iceServers: ICE_SERVERS });
   peerConnection.onicecandidate = (e) => {
     if (e.candidate && selectedPeerId && activeCallId) {
-      sendCallSignal(selectedPeerId, { type: 'ice', candidate: e.candidate }, activeCallType, activeCallId);
+      sendCallSignal(
+        selectedPeerId,
+        { type: 'ice', candidate: e.candidate },
+        activeCallType,
+        activeCallId,
+      );
     }
   };
   peerConnection.ontrack = (e) => {
@@ -588,7 +593,12 @@ async function beginCallerMedia() {
     const pc = peerConnection;
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    sendCallSignal(selectedPeerId, { type: 'offer', sdp: offer, callType: activeCallType }, activeCallType, activeCallId);
+    sendCallSignal(
+      selectedPeerId,
+      { type: 'offer', sdp: offer, callType: activeCallType },
+      activeCallType,
+      activeCallId,
+    );
     callState = 'active';
     setCallUiMode('active');
     document.getElementById('callSubstatus').textContent = '';
@@ -680,7 +690,7 @@ function cancelOutgoingCall() {
 
 async function handleCallSignal(data) {
   const from = data.fromUserId;
-  if (!from || callState === 'idle' && data.signal?.type !== 'offer') return;
+  if (!from || (callState === 'idle' && data.signal?.type !== 'offer')) return;
 
   if (data.signal?.type === 'offer') {
     if (callState !== 'connecting' && callState !== 'incoming' && callState !== 'active') return;
@@ -763,7 +773,9 @@ function switchSidePanel(side) {
     window.location.href = 'friends.html';
     return;
   }
-  document.querySelectorAll('[data-side]').forEach((b) => b.classList.toggle('active', b.dataset.side === side));
+  document
+    .querySelectorAll('[data-side]')
+    .forEach((b) => b.classList.toggle('active', b.dataset.side === side));
   document.getElementById('panelChats')?.classList.toggle('is-active', side === 'chats');
   document.getElementById('panelCalls')?.classList.toggle('is-active', side === 'calls');
   if (side === 'calls') loadCallLogs();
@@ -776,7 +788,9 @@ function setupSidebarTabs() {
   document.querySelectorAll('[data-req-tab]').forEach((btn) => {
     btn.addEventListener('click', () => {
       friendReqTab = btn.dataset.reqTab;
-      document.querySelectorAll('[data-req-tab]').forEach((b) => b.classList.toggle('active', b === btn));
+      document
+        .querySelectorAll('[data-req-tab]')
+        .forEach((b) => b.classList.toggle('active', b === btn));
       loadRequests();
     });
   });
@@ -854,7 +868,9 @@ async function initChat() {
       row.className = 'wa-bubble-reactions';
       el.querySelector('time')?.before(row);
     }
-    row.innerHTML = data.reactions.map((r) => `<span class="wa-reaction-chip">${r.emoji}</span>`).join('');
+    row.innerHTML = data.reactions
+      .map((r) => `<span class="wa-reaction-chip">${r.emoji}</span>`)
+      .join('');
   });
 
   onWs('call:invite', (data) => {

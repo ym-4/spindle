@@ -5,11 +5,18 @@ function setupHome() {
   document.getElementById('homeGuest').classList.toggle('hidden', loggedIn);
   document.getElementById('homeUser').classList.toggle('hidden', !loggedIn);
 
+  updateNavForUser(user);
+
   if (loggedIn) {
-    const navUser = document.getElementById('navUser');
-    navUser.classList.remove('hidden');
-    navUser.style.display = 'flex';
-    injectHeaderActions('waHeaderSlot');
+    const slot = document.getElementById('waHeaderSlot');
+    if (slot) {
+      slot.innerHTML =
+        '<button type="button" class="wa-btn wa-btn--ghost wa-btn--small" id="waHeaderLogout">Log out</button>';
+      document.getElementById('waHeaderLogout')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        handleLogout();
+      });
+    }
     connectSocket();
     onWs('notification', () => refreshNotifBadge());
   }
@@ -19,11 +26,12 @@ function setupHome() {
 
 document.addEventListener('DOMContentLoaded', () => {
   if (getToken() && !getStoredUser()) clearAuth();
-  if (isLoggedIn()) {
+  const params = new URLSearchParams(location.search);
+
+  if (isLoggedIn() && params.has('return')) {
     const user = getStoredUser();
     window.location.replace(getPostLoginRedirect(user));
     return;
   }
-  updateNavForUser(null);
   setupHome();
 });

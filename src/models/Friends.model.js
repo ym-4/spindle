@@ -117,8 +117,20 @@ module.exports.getPublicProfile = async function getPublicProfile(viewerId, targ
 
   const relationship = await getRelationship(viewerId, targetId);
   const mutual_friends = await mutualFriendsCount(viewerId, targetId);
+
+  let isPrivate = false;
+  if (relationship === 'none') {
+    const { rows: settingsRows } = await pool.query(
+      `SELECT public_profile FROM "UserSettings" WHERE user_id = $1`,
+      [targetId],
+    );
+    if (settingsRows.length > 0 && settingsRows[0].public_profile === false) {
+      isPrivate = true;
+    }
+  }
+
   return {
-    ...formatUser(rows[0], { relationship, mutual_friends }),
+    ...formatUser(rows[0], { relationship, mutual_friends, is_private: isPrivate }),
     member_since: rows[0].created_at,
   };
 };
@@ -173,11 +185,13 @@ module.exports.listRequests = async function listRequests(userId, tab) {
 };
 
 module.exports.sendRequest = async function sendRequest(senderId, receiverId) {
-  if (senderId === receiverId) throw Object.assign(new Error('Cannot add yourself.'), { status: 400 });
+  if (senderId === receiverId)
+    throw Object.assign(new Error('Cannot add yourself.'), { status: 400 });
 
   const rel = await getRelationship(senderId, receiverId);
   if (rel === 'friends') throw Object.assign(new Error('Already friends.'), { status: 409 });
-  if (rel === 'pending_sent') throw Object.assign(new Error('Request already sent.'), { status: 409 });
+  if (rel === 'pending_sent')
+    throw Object.assign(new Error('Request already sent.'), { status: 409 });
   if (rel === 'pending_received') {
     throw Object.assign(new Error('They already sent you a request — accept it instead.'), {
       status: 409,
@@ -192,10 +206,9 @@ module.exports.sendRequest = async function sendRequest(senderId, receiverId) {
     [senderId, receiverId],
   );
 
-  const sender = await pool.query(
-    `SELECT name, display_name FROM "Person" WHERE id = $1`,
-    [senderId],
-  );
+  const sender = await pool.query(`SELECT name, display_name FROM "Person" WHERE id = $1`, [
+    senderId,
+  ]);
   const senderName = sender.rows[0]?.display_name || sender.rows[0]?.name || 'Someone';
   try {
     const Notification = require('./Notification.model');

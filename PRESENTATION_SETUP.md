@@ -106,11 +106,11 @@ Use **only this URL** (simplest — no Live Server needed):
 
 ## Demo accounts (after `npm run seed`)
 
-| Role    | Username | Password     | Goes to        |
-| ------- | -------- | ------------ | -------------- |
-| Admin   | `Admin`  | `admin123`   | Admin dashboard |
-| Student | `Alice`  | `password123`| Profile page   |
-| Student | `Bob`    | `password123`| Profile page   |
+| Role    | Username | Password      | Goes to         |
+| ------- | -------- | ------------- | --------------- |
+| Admin   | `Admin`  | `admin123`    | Admin dashboard |
+| Student | `Alice`  | `password123` | Profile page    |
+| Student | `Bob`    | `password123` | Profile page    |
 
 Or click **Register** and create your own account.
 
@@ -132,13 +132,13 @@ Or click **Register** and create your own account.
 
 ## Quick troubleshooting
 
-| Error | Fix |
-| ----- | --- |
-| `npm is not recognized` | Install Node.js LTS, restart terminal |
+| Error                         | Fix                                                          |
+| ----------------------------- | ------------------------------------------------------------ |
+| `npm is not recognized`       | Install Node.js LTS, restart terminal                        |
 | `fatal: not a git repository` | `cd` into `ay2627s1-project-class-2b21-group-pineapplepizza` |
-| `Failed to fetch` on register | Run `npm start` and use `http://localhost:3000/home.html` |
-| Database connection error | Check `.env.dev` and `DATABASE_URL` |
-| Port 3000 in use | Close other `node` windows or change `PORT` in `.env.dev` |
+| `Failed to fetch` on register | Run `npm start` and use `http://localhost:3000/home.html`    |
+| Database connection error     | Check `.env.dev` and `DATABASE_URL`                          |
+| Port 3000 in use              | Close other `node` windows or change `PORT` in `.env.dev`    |
 
 ---
 

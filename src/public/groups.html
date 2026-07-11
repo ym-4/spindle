@@ -1,199 +1,179 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- CSS files -->
-    <link rel="stylesheet" href="css/groups.css">
-    <link rel="stylesheet" href="css/posts.css">
-    <link rel="stylesheet" href="css/spindle-notif.css">
-    <link rel="stylesheet" href="css/profile-page.css">
+    <link rel="stylesheet" href="css/groups.css" />
+    <link rel="stylesheet" href="css/posts.css" />
+    <link rel="stylesheet" href="css/spindle-notif.css" />
+    <link rel="stylesheet" href="css/profile-page.css" />
     <script src="js/api.js"></script>
-    
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"/>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
 
     <title>Groups</title>
-</head>
+  </head>
 
-<body data-page="groups">
+  <body data-page="groups">
     <!---Navbar-->
     <nav class="navbar">
-        <div class="container-fluid px-4 d-flex align-items-center">
+      <div class="container-fluid px-4 d-flex align-items-center">
+        <!-- Brand (left) -->
+        <a class="navbar-brand" href="index.html">
+          <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
+          <span class="brand-name">spindle</span>
+        </a>
 
-            <!-- Brand (left) -->
-            <a class="navbar-brand" href="index.html">
-                <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo">
-                <span class="brand-name">spindle</span>
-            </a>
-
-            <!-- Searchbar-->
-            <div class="navbar-search">
-                <input class="form-control" id="searchInput" type="search" 
-                    placeholder="Search posts, groups, items..." aria-label="Search">
-            </div>
-
-            <div class="navbar-right">
-                <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
-                <a href="profile.html" class="btn-navbar-profile" id="profileButton">
-                    <i class="fas fa-user-circle"></i> Profile
-                </a>
-                <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
-            </div>
-    </div>
-
+        <!-- Searchbar-->
+        <div class="navbar-search">
+          <input
+            class="form-control"
+            id="searchInput"
+            type="search"
+            placeholder="Search posts, groups, items..."
+            aria-label="Search"
+          />
         </div>
+
+        <div class="navbar-right">
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a href="profile.html" class="btn-navbar-profile" id="profileButton">
+            <i class="fas fa-user-circle"></i> Profile
+          </a>
+          <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+        </div>
+      </div>
     </nav>
 
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Left Sidebar -->
-        <aside class="sidebar">
-            <a href="index.html" class="sidebar-item">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
-            </a>
-            <a href="groups.html" class="sidebar-item active">
-                <i class="fas fa-users"></i>
-                <span>Study Groups</span>
-            </a>
-            <a href="marketplace.html" class="sidebar-item">
-                <i class="fas fa-store"></i>
-                <span>Marketplace</span>
-            </a>
-            <a href="profile.html" class="sidebar-item">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
-            </a>
-            
-            <div class="sidebar-divider"></div>
-            
-            <div class="sidebar-item">
-                <i class="fas fa-bookmark"></i>
-                <span>Saved Posts</span>
-            </div>
-            <div class="sidebar-item">
-                <i class="fas fa-clock"></i>
-                <span>Recent</span>
-            </div>
-            <div class="sidebar-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </div>
-        </aside>
+      <!-- Left Sidebar -->
+      <aside class="sidebar"></aside>
 
-        <!-- MAP -->
-        <div class="map-container">
-            <div class="map">
-                <!-- Map -->
-                <img class="map-bg" src="images/Groups_TEMP_Map.png" alt="Map">
+      <!-- MAP -->
+      <div class="map-container">
+        <div class="map">
+          <!-- Map -->
+          <img class="map-bg" src="images/Groups_TEMP_Map.png" alt="Map" />
 
-                <!-- CLS -->
-                <div class="school cls">
-                    <img class="img-sizing-large" src="images/Groups_CLS_Building.png" alt="CLS Building">
+          <!-- CLS -->
+          <div class="school cls">
+            <img class="img-sizing-large" src="images/Groups_CLS_Building.png" alt="CLS Building" />
 
-                    <button class="btn-style btn-red" type="button" id="cls">
-                        CHEMICAL AND <br> 
-                        LIFE SCIENCES
-                        <br><strong>CLS</strong>
-                    </button>
-                </div>
-                    
-                <!-- MAE -->
-                <div class="school mae">
-                    <img class="img-sizing" src="images/Groups_MAE_Building.png" alt="MAE Building">
+            <button class="btn-style btn-red" type="button" id="cls">
+              CHEMICAL AND <br />
+              LIFE SCIENCES
+              <br /><strong>CLS</strong>
+            </button>
+          </div>
 
-                    <button class="btn-style btn-orange" type="button" id="mae">
-                        MECHANICAL & <br>
-                        AERONAUTICAL ENGINEERING
-                        <br><strong>MAE</strong>
-                    </button>
-                </div>
+          <!-- MAE -->
+          <div class="school mae">
+            <img class="img-sizing" src="images/Groups_MAE_Building.png" alt="MAE Building" />
 
-                <!-- EEE -->
-                <div class="school eee">
-                    <img class="img-sizing" src="images/Groups_EEE_Building.png" alt="EEE Building">
+            <button class="btn-style btn-orange" type="button" id="mae">
+              MECHANICAL & <br />
+              AERONAUTICAL ENGINEERING
+              <br /><strong>MAE</strong>
+            </button>
+          </div>
 
-                    <button class="btn-style btn-yellow" type="button" id="eee">
-                        ELECTRICAL AND <br>
-                        ELECTRONIC ENGINEERING
-                        <br><strong>EEE</strong>
-                    </button>
-                </div>
+          <!-- EEE -->
+          <div class="school eee">
+            <img class="img-sizing" src="images/Groups_EEE_Building.png" alt="EEE Building" />
 
-                <!-- ABE -->
-                <div class="school abe">
-                    <img class="img-sizing-small" src="images/Groups_ABE_Building.png" alt="ABE Building">
+            <button class="btn-style btn-yellow" type="button" id="eee">
+              ELECTRICAL AND <br />
+              ELECTRONIC ENGINEERING
+              <br /><strong>EEE</strong>
+            </button>
+          </div>
 
-                    <button class="btn-style btn-green" type="button" id="abe">
-                        ARCHITECTURE AND<br>
-                        THE BUILT ENVIRONMENT  
-                        <br><strong>ABE</strong>
-                    </button>
-                </div>
+          <!-- ABE -->
+          <div class="school abe">
+            <img class="img-sizing-small" src="images/Groups_ABE_Building.png" alt="ABE Building" />
 
-                <!-- SB -->
-                <div class="school sb">
-                    <img class="img-sizing-small" src="images/Groups_SB_Building.png" alt="SB Building">
+            <button class="btn-style btn-green" type="button" id="abe">
+              ARCHITECTURE AND<br />
+              THE BUILT ENVIRONMENT
+              <br /><strong>ABE</strong>
+            </button>
+          </div>
 
-                    <button class="btn-style btn-blue" type="button" id="sb">
-                        SCHOOL OF BUSINESS
-                        <br><strong>SB</strong>
-                    </button>
-                </div>
+          <!-- SB -->
+          <div class="school sb">
+            <img class="img-sizing-small" src="images/Groups_SB_Building.png" alt="SB Building" />
 
-                <!-- MAD -->
-                <div class="school mad">
-                    <img class="img-sizing" src="images/Groups_MAD_Building.png" alt="MAD Building">
+            <button class="btn-style btn-blue" type="button" id="sb">
+              SCHOOL OF BUSINESS
+              <br /><strong>SB</strong>
+            </button>
+          </div>
 
-                    <button class="btn-style btn-purple" type="button" id="mad">
-                        MEDIA, ARTS & DESIGN
-                        <br><strong>MAD</strong>
-                    </button>
-                </div>
+          <!-- MAD -->
+          <div class="school mad">
+            <img class="img-sizing" src="images/Groups_MAD_Building.png" alt="MAD Building" />
 
-                <!-- SOC -->
-                <div class="school soc">
-                    <img class="img-sizing" src="images/Groups_SOC_Building.png" alt="SOC Building">
+            <button class="btn-style btn-purple" type="button" id="mad">
+              MEDIA, ARTS & DESIGN
+              <br /><strong>MAD</strong>
+            </button>
+          </div>
 
-                    <button class="btn-style btn-pink" type="button" id="soc">
-                        SCHOOL OF COMPUTING
-                        <br><strong>SOC</strong>
-                    </button>
-                </div>
+          <!-- SOC -->
+          <div class="school soc">
+            <img class="img-sizing" src="images/Groups_SOC_Building.png" alt="SOC Building" />
 
-                <!-- SMA -->
-                <div class="school sma">
-                    <img class="img-sizing" src="images/Groups_SMA_Building.png" alt="SMA Building">
+            <button class="btn-style btn-pink" type="button" id="soc">
+              SCHOOL OF COMPUTING
+              <br /><strong>SOC</strong>
+            </button>
+          </div>
 
-                    <button class="btn-style btn-indigo" type="button" id="sma">
-                        SINGAPORE MARITIME ACADEMY
-                        <br><strong>SMA</strong>
-                    </button>
-                </div>
+          <!-- SMA -->
+          <div class="school sma">
+            <img class="img-sizing" src="images/Groups_SMA_Building.png" alt="SMA Building" />
 
-                <!-- Explanation -->
-                <div class="explanation">
-                    <button class="btn-style btn-light" type="button" id="userGroups">
-                        <span class="star">⭐</span>
+            <button class="btn-style btn-indigo" type="button" id="sma">
+              SINGAPORE MARITIME ACADEMY
+              <br /><strong>SMA</strong>
+            </button>
+          </div>
 
-                        Click here to<br> 
-                        view all your<br>
-                        joined groups!
+          <!-- Explanation -->
+          <div class="explanation">
+            <button class="btn-style btn-light" type="button" id="userGroups">
+              <span class="star">⭐</span>
 
-                    </button>
-                </div>
-            </div>
+              Click here to<br />
+              view all your<br />
+              joined groups!
+            </button>
+          </div>
         </div>
-
+      </div>
     </div>
 
     <!-- Copy footer over from home page -->
@@ -202,16 +182,14 @@
     <script src="js/spindle-sidebar.js"></script>
     <script src="js/groups.js" defer></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof injectWaHeader === 'function') {
-                injectWaHeader('Study Groups');
-            }
-            if (typeof injectNotificationsOnly === 'function') {
-                injectNotificationsOnly('spindleNotifSlot');
-            }
-        });
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof injectWaHeader === 'function') {
+          injectWaHeader('Study Groups');
+        }
+        if (typeof injectNotificationsOnly === 'function') {
+          injectNotificationsOnly('spindleNotifSlot');
+        }
+      });
     </script>
-    
-</body>
-
+  </body>
 </html>
