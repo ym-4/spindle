@@ -3,14 +3,14 @@ const upload = require('../middlewares/upload');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
 
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 
-const { 
-  getAllPost, 
-  getPostByID, 
+const {
+  getAllPost,
+  getPostByID,
   getPostByCategory,
-  getRelatedPosts, 
+  getRelatedPosts,
   insertPost,
   updatePostByID,
   deletePostByID,
@@ -67,8 +67,8 @@ router.get('/reports', authenticateJWT, async (req, res, next) => {
 // Get post by Category (must be before /:id)
 router.get('/tag/:category', (req, res, next) => {
   const data = {
-    category: req.params.category
-  }
+    category: req.params.category,
+  };
 
   getPostByCategory(data)
     .then((post) => res.status(200).json(post))
@@ -78,8 +78,8 @@ router.get('/tag/:category', (req, res, next) => {
 // Saved posts & reactions (must be before /:id)
 router.get('/saved/:user_id', (req, res, next) => {
   const data = {
-    user_id: req.params.user_id
-  }
+    user_id: req.params.user_id,
+  };
   getSavedByUserID(data)
     .then((post) => res.status(200).json(post))
     .catch(next);
@@ -87,8 +87,8 @@ router.get('/saved/:user_id', (req, res, next) => {
 
 router.get('/reaction/:user_id', (req, res, next) => {
   const data = {
-    user_id: req.params.user_id
-  }
+    user_id: req.params.user_id,
+  };
   getReactionByUserID(data)
     .then((post) => res.status(200).json(post))
     .catch(next);
@@ -97,8 +97,8 @@ router.get('/reaction/:user_id', (req, res, next) => {
 // Get post by ID
 router.get('/:id', (req, res, next) => {
   const data = {
-    id: req.params.id
-  }
+    id: req.params.id,
+  };
 
   getPostByID(data)
     .then((post) => res.status(200).json(post))
@@ -109,7 +109,7 @@ router.get('/:id', (req, res, next) => {
 router.get('/related/:category/:id', (req, res, next) => {
   const data = {
     category: req.params.category,
-    id: req.params.id
+    id: req.params.id,
   };
 
   getRelatedPosts(data)
@@ -117,18 +117,20 @@ router.get('/related/:category/:id', (req, res, next) => {
     .catch(next);
 });
 
-// Creates new post 
+// Creates new post
 router.post('/', upload.single('attachment'), (req, res, next) => {
   if (
-    req.body == undefined || req.body.user_id == undefined || req.body.title == undefined || req.body.category == undefined || req.body.content == undefined) 
-  {
-    res.status(400).json({message: 'Error: user_id, title, category or content is undefined'});
+    req.body == undefined ||
+    req.body.user_id == undefined ||
+    req.body.title == undefined ||
+    req.body.category == undefined ||
+    req.body.content == undefined
+  ) {
+    res.status(400).json({ message: 'Error: user_id, title, category or content is undefined' });
     return;
   }
 
-  const attachmentUrl = req.file
-    ? `/uploads/${req.file.filename}`
-    : null;
+  const attachmentUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
   const data = {
     user_id: req.body.user_id,
@@ -141,21 +143,23 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
   };
 
   insertPost(data)
-    .then(results => res.status(201).json({
-      id: results.id,
-      user_id: data.user_id,
-      title: data.title,
-      category: data.category,
-      content: data.content,
-      attachment_url: data.attachment_url
-    }))
+    .then((results) =>
+      res.status(201).json({
+        id: results.id,
+        user_id: data.user_id,
+        title: data.title,
+        category: data.category,
+        content: data.content,
+        attachment_url: data.attachment_url,
+      }),
+    )
     .catch((error) => {
       console.error('Error insertPost:', error);
       res.status(500).json(error);
     });
 });
 
-// Update post (owner only) 
+// Update post (owner only)
 router.put('/:id', upload.single('attachment'), (req, res, next) => {
   let attachmentUrl = req.body.attachment_url || null;
 
@@ -163,7 +167,7 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
     .then((existingPost) => {
       if (!existingPost) {
         return res.status(404).json({
-          error: 'Post not found'
+          error: 'Post not found',
         });
       }
 
@@ -171,7 +175,12 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
 
       if (req.body.remove_attachment === 'true') {
         if (existingPost.attachment_url) {
-          const oldPath = path.join(process.cwd(), 'src', 'public', existingPost.attachment_url.replace(/^\/+/, ''));
+          const oldPath = path.join(
+            process.cwd(),
+            'src',
+            'public',
+            existingPost.attachment_url.replace(/^\/+/, ''),
+          );
 
           fs.unlink(oldPath, (err) => {
             if (err) {
@@ -183,7 +192,12 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
       }
       if (req.file) {
         if (existingPost.attachment_url) {
-          const oldPath = path.join(process.cwd(), 'src', 'public', existingPost.attachment_url.replace(/^\/+/, ''));
+          const oldPath = path.join(
+            process.cwd(),
+            'src',
+            'public',
+            existingPost.attachment_url.replace(/^\/+/, ''),
+          );
 
           fs.unlink(oldPath, (err) => {
             if (err) {
@@ -206,7 +220,7 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
     })
     .then((results) => {
       if (!results) {
-        return res.status(404).json({error: 'Post not found'});
+        return res.status(404).json({ error: 'Post not found' });
       }
       res.status(200).json(results);
     })
@@ -232,12 +246,12 @@ router.delete('/:id', authenticateJWT, (req, res, next) => {
           res.status(200).json(results);
         })
         .catch((error) => {
-          console.error("Error deletePostByID: " + error);
+          console.error('Error deletePostByID: ' + error);
           res.status(500).json(error);
         });
     })
     .catch((error) => {
-      console.error("Error getPostByID: " + error);
+      console.error('Error getPostByID: ' + error);
       res.status(500).json(error);
     });
 });
@@ -247,31 +261,33 @@ router.delete('/:id', authenticateJWT, (req, res, next) => {
 // adds new save to saved posts
 router.post('/saved', authenticateJWT, (req, res, next) => {
   if (!req.body?.post_id) {
-    return res.status(400).json({"message": "Error: post_id is undefined"});
+    return res.status(400).json({ message: 'Error: post_id is undefined' });
   }
   const data = {
-    user_id: req.user.id, 
-    post_id: req.body.post_id
-  }
+    user_id: req.user.id,
+    post_id: req.body.post_id,
+  };
 
-// saves new post 
-insertSaved(data)
-    .then(results => res.status(201).json({
-        "id": results.id, 
-        "user_id": data.user_id,
-        "post_id": data.post_id
-    }))
+  // saves new post
+  insertSaved(data)
+    .then((results) =>
+      res.status(201).json({
+        id: results.id,
+        user_id: data.user_id,
+        post_id: data.post_id,
+      }),
+    )
     .catch((error) => {
-        console.error("Error insertSaved: " + error);
-        res.status(500).json(error);
-    })
+      console.error('Error insertSaved: ' + error);
+      res.status(500).json(error);
+    });
 });
 
 // remove a save
 router.delete('/saved/:id', (req, res, next) => {
-   const data = {
-    id: req.params.id
-  }
+  const data = {
+    id: req.params.id,
+  };
   deleteSavedByID(data)
     .then((results) => {
       if (!results) {
@@ -280,35 +296,37 @@ router.delete('/saved/:id', (req, res, next) => {
       res.status(200).json(results);
     })
     .catch((error) => {
-        console.error("Error deleteSavedByID: " + error);
-        res.status(500).json(error);
-    })
+      console.error('Error deleteSavedByID: ' + error);
+      res.status(500).json(error);
+    });
 });
 
 // likes n dislikes
 // creates like for a post
 router.post('/like', authenticateJWT, (req, res, next) => {
   if (!req.body?.post_id) {
-    return res.status(400).json({"message": "Error: post_id is undefined"});
+    return res.status(400).json({ message: 'Error: post_id is undefined' });
   }
   const data = {
     post_id: req.body.post_id,
-    user_id: req.user.id, 
-    reaction_type: req.body.reaction_type
-  }
+    user_id: req.user.id,
+    reaction_type: req.body.reaction_type,
+  };
 
-// likes a post_id 
-insertLike(data)
-    .then(results => res.status(201).json({
-        "id": results.id, 
-        "post_id": data.post_id,
-        "user_id": data.user_id,
-        "reaction_type": data.reaction_type
-    }))
+  // likes a post_id
+  insertLike(data)
+    .then((results) =>
+      res.status(201).json({
+        id: results.id,
+        post_id: data.post_id,
+        user_id: data.user_id,
+        reaction_type: data.reaction_type,
+      }),
+    )
     .catch((error) => {
-        console.error("Error insertLike: " + error);
-        res.status(500).json(error);
-    })
+      console.error('Error insertLike: ' + error);
+      res.status(500).json(error);
+    });
 });
 
 // Update reaction type
@@ -316,8 +334,8 @@ router.put('/reaction/:id', (req, res, next) => {
   const data = {
     id: req.params.id,
     user_id: req.body.user_id,
-    reaction_type: req.body.reaction_type
-  }
+    reaction_type: req.body.reaction_type,
+  };
 
   updateReaction(data)
     .then((results) => {
@@ -327,17 +345,17 @@ router.put('/reaction/:id', (req, res, next) => {
       res.status(200).json(results);
     })
     .catch((error) => {
-        console.error("Error updateReaction: " + error);
-        res.status(500).json(error);
-    })
+      console.error('Error updateReaction: ' + error);
+      res.status(500).json(error);
+    });
 });
 
 // remove a like or dislike
 router.delete('/reaction/:id', (req, res, next) => {
-   const data = {
+  const data = {
     id: req.params.id,
-    user_id: req.body.user_id
-  }
+    user_id: req.body.user_id,
+  };
   deleteReaction(data)
     .then((results) => {
       if (!results) {
@@ -346,9 +364,9 @@ router.delete('/reaction/:id', (req, res, next) => {
       res.status(200).json(results);
     })
     .catch((error) => {
-        console.error("Error deleteReaction: " + error);
-        res.status(500).json(error);
-    })
+      console.error('Error deleteReaction: ' + error);
+      res.status(500).json(error);
+    });
 });
 
 // Toggle pin post (owner only)
@@ -373,8 +391,8 @@ router.post('/:id/report', (req, res, next) => {
   const data = {
     post_id: req.params.id,
     user_id: req.body.user_id,
-    reason:  req.body.reason,
-    description: req.body.description || ''
+    reason: req.body.reason,
+    description: req.body.description || '',
   };
 
   insertReport(data)

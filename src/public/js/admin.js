@@ -414,13 +414,21 @@
           '<div class="dropdown d-inline-block me-1">' +
             '<button class="btn-action btn-danger-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="fas fa-gavel"></i></button>' +
             '<ul class="dropdown-menu dropdown-menu-end p-2" style="min-width:200px;">' +
-              '<li><button class="dropdown-item ban-btn" data-user-id="' + r.post_author_id + '" data-name="' + esc(r.post_author_name) + '">Ban this user</button></li>' +
-              '<li><hr class="dropdown-divider"></li>' +
-              '<li><button class="dropdown-item text-danger delete-post-btn" data-post-id="' + r.post_id + '">Delete post</button></li>' +
-              '<li><button class="dropdown-item text-secondary dismiss-report-btn" data-report-id="' + r.id + '">Dismiss report</button></li>' +
+            '<li><button class="dropdown-item ban-btn" data-user-id="' +
+            r.post_author_id +
+            '" data-name="' +
+            esc(r.post_author_name) +
+            '">Ban this user</button></li>' +
+            '<li><hr class="dropdown-divider"></li>' +
+            '<li><button class="dropdown-item text-danger delete-post-btn" data-post-id="' +
+            r.post_id +
+            '">Delete post</button></li>' +
+            '<li><button class="dropdown-item text-secondary dismiss-report-btn" data-report-id="' +
+            r.id +
+            '">Dismiss report</button></li>' +
             '</ul>' +
-          '</div>'
-        ) + '</td>';
+            '</div>') +
+        '</td>';
       tbody.appendChild(row);
     });
     document.querySelectorAll('.ban-btn').forEach(function (btn) { btn.addEventListener('click', function () { openBanModal(btn.dataset.userId, btn.dataset.name); }); });
@@ -436,12 +444,26 @@
     posts.forEach(function (p) {
       var row = document.createElement('tr');
       row.innerHTML =
-        '<td>' + p.id + '</td>' +
-        '<td><a href="posts.html?id=' + p.id + '" target="_blank" class="text-decoration-none fw-semibold">' + esc(p.title || 'Untitled') + '</a></td>' +
-        '<td>' + esc(p.author_name || 'Unknown') + '</td>' +
-        '<td><span class="badge bg-light text-dark">' + esc(p.category || '-') + '</span></td>' +
-        '<td><small>' + new Date(p.created_at).toLocaleDateString() + '</small></td>' +
-        '<td><button class="btn-action btn-danger-sm delete-post-btn" data-post-id="' + p.id + '" title="Delete"><i class="fas fa-trash-alt"></i></button></td>';
+        '<td>' +
+        p.id +
+        '</td>' +
+        '<td><a href="posts.html?id=' +
+        p.id +
+        '" target="_blank" class="text-decoration-none fw-semibold">' +
+        esc(p.title || 'Untitled') +
+        '</a></td>' +
+        '<td>' +
+        esc(p.author_name || 'Unknown') +
+        '</td>' +
+        '<td><span class="badge bg-light text-dark">' +
+        esc(p.category || '-') +
+        '</span></td>' +
+        '<td><small>' +
+        new Date(p.created_at).toLocaleDateString() +
+        '</small></td>' +
+        '<td><button class="btn-action btn-danger-sm delete-post-btn" data-post-id="' +
+        p.id +
+        '" title="Delete"><i class="fas fa-trash-alt"></i></button></td>';
       tbody.appendChild(row);
     });
     document.querySelectorAll('#adminPostsBody .delete-post-btn').forEach(function (btn) { btn.addEventListener('click', function () { openConfirm('Delete Post', 'Delete post #' + btn.dataset.postId + '? This cannot be undone.', function () { authFetch('/posts/' + btn.dataset.postId, { method: 'DELETE' }).then(function () { loadPosts(); loadStats(); }).catch(function (err) { alert(err.message); }); }, { requireTyping: 'DELETE' }); }); });
@@ -486,11 +508,23 @@
     log.forEach(function (entry) {
       var row = document.createElement('tr');
       row.innerHTML =
-        '<td><small>' + new Date(entry.created_at).toLocaleString() + '</small></td>' +
-        '<td>' + esc(entry.admin_name || entry.admin_username) + '</td>' +
-        '<td><span class="badge bg-info text-dark">' + esc(entry.action) + '</span></td>' +
-        '<td>' + esc(entry.target_type || '-') + ' #' + (entry.target_id || '-') + '</td>' +
-        '<td style="max-width:250px;">' + esc(entry.details || '') + '</td>';
+        '<td><small>' +
+        new Date(entry.created_at).toLocaleString() +
+        '</small></td>' +
+        '<td>' +
+        esc(entry.admin_name || entry.admin_username) +
+        '</td>' +
+        '<td><span class="badge bg-info text-dark">' +
+        esc(entry.action) +
+        '</span></td>' +
+        '<td>' +
+        esc(entry.target_type || '-') +
+        ' #' +
+        (entry.target_id || '-') +
+        '</td>' +
+        '<td style="max-width:250px;">' +
+        esc(entry.details || '') +
+        '</td>';
       tbody.appendChild(row);
     });
   }
@@ -709,8 +743,14 @@
     }
 
     if (typeof isLoggedIn === 'function' && typeof isAdmin === 'function') {
-      if (!isLoggedIn()) { window.location.replace('home.html?login=1&return=admin.html'); return; }
-      if (!isAdmin(getStoredUser())) { window.location.replace('home.html'); return; }
+      if (!isLoggedIn()) {
+        window.location.replace('home.html?login=1&return=admin.html');
+        return;
+      }
+      if (!isAdmin(getStoredUser())) {
+        window.location.replace('home.html');
+        return;
+      }
     }
     if (typeof updateNavForUser === 'function') updateNavForUser(getStoredUser());
 

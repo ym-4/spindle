@@ -1,560 +1,498 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- CSS Files -->
-    <link rel="stylesheet" href="css/posts.css">
-    <link rel="stylesheet" href="css/groups_page.css">
-    <link rel="stylesheet" href="css/groups_feed.css">
-    <link rel="stylesheet" href="css/spindle-notif.css">
-    <link rel="stylesheet" href="css/profile-page.css">
-    <link rel="stylesheet" href="css/groups_admin.css">
+    <link rel="stylesheet" href="css/posts.css" />
+    <link rel="stylesheet" href="css/groups_page.css" />
+    <link rel="stylesheet" href="css/groups_feed.css" />
+    <link rel="stylesheet" href="css/spindle-notif.css" />
+    <link rel="stylesheet" href="css/profile-page.css" />
+    <link rel="stylesheet" href="css/groups_admin.css" />
     <script src="js/api.js"></script>
     <script src="js/groupsSharedFunctions.js" defer></script>
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap"
+      rel="stylesheet"
+    />
 
     <title>Groups feed</title>
-</head>
-<body>
+  </head>
+  <body>
     <!---Navbar-->
     <nav class="navbar">
-        <div class="container-fluid px-4 d-flex align-items-center">
+      <div class="container-fluid px-4 d-flex align-items-center">
+        <!-- Brand (left) -->
+        <a class="navbar-brand" href="index.html">
+          <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
+          <span class="brand-name">spindle</span>
+        </a>
 
-            <!-- Brand (left) -->
-            <a class="navbar-brand" href="index.html">
-                <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo">
-                <span class="brand-name">spindle</span>
-            </a>
-
-            <!-- Searchbar-->
-            <div class="navbar-search">
-                <input class="form-control" id="searchInput" type="search" 
-                    placeholder="Search posts, groups, items..." aria-label="Search">
-            </div>
-
-            
-            <div class="navbar-right">
-                <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
-                <a href="profile.html" class="btn-navbar-profile" id="profileButton">
-                    <i class="fas fa-user-circle"></i> Profile
-                </a>
-                <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
-            </div>
-
+        <!-- Searchbar-->
+        <div class="navbar-search">
+          <input
+            class="form-control"
+            id="searchInput"
+            type="search"
+            placeholder="Search posts, groups, items..."
+            aria-label="Search"
+          />
         </div>
+
+        <div class="navbar-right">
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a href="profile.html" class="btn-navbar-profile" id="profileButton">
+            <i class="fas fa-user-circle"></i> Profile
+          </a>
+          <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+        </div>
+      </div>
     </nav>
 
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Left Sidebar -->
-        <aside class="sidebar">
-            <a href="index.html" class="sidebar-item">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
-            </a>
-            <a href="groups.html" class="sidebar-item active">
-                <i class="fas fa-users"></i>
-                <span>Study Groups</span>
-            </a>
-            <a href="marketplace.html" class="sidebar-item">
-                <i class="fas fa-store"></i>
-                <span>Marketplace</span>
-            </a>
-            <a href="profile.html" class="sidebar-item">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
-            </a>
-            
-            <div class="sidebar-divider"></div>
-            
-            <div class="sidebar-item">
-                <i class="fas fa-bookmark"></i>
-                <span>Saved Posts</span>
-            </div>
-            <div class="sidebar-item">
-                <i class="fas fa-clock"></i>
-                <span>Recent</span>
-            </div>
-            <div class="sidebar-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </div>
-        </aside>
+      <!-- Left Sidebar -->
+      <aside class="sidebar">
+        <a href="index.html" class="sidebar-item">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="groups.html" class="sidebar-item active">
+          <i class="fas fa-users"></i>
+          <span>Study Groups</span>
+        </a>
+        <a href="marketplace.html" class="sidebar-item">
+          <i class="fas fa-store"></i>
+          <span>Marketplace</span>
+        </a>
+        <a href="profile.html" class="sidebar-item">
+          <i class="fas fa-user"></i>
+          <span>Profile</span>
+        </a>
 
-        <main id="content-area">
-            <!-- Back button -->
-            <a href="groups_feed.html" class="text-decoration-none back-btn">
-                <i class="fas fa-arrow-left"></i> Back
-            </a>
+        <div class="sidebar-divider"></div>
 
-            <div class="container-fluid mt-3">
+        <div class="sidebar-item">
+          <i class="fas fa-bookmark"></i>
+          <span>Saved Posts</span>
+        </div>
+        <div class="sidebar-item">
+          <i class="fas fa-clock"></i>
+          <span>Recent</span>
+        </div>
+        <div class="sidebar-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </div>
+      </aside>
 
-                <!-- Page Header -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
+      <main id="content-area">
+        <!-- Back button -->
+        <a href="groups_feed.html" class="text-decoration-none back-btn">
+          <i class="fas fa-arrow-left"></i> Back
+        </a>
+
+        <div class="container-fluid mt-3">
+          <!-- Page Header -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h2 class="fw-bold mb-0">
+                <i class="bi bi-gear-fill"></i>
+                Manage Group
+              </h2>
+              <p class="text-muted mb-0 mt-1">
+                Manage your study group's settings, members and channels.
+              </p>
+            </div>
+          </div>
+
+          <div class="row g-4">
+            <!-- Main Content -->
+            <div class="col-lg-9">
+              <!-- Group Details -->
+              <div class="card shadow-sm mb-4 rounded-4 admin-section" id="group-details">
+                <div class="card-header fw-bold">Group Details</div>
+
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">Group Name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      value="SOC Study Group"
+                      id="groupName"
+                    />
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Description</label>
+
+                    <textarea class="form-control" rows="4" id="groupDescription">
+A place for SOC students to share notes and discuss assignments.</textarea>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <label class="form-label">Module</label>
+                      <input class="form-control" value="CS1010" id="groupModule" />
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label">Privacy</label>
+
+                      <select class="form-select" id="groupPublicity">
+                        <option>Public</option>
+                        <option>Private</option>
+                      </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                      <button class="btn btn-primary" id="saveGroupDetails">
+                        <i class="bi bi-check-lg me-1"></i>
+                        Save Changes
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Members -->
+              <div class="card shadow-sm mb-4 rounded-4 admin-section" id="members">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span class="fw-bold">Members</span>
+
+                  <div class="input-group" style="width: 260px">
+                    <span class="input-group-text bg-white">
+                      <i class="bi bi-search"></i>
+                    </span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="memberSearch"
+                      placeholder="Search members..."
+                    />
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <table class="table align-middle">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th width="180">Actions</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr>
+                        <td>You</td>
+
+                        <td>
+                          <span class="badge bg-warning"> Creator </span>
+                        </td>
+
+                        <td>-</td>
+                      </tr>
+
+                      <tr>
+                        <td>Alex</td>
+
+                        <td>
+                          <span class="badge bg-primary"> Admin </span>
+                        </td>
+
+                        <td>
+                          <button class="btn btn-outline-secondary btn-sm" id="userId-remove-admin">
+                            Remove Admin
+                          </button>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>Jamie</td>
+
+                        <td>
+                          <span class="badge bg-secondary"> Member </span>
+                        </td>
+
+                        <td>
+                          <button class="btn btn-outline-success btn-sm" id="userId-promote">
+                            Promote
+                          </button>
+
+                          <button class="btn btn-outline-danger btn-sm" id="userId-remove">
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Channels -->
+              <div class="card shadow-sm mb-4 rounded-4 admin-section" id="channels">
+                <div class="card-header d-flex justify-content-between">
+                  <span class="fw-bold"> Channels </span>
+                </div>
+
+                <div class="card-body">
+                  <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      # general
+
+                      <div>
+                        <button class="btn btn-outline-secondary btn-sm" id="general-edit-button">
+                          Edit
+                        </button>
+
+                        <button class="btn btn-outline-danger btn-sm" id="general-delete-button">
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      # assignment-help
+
+                      <div>
+                        <button
+                          class="btn btn-outline-secondary btn-sm"
+                          id="assignment-help-edit-button"
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          class="btn btn-outline-danger btn-sm"
+                          id="assignment-help-delete-button"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Announcements -->
+              <div class="admin-section" id="announcements">
+                <!-- Create Announcements -->
+                <div class="card shadow-sm rounded-4" id="createAnnouncements">
+                  <div class="card-header fw-bold">Create Announcement</div>
+
+                  <div class="card-body">
+                    <textarea
+                      class="form-control mb-3"
+                      rows="4"
+                      id="announcementText"
+                      placeholder="Write an announcement..."
+                    ></textarea>
+
+                    <div class="text-end">
+                      <button class="btn" id="post-annoucement-button">
+                        <i class="bi bi-send"></i>
+                        Post Announcement
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Current Announcements -->
+                <div class="card shadow-sm rounded-4 mt-4" id="currentAnnouncements">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"> Current Announcements </span>
+
+                    <span class="badge bg-secondary" id="announcementCount"> 2 Active </span>
+                  </div>
+
+                  <div class="card-body p-0" id="announcementList">
+                    <!-- Announcement -->
+                    <div class="p-4 border-bottom">
+                      <div class="d-flex justify-content-between">
+                        <div>
+                          <h6 class="mb-1">Assignment Deadline Reminder</h6>
+
+                          <small class="text-muted"> Posted by You • 2 hours ago </small>
+                        </div>
+
+                        <div>
+                          <button class="btn btn-outline-secondary btn-sm me-2">
+                            <i class="bi bi-pencil"></i>
+                          </button>
+
+                          <button class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <p class="mt-3 mb-0">
+                        Remember to submit Assignment 2 before Friday at 11:59 PM.
+                      </p>
+                    </div>
+
+                    <!-- Announcement -->
+                    <div class="p-4">
+                      <div class="d-flex justify-content-between">
+                        <div>
+                          <h6 class="mb-1">Weekly Study Session</h6>
+
+                          <small class="text-muted"> Posted by You • Yesterday </small>
+                        </div>
+
+                        <div>
+                          <button class="btn btn-outline-secondary btn-sm me-2">
+                            <i class="bi bi-pencil"></i>
+                          </button>
+
+                          <button class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <p class="mt-3 mb-0">Study session this Saturday at 2 PM in COM2.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Join Requests -->
+              <div class="card shadow-sm rounded-4 admin-section" id="join-requests">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span class="fw-bold">Join Requests</span>
+
+                  <span class="badge bg-warning text-dark" id="requestCount"> 2 Pending </span>
+                </div>
+
+                <div class="card-body p-0">
+                  <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
                     <div>
-                        <h2 class="fw-bold mb-0">
-                            <i class="bi bi-gear-fill"></i>
-                            Manage Group
-                        </h2>
-                        <p class="text-muted mb-0 mt-1">
-                            Manage your study group's settings, members and channels.
-                        </p>
+                      <strong>John Tan</strong><br />
+                      <small class="text-muted"> Requested 2 hours ago </small>
                     </div>
 
+                    <div>
+                      <button class="btn btn-success btn-sm me-2" id="userId1Approve">
+                        <i class="bi bi-check-lg"></i>
+                        Approve
+                      </button>
+
+                      <button class="btn btn-outline-danger btn-sm" id="userId1Reject">
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="p-3 d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>Sarah Lim</strong><br />
+                      <small class="text-muted"> Requested yesterday </small>
+                    </div>
+
+                    <div>
+                      <button class="btn btn-success btn-sm me-2" id="userId2Approve">
+                        <i class="bi bi-check-lg"></i>
+                        Approve
+                      </button>
+
+                      <button class="btn btn-outline-danger btn-sm" id="userId2Reject">
+                        Reject
+                      </button>
+                    </div>
+                  </div>
                 </div>
-
-                <div class="row g-4">
-                    <!-- Main Content -->
-                    <div class="col-lg-9">
-
-                        <!-- Group Details -->
-                        <div class="card shadow-sm mb-4 rounded-4 admin-section" id="group-details">
-
-                            <div class="card-header fw-bold">
-                                Group Details
-                            </div>
-
-                            <div class="card-body">
-
-                                <div class="mb-3">
-                                    <label class="form-label">Group Name</label>
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        value="SOC Study Group"
-                                        id="groupName">
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Description</label>
-
-                                    <textarea
-                                        class="form-control"
-                                        rows="4"
-                                        id="groupDescription">A place for SOC students to share notes and discuss assignments.</textarea>
-                                </div>
-
-                                <div class="row">
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Module</label>
-                                        <input class="form-control" value="CS1010" id="groupModule">
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Privacy</label>
-
-                                        <select class="form-select" id="groupPublicity">
-                                            <option>Public</option>
-                                            <option>Private</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="d-flex justify-content-end mt-4">
-                                        <button class="btn btn-primary" id="saveGroupDetails">
-                                            <i class="bi bi-check-lg me-1"></i>
-                                            Save Changes
-                                        </button>
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <!-- Members -->
-                        <div class="card shadow-sm mb-4 rounded-4 admin-section" id="members">
-
-                            <div class="card-header d-flex justify-content-between align-items-center">
-
-                                <span class="fw-bold">Members</span>
-
-                                <div class="input-group" style="width:260px;">
-                                    <span class="input-group-text bg-white">
-                                        <i class="bi bi-search"></i>
-                                    </span>
-                                    <input type="text" class="form-control" id="memberSearch" placeholder="Search members...">
-                                </div>
-
-                            </div>
-
-                            <div class="card-body">
-                                <table class="table align-middle">
-
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Role</th>
-                                            <th width="180">Actions</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-
-                                    <tr>
-                                        <td>You</td>
-
-                                        <td>
-                                            <span class="badge bg-warning">
-                                                Creator
-                                            </span>
-                                        </td>
-
-                                        <td>-</td>
-                                    </tr>
-
-                                    <tr>
-                                        <td>Alex</td>
-
-                                        <td>
-                                            <span class="badge bg-primary">
-                                                Admin
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <button class="btn btn-outline-secondary btn-sm" id="userId-remove-admin">
-                                                Remove Admin
-                                            </button>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td>Jamie</td>
-
-                                        <td>
-                                            <span class="badge bg-secondary">
-                                                Member
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <button class="btn btn-outline-success btn-sm" id="userId-promote">
-                                                Promote
-                                            </button>
-
-                                            <button class="btn btn-outline-danger btn-sm" id="userId-remove">
-                                                Remove
-                                            </button>
-                                        </td>
-                                    </tr>
-
-                                    </tbody>
-
-                                </table>
-
-                            </div>
-
-                        </div>
-
-                        <!-- Channels -->
-                        <div class="card shadow-sm mb-4 rounded-4 admin-section" id="channels">
-
-                            <div class="card-header d-flex justify-content-between">
-
-                                <span class="fw-bold">
-                                    Channels
-                                </span>
-
-                            </div>
-
-                            <div class="card-body">
-
-                                <ul class="list-group">
-
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-
-                                        # general
-
-                                        <div>
-
-                                            <button class="btn btn-outline-secondary btn-sm" id="general-edit-button">
-                                                Edit
-                                            </button>
-
-                                            <button class="btn btn-outline-danger btn-sm" id="general-delete-button">
-                                                Delete
-                                            </button>
-
-                                        </div>
-
-                                    </li>
-
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-
-                                        # assignment-help
-
-                                        <div>
-
-                                            <button class="btn btn-outline-secondary btn-sm" id="assignment-help-edit-button">
-                                                Edit
-                                            </button>
-
-                                            <button class="btn btn-outline-danger btn-sm" id="assignment-help-delete-button">
-                                                Delete
-                                            </button>
-
-                                        </div>
-
-                                    </li>
-
-                                </ul>
-
-                            </div>
-
-                        </div>
-
-                        <!-- Announcements -->
-                        <div class="admin-section" id="announcements">
-                            <!-- Create Announcements -->
-                            <div class="card shadow-sm rounded-4" id="createAnnouncements">
-
-                                <div class="card-header fw-bold">
-                                    Create Announcement
-                                </div>
-
-                                <div class="card-body">
-
-                                    <textarea
-                                        class="form-control mb-3"
-                                        rows="4"
-                                        id="announcementText"
-                                        placeholder="Write an announcement..."></textarea>
-
-                                    <div class="text-end">
-                                        <button class="btn" id="post-annoucement-button">
-                                            <i class="bi bi-send"></i>
-                                            Post Announcement
-                                        </button>
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <!-- Current Announcements -->
-                            <div class="card shadow-sm rounded-4 mt-4" id="currentAnnouncements">
-
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold">
-                                        Current Announcements
-                                    </span>
-
-                                    <span class="badge bg-secondary" id="announcementCount">
-                                        2 Active
-                                    </span>
-                                </div>
-
-                                <div class="card-body p-0" id="announcementList">
-
-                                    <!-- Announcement -->
-                                    <div class="p-4 border-bottom">
-
-                                        <div class="d-flex justify-content-between">
-
-                                            <div>
-                                                <h6 class="mb-1">
-                                                    Assignment Deadline Reminder
-                                                </h6>
-
-                                                <small class="text-muted">
-                                                    Posted by You • 2 hours ago
-                                                </small>
-                                            </div>
-
-                                            <div>
-                                                <button class="btn btn-outline-secondary btn-sm me-2">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-
-                                                <button class="btn btn-outline-danger btn-sm">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-
-                                        </div>
-
-                                        <p class="mt-3 mb-0">
-                                            Remember to submit Assignment 2 before Friday at 11:59 PM.
-                                        </p>
-
-                                    </div>
-
-                                    <!-- Announcement -->
-                                    <div class="p-4">
-
-                                        <div class="d-flex justify-content-between">
-
-                                            <div>
-                                                <h6 class="mb-1">
-                                                    Weekly Study Session
-                                                </h6>
-
-                                                <small class="text-muted">
-                                                    Posted by You • Yesterday
-                                                </small>
-                                            </div>
-
-                                            <div>
-                                                <button class="btn btn-outline-secondary btn-sm me-2">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-
-                                                <button class="btn btn-outline-danger btn-sm">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-
-                                        </div>
-
-                                        <p class="mt-3 mb-0">
-                                            Study session this Saturday at 2 PM in COM2.
-                                        </p>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-                            
-                        </div>
-
-                        <!-- Join Requests -->
-                        <div class="card shadow-sm rounded-4 admin-section" id="join-requests">
-
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <span class="fw-bold">Join Requests</span>
-
-                                <span class="badge bg-warning text-dark" id="requestCount">
-                                    2 Pending
-                                </span>
-                            </div>
-
-                            <div class="card-body p-0">
-
-                                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>John Tan</strong><br>
-                                        <small class="text-muted">
-                                            Requested 2 hours ago
-                                        </small>
-                                    </div>
-
-                                    <div>
-                                        <button class="btn btn-success btn-sm me-2" id="userId1Approve">
-                                            <i class="bi bi-check-lg"></i>
-                                            Approve
-                                        </button>
-
-                                        <button class="btn btn-outline-danger btn-sm" id="userId1Reject">
-                                            Reject
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="p-3 d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>Sarah Lim</strong><br>
-                                        <small class="text-muted">
-                                            Requested yesterday
-                                        </small>
-                                    </div>
-
-                                    <div>
-                                        <button class="btn btn-success btn-sm me-2" id="userId2Approve">
-                                            <i class="bi bi-check-lg"></i>
-                                            Approve
-                                        </button>
-
-                                        <button class="btn btn-outline-danger btn-sm" id="userId2Reject">
-                                            Reject
-                                        </button>
-                                    </div>
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- Right Navigation -->
-                    <div class="col-lg-3">
-                        
-                        <div class="list-group shadow-sm rounded-4" id="adminNav">
-
-                            <button class="list-group-item list-group-item-action active"
-                                    data-target="group-details">
-                                <i class="bi bi-info-circle me-2"></i>
-                                Group Details
-                            </button>
-
-                            <button class="list-group-item list-group-item-action"
-                                    data-target="members">
-                                <i class="bi bi-people me-2"></i>
-                                Members
-                            </button>
-
-                            <button class="list-group-item list-group-item-action"
-                                    data-target="join-requests">
-                                <i class="bi bi-person-plus me-2"></i>
-                                Join Requests
-                            </button>
-
-                            <button class="list-group-item list-group-item-action"
-                                    data-target="channels">
-                                <i class="bi bi-chat-left-text me-2"></i>
-                                Channels
-                            </button>
-
-                            <button class="list-group-item list-group-item-action"
-                                    data-target="announcements">
-                                <i class="bi bi-megaphone me-2"></i>
-                                Announcements
-                            </button>
-                            
-                            <button class="list-group-item list-group-item-action text-danger">
-                                <i class="bi bi-trash me-2"></i>
-                                Delete Group
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
+              </div>
             </div>
 
-        </main>
+            <!-- Right Navigation -->
+            <div class="col-lg-3">
+              <div class="list-group shadow-sm rounded-4" id="adminNav">
+                <button
+                  class="list-group-item list-group-item-action active"
+                  data-target="group-details"
+                >
+                  <i class="bi bi-info-circle me-2"></i>
+                  Group Details
+                </button>
 
+                <button class="list-group-item list-group-item-action" data-target="members">
+                  <i class="bi bi-people me-2"></i>
+                  Members
+                </button>
+
+                <button class="list-group-item list-group-item-action" data-target="join-requests">
+                  <i class="bi bi-person-plus me-2"></i>
+                  Join Requests
+                </button>
+
+                <button class="list-group-item list-group-item-action" data-target="channels">
+                  <i class="bi bi-chat-left-text me-2"></i>
+                  Channels
+                </button>
+
+                <button class="list-group-item list-group-item-action" data-target="announcements">
+                  <i class="bi bi-megaphone me-2"></i>
+                  Announcements
+                </button>
+
+                <button class="list-group-item list-group-item-action text-danger">
+                  <i class="bi bi-trash me-2"></i>
+                  Delete Group
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
 
     <!-- Toast -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer">
-        <div id="groupsFeedToast" class="toast app-toast align-items-center text-white border-0" role="alert">
-            <div class="d-flex">
-            
-                <div class="toast-body d-flex align-items-center gap-2" id="toastBody">
-                    <!-- icon + message here -->
-                </div>
+      <div
+        id="groupsFeedToast"
+        class="toast app-toast align-items-center text-white border-0"
+        role="alert"
+      >
+        <div class="d-flex">
+          <div class="toast-body d-flex align-items-center gap-2" id="toastBody">
+            <!-- icon + message here -->
+          </div>
 
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
+          <button
+            type="button"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+          ></button>
         </div>
+      </div>
     </div>
-    
+
     <!-- JS files -->
     <script src="js/queryCmds.js"></script>
     <script src="js/userNavBarToggle.js"></script>
@@ -565,22 +503,14 @@
     <script src="js/socket-client.js"></script>
     <script src="js/spindle-sidebar.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof injectWaHeader === 'function') {
-                injectWaHeader('Study Groups Feed');
-            }
-            if (typeof injectNotificationsOnly === 'function') {
-                injectNotificationsOnly('spindleNotifSlot');
-            }
-        });
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof injectWaHeader === 'function') {
+          injectWaHeader('Study Groups Feed');
+        }
+        if (typeof injectNotificationsOnly === 'function') {
+          injectNotificationsOnly('spindleNotifSlot');
+        }
+      });
     </script>
-</body>
+  </body>
 </html>
-
-
-
-
-
-
-
-

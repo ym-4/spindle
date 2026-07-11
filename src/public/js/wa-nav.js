@@ -43,7 +43,10 @@ function ensureAuthButtons() {
 function syncLegacyNavbar() {
   ensureAuthButtons();
 
-  const loggedIn = typeof isLoggedIn === 'function' ? isLoggedIn() : !!(localStorage.getItem('token') || localStorage.getItem('pineappleToken'));
+  const loggedIn =
+    typeof isLoggedIn === 'function'
+      ? isLoggedIn()
+      : !!(localStorage.getItem('token') || localStorage.getItem('pineappleToken'));
   const loginButton = document.getElementById('loginButton');
   const registerButton = document.getElementById('registerButton');
   const profileButton = document.getElementById('profileButton');
@@ -101,7 +104,8 @@ function injectWaNav(active) {
 
 function renderNotifBell() {
   const unread = window.__notifUnread || 0;
-  const badge = unread > 0 ? `<span class="wa-bell-badge">${unread > 99 ? '99+' : unread}</span>` : '';
+  const badge =
+    unread > 0 ? `<span class="wa-bell-badge">${unread > 99 ? '99+' : unread}</span>` : '';
   const spindle = document.querySelector('#spindleNotifSlot, .spindle-notif-slot');
   const icon = spindle ? '<i class="fas fa-bell"></i>' : '🔔';
   return `
@@ -120,17 +124,17 @@ function renderNotifBell() {
 function injectHeaderActions(slotId = 'waHeaderSlot') {
   const slot = document.getElementById(slotId);
   if (!slot || !isLoggedIn()) return;
-  
+
   slot.innerHTML = `${renderNotifBell()}<button type="button" class="wa-btn wa-btn--ghost wa-btn--small" id="waHeaderLogout">Log out</button>`;
-  
+
   bindNotificationBell();
   refreshNotifBadge();
-  
+
   const logoutBtn = document.getElementById('waHeaderLogout');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleLogout(); 
+      e.preventDefault();
+      handleLogout();
     });
   }
 }
@@ -150,31 +154,31 @@ function injectNotificationsOnly(slotId = 'spindleNotifSlot') {
 }
 
 function injectWaHeader(title, opts = {}) {
-    const slot = document.getElementById('waHeaderSlot');
-    if (!slot) {
-        console.warn("Header slot not found, skipping injection.");
-        return;
-    }
+  const slot = document.getElementById('waHeaderSlot');
+  if (!slot) {
+    console.warn('Header slot not found, skipping injection.');
+    return;
+  }
 
-    const loggedIn = !!localStorage.getItem('token');
-    
-    let actionsHTML = '';
-    if (loggedIn) {
-        const bell = opts.bell !== false ? renderNotifBell() : '';
-        actionsHTML = `
+  const loggedIn = !!localStorage.getItem('token');
+
+  let actionsHTML = '';
+  if (loggedIn) {
+    const bell = opts.bell !== false ? renderNotifBell() : '';
+    actionsHTML = `
             ${bell}
             <a href="chat.html" class="wa-btn wa-btn--ghost" id="navMessages"><i class="fas fa-envelope"></i></a>
             <button type="button" class="wa-btn wa-btn--ghost" id="waHeaderLogout">Log Out</button>
             <a href="profile.html" class="wa-btn">Profile</a>
         `;
-    } else {
-        actionsHTML = `
+  } else {
+    actionsHTML = `
             <a href="home.html" class="wa-btn wa-btn--ghost">Log In</a>
             <a href="home.html?login=1" class="wa-btn">Sign Up</a>
         `;
-    }
+  }
 
-    slot.innerHTML = `
+  slot.innerHTML = `
         <header class="wa-topbar">
             <h1>${esc(title)}</h1>
             <div class="wa-topbar-actions">${actionsHTML}</div>
@@ -183,48 +187,48 @@ function injectWaHeader(title, opts = {}) {
 
   const logoutBtn = document.getElementById('logoutButton');
   if (logoutBtn) {
-      logoutBtn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          try {
-              const token = localStorage.getItem('token');
-              if (token) {
-                  await fetch('/auth/logout', {
-                      method: 'POST',
-                      headers: { 'Authorization': `Bearer ${token}` }
-                  });
-              }
-          } catch (err) {
-              console.error("Logout request failed, proceeding to clear local data...");
-          }
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          await fetch('/auth/logout', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+      } catch (err) {
+        console.error('Logout request failed, proceeding to clear local data...');
+      }
 
-          clearAuth(); 
-          window.location.href = 'register.html';
-      });
+      clearAuth();
+      window.location.href = 'register.html';
+    });
   }
 
-    if (loggedIn) {
-        if (opts.bell !== false) bindNotificationBell();
-        document.getElementById('waHeaderLogout')?.addEventListener('click', performSpindleLogout);
-    }
+  if (loggedIn) {
+    if (opts.bell !== false) bindNotificationBell();
+    document.getElementById('waHeaderLogout')?.addEventListener('click', performSpindleLogout);
+  }
 }
 
 async function performSpindleLogout() {
-    const token = localStorage.getItem('token');
-    try {
-        if (token) {
-            await fetch('/auth/logout', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-            });
-        }
-    } catch (err) {
-        console.warn("Logout error:", err);
+  const token = localStorage.getItem('token');
+  try {
+    if (token) {
+      await fetch('/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      });
     }
-    
-    const keys = ['token', 'loggedInUserId', 'pineappleUser', 'pineappleToken', 'displayName'];
-    keys.forEach(k => localStorage.removeItem(k));
-    
-    window.location.href = 'login.html';
+  } catch (err) {
+    console.warn('Logout error:', err);
+  }
+
+  const keys = ['token', 'loggedInUserId', 'pineappleUser', 'pineappleToken', 'displayName'];
+  keys.forEach((k) => localStorage.removeItem(k));
+
+  window.location.href = 'login.html';
 }
 
 document.addEventListener('DOMContentLoaded', () => {

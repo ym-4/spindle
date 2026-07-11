@@ -81,8 +81,8 @@ This project demonstrates a CRUD web application with a complete CI/CD workflow.
 |       |   ├── styles.css      # Common styles across multiple pages
 |       |   └── specific.css    # For specific CSS files
 |       ├── images              # Assets used
-|       └── js                  
-|           ├── index.js        # Frontend JavaScript   
+|       └── js
+|           ├── index.js        # Frontend JavaScript
 |           └── script.js       # Common JavaScript file across multiple pages
 ├── e2e-tests/                  # Playwright E2E test specs
 ├── schema.sql                  # Database schema (single source of truth)
@@ -307,10 +307,10 @@ Push / PR to main
 
 Set these in **Settings → Secrets and variables → Actions**:
 
-| Secret         | Example Value                                                          |
-| -------------- | ---------------------------------------------------------------------- |
+| Secret         | Example Value                                            |
+| -------------- | -------------------------------------------------------- |
 | `DATABASE_URL` | `postgresql://user:password@host/dbname?sslmode=require` |
-| `APP_PORT`     | `3001`                                                                 |
+| `APP_PORT`     | `3001`                                                   |
 
 ### GitHub Pages Setup
 

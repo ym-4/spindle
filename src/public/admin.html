@@ -4,8 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin — Spindle</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
         :root { --bg: #f0f2f5; --card-bg: #fff; --text: #1a1a2e; --text-muted: #65676b; --border: #e4e6eb; --hover: #f7f8fa; --accent: #1877f2; --danger: #e41e3f; --success: #1b9c4b; --warning: #f5a623; --shadow: rgba(0,0,0,0.08); --sidebar-bg: #fff; }
         [data-theme="dark"] { --bg: #1a1a2e; --card-bg: #2a2a3e; --text: #e4e6eb; --text-muted: #a0a0b0; --border: #3a3a4e; --hover: #3a3a4e; --shadow: rgba(0,0,0,0.3); --sidebar-bg: #222236; }
@@ -159,6 +165,7 @@
                 <button class="btn btn-outline-danger btn-sm" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
+      </div>
 
         <!-- Breadcrumb -->
         <div id="breadcrumb" class="breadcrumb-wrap"></div>
@@ -197,7 +204,28 @@
                     <table class="admin-table"><thead><tr><th style="width:32px;"><input type="checkbox" id="userSelectAll"></th><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th style="width:200px;">Actions</th></tr></thead><tbody id="adminUsersBody"></tbody></table>
                 </div>
             </div>
-        </div></div>
+            <div id="adminLoading" class="text-center py-4 text-muted">
+              <i class="fas fa-spinner fa-spin me-2"></i>Loading users...
+            </div>
+            <div id="adminError" class="alert alert-danger hidden"></div>
+            <div id="adminPanel" class="hidden">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th style="width: 200px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUsersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
 
         <!-- ===== POSTS TAB ===== -->
         <div id="tabPosts" class="tab-content hidden"><div class="admin-card">
@@ -216,7 +244,28 @@
                     <table class="admin-table"><thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Category</th><th>Date</th><th style="width:80px;">Action</th></tr></thead><tbody id="adminPostsBody"></tbody></table>
                 </div>
             </div>
-        </div></div>
+            <div id="postsLoading" class="text-center py-4 text-muted">
+              <i class="fas fa-spinner fa-spin me-2"></i>Loading posts...
+            </div>
+            <div id="postsError" class="alert alert-danger hidden"></div>
+            <div id="postsPanel" class="hidden">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th style="width: 80px">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminPostsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
 
         <!-- ===== REPORTS TAB ===== -->
         <div id="tabReports" class="tab-content hidden"><div class="admin-card">
@@ -230,7 +279,9 @@
                     <table class="admin-table"><thead><tr><th>ID</th><th>Post</th><th>Reason</th><th>Description</th><th>Reporter</th><th>Author</th><th>Date</th><th style="width:200px;">Actions</th></tr></thead><tbody id="reportsBody"></tbody></table>
                 </div>
             </div>
-        </div></div>
+          </div>
+        </div>
+      </div>
 
         <!-- ===== APPEALS TAB ===== -->
         <div id="tabAppeals" class="tab-content hidden"><div class="admin-card">
@@ -242,7 +293,26 @@
                     <table class="admin-table"><thead><tr><th>ID</th><th>User</th><th>Ban Reason</th><th>Duration</th><th>Appeal Message</th><th>Submitted</th><th style="width:180px;">Actions</th></tr></thead><tbody id="appealsBody"></tbody></table>
                 </div>
             </div>
-        </div></div>
+            <div id="appealsError" class="alert alert-danger hidden"></div>
+            <div id="appealsPanel" class="hidden">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Ban Reason</th>
+                    <th>Duration</th>
+                    <th>Appeal Message</th>
+                    <th>Submitted</th>
+                    <th style="width: 180px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="appealsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
 
         <!-- ===== AUDIT LOG TAB ===== -->
         <div id="tabAudit" class="tab-content hidden"><div class="admin-card">
@@ -254,56 +324,70 @@
                     <table class="admin-table"><thead><tr><th>Date</th><th>Admin</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody id="auditBody"></tbody></table>
                 </div>
             </div>
-        </div></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Double-confirm modal -->
     <div id="confirmModal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h3 id="confirmTitle">Confirm</h3>
-            <p id="confirmDesc"></p>
-            <div id="confirmExtra" class="hidden mb-2">
-                <label class="small text-muted">Type <strong id="confirmTypeWord"></strong> to confirm:</label>
-                <input type="text" id="confirmInput" class="form-control form-control-sm mt-1" placeholder="">
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-outline-secondary btn-sm" id="confirmCancel">Cancel</button>
-                <button class="btn btn-danger btn-sm" id="confirmOk">Confirm</button>
-            </div>
+      <div class="modal-box">
+        <h3 id="confirmTitle">Confirm</h3>
+        <p id="confirmDesc"></p>
+        <div id="confirmExtra" class="hidden mb-2">
+          <label class="small text-muted"
+            >Type <strong id="confirmTypeWord"></strong> to confirm:</label
+          >
+          <input
+            type="text"
+            id="confirmInput"
+            class="form-control form-control-sm mt-1"
+            placeholder=""
+          />
         </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline-secondary btn-sm" id="confirmCancel">Cancel</button>
+          <button class="btn btn-danger btn-sm" id="confirmOk">Confirm</button>
+        </div>
+      </div>
     </div>
 
     <!-- Ban reason modal -->
     <div id="banModal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h3>Ban User</h3>
-            <p id="banUserLabel"></p>
-            <div class="mb-2">
-                <label class="form-label small">Duration</label>
-                <select id="banDuration" class="form-select form-select-sm">
-                    <option value="1">1 Hour</option>
-                    <option value="24">24 Hours</option>
-                    <option value="720">30 Days</option>
-                    <option value="8760">1 Year</option>
-                    <option value="0">Permanent</option>
-                </select>
-            </div>
-            <div class="mb-2">
-                <label class="form-label small">Reason</label>
-                <select id="banReasonSelect" class="form-select form-select-sm mb-1">
-                    <option value="">Select a reason...</option>
-                    <option value="Harassment">Harassment</option>
-                    <option value="Spam">Spam</option>
-                    <option value="Inappropriate Content">Inappropriate Content</option>
-                    <option value="Other">Other</option>
-                </select>
-                <textarea id="banReasonText" class="form-control form-control-sm hidden" rows="2" placeholder="Enter reason..."></textarea>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-outline-secondary btn-sm" id="banCancel">Cancel</button>
-                <button class="btn btn-danger btn-sm" id="banConfirm">Ban User</button>
-            </div>
+      <div class="modal-box">
+        <h3>Ban User</h3>
+        <p id="banUserLabel"></p>
+        <div class="mb-2">
+          <label class="form-label small">Duration</label>
+          <select id="banDuration" class="form-select form-select-sm">
+            <option value="1">1 Hour</option>
+            <option value="24">24 Hours</option>
+            <option value="720">30 Days</option>
+            <option value="8760">1 Year</option>
+            <option value="0">Permanent</option>
+          </select>
         </div>
+        <div class="mb-2">
+          <label class="form-label small">Reason</label>
+          <select id="banReasonSelect" class="form-select form-select-sm mb-1">
+            <option value="">Select a reason...</option>
+            <option value="Harassment">Harassment</option>
+            <option value="Spam">Spam</option>
+            <option value="Inappropriate Content">Inappropriate Content</option>
+            <option value="Other">Other</option>
+          </select>
+          <textarea
+            id="banReasonText"
+            class="form-control form-control-sm hidden"
+            rows="2"
+            placeholder="Enter reason..."
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline-secondary btn-sm" id="banCancel">Cancel</button>
+          <button class="btn btn-danger btn-sm" id="banConfirm">Ban User</button>
+        </div>
+      </div>
     </div>
 
     <!-- Preset name modal -->
@@ -324,5 +408,5 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/api.js"></script>
     <script src="js/admin.js"></script>
-</body>
+  </body>
 </html>

@@ -10,7 +10,8 @@ function setupHome() {
   if (loggedIn) {
     const slot = document.getElementById('waHeaderSlot');
     if (slot) {
-      slot.innerHTML = '<button type="button" class="wa-btn wa-btn--ghost wa-btn--small" id="waHeaderLogout">Log out</button>';
+      slot.innerHTML =
+        '<button type="button" class="wa-btn wa-btn--ghost wa-btn--small" id="waHeaderLogout">Log out</button>';
       document.getElementById('waHeaderLogout')?.addEventListener('click', (e) => {
         e.preventDefault();
         handleLogout();
@@ -27,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (getToken() && !getStoredUser()) clearAuth();
   const params = new URLSearchParams(location.search);
 
-  if (isLoggedIn() && params.has("return")) {
+  if (isLoggedIn() && params.has('return')) {
     const user = getStoredUser();
     window.location.replace(getPostLoginRedirect(user));
     return;

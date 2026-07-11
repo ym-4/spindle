@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////
 // REQUIRE BCRYPT MODULE
 //////////////////////////////////////////////////////
-const bcrypt = require("bcrypt");
+const bcrypt = require('bcrypt');
 
 //////////////////////////////////////////////////////
 // SET SALT ROUNDS
@@ -15,14 +15,14 @@ module.exports.comparePassword = (req, res, next) => {
   // Check password
   const callback = (err, isMatch) => {
     if (err) {
-      console.error("Error bcrypt:", err);
+      console.error('Error bcrypt:', err);
       res.status(500).json(err);
     } else {
       if (isMatch) {
         next();
       } else {
         res.status(401).json({
-          message: "Wrong username or password",
+          message: 'Wrong username or password',
         });
       }
     }
@@ -36,7 +36,7 @@ module.exports.comparePassword = (req, res, next) => {
 module.exports.hashPassword = (req, res, next) => {
   const callback = (err, hash) => {
     if (err) {
-      console.error("Error bcrypt:", err);
+      console.error('Error bcrypt:', err);
       res.status(500).json(err);
     } else {
       res.locals.hash = hash;

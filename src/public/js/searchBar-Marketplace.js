@@ -3,12 +3,11 @@ let listingContainer = document.getElementById('listings-container');
 
 function marketplaceSearch() {
   searchBar.addEventListener('input', () => {
-
     listingContainer.innerHTML = '';
     let searchQuery = searchBar.value.toLowerCase();
 
     // If search query is nothing, load listings as usual
-    if (searchQuery == "") {
+    if (searchQuery == '') {
       loadListings();
       return;
     }
@@ -40,12 +39,11 @@ function marketplaceSearch() {
 
 function yourListingsSearch() {
   searchBar.addEventListener('input', () => {
-
     listingContainer.innerHTML = '';
     let searchQuery = searchBar.value.toLowerCase();
 
     // If search query is nothing, load listings as usual
-    if (searchQuery == "") {
+    if (searchQuery == '') {
       loadUserListings();
       return;
     }
@@ -57,7 +55,10 @@ function yourListingsSearch() {
         let nothingFound = true;
 
         data.forEach((item) => {
-          if (item.name.toLowerCase().includes(searchQuery) && item.seller_id == localStorage.loggedInUserId) {
+          if (
+            item.name.toLowerCase().includes(searchQuery) &&
+            item.seller_id == localStorage.loggedInUserId
+          ) {
             nothingFound = false;
             addListing(item.seller_id, item.id, item.name, item.description, item.price);
           }

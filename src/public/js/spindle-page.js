@@ -13,7 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  if (typeof isLoggedIn === 'function' && isLoggedIn() && typeof injectNotificationsOnly === 'function') {
+  if (
+    typeof isLoggedIn === 'function' &&
+    isLoggedIn() &&
+    typeof injectNotificationsOnly === 'function'
+  ) {
     injectNotificationsOnly('spindleNotifSlot');
   }
 });

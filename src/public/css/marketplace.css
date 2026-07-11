@@ -1,24 +1,24 @@
 .main-container {
-    display: flex;
-    min-height: 100vh;
+  display: flex;
+  min-height: 100vh;
 }
 
 .navbar {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 1050;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1050;
 }
 
 .sidebar {
-    width: 250px;
-    background-color: #fff;
-    border-right: 1px solid #ddd;
-    flex-shrink: 0;
+  width: 250px;
+  background-color: #fff;
+  border-right: 1px solid #ddd;
+  flex-shrink: 0;
 }
 
 #content-area {
-    flex: 1;
-    width: 100%;
+  flex: 1;
+  width: 100%;
 }
 
 .listings-grid {

@@ -7,14 +7,23 @@ function showToast(msg, isError) {
   var body = document.getElementById('settingsToastBody');
   if (!toast || !body) return;
   body.textContent = msg;
-  toast.className = 'toast align-items-center text-white border-0 ' + (isError ? 'bg-danger' : 'bg-success');
+  toast.className =
+    'toast align-items-center text-white border-0 ' + (isError ? 'bg-danger' : 'bg-success');
   var bs = bootstrap?.Toast || window.Toast;
-  if (bs) { var t = new bs(toast); t.show(); }
+  if (bs) {
+    var t = new bs(toast);
+    t.show();
+  }
 }
 
 function saveFeedback(id) {
   var el = document.getElementById(id);
-  if (el) { el.style.display = 'block'; setTimeout(function () { el.style.display = 'none'; }, 2500); }
+  if (el) {
+    el.style.display = 'block';
+    setTimeout(function () {
+      el.style.display = 'none';
+    }, 2500);
+  }
 }
 
 // Accordion toggle
@@ -49,11 +58,15 @@ async function loadSettings() {
     document.getElementById('paymentBillingName').value = s.billing_name || '';
     document.getElementById('paymentMethod').value = s.payment_method || '';
     if (s.card_last4) {
-      document.getElementById('paymentCardInput').placeholder = '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 ' + s.card_last4;
+      document.getElementById('paymentCardInput').placeholder =
+        '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 ' +
+        s.card_last4;
     }
     applyTheme(s.theme);
     loadSessions();
-  } catch (e) { showToast(e.message, true); }
+  } catch (e) {
+    showToast(e.message, true);
+  }
 }
 
 async function loadSessions() {
@@ -62,24 +75,46 @@ async function loadSessions() {
   try {
     var data = await authFetch('/profile/settings/sessions');
     var sessions = data.sessions || [];
-    list.innerHTML = sessions.length === 0
-      ? '<li class="list-group-item text-muted small">No linked devices</li>'
-      : sessions.map(function (s) {
-          return '<li class="list-group-item d-flex justify-content-between align-items-center py-2"><span><strong>' + (s.device_label || 'Device') + '</strong><br /><small class="text-muted">' + new Date(s.last_active).toLocaleString() + '</small></span><button type="button" class="btn btn-outline-danger btn-sm" data-revoke="' + s.id + '">Revoke</button></li>';
-        }).join('');
+    list.innerHTML =
+      sessions.length === 0
+        ? '<li class="list-group-item text-muted small">No linked devices</li>'
+        : sessions
+            .map(function (s) {
+              return (
+                '<li class="list-group-item d-flex justify-content-between align-items-center py-2"><span><strong>' +
+                (s.device_label || 'Device') +
+                '</strong><br /><small class="text-muted">' +
+                new Date(s.last_active).toLocaleString() +
+                '</small></span><button type="button" class="btn btn-outline-danger btn-sm" data-revoke="' +
+                s.id +
+                '">Revoke</button></li>'
+              );
+            })
+            .join('');
     list.querySelectorAll('[data-revoke]').forEach(function (btn) {
       btn.addEventListener('click', async function () {
         try {
           await authFetch('/profile/settings/sessions/' + btn.dataset.revoke, { method: 'DELETE' });
           showToast('Device revoked');
           var sid = getStoredUser()?.sessionId;
-          if (!sid && getToken()) { try { sid = JSON.parse(atob(getToken().split('.')[1])).sessionId; } catch {} }
-          if (String(btn.dataset.revoke) === String(sid)) { handleLogout(); return; }
+          if (!sid && getToken()) {
+            try {
+              sid = JSON.parse(atob(getToken().split('.')[1])).sessionId;
+            } catch {}
+          }
+          if (String(btn.dataset.revoke) === String(sid)) {
+            handleLogout();
+            return;
+          }
           loadSessions();
-        } catch (err) { showToast(err.message, true); }
+        } catch (err) {
+          showToast(err.message, true);
+        }
       });
     });
-  } catch (e) { showToast(e.message, true); }
+  } catch (e) {
+    showToast(e.message, true);
+  }
 }
 
 function bindSettings() {
@@ -95,7 +130,9 @@ function bindSettings() {
       };
       await authFetch('/profile/settings/account', { method: 'PUT', body: JSON.stringify(body) });
       saveFeedback('accSaveFeedback');
-    } catch (err) { showToast(err.message, true); }
+    } catch (err) {
+      showToast(err.message, true);
+    }
   });
 
   // Change email button
@@ -109,29 +146,50 @@ function bindSettings() {
   // Theme
   document.getElementById('appTheme').addEventListener('change', function () {
     applyTheme(this.value);
-    authFetch('/profile/settings/appearance', { method: 'PUT', body: JSON.stringify({ theme: this.value }) }).catch(function () {});
+    authFetch('/profile/settings/appearance', {
+      method: 'PUT',
+      body: JSON.stringify({ theme: this.value }),
+    }).catch(function () {});
   });
   document.getElementById('appFontSize').addEventListener('change', function () {
-    authFetch('/profile/settings/appearance', { method: 'PUT', body: JSON.stringify({ font_size: this.value }) }).catch(function () {});
+    authFetch('/profile/settings/appearance', {
+      method: 'PUT',
+      body: JSON.stringify({ font_size: this.value }),
+    }).catch(function () {});
   });
   document.getElementById('appCompact').addEventListener('change', function () {
-    authFetch('/profile/settings/appearance', { method: 'PUT', body: JSON.stringify({ compact_mode: this.checked }) }).catch(function () {});
+    authFetch('/profile/settings/appearance', {
+      method: 'PUT',
+      body: JSON.stringify({ compact_mode: this.checked }),
+    }).catch(function () {});
   });
 
   // 2FA / login notify
   document.getElementById('sec2fa').addEventListener('change', function () {
-    authFetch('/profile/settings/security', { method: 'PUT', body: JSON.stringify({ two_factor_enabled: this.checked }) }).catch(function () {});
+    authFetch('/profile/settings/security', {
+      method: 'PUT',
+      body: JSON.stringify({ two_factor_enabled: this.checked }),
+    }).catch(function () {});
   });
   document.getElementById('secLoginNotify').addEventListener('change', function () {
-    authFetch('/profile/settings/security', { method: 'PUT', body: JSON.stringify({ login_notifications: this.checked }) }).catch(function () {});
+    authFetch('/profile/settings/security', {
+      method: 'PUT',
+      body: JSON.stringify({ login_notifications: this.checked }),
+    }).catch(function () {});
   });
 
   // Privacy
   document.getElementById('privPublic').addEventListener('change', function () {
-    authFetch('/profile/settings/privacy', { method: 'PUT', body: JSON.stringify({ public_profile: this.checked }) }).catch(function () {});
+    authFetch('/profile/settings/privacy', {
+      method: 'PUT',
+      body: JSON.stringify({ public_profile: this.checked }),
+    }).catch(function () {});
   });
   document.getElementById('privTracking').addEventListener('change', function () {
-    authFetch('/profile/settings/privacy', { method: 'PUT', body: JSON.stringify({ activity_tracking: this.checked }) }).catch(function () {});
+    authFetch('/profile/settings/privacy', {
+      method: 'PUT',
+      body: JSON.stringify({ activity_tracking: this.checked }),
+    }).catch(function () {});
   });
 
   // Password
@@ -139,13 +197,18 @@ function bindSettings() {
     try {
       var data = await authFetch('/profile/settings/password/request-code', { method: 'POST' });
       showToast('Code sent' + (data.previewCode ? ' (dev: ' + data.previewCode + ')' : ''));
-    } catch (err) { showToast(err.message, true); }
+    } catch (err) {
+      showToast(err.message, true);
+    }
   });
 
   document.getElementById('btnUpdatePassword').addEventListener('click', async function () {
     var newPw = document.getElementById('newPassword').value;
     var confirmPw = document.getElementById('newPasswordConfirm').value;
-    if (newPw !== confirmPw) { showToast('Passwords do not match', true); return; }
+    if (newPw !== confirmPw) {
+      showToast('Passwords do not match', true);
+      return;
+    }
     try {
       await authFetch('/profile/settings/password', {
         method: 'PUT',
@@ -161,7 +224,9 @@ function bindSettings() {
       document.getElementById('newPassword').value = '';
       document.getElementById('newPasswordConfirm').value = '';
       document.getElementById('pwd2faCode').value = '';
-    } catch (err) { showToast(err.message, true); }
+    } catch (err) {
+      showToast(err.message, true);
+    }
   });
 
   // Payment
@@ -177,44 +242,71 @@ function bindSettings() {
         }),
       });
       showToast('Payment saved');
-    } catch (err) { showToast(err.message, true); }
+    } catch (err) {
+      showToast(err.message, true);
+    }
   });
 
   // Danger modal
   var dangerAction = null;
   function showDangerModal(opts) {
     document.getElementById('dangerModalTitle').textContent = opts.title;
-    document.getElementById('dangerModalList').innerHTML = opts.bullets.map(function (b) { return '<li>' + b + '</li>'; }).join('');
+    document.getElementById('dangerModalList').innerHTML = opts.bullets
+      .map(function (b) {
+        return '<li>' + b + '</li>';
+      })
+      .join('');
     document.getElementById('dangerModalExtra').textContent = opts.extra || '';
     dangerAction = opts.onConfirm;
     document.getElementById('dangerModal').classList.remove('hidden');
   }
   document.getElementById('dangerModalCancel').addEventListener('click', function () {
-    document.getElementById('dangerModal').classList.add('hidden'); dangerAction = null;
+    document.getElementById('dangerModal').classList.add('hidden');
+    dangerAction = null;
   });
   document.getElementById('dangerModalConfirm').addEventListener('click', async function () {
-    var fn = dangerAction; document.getElementById('dangerModal').classList.add('hidden'); dangerAction = null;
+    var fn = dangerAction;
+    document.getElementById('dangerModal').classList.add('hidden');
+    dangerAction = null;
     if (fn) await fn();
   });
 
   document.getElementById('btnDeactivate').addEventListener('click', function () {
     showDangerModal({
       title: 'Deactivate your account?',
-      bullets: ['You will be logged out on all devices.', 'Friends cannot message you until you reactivate.', 'Your profile is hidden, not erased.', 'An admin can restore your account.'],
+      bullets: [
+        'You will be logged out on all devices.',
+        'Friends cannot message you until you reactivate.',
+        'Your profile is hidden, not erased.',
+        'An admin can restore your account.',
+      ],
       extra: 'This is reversible.',
-      onConfirm: async function () { await authFetch('/profile/settings/deactivate', { method: 'POST' }); handleLogout(); },
+      onConfirm: async function () {
+        await authFetch('/profile/settings/deactivate', { method: 'POST' });
+        handleLogout();
+      },
     });
   });
 
   document.getElementById('btnDeleteAccount').addEventListener('click', function () {
     showDangerModal({
       title: 'Permanently delete your account?',
-      bullets: ['All messages, calls, and friend links are removed.', 'Your profile cannot be recovered.', 'This cannot be undone.'],
+      bullets: [
+        'All messages, calls, and friend links are removed.',
+        'Your profile cannot be recovered.',
+        'This cannot be undone.',
+      ],
       extra: 'Type DELETE in the next prompt to confirm.',
       onConfirm: async function () {
         var typed = prompt('Type DELETE to permanently delete your account:');
-        if (typed !== 'DELETE') { showToast('Deletion cancelled.', true); return; }
-        await authFetch('/profile/settings/delete', { method: 'POST', body: JSON.stringify({ confirm: 'DELETE' }) });
+        if (typed !== 'DELETE') {
+          showToast('Deletion cancelled.', true);
+          return;
+        }
+        await authFetch('/profile/settings/delete', {
+          method: 'POST',
+          body: JSON.stringify({ confirm: 'DELETE' }),
+        });
         handleLogout();
       },
     });
@@ -228,7 +320,9 @@ function bindSettings() {
       a.download = 'my-data.json';
       a.click();
       showToast('Download started');
-    } catch (err) { showToast(err.message, true); }
+    } catch (err) {
+      showToast(err.message, true);
+    }
   });
 }
 
@@ -238,7 +332,10 @@ function handleLogout() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  if (!isLoggedIn()) { redirectToLogin('settings.html'); return; }
+  if (!isLoggedIn()) {
+    redirectToLogin('settings.html');
+    return;
+  }
   if (document.getElementById('waHeaderSlot')) injectWaHeader('Settings');
   if (document.getElementById('waNavSlot')) injectWaNav('settings');
   refreshNotifBadge();
