@@ -113,6 +113,21 @@
           </div>
         </header>
 
+        <!-- Back Button -->
+        <div class="container-fluid px-4 pt-3">
+          <button
+            type="button"
+            class="btn-back-listing"
+            onclick="
+              window.history.length > 1
+                ? window.history.back()
+                : (window.location.href = 'marketplace.html')
+            "
+          >
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+        </div>
+
         <!-- Form Section -->
         <section class="py-5">
           <div class="create-listing-wrapper">
@@ -249,6 +264,26 @@
                   />
                 </div>
 
+                <!-- Tag input -->
+                <div class="mb-3">
+                  <label class="form-label">
+                    Tags
+                    <i
+                      class="fas fa-info-circle tag-tooltip-icon"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="right"
+                      data-bs-html="true"
+                      title="Click the <b>+</b> to add a tag oval, then type inside it.<br>Press Enter or click away to confirm.<br>Up to 5 tags per listing."
+                    ></i>
+                  </label>
+
+                  <div class="tag-oval-container" id="tagOvalContainer">
+                    <button type="button" class="tag-add-btn" id="tagAddBtn" aria-label="Add tag">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                </div>
+
                 <!-- Action buttons -->
                 <div class="d-flex align-items-center gap-3 flex-wrap">
                   <button type="submit" class="btn-create-listing">
@@ -282,6 +317,38 @@
             data-bs-dismiss="toast"
             aria-label="Close"
           ></button>
+        </div>
+      </div>
+
+      <!-- Max Tags Modal -->
+      <div
+        class="modal fade"
+        id="maxTagsModal"
+        tabindex="-1"
+        aria-labelledby="maxTagsModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header border-0">
+              <h5 class="modal-title d-flex align-items-center gap-2" id="maxTagsModalLabel">
+                <i class="fas fa-exclamation-circle text-danger"></i> Tag Limit Reached
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              You can only add up to <strong>5 tags</strong> per listing. Remove an existing tag
+              before adding a new one.
+            </div>
+            <div class="modal-footer border-0">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
