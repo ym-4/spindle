@@ -700,8 +700,6 @@ function renderPostEditMode(post) {
   pendingEditGifUrl = null;
   removeCurrentAttachment = false;
   renderEditGifPreview();
-  // setupEditGifPicker();
-  // setupRemoveAttachmentButton();
   setupEditGifPicker(post);
   setupRemoveAttachmentButton(post);
   
@@ -716,11 +714,6 @@ function renderPostEditMode(post) {
     const title = document.getElementById('editTitle').value.trim();
     const content = document.getElementById('editContent').value.trim();
     const category = document.getElementById('editCategory').value;
-    const visibility = document.getElementById('editVisibility').value;
-
-    const attachmentInput = document.getElementById('editAttachment');
-
-    const removeAttachmentCheckbox = document.getElementById('removeAttachment');
 
     const errEl = document.getElementById('editError');
 
@@ -737,9 +730,6 @@ function renderPostEditMode(post) {
     }
 
     errEl.classList.add('d-none');
-
-    const token = localStorage.getItem('token');
-    const user_id = localStorage.getItem('loggedInUserId');
 
     const saveBtn = document.getElementById('saveEditBtn');
     saveBtn.disabled = true;
@@ -758,55 +748,6 @@ function renderPostEditMode(post) {
       .finally(() => {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save changes';
-    const formData = new FormData();
-    formData.append('user_id', user_id);
-    formData.append('title', title);
-    formData.append('content', content);
-    formData.append('category', category);
-    formData.append('visibility', visibility);
-
-    // new uploaded file
-    if (attachmentInput.files.length > 0) {
-      formData.append('attachment', attachmentInput.files[0]);
-    }
-    // remove current attachment
-    if (removeAttachmentCheckbox && removeAttachmentCheckbox.checked) {
-      formData.append('remove_attachment', 'true');
-    }
-
-    fetch(`${currentUrl}/posts/${post.id}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    })
-      .then(async (res) => {
-        const data = await res.json();
-
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save changes';
-
-        if (res.ok) {
-          const url = new URL(window.location.href);
-          url.searchParams.delete('edit');
-
-          window.history.replaceState({}, '', url);
-          loadPost(post.id);
-        } else {
-          errEl.textContent = data.message || 'Failed to save changes.';
-
-          errEl.classList.remove('d-none');
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save changes';
-
-        errEl.textContent = 'Something went wrong.';
-        errEl.classList.remove('d-none');
       });
   });
 }
@@ -1927,16 +1868,6 @@ function loadYourGroups() {
     null,
     token,
   );
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
 }
 
 function renderYourGroups(groups) {

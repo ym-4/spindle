@@ -13,7 +13,7 @@ const {
   getCommentReactionByUserID,   
   insertCommentLike,             
   updateCommentReaction,         
-  deleteCommentReaction  
+  deleteCommentReaction,
   deleteCommentByPostOwner
 } = require('../models/PostComments.model');
 
