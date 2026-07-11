@@ -34,6 +34,8 @@ let uploadedAttachmentUrl = null;
 let selectedGiphyUrl = null;
 let currentCategory = 'all';
 let savedPostIds = new Set();
+let quillEditor = null;
+let pollActive  = false;
 
 function initFeedPage() {
   setupCreatePostAvatar();
@@ -58,6 +60,8 @@ function initFeedPage() {
     setupAttachmentUpload();
     setupGifPicker();
     setupGifSearch();
+    setupQuillEditor(); 
+    setupPollBuilder(); 
 
   } catch (err) {
     console.error('Feed setup error:', err);
@@ -464,8 +468,10 @@ function buildPostCard(post) {
     </div>
 
     <div class="post-content">
-      ${escapeHtml(post.content)}
+        ${DOMPurify.sanitize(post.content)}
     </div>
+
+    ${post.poll_id ? renderPollCard(post, post.id) : ""}
     ${
     (post.gif_url || post.giphy_url || post.attachment_url) ? `
       <div class="post-image-container mt-2">
@@ -562,6 +568,11 @@ function buildPostCard(post) {
     });
   }
 
+  // Load poll 
+ if (post.poll_id) {
+  loadAndRenderPoll(post.id, card);  
+}
+
   return card;
 }
 
@@ -585,7 +596,7 @@ function deletePost(postId, cardEl) {
   );
 }
 
-// render posts .
+// render posts 
 function renderPosts(posts) {
   const container = document.getElementById('postsContainer');
   container.innerHTML = '';
@@ -600,6 +611,14 @@ function renderPosts(posts) {
   }
 
   posts.forEach((post) => container.appendChild(buildPostCard(post)));
+}
+
+function renderPollCard(post, postId) {
+  return `<div class="poll-container" id="pollContainer-${postId}">
+    <div class="text-muted small text-center py-2">
+      <div class="spinner-border spinner-border-sm" role="status"></div>
+    </div>
+  </div>`;
 }
 
 function sortNewestFirst(posts) {
@@ -634,6 +653,75 @@ function loadPostsByCategory(category) {
     } else {
       showPostsError();
     }
+  });
+}
+
+function loadAndRenderPoll(postId, cardEl) {
+  const token  = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  fetchMethod(`${feedApiBase()}/posts/${postId}/poll`, (status, poll) => {
+    const container = cardEl?.querySelector(`#pollContainer-${postId}`)
+      || document.getElementById(`pollContainer-${postId}`);
+    if (!container || status !== 200) return;
+
+    const totalVotes = poll.options.reduce((sum, o) => sum + (o.vote_count || 0), 0);
+
+    // Check if user already voted
+    const userVoteCheck = (token && userId)
+      ? new Promise(resolve => {
+          fetchMethod(`${feedApiBase()}/posts/${postId}/poll/vote/${userId}`,
+            (vs, vd) => resolve(vs === 200 ? vd.vote : null),
+            'GET', null, token
+          );
+        })
+      : Promise.resolve(null);
+
+    userVoteCheck.then(userVote => {
+      const hasVoted = !!userVote;
+
+      container.innerHTML = `
+        <div class="poll-question">${escapeHtml(poll.question)}</div>
+        ${poll.options.map(opt => {
+          const pct = totalVotes > 0
+            ? Math.round((opt.vote_count / totalVotes) * 100)
+            : 0;
+          const isUserChoice = userVote && userVote.option_id === opt.id;
+
+          return `
+            <div class="poll-option ${hasVoted ? 'voted' : ''} ${isUserChoice ? 'user-voted' : ''}"
+              data-option-id="${opt.id}"
+              data-poll-id="${poll.id}"
+              data-post-id="${postId}">
+              <div class="poll-option-bar" style="width:${hasVoted ? pct : 0}%"></div>
+              <span class="poll-option-label">${escapeHtml(opt.option_text)}</span>
+              ${hasVoted ? `<span class="poll-option-pct">${pct}%</span>` : ''}
+            </div>`;
+        }).join('')}
+        <div class="poll-meta">${totalVotes} vote${totalVotes !== 1 ? 's' : ''}</div>
+      `;
+
+      if (!hasVoted && token) {
+        container.querySelectorAll('.poll-option').forEach(optEl => {
+          optEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const optionId = optEl.dataset.optionId;
+            const pollId   = optEl.dataset.pollId;
+
+            fetchMethod(`${feedApiBase()}/posts/${postId}/poll/vote`,
+              (vs, vd) => {
+                if (vs === 201) {
+                  loadAndRenderPoll(postId, cardEl);
+                } else if (vs === 409) {
+                  loadAndRenderPoll(postId, cardEl);
+                }
+              },
+              'POST', { poll_id: pollId, option_id: optionId }, token
+            );
+          });
+        });
+      }
+    });
   });
 }
 
@@ -911,12 +999,12 @@ function setupCreatePost() {
   const contentInput = document.getElementById('postContent');
 
   function validateForm() {
-    submitBtn.disabled = !(
-      titleInput.value.trim() &&
-      categoryInput.value &&
-      contentInput.value.trim()
-    );
+    const hasContent = quillEditor
+      ? quillEditor.getText().trim().length > 0
+      : (contentInput.value.trim().length > 0);
+    submitBtn.disabled = !(titleInput.value.trim() && categoryInput.value && hasContent);
   }
+  window.validatePostForm = validateForm;
 
   validateForm();
   [titleInput, categoryInput, contentInput].forEach((i) => {
@@ -927,7 +1015,9 @@ function setupCreatePost() {
   submitBtn.addEventListener('click', () => {
     const title = titleInput.value.trim();
     const category = categoryInput.value;
-    const content  = contentInput.value.trim();
+    const content = quillEditor
+    ? (quillEditor.getText().trim() === '' ? '' : quillEditor.root.innerHTML)
+    : contentInput.value.trim();
     const user_id  = localStorage.getItem('loggedInUserId');
     const token  = localStorage.getItem('token');
     const isAnonymous = document.getElementById('postAnonymous').checked;
@@ -948,6 +1038,14 @@ function setupCreatePost() {
     formData.append('content', content);
     formData.append('is_anonymous', isAnonymous);
     formData.append('visibility', document.getElementById('postVisibility').value);
+
+    // Poll data — submitted after post is created
+    const pollQuestion = document.getElementById('pollQuestion')?.value.trim();
+    const pollOptionEls = document.querySelectorAll('.poll-option-input');
+    const pollOptions = [...pollOptionEls]
+      .map(el => el.value.trim())
+      .filter(v => v.length > 0);
+    const hasPoll = pollActive && pollQuestion && pollOptions.length >= 2;
 
     const attachmentInput = document.getElementById('postAttachment');
 
@@ -970,6 +1068,17 @@ function setupCreatePost() {
         submitBtn.textContent = 'Post';
 
         if (response.status === 201) {
+          const postId = data.id; // make sure your POST /posts returns id
+          // poll added
+          if (hasPoll && postId) {
+            fetchMethod(`${API_BASE}/posts/${postId}/poll`, (pStatus) => {
+              if (pStatus !== 201) console.warn('Poll creation failed');
+            }, 'POST', {
+              question: pollQuestion,
+              options:  pollOptions
+            }, token);
+          }
+
           bootstrap.Modal.getInstance(document.getElementById('createPostModal')).hide();
 
           clearCreatePostForm();
@@ -1189,6 +1298,27 @@ function clearCreatePostForm() {
   if (gifPanel) gifPanel.classList.remove('open');
   if (gifSearch) gifSearch.value  = '';
   if (gifResults) gifResults.innerHTML = '';
+
+  // Reset Quill
+  if (quillEditor) {
+    quillEditor.setContents([]);
+  }
+
+  // Reset poll
+  pollActive = false;
+  const pollPanel = document.getElementById('pollBuilderPanel');
+  const pollQ     = document.getElementById('pollQuestion');
+  const pollOpts  = document.getElementById('pollOptionsContainer');
+  const pollBtn   = document.getElementById('pollToggleBtn');
+  if (pollPanel) pollPanel.style.display = 'none';
+  if (pollQ)     pollQ.value = '';
+  if (pollBtn)   pollBtn.classList.remove('active');
+  if (pollOpts) {
+    pollOpts.innerHTML = `
+      <input type="text" class="form-control mb-2 poll-option-input" placeholder="Option 1">
+      <input type="text" class="form-control mb-2 poll-option-input" placeholder="Option 2">
+    `;
+  }
 }
 
 function feedIsLoggedIn() {
@@ -1457,6 +1587,58 @@ function setupAttachmentUpload() {
     };
 
     reader.readAsDataURL(file);
+  });
+}
+
+function setupQuillEditor() {
+  if (quillEditor) return; 
+  quillEditor = new Quill('#quillEditor', {
+    theme: 'snow',
+    placeholder: "What's on your mind?",
+    modules: {
+      toolbar: [
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
+        ['clean']
+      ]
+    }
+  });
+
+  quillEditor.on('text-change', () => {
+    const html = quillEditor.root.innerHTML;
+    document.getElementById('postContent').value =
+      quillEditor.getText().trim() === '' ? '' : html;
+    validatePostForm();
+  });
+}
+
+function setupPollBuilder() {
+  const toggleBtn    = document.getElementById('pollToggleBtn');
+  const panel        = document.getElementById('pollBuilderPanel');
+  const addOptionBtn = document.getElementById('addPollOptionBtn');
+
+  if (!toggleBtn || !panel) return;
+
+  toggleBtn.addEventListener('click', () => {
+    pollActive = !pollActive;
+    panel.style.display = pollActive ? 'block' : 'none';
+    toggleBtn.classList.toggle('active', pollActive);
+    if (pollActive) {
+      document.getElementById('pollQuestion').focus();
+    }
+  });
+
+  addOptionBtn.addEventListener('click', () => {
+    const container = document.getElementById('pollOptionsContainer');
+    const count = container.querySelectorAll('.poll-option-input').length + 1;
+    if (count > 6) return; 
+    const input = document.createElement('input');
+    input.type        = 'text';
+    input.className   = 'form-control mb-2 poll-option-input';
+    input.placeholder = `Option ${count}`;
+    container.appendChild(input);
   });
 }
 

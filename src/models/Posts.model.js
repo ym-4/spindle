@@ -13,6 +13,7 @@ module.exports.getAllPost = async function getAllPost() {
     p.content,
     p.attachment_url,
     p.gif_url,
+    pp.id AS poll_id,
     p.created_at,
     p.updated_at,
     p.is_anonymous,
@@ -29,6 +30,9 @@ module.exports.getAllPost = async function getAllPost() {
       FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
 
   FROM "Posts" p
+
+  LEFT JOIN "PostPolls" pp
+  ON pp.post_id = p.id
 
   JOIN "Person" per
     ON p.user_id = per.id
@@ -47,6 +51,8 @@ module.exports.getAllPost = async function getAllPost() {
     p.content,
     p.attachment_url,
     p.gif_url,
+    pp.id,
+    p.is_anonymous,
     p.created_at,
     p.updated_at,
     p.visibility,
@@ -75,6 +81,7 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.content,
       p.attachment_url,
       p.gif_url,
+      pp.id AS poll_id,
       p.created_at,
       p.updated_at,
       p.is_anonymous,
@@ -92,6 +99,9 @@ module.exports.getPostByID = async function getPostByID(data) {
         FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
 
     FROM "Posts" p
+
+    LEFT JOIN "PostPolls" pp
+    ON pp.post_id = p.id
 
     JOIN "Person" per
       ON p.user_id = per.id
@@ -112,6 +122,8 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.content,
       p.attachment_url,
       p.gif_url,
+      pp.id,
+      p.is_anonymous,
       p.created_at,
       p.updated_at,
       p.visibility,
@@ -141,6 +153,7 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.content,
       p.attachment_url,
       p.gif_url,
+      pp.id AS poll_id,
       p.created_at,
       p.updated_at,
       p.is_anonymous,
@@ -158,6 +171,9 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
         FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
 
     FROM "Posts" p
+
+    LEFT JOIN "PostPolls" pp
+    ON pp.post_id = p.id
 
     JOIN "Person" per
       ON p.user_id = per.id
@@ -178,6 +194,8 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.content,
       p.attachment_url,
       p.gif_url,
+      pp.id,
+      p.is_anonymous,
       p.created_at,
       p.updated_at,
       p.visibility,
@@ -223,15 +241,13 @@ module.exports.insertPost = async function insertPost(data) {
   const visibility = data.visibility || 'everyone';
   const pinned = data.pinned || false;
 
-  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.gif_url, data.is_anonymous, visibility, pinned
-  ];
+  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.gif_url, data.is_anonymous, visibility, pinned];
 
   const { rows } = await pool.query(`INSERT INTO "Posts" (user_id, title, category, content, attachment_url, gif_url, is_anonymous, visibility, pinned) 
   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`, VALUES);
 
   return rows[0];
 }
-
 
 // update post by ID (owner only)
 module.exports.updatePostByID = async function updatePostByID(data) {
@@ -243,7 +259,6 @@ module.exports.updatePostByID = async function updatePostByID(data) {
 
   return rows[0];
 };
-
 
 module.exports.togglePin = async function togglePin(postId, userId) {
   const { rows } = await pool.query(
@@ -260,6 +275,63 @@ module.exports.deletePostByID = async function deletePostByID(data) {
   return rows[0];
 };
 
+// ========== poll ==============
+// Create a poll for a post
+module.exports.insertPoll = async function insertPoll(data) {
+  const VALUES = [data.post_id, data.question];
+  const { rows } = await pool.query(
+    'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id', VALUES
+  );
+  return rows[0];
+};
+
+// Insert a poll option
+module.exports.insertPollOption = async function insertPollOption(data) {
+  const VALUES = [data.poll_id, data.option_text];
+  const { rows } = await pool.query(
+    'INSERT INTO "PollOptions" (poll_id, option_text) VALUES ($1, $2) RETURNING *', VALUES
+  );
+  return rows[0];
+};
+
+// GET poll by post ID (with options + vote counts)
+module.exports.getPollByPostID = async function getPollByPostID(data) {
+  const pollSQL = `SELECT * FROM "PostPolls" WHERE post_id = $1`;
+  const { rows: pollRows } = await pool.query(pollSQL, [data.post_id]);
+  if (!pollRows[0]) return null;
+
+  const poll = pollRows[0];
+
+  const optionsSQL = `
+    SELECT
+      po.id,
+      po.option_text,
+      COUNT(pv.id)::int AS vote_count
+    FROM "PollOptions" po
+    LEFT JOIN "PollVotes" pv ON pv.option_id = po.id
+    WHERE po.poll_id = $1
+    GROUP BY po.id
+    ORDER BY po.id
+  `;
+  const { rows: optionRows } = await pool.query(optionsSQL, [poll.id]);
+  poll.options = optionRows;
+  return poll;
+};
+
+// Vote on a poll option
+module.exports.insertPollVote = async function insertPollVote(data) {
+  const VALUES = [data.poll_id, data.option_id, data.user_id];
+  const { rows } = await pool.query('INSERT INTO "PollVotes" (poll_id, option_id, user_id) VALUES ($1, $2, $3) RETURNING *', VALUES);
+  return rows[0];
+};
+
+// GET user's vote on a poll
+module.exports.getUserPollVote = async function getUserPollVote(data) {
+  const VALUES = [data.poll_id, data.user_id];
+  const { rows } = await pool.query(`SELECT * FROM "PollVotes" WHERE poll_id = $1 AND user_id = $2`, VALUES);
+  return rows[0] || null;
+};
+
 //==================== post interactions (saves, likes, etc) ================================
 // saves
 // GET saved posts by user ID
@@ -273,8 +345,7 @@ module.exports.getSavedByUserID = async function getSavedByUserID(data) {
 module.exports.insertSaved = async function insertSaved(data) {
   const VALUES = [data.user_id, data.post_id];
   const { rows } = await pool.query(
-    'INSERT INTO "SavedPosts" (user_id, post_id) VALUES ($1, $2) RETURNING id',
-    VALUES,
+    'INSERT INTO "SavedPosts" (user_id, post_id) VALUES ($1, $2) RETURNING id', VALUES
   );
   return rows[0];
 };

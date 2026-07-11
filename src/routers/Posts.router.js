@@ -24,7 +24,12 @@ const {
   insertReport,
   getAllReports,
   searchAllPosts,
-  togglePin
+  togglePin,
+  insertPoll,
+  insertPollOption,
+  getPollByPostID,
+  insertPollVote,
+  getUserPollVote
 } = require('../models/Posts.model');
 
 const router = express.Router();
@@ -50,7 +55,7 @@ router.get('/admin/all', authenticateJWT, async (req, res, next) => {
   }
 });
 
-// Get all reports (admin only) — must be before /:id
+// Get all reports (admin only) 
 router.get('/reports', authenticateJWT, async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
@@ -64,7 +69,7 @@ router.get('/reports', authenticateJWT, async (req, res, next) => {
   }
 });
 
-// Get post by Category (must be before /:id)
+// Get post by Category 
 router.get('/tag/:category', (req, res, next) => {
   const data = {
     category: req.params.category,
@@ -75,7 +80,7 @@ router.get('/tag/:category', (req, res, next) => {
     .catch(next);
 });
 
-// Saved posts & reactions (must be before /:id)
+// Saved posts & reactions 
 router.get('/saved/:user_id', (req, res, next) => {
   const data = {
     user_id: req.params.user_id,
@@ -91,6 +96,78 @@ router.get('/reaction/:user_id', (req, res, next) => {
   };
   getReactionByUserID(data)
     .then((post) => res.status(200).json(post))
+    .catch(next);
+});
+
+// ======================== POLL POSTS ===========================
+// get poll for a post
+router.get('/:id/poll', (req, res, next) => {
+  const data = {
+    post_id: req.params.id,
+  };
+
+  getPollByPostID(data)
+    .then(poll => {
+      if (!poll) return res.status(404).json({ message: 'No poll found.' });
+      res.status(200).json(poll);
+    })
+    .catch(next);
+});
+
+// create a poll for a post
+router.post('/:id/poll', authenticateJWT, async (req, res, next) => {
+  const { question, options } = req.body;
+
+  if (!question || !Array.isArray(options) || options.length < 2) {
+    return res.status(400).json({ message: 'A question and at least 2 options are required.' });
+  }
+
+  try {
+    const poll = await insertPoll({ post_id: req.params.id, question });
+    const insertedOptions = await Promise.all(
+      options.map(opt => insertPollOption({ poll_id: poll.id, option_text: opt }))
+    );
+    poll.options = insertedOptions;
+    res.status(201).json(poll);
+  } catch (error) {
+    console.error('Error creating poll:', error);
+    next(error);
+  }
+});
+
+// POST vote on a poll option
+router.post('/:id/poll/vote', authenticateJWT, async (req, res, next) => {
+  const { option_id, poll_id } = req.body;
+  const user_id = req.user.id;
+
+  if (!option_id || !poll_id) {
+    return res.status(400).json({ message: 'option_id and poll_id are required.' });
+  }
+
+  try {
+    const vote = await insertPollVote({ poll_id, option_id, user_id });
+    const updatedPoll = await getPollByPostID({ post_id: req.params.id });
+    res.status(201).json({ vote, poll: updatedPoll });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ message: 'You have already voted on this poll.' });
+    }
+    next(error);
+  }
+});
+
+// GET user's vote on a post's poll
+router.get('/:id/poll/vote/:user_id', authenticateJWT, (req, res, next) => {
+  const data = {
+    post_id: req.params.id,
+  };
+
+  getPollByPostID(data)
+    .then(poll => {
+      if (!poll) return res.status(404).json({ message: 'No poll.' });
+      return getUserPollVote({ poll_id: poll.id, user_id: req.params.user_id });
+    })
+    .then(vote => res.status(200).json({ vote: vote || null }))
     .catch(next);
 });
 
