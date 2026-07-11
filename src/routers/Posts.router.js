@@ -138,21 +138,21 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
     category: req.body.category,
     content: req.body.content,
     attachment_url: attachmentUrl,
+    gif_url: req.body.gif_url || null,
     is_anonymous: req.body.is_anonymous === 'true',
-    visibility: req.body.visibility || 'everyone',
+    visibility: req.body.visibility || 'everyone'
   };
 
   insertPost(data)
-    .then((results) =>
-      res.status(201).json({
-        id: results.id,
-        user_id: data.user_id,
-        title: data.title,
-        category: data.category,
-        content: data.content,
-        attachment_url: data.attachment_url,
-      }),
-    )
+    .then(results => res.status(201).json({
+      id: results.id,
+      user_id: data.user_id,
+      title: data.title,
+      category: data.category,
+      content: data.content,
+      attachment_url: data.attachment_url,
+      gif_url: data.gif_url
+    }))
     .catch((error) => {
       console.error('Error insertPost:', error);
       res.status(500).json(error);
@@ -162,6 +162,7 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
 // Update post (owner only)
 router.put('/:id', upload.single('attachment'), (req, res, next) => {
   let attachmentUrl = req.body.attachment_url || null;
+  let gifUrl = req.body.gif_url || null;
 
   getPostByID({ id: req.params.id })
     .then((existingPost) => {
@@ -172,6 +173,7 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
       }
 
       attachmentUrl = existingPost.attachment_url;
+      gifUrl = existingPost.gif_url || gifUrl;
 
       if (req.body.remove_attachment === 'true') {
         if (existingPost.attachment_url) {
@@ -189,6 +191,7 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
           });
         }
         attachmentUrl = null;
+        gifUrl = null;
       }
       if (req.file) {
         if (existingPost.attachment_url) {
@@ -214,6 +217,7 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
         content: req.body.content,
         category: req.body.category,
         attachment_url: attachmentUrl,
+        gif_url: gifUrl,
         visibility: req.body.visibility || 'everyone',
       };
       return updatePostByID(data);

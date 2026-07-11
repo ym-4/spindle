@@ -12,6 +12,7 @@ module.exports.getAllPost = async function getAllPost() {
     p.category,
     p.content,
     p.attachment_url,
+    p.gif_url,
     p.created_at,
     p.updated_at,
     p.is_anonymous,
@@ -45,6 +46,7 @@ module.exports.getAllPost = async function getAllPost() {
     p.category,
     p.content,
     p.attachment_url,
+    p.gif_url,
     p.created_at,
     p.updated_at,
     p.visibility,
@@ -72,6 +74,7 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.category,
       p.content,
       p.attachment_url,
+      p.gif_url,
       p.created_at,
       p.updated_at,
       p.is_anonymous,
@@ -108,6 +111,7 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.category,
       p.content,
       p.attachment_url,
+      p.gif_url,
       p.created_at,
       p.updated_at,
       p.visibility,
@@ -136,6 +140,7 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.category,
       p.content,
       p.attachment_url,
+      p.gif_url,
       p.created_at,
       p.updated_at,
       p.is_anonymous,
@@ -172,6 +177,7 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.category,
       p.content,
       p.attachment_url,
+      p.gif_url,
       p.created_at,
       p.updated_at,
       p.visibility,
@@ -212,24 +218,32 @@ module.exports.getPostByUserID = async function getPostByUserID(data) {
 module.exports.insertPost = async function insertPost(data) {
   await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS visibility TEXT DEFAULT 'everyone'`);
   await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`);
+  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS gif_url TEXT`);
+
   const visibility = data.visibility || 'everyone';
-  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.is_anonymous, visibility];
-  const { rows } = await pool.query(
-    'INSERT INTO "Posts" (user_id, title, category, content, attachment_url, is_anonymous, visibility) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-    VALUES
-  );
-  return rows[0]; 
+  const pinned = data.pinned || false;
+
+  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.gif_url, data.is_anonymous, visibility, pinned
+  ];
+
+  const { rows } = await pool.query(`INSERT INTO "Posts" (user_id, title, category, content, attachment_url, gif_url, is_anonymous, visibility, pinned) 
+  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`, VALUES);
+
+  return rows[0];
 }
+
 
 // update post by ID (owner only)
 module.exports.updatePostByID = async function updatePostByID(data) {
-  const VALUES = [data.title, data.content, data.category, data.attachment_url, data.visibility || 'everyone', data.id];
+  const VALUES = [data.title, data.content, data.category, data.attachment_url, data.gif_url, data.visibility || 'everyone', data.id
+  ];
 
-  const { rows } = await pool.query(
-    `UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4, "visibility" = $5, "updated_at" = CURRENT_TIMESTAMP WHERE "id" = $6 RETURNING *`, VALUES);
+  const { rows } = await pool.query(`UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4, "gif_url" = $5, "visibility" = $6, "updated_at" = CURRENT_TIMESTAMP 
+     WHERE "id" = $7 RETURNING *`, VALUES);
 
   return rows[0];
 };
+
 
 module.exports.togglePin = async function togglePin(postId, userId) {
   const { rows } = await pool.query(
