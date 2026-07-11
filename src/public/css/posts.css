@@ -337,6 +337,67 @@ body {
   margin-bottom: 0.5rem;
 }
 
+/*category pill styling*/
+.category-confession {
+  background: linear-gradient(135deg, #ffe0e0, #ffc8c8);
+  color: #c0392b;
+}
+.category-qna {
+  background: linear-gradient(135deg, #dceeff, #bcd8ff);
+  color: #1a5fb4;
+}
+.category-general {
+  background: linear-gradient(135deg, #efefef, #e0e0e0);
+  color: #444;
+}
+.category-events {
+  background: linear-gradient(135deg, #fff4cc, #ffe999);
+  color: #7d5a00;
+}
+.category-news {
+  background: linear-gradient(135deg, #d6f0fa, #b3e3f5);
+  color: #0a6e8a;
+}
+.category-internship {
+  background: linear-gradient(135deg, #d6f5e3, #b3eacc);
+  color: #1a6e3c;
+}
+.category-cca {
+  background: linear-gradient(135deg, #fde8f0, #f9c6dc);
+  color: #8e1a4a;
+}
+/* acad school categories */
+.category-SOC {
+  background: linear-gradient(135deg, #e0d6ff, #c9b8ff);
+  color: #4a2db5;
+}
+.category-ABE {
+  background: linear-gradient(135deg, #ffecd6, #ffd9b3);
+  color: #8a4500;
+}
+.category-SB {
+  background: linear-gradient(135deg, #d6f0e0, #b3e6c8);
+  color: #1a6640;
+}
+.category-CLS {
+  background: linear-gradient(135deg, #fdf0d6, #fae3b0);
+  color: #7a5200;
+}
+.category-EEE {
+  background: linear-gradient(135deg, #d6e8ff, #b3d0ff);
+  color: #1a3f8a;
+}
+.category-MAD {
+  background: linear-gradient(135deg, #ffd6f0, #ffb3e3);
+  color: #8a1a6a;
+}
+.category-MAE {
+  background: linear-gradient(135deg, #d6fff8, #b3f5ec);
+  color: #0a6e60;
+}
+.category-SMA {
+  background: linear-gradient(135deg, #fff0d6, #ffe0b3);
+  color: #7a4000;
 .category-confession {
   background-color: #fee;
   color: #c00;
@@ -579,6 +640,97 @@ body {
 }
 
 .create-post-input input {
+    flex: 1;
+    margin-left: 0.75rem;
+    padding: 0.95rem 1.2rem;
+
+    background: #f7f9ff;
+    border: 1.5px solid #e7e9ee;
+    border-radius: 999px;
+
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.create-post-input input::placeholder {
+    color: #7d8590;
+    font-weight: 500;
+}
+
+.create-post-input input:hover {
+    background: #e9f1ff;
+    border-color: #d8dce4;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+}
+
+.create-post-input input:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(224, 32, 32, 0.08);
+}
+
+.create-post-options {
+    display: flex;
+    gap: 0.75rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.create-post-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+
+    padding: 0.8rem 0.75rem;
+
+    border: none;
+    border-radius: 14px;
+
+    background: #f7f8fa;
+    color: var(--text-secondary);
+
+    font-size: 0.92rem;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.create-post-option i {
+    font-size: 1.1rem;
+    transition: transform .2s ease;
+}
+
+.create-post-option:hover {
+    background: white;
+    color: var(--text-primary);
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 8px 20px rgba(0,0,0,0.08),
+        0 0 0 1px rgba(224,32,32,.08);
+}
+
+.create-post-option:hover i {
+    transform: scale(1.15);
+}
+
+.create-post-option:active {
+    transform: scale(.97);
+}
+
+.create-post-option.selected {
+    background: rgba(224,32,32,.08);
+    color: var(--primary-color);
+    box-shadow: inset 0 0 0 2px rgba(224,32,32,.18);
   flex: 1;
   padding: 0.75rem 1rem;
   border: none;
@@ -695,6 +847,321 @@ body {
 }
 .create-post-option i {
   margin-right: 0.5rem;
+}
+
+/* ====== GIF Picker (indexFeed.js) =============== */
+.gif-picker-panel {
+  display: none;
+  margin-top: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--card-background);
+}
+
+.gif-picker-panel.open {
+  display: block;
+}
+
+.gif-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--background-color);
+}
+
+.gif-search-bar input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.gif-search-bar i {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.gif-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  padding: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  align-items: start;
+}
+
+.gif-grid img {
+  width: 100%;
+  height: auto;
+  max-height: 180px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.gif-grid img:hover {
+  opacity: 0.92;
+  transform: scale(1.03);
+  box-shadow: 0 6px 16px rgba(0,0,0,.16);
+}
+
+.gif-grid-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.gif-selected-preview {
+  display: none;
+  margin-top: 0.6rem;
+  position: relative;
+  width: fit-content;
+}
+
+.gif-selected-preview img {
+  max-width: 220px;
+  max-height: 180px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.12);
+}
+
+.gif-selected-preview .remove-gif-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--danger-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* =========== Gif modal (posts.js) =========== */
+.modal-content.gif-modal {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,.18);
+}
+
+.modal-content.gif-modal .modal-header{
+    border-bottom:1px solid #ececec;
+    padding:18px 22px;
+}
+
+.modal-content.gif-modal .modal-body{
+    padding:18px;
+    background:#fafafa;
+}
+
+/* Search */
+#gifSearchInput{
+    border-radius:14px;
+    border:1.5px solid var(--border-color);
+    padding:12px 16px;
+    font-size:15px;
+    transition:.18s;
+}
+
+#gifSearchInput:focus{
+    border-color:var(--primary-color);
+    box-shadow:0 0 0 .2rem rgba(24,119,242,.12);
+}
+
+/* Results */
+#giphyResults{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:10px;
+    max-height:420px;
+    overflow-y:auto;
+    padding:4px;
+}
+
+/* scrollbar */
+#giphyResults::-webkit-scrollbar{
+    width:8px;
+}
+
+#giphyResults::-webkit-scrollbar-thumb{
+    background:#d3d3d3;
+    border-radius:20px;
+}
+
+/* GIF */
+.giphy-thumb{
+    width:100%;
+    height:auto;
+    max-height:220px;
+    object-fit:contain;
+    background:white;
+    border-radius:12px;
+    cursor:pointer;
+    transition:.18s;
+    border:3px solid transparent;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.giphy-thumb:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 18px rgba(0,0,0,.18);
+}
+
+.giphy-thumb.selected{
+    border-color:var(--primary-color);
+    box-shadow:0 0 0 3px rgba(24,119,242,.15);
+}
+
+/* Loading */
+.giphy-loading{
+    text-align:center;
+    padding:40px;
+    color:#888;
+}
+
+/* Empty */
+.giphy-empty{
+    text-align:center;
+    padding:50px;
+    color:#999;
+    font-size:15px;
+}
+
+#openEditGifPicker{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    border-radius: 45%;
+    background:linear-gradient(135deg,#676767,#1d1d1d);
+    color:#fff;
+    font-size:1.1rem;
+    cursor:pointer;
+}
+
+#openEditGifPicker:hover{
+    transform:translateY(-1px) scale(1.04);
+}
+
+#openEditGifPicker:active{
+    transform:scale(.5);
+}
+
+/* ── Category filter pills ───────────────────────────────── */
+.category-pills-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 0.5rem 0.25rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.category-pills-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.category-pill {
+  flex-shrink: 0;
+  padding: 0.35rem 0.9rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--border-color);
+  background: var(--card-background);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.category-pill:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: #fff2f8;
+}
+
+.category-pill.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+}
+
+.category-pill.more-pill {
+  border-style: dashed;
+}
+
+/* Dropdown for More pill */
+.pill-more-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 200;
+  min-width: 180px;
+  padding: 0.4rem 0;
+  animation: fadeInUp 0.15s ease;
+}
+
+.pill-more-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pill-more-dropdown button:hover {
+  background: var(--hover-bg);
+}
+
+.pill-more-dropdown button.active {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.pill-more-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.card,
+.card-body {
+  overflow: visible;
 }
 
 /*  Study Groups  */
@@ -1156,6 +1623,49 @@ body {
 .post-edited-tag {
   display: inline-block;
   margin-left: 0.5rem;
+}
+
+/* Comment reaction buttons */
+.comment-like-btn,
+.comment-dislike-btn {
+  background: none;
+  border: none;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.comment-like-btn:hover {
+  color: var(--primary-color);
+  background-color: #fdeaea;
+}
+
+.comment-dislike-btn:hover {
+  color: #4a4a6a;
+  background-color: #efefef;
+}
+
+.comment-like-btn.active {
+  color: var(--primary-color);
+}
+
+.comment-like-btn.active i {
+  font-weight: 900;
+}
+
+.comment-dislike-btn.active {
+  color: #4a4a6a;
+}
+
+.comment-dislike-btn.active i {
+  font-weight: 900;
 }
 
 /* ── Nested comment replies ──────────────────────────────── */

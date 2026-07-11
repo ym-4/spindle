@@ -44,11 +44,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const REACTIONS_BASE = `${currentUrl}/posts`;
 let currentReaction = null;
-let openReplyThreads = new Set();
+let commentReactions = new Map(); 
+let openReplyThreads = new Set(); 
 let savedPostIds = new Set();
+let savedCommentMap = new Map();
 let currentCommentSort = 'newest';
 let activeCommentPostId = null;
 let activeCommentsData = [];
+let pendingEditGifUrl = null;
+let removeCurrentAttachment = false;
 
 // Load saved IDs
 function loadSavedIds() {
@@ -58,18 +62,21 @@ function loadSavedIds() {
   if (!userId || !token) return Promise.resolve();
 
   return new Promise((resolve) => {
-    fetchMethod(
-      `${currentUrl}/posts/saved/${userId}`,
-      (status, data) => {
-        if (status === 200 && Array.isArray(data)) {
-          savedPostIds = new Set(data.map((row) => parseInt(row.post_id)));
+    fetchMethod(`${currentUrl}/posts/saved/${userId}`, (status, data) => {
+      if (status === 200 && Array.isArray(data)) {
+        savedPostIds = new Set(data.map(row => parseInt(row.post_id)));
+      }
+      // load saved comments
+      fetchMethod(`${currentUrl}/comments/saved/${userId}`, (cStatus, cData) => {
+        if (cStatus === 200 && Array.isArray(cData)) {
+          cData.forEach(row => {
+            const saveId = row.save_id || row.id;
+            savedCommentMap.set(parseInt(row.comment_id), saveId);
+          });
         }
         resolve();
-      },
-      'GET',
-      null,
-      token,
-    );
+      }, 'GET', null, token);
+    }, 'GET', null, token);
   });
 }
 
@@ -184,18 +191,179 @@ function showLoginRequiredModal() {
   document.getElementById('authOverlay').classList.remove('d-none');
 }
 
-//Load post
-function loadPost(postId, editMode = false) {
-  fetchMethod(`${currentUrl}/posts/${postId}`, (status, data) => {
-    if (status === 200 && data) {
-      if (editMode) renderPostEditMode(data);
-      else renderPost(data);
-      document.getElementById('commentsSection').style.display = 'block';
-      loadComments(postId);
-      setupCommentSubmit(postId);
-    } else {
-      showError('Post not found.');
+
+// gifs
+function clearEditGifPreview() {
+  pendingEditGifUrl = null;
+  const preview = document.getElementById('editGifPreview');
+  if (preview) preview.innerHTML = '';
+  const attachmentInput = document.getElementById('editAttachment');
+  if (attachmentInput) attachmentInput.value = '';
+}
+
+function clearCurrentAttachmentPreviewUI() {
+  const preview = document.getElementById('currentAttachmentPreview');
+  if (preview) {
+    preview.innerHTML = `<div class="text-muted small">Current attachment will be replaced on save</div>`;
+  }
+}
+
+function renderEditGifPreview() {
+  const preview = document.getElementById('editGifPreview');
+  if (!preview) return;
+
+  if (!pendingEditGifUrl) {
+    preview.innerHTML = '';
+    return;
+  }
+
+  preview.innerHTML = `
+    <div class="mt-2 position-relative d-inline-block">
+      <button
+        type="button"
+        class="btn btn-sm btn-dark rounded-circle position-absolute top-0 end-0 p-1"
+        style="width:24px; height:24px; line-height:1; z-index:2;"
+        data-action="remove-edit-gif"
+        aria-label="Remove GIF"
+      >
+        <i class="fas fa-times" style="font-size:0.7rem;"></i>
+      </button>
+      <div class="small text-muted mb-1">GIF selected</div>
+      <img
+        src="${pendingEditGifUrl}"
+        alt="Selected GIF"
+        style="max-width:120px; max-height:120px; border-radius:12px; object-fit:cover;"
+      >
+    </div>
+  `;
+
+  const removeBtn = preview.querySelector('[data-action="remove-edit-gif"]');
+  if (removeBtn) {
+    removeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      clearEditGifPreview();
+    });
+  }
+}
+
+function setupEditGifPicker(post) {
+  const modalEl = document.getElementById('gifPickerModal');
+  const openBtn = document.getElementById('openEditGifPicker');
+
+  if (!modalEl || !openBtn) return;
+
+  const gifModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  openBtn.addEventListener('click', () => {
+    gifModal.show();
+  });
+
+  const attachmentInput = document.getElementById('editAttachment');
+  if (attachmentInput) {
+    attachmentInput.addEventListener('change', () => {
+      if (attachmentInput.files.length > 0) {
+        pendingEditGifUrl = null;
+        removeCurrentAttachment = false;
+        renderEditGifPreview();
+        clearCurrentAttachmentPreviewUI();
+        autoSaveAttachmentChange(post);
+      }
+    });
+  }
+
+  const input = document.getElementById('gifSearchInput');
+  const resultsContainer = document.getElementById('giphyResults');
+  if (!input || !resultsContainer) return;
+
+  let timeout;
+  input.addEventListener('input', () => {
+    clearTimeout(timeout);
+    const query = input.value.trim();
+    if (query.length < 2) {
+      resultsContainer.innerHTML = '';
+      return;
     }
+    timeout = setTimeout(() => {
+      searchEditGifs(query, post, gifModal);
+    }, 300);
+  });
+}
+
+async function searchEditGifs(query, post, gifModal) {
+  const resultsContainer = document.getElementById('giphyResults');
+  if (!resultsContainer) return;
+  resultsContainer.innerHTML = 'Searching...';
+
+  try {
+    const response = await fetch(`/giphy/search?q=${encodeURIComponent(query)}`);
+    if (!response.ok) throw new Error('GIF search failed');
+
+    const gifs = await response.json();
+    resultsContainer.innerHTML = '';
+
+    if (!Array.isArray(gifs) || gifs.length === 0) {
+      resultsContainer.innerHTML = '<div class="text-muted small">No GIFs found.</div>';
+      return;
+    }
+
+    gifs.forEach((gif) => {
+      const previewUrl = gif?.images?.fixed_height_small?.url || gif?.images?.downsized_medium?.url || gif?.images?.original?.url || gif?.url;
+      const originalUrl = gif?.images?.original?.url || gif?.images?.downsized_large?.url || gif?.url || previewUrl;
+      if (!previewUrl || !originalUrl) return;
+
+      const img = document.createElement('img');
+      img.src = previewUrl;
+      img.className = 'giphy-thumb';
+      img.alt = 'GIF result';
+      img.onclick = () => {
+        pendingEditGifUrl = originalUrl;
+        removeCurrentAttachment = false;
+        renderEditGifPreview();
+        clearCurrentAttachmentPreviewUI();
+        resultsContainer.querySelectorAll('.selected').forEach((x) => x.classList.remove('selected'));
+        img.classList.add('selected');
+        if (gifModal) gifModal.hide();
+        autoSaveAttachmentChange(post);
+      };
+      resultsContainer.appendChild(img);
+    });
+  } catch (err) {
+    console.error(err);
+    resultsContainer.innerHTML = 'Failed to load GIFs';
+  }
+}
+
+//Load post 
+function loadPost(postId, editMode = false) {
+  const token  = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  // Load comment reactions
+  const reactionsPromise = (token && userId)
+    ? new Promise((resolve) => {
+        fetchMethod(`${currentUrl}/comments/reaction/${userId}`, (status, data) => {
+          if (status === 200 && Array.isArray(data)) {
+            commentReactions = new Map(
+              data.map(r => [parseInt(r.comment_id), { id: r.id, reaction_type: r.reaction_type }])
+            );
+          }
+          resolve();
+        }, 'GET', null, token);
+      })
+    : Promise.resolve();
+
+  reactionsPromise.then(() => {
+    fetchMethod(`${currentUrl}/posts/${postId}`, (status, data) => {
+      if (status === 200 && data) {
+        if (editMode) renderPostEditMode(data);
+        else renderPost(data);
+        document.getElementById('commentsSection').style.display = 'block';
+        loadComments(postId);
+        setupCommentSubmit(postId);
+      } else {
+        showError('Post not found.');
+      }
+    });
   });
 }
 
@@ -376,6 +544,82 @@ function renderPost(post) {
   }
 }
 
+function submitPostEdit(post) {
+  const title    = document.getElementById('editTitle').value.trim();
+  const content  = document.getElementById('editContent').value.trim();
+  const category = document.getElementById('editCategory').value;
+
+  const attachmentInput = document.getElementById('editAttachment');
+  const errEl = document.getElementById('editError');
+
+  if (!title) {
+    errEl.textContent = 'Title cannot be empty.';
+    errEl.classList.remove('d-none');
+    return Promise.reject(new Error('Title cannot be empty.'));
+  }
+
+  if (!content) {
+    errEl.textContent = 'Content cannot be empty.';
+    errEl.classList.remove('d-none');
+    return Promise.reject(new Error('Content cannot be empty.'));
+  }
+
+  errEl.classList.add('d-none');
+
+  const token   = localStorage.getItem('token');
+  const user_id = localStorage.getItem('loggedInUserId');
+
+  const formData = new FormData();
+  formData.append('user_id', user_id);
+  formData.append('title', title);
+  formData.append('content', content);
+  formData.append('category', category);
+
+  if (attachmentInput.files.length > 0) {
+    formData.append('attachment', attachmentInput.files[0]);
+  } else if (pendingEditGifUrl) {
+    formData.append('gif_url', pendingEditGifUrl);
+  } else if (removeCurrentAttachment) {
+    formData.append('remove_attachment', 'true');
+  }
+
+  return fetch(`${currentUrl}/posts/${post.id}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData
+  })
+  .then(async (res) => {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to save changes.');
+    return data;
+  })
+  .catch((err) => {
+    errEl.textContent = err.message || 'Something went wrong.';
+    errEl.classList.remove('d-none');
+    throw err;
+  });
+}
+
+function autoSaveAttachmentChange(post) {
+  const saveBtn = document.getElementById('saveEditBtn');
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+  }
+
+  submitPostEdit(post)
+    .then(() => {
+      loadPost(post.id, true); 
+    })
+    .catch((err) => {
+      console.error(err);
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save changes';
+      }
+    });
+}
+
 //Render post (edit mode)
 function renderPostEditMode(post) {
   document.title = `Editing: ${escapeHtml(post.title || 'Post')} - Spindle`;
@@ -393,12 +637,20 @@ function renderPostEditMode(post) {
       <div class="mb-2 d-flex gap-2">
         <select class="form-select form-select-sm" id="editCategory" style="width:auto;">
           <option value="confession" ${post.category === 'confession' ? 'selected' : ''}>Confession</option>
-          <option value="qna"        ${post.category === 'qna' ? 'selected' : ''}>Q&A</option>
-          <option value="general"    ${post.category === 'general' ? 'selected' : ''}>General Talk</option>
-        </select>
-        <select class="form-select form-select-sm" id="editVisibility" style="width:auto;">
-          <option value="everyone" ${post.visibility !== 'friends_only' ? 'selected' : ''}>Everyone</option>
-          <option value="friends_only" ${post.visibility === 'friends_only' ? 'selected' : ''}>Friends only</option>
+          <option value="qna" ${post.category === 'qna' ? 'selected' : ''}>Q&A</option>
+          <option value="general" ${post.category === 'general' ? 'selected' : ''}>General Talk</option>
+          <option value="events" ${post.category === 'events' ? 'selected' : ''}>Events</option>
+          <option value="news" ${post.category === 'news' ? 'selected' : ''}>News</option>
+          <option value="cca" ${post.category === 'cca' ? 'selected' : ''}>CCA</option>
+          <option value="internship" ${post.category === 'internship' ? 'selected' : ''}>Internship</option>
+          <option value="SOC" ${post.category === 'SOC' ? 'selected' : ''}>SOC</option>
+          <option value="ABE" ${post.category === 'ABE' ? 'selected' : ''}>ABE</option>
+          <option value="SB" ${post.category === 'SB' ? 'selected' : ''}>SB</option>
+          <option value="CLS" ${post.category === 'CLS' ? 'selected' : ''}>CLS</option>
+          <option value="EEE" ${post.category === 'EEE' ? 'selected' : ''}>EEE</option>
+          <option value="MAD" ${post.category === 'MAD' ? 'selected' : ''}>MAD</option>
+          <option value="MAE" ${post.category === 'MAE' ? 'selected' : ''}>MAE</option>
+          <option value="SMA" ${post.category === 'SMA' ? 'selected' : ''}>SMA</option>
         </select>
       </div>
 
@@ -414,35 +666,27 @@ function renderPostEditMode(post) {
 
       <div class="mb-3">
         <label class="form-label fw-semibold">
-          Attachment
+          Attachment / GIF
         </label>
         <!-- current attachment preview -->
         <div id="currentAttachmentPreview" class="mb-2">
-          ${renderEditAttachmentPreview(post)}
+          ${renderCurrentAttachmentBlock(post)}
         </div>
-        <!-- upload new file -->
-        <input
-          type="file"
-          class="form-control"
-          id="editAttachment"
-          accept="image/*,video/*">
-        <!-- remove checkbox -->
-        ${
-          post.attachment_url
-            ? `
-              <div class="form-check mt-2">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="removeAttachment"
-                >
-                <label class="form-check-label" for="removeAttachment">
-                  Remove current attachment
-                </label>
-              </div>
-            `
-            : ''
-        }
+        <div class="d-flex align-items-center gap-2 mt-2">
+          <input
+            type="file"
+            class="form-control"
+            id="editAttachment"
+            accept="image/*,video/*">
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            id="openEditGifPicker"
+          >
+            GIF
+          </button>
+        </div>
+        <div id="editGifPreview" class="mt-2"></div>
       </div>
 
       <div id="editError" class="alert alert-danger py-2 d-none"></div>
@@ -453,6 +697,14 @@ function renderPostEditMode(post) {
       </div>
     </div>`;
 
+  pendingEditGifUrl = null;
+  removeCurrentAttachment = false;
+  renderEditGifPreview();
+  // setupEditGifPicker();
+  // setupRemoveAttachmentButton();
+  setupEditGifPicker(post);
+  setupRemoveAttachmentButton(post);
+  
   document.getElementById('cancelEditBtn').addEventListener('click', () => {
     const url = new URL(window.location.href);
     url.searchParams.delete('edit');
@@ -490,10 +742,22 @@ function renderPostEditMode(post) {
     const user_id = localStorage.getItem('loggedInUserId');
 
     const saveBtn = document.getElementById('saveEditBtn');
-
     saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
 
+    submitPostEdit(post)
+      .then(() => {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('edit');
+        window.history.replaceState({}, '', url);
+        loadPost(post.id);
+      })
+      .catch((err) => {
+        console.error(err);
+      })
+      .finally(() => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save changes';
     const formData = new FormData();
     formData.append('user_id', user_id);
     formData.append('title', title);
@@ -546,6 +810,7 @@ function renderPostEditMode(post) {
       });
   });
 }
+
 // COMMENTS
 function setupCommentSortUI() {
   document.querySelectorAll('.comment-sort-option').forEach((option) => {
@@ -708,7 +973,7 @@ function setupCommentSubmit(postId) {
   });
 }
 
-//  Build comment
+//  Build comment thread
 function appendCommentToDOM(comment, postId, allComments) {
   if (comment.parent_comment_id) return;
 
@@ -768,7 +1033,7 @@ function appendCommentToDOM(comment, postId, allComments) {
 }
 
 // comment box
-function buildCommentEl(comment, postId, isReply, rootParentId = null) {
+function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
   const { timeStr } = formatTimestamp(comment.created_at, null);
 
   const initial = comment.author_name
@@ -779,9 +1044,20 @@ function buildCommentEl(comment, postId, isReply, rootParentId = null) {
   const authorDisplay = comment.author_name || `User ${comment.user_id}`;
 
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
-  const isOwner = loggedInUserId && parseInt(comment.user_id) === loggedInUserId;
+  const isLoggedIn = !!localStorage.getItem('token');
+  const isOwner = isLoggedIn && parseInt(comment.user_id) === loggedInUserId;
 
   const menuOptions = `
+    ${isLoggedIn ? `
+    <li>
+      <button class="dropdown-item save-comment-btn"
+        data-comment-id="${comment.id}"
+        data-saved="false"
+        data-save-row-id="">
+        <i class="far fa-bookmark me-2"></i>Save
+      </button>
+    </li>
+    <li><hr class="dropdown-divider"></li>` : ''}
     <li>
       <button class="dropdown-item report-comment-btn">
         <i class="fas fa-flag me-2"></i>Report
@@ -804,7 +1080,7 @@ function buildCommentEl(comment, postId, isReply, rootParentId = null) {
     }`;
 
   const el = document.createElement('div');
-  el.className = isReply ? 'comment-item comment-reply' : 'comment-item';
+  el.className         = isReply ? 'comment-item comment-reply' : 'comment-item';
   el.dataset.commentId = comment.id;
 
   el.innerHTML = `
@@ -815,23 +1091,33 @@ function buildCommentEl(comment, postId, isReply, rootParentId = null) {
           <div class="d-flex align-items-start justify-content-between">
             <div class="comment-author">${escapeHtml(authorDisplay)}</div>
             <div class="dropdown ms-2">
-              <button class="btn btn-sm p-0 px-1 comment-menu-btn" data-bs-toggle="dropdown" style="line-height:1;">
-                <i class="fas fa-ellipsis-h" style="font-size:0.8rem; color:var(--text-secondary);"></i>
+              <button class="btn btn-sm p-0 px-1 comment-menu-btn"
+                data-bs-toggle="dropdown" style="line-height:1;">
+                <i class="fas fa-ellipsis-h"
+                  style="font-size:0.8rem;color:var(--text-secondary);"></i>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">${menuOptions}</ul>
             </div>
           </div>
           <div class="comment-text-display">${escapeHtml(comment.content)}</div>
           <div class="comment-edit-form" style="display:none;">
-            <textarea class="form-control form-control-sm comment-edit-input" rows="2">${escapeHtml(comment.content)}</textarea>
+            <textarea class="form-control form-control-sm comment-edit-input"
+              rows="2">${escapeHtml(comment.content)}</textarea>
             <div class="mt-2 d-flex gap-2">
               <button class="btn btn-sm btn-outline-secondary cancel-edit-comment-btn">Cancel</button>
               <button class="btn btn-sm btn-primary save-edit-comment-btn">Save</button>
             </div>
           </div>
           <div class="comment-actions">
-            <button class="comment-action-link">Like</button>
-            <button class="comment-action-link reply-btn">Reply</button>
+            <button class="comment-like-btn" data-comment-id="${comment.id}">
+              <i class="far fa-thumbs-up"></i>
+              <span class="comment-like-count">0</span>
+            </button>
+            <button class="comment-dislike-btn" data-comment-id="${comment.id}">
+              <i class="far fa-thumbs-down"></i>
+              <span class="comment-dislike-count">0</span>
+            </button>
+            <button class="comment-action-link reply-btn" data-comment-id="${comment.id}" data-author="${escapeHtml(authorDisplay)}">Reply</button>
             <span class="comment-timestamp">${timeStr}</span>
           </div>
         </div>
@@ -840,39 +1126,97 @@ function buildCommentEl(comment, postId, isReply, rootParentId = null) {
 
   el.querySelector('.comment-menu-btn').addEventListener('click', (e) => e.stopPropagation());
 
-  if (isOwner) {
-    el.querySelector('.edit-comment-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      enterEditMode(el);
-    });
-    el.querySelector('.delete-comment-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      showConfirm('Delete comment?', 'This will permanently remove your comment.', () =>
-        deleteComment(comment.id, el, postId),
-      );
-    });
-  }
-
   el.querySelector('.report-comment-btn').addEventListener('click', (e) => {
     e.stopPropagation();
-    const token = localStorage.getItem('token');
-    if (!token) {
-      showLoginRequiredModal();
-      return;
-    }
-    alert('Report functionality WIP.');
+    if (!localStorage.getItem('token')) { showLoginRequiredModal(); return; }
+    openReportModal(comment.id, 'comment');
   });
 
-  el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
-  el.querySelector('.save-edit-comment-btn').addEventListener('click', () =>
-    saveCommentEdit(comment.id, el),
-  );
-
-  // Reply button
   const replyBtn = el.querySelector('.reply-btn');
   if (replyBtn) {
-    replyBtn.addEventListener('click', () => toggleReplyBox(el, comment, postId, rootParentId));
+    replyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleReplyBox(el, comment, postId, rootParentId);
+    });
   }
+
+  // Save comment
+  const saveCommentBtn = el.querySelector('.save-comment-btn');
+  if (saveCommentBtn) {
+    const savedRowId = savedCommentMap.get(parseInt(comment.id));
+    if (savedRowId) {
+      saveCommentBtn.dataset.saved = 'true';
+      saveCommentBtn.dataset.saveRowId = savedRowId;
+      saveCommentBtn.innerHTML = `<i class="fas fa-bookmark me-2"></i>Unsave`;
+    }
+    saveCommentBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const token = localStorage.getItem('token');
+      const user_id = localStorage.getItem('loggedInUserId');
+      const commentId = saveCommentBtn.dataset.commentId;
+      const isSaved   = saveCommentBtn.dataset.saved === 'true';
+      const saveRowId = saveCommentBtn.dataset.saveRowId;
+
+      if (isSaved) {
+        fetchMethod(`${feedApiBase()}/comments/saved/${saveRowId}`, (status) => {
+          if (status === 200) {
+            saveCommentBtn.dataset.saved     = 'false';
+            saveCommentBtn.dataset.saveRowId = '';
+            saveCommentBtn.innerHTML = `<i class="far fa-bookmark me-2"></i>Save`;
+          } else {
+            alert('Failed to unsave comment.');
+          }
+        }, 'DELETE', null, token);
+      } else {
+        fetchMethod(`${feedApiBase()}/comments/saved`, (status, data) => {
+          if (status === 201) {
+            saveCommentBtn.dataset.saved     = 'true';
+            saveCommentBtn.dataset.saveRowId = data.id;
+            saveCommentBtn.innerHTML = `<i class="fas fa-bookmark me-2"></i>Unsave`;
+          } else if (status === 409) {
+            saveCommentBtn.dataset.saved = 'true';
+            saveCommentBtn.innerHTML = `<i class="fas fa-bookmark me-2"></i>Unsave`;
+          } else {
+            alert('Failed to save comment.');
+          }
+        }, 'POST', { user_id, comment_id: commentId }, token);
+      }
+    });
+  }
+
+  if (isOwner) {
+    el.querySelector('.edit-comment-btn').addEventListener('click', () => enterEditMode(el));
+
+    el.querySelector('.delete-comment-btn').addEventListener('click', () => {
+      showConfirm(
+        'Delete comment?',
+        'This will permanently remove your comment.',
+        () => deleteComment(comment.id, el, postId)
+      );
+    });
+
+    el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
+    el.querySelector('.save-edit-comment-btn').addEventListener('click', () => saveCommentEdit(comment.id, el));
+  }
+
+  // Comment reactions
+  const likeBtn = el.querySelector('.comment-like-btn');
+  const dislikeBtn = el.querySelector('.comment-dislike-btn');
+
+  const existingReaction = commentReactions.get(parseInt(comment.id));
+  if (existingReaction) {
+    applyCommentReactionUI(likeBtn, dislikeBtn, existingReaction.reaction_type);
+  }
+
+  likeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleCommentReaction(comment.id, 'like', likeBtn, dislikeBtn);
+  });
+
+  dislikeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleCommentReaction(comment.id, 'dislike', likeBtn, dislikeBtn);
+  });
 
   return el;
 }
@@ -1027,6 +1371,82 @@ function showNoComments() {
     </div>`;
 }
 
+// ==========================
+// COMMENT REACTIONS
+// ==========================
+function handleCommentReaction(commentId, newType, likeBtn, dislikeBtn) {
+  const token  = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  if (!token) { showLoginRequiredModal(); return; }
+
+  const existing = commentReactions.get(parseInt(commentId));
+
+  if (!existing) {
+    // post
+    fetchMethod(`${feedApiBase()}/comments/like`, (status, data) => {
+      if (status === 201) {
+        commentReactions.set(parseInt(commentId), { id: data.id, reaction_type: newType });
+        applyCommentReactionUI(likeBtn, dislikeBtn, newType);
+        updateCommentReactionCount(likeBtn, dislikeBtn, null, newType);
+      }
+    }, 'POST', { comment_id: parseInt(commentId), user_id: userId, reaction_type: newType }, token);
+
+  } else if (existing.reaction_type === newType) {
+    // delete
+    fetchMethod(`${feedApiBase()}/comments/reaction/${existing.id}`, (status) => {
+      if (status === 200) {
+        updateCommentReactionCount(likeBtn, dislikeBtn, existing.reaction_type, null);
+        commentReactions.delete(parseInt(commentId));
+        applyCommentReactionUI(likeBtn, dislikeBtn, null);
+      }
+    }, 'DELETE', { user_id: userId }, token);
+
+  } else {
+    // put
+    fetchMethod(`${feedApiBase()}/comments/reaction/${existing.id}`, (status) => {
+      if (status === 200) {
+        updateCommentReactionCount(likeBtn, dislikeBtn, existing.reaction_type, newType);
+        commentReactions.set(parseInt(commentId), { ...existing, reaction_type: newType });
+        applyCommentReactionUI(likeBtn, dislikeBtn, newType);
+      }
+    }, 'PUT', { user_id: userId, reaction_type: newType }, token);
+  }
+}
+
+function applyCommentReactionUI(likeBtn, dislikeBtn, reactionType) {
+  // Reset both
+  likeBtn.classList.remove('active');
+  dislikeBtn.classList.remove('active');
+  likeBtn.querySelector('i').className = 'far fa-thumbs-up';
+  dislikeBtn.querySelector('i').className = 'far fa-thumbs-down';
+
+  if (reactionType === 'like') {
+    likeBtn.classList.add('active');
+    likeBtn.querySelector('i').className = 'fas fa-thumbs-up';
+  } else if (reactionType === 'dislike') {
+    dislikeBtn.classList.add('active');
+    dislikeBtn.querySelector('i').className = 'fas fa-thumbs-down';
+  }
+}
+
+function updateCommentReactionCount(likeBtn, dislikeBtn, oldType, newType) {
+  const likeCountEl = likeBtn.querySelector('.comment-like-count');
+  const dislikeCountEl = dislikeBtn.querySelector('.comment-dislike-count');
+
+  let likes    = parseInt(likeCountEl.textContent) || 0;
+  let dislikes = parseInt(dislikeCountEl.textContent) || 0;
+
+  if (oldType === 'like') likes = Math.max(0, likes - 1);
+  if (oldType === 'dislike') dislikes = Math.max(0, dislikes - 1);
+  if (newType === 'like') likes++;
+  if (newType === 'dislike') dislikes++;
+
+  likeCountEl.textContent = likes;
+  dislikeCountEl.textContent = dislikes;
+}
+
+
 function formatTimestamp(createdAt, updatedAt) {
   const created = new Date(createdAt);
   const updated = updatedAt ? new Date(updatedAt) : null;
@@ -1059,12 +1479,43 @@ function formatTimestamp(createdAt, updatedAt) {
 }
 
 function getCategoryLabel(c) {
-  return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[c] || c;
+  return {
+    confession: 'Confession',
+    qna:        'Q&A',
+    general:    'General Talk',
+    events:     'Events',
+    news:       'News',
+    cca:        'CCA',
+    internship: 'Internship',
+    SOC:        'SOC',
+    ABE:        'ABE',
+    SB:         'SB',
+    CLS:        'CLS',
+    EEE:        'EEE',
+    MAD:        'MAD',
+    MAE:        'MAE',
+    SMA:        'SMA',
+  }[c] || c;
 }
+
 function getCategoryClass(c) {
-  return (
-    { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[c] || ''
-  );
+  return {
+    confession: 'category-confession',
+    qna:        'category-qna',
+    general:    'category-general',
+    events:     'category-events',
+    news:       'category-news',
+    cca:        'category-cca',
+    internship: 'category-internship',
+    SOC:        'category-SOC',
+    ABE:        'category-ABE',
+    SB:         'category-SB',
+    CLS:        'category-CLS',
+    EEE:        'category-EEE',
+    MAD:        'category-MAD',
+    MAE:        'category-MAE',
+    SMA:        'category-SMA',
+  }[c] || 'category-general';
 }
 
 function getAvatarInitial(post) {
@@ -1093,9 +1544,10 @@ function escapeHtml(str) {
 }
 
 function renderPostAttachment(post) {
-  if (!post.attachment_url) return '';
+  const mediaUrl = post.gif_url || post.giphy_url || post.attachment_url;
+  if (!mediaUrl) return '';
 
-  const fileUrl = post.attachment_url.toLowerCase();
+  const fileUrl = mediaUrl.toLowerCase();
 
   // image extensions
   const isImage =
@@ -1112,7 +1564,7 @@ function renderPostAttachment(post) {
     return `
       <div class="post-attachment mt-3">
         <img
-          src="${post.attachment_url}"
+          src="${mediaUrl}"
           alt="Post attachment"
           class="img-fluid rounded"
           style="width:100%; max-height:500px; object-fit:cover;"
@@ -1129,7 +1581,7 @@ function renderPostAttachment(post) {
           class="w-100 rounded"
           style="max-height:500px;"
         >
-          <source src="${post.attachment_url}">
+          <source src="${mediaUrl}">
         </video>
       </div>
     `;
@@ -1138,7 +1590,7 @@ function renderPostAttachment(post) {
   return `
     <div class="post-attachment mt-3">
       <a
-        href="${post.attachment_url}"
+        href="${mediaUrl}"
         target="_blank"
         class="btn btn-outline-secondary btn-sm"
       >
@@ -1149,8 +1601,51 @@ function renderPostAttachment(post) {
   `;
 }
 
+function renderCurrentAttachmentBlock(post) {
+  const hasAttachment = !!(post.attachment_url || post.gif_url || post.giphy_url);
+  if (!hasAttachment) return renderEditAttachmentPreview(post);
+
+  return `
+    <div class="position-relative d-inline-block">
+      <button
+        type="button"
+        class="btn btn-sm btn-dark rounded-circle position-absolute top-0 end-0 p-1"
+        style="width:24px; height:24px; line-height:1; z-index:2;"
+        id="removeCurrentAttachmentBtn"
+        aria-label="Remove attachment"
+        title="Remove attachment"
+      >
+        <i class="fas fa-times" style="font-size:0.7rem;"></i>
+      </button>
+      ${renderEditAttachmentPreview(post)}
+    </div>
+  `;
+}
+
+function setupRemoveAttachmentButton(post) {
+  const btn = document.getElementById('removeCurrentAttachmentBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    removeCurrentAttachment = true;
+    pendingEditGifUrl = null;
+
+    const attachmentInput = document.getElementById('editAttachment');
+    if (attachmentInput) attachmentInput.value = '';
+    renderEditGifPreview();
+
+    const preview = document.getElementById('currentAttachmentPreview');
+    if (preview) {
+      preview.innerHTML = `<div class="text-muted small">No attachment uploaded</div>`;
+    }
+
+    autoSaveAttachmentChange(post);
+  });
+}
+
 function renderEditAttachmentPreview(post) {
-  if (!post.attachment_url) {
+  const mediaUrl = post.gif_url || post.giphy_url || post.attachment_url;
+  if (!mediaUrl) {
     return `
       <div class="text-muted small">
         No attachment uploaded
@@ -1158,7 +1653,7 @@ function renderEditAttachmentPreview(post) {
     `;
   }
 
-  const fileUrl = post.attachment_url.toLowerCase();
+  const fileUrl = mediaUrl.toLowerCase();
 
   const isImage =
     fileUrl.endsWith('.png') ||
@@ -1172,7 +1667,7 @@ function renderEditAttachmentPreview(post) {
   if (isImage) {
     return `
       <img
-        src="${post.attachment_url}"
+        src="${mediaUrl}"
         class="img-fluid rounded"
         style="max-height:220px;"
       >
@@ -1186,14 +1681,14 @@ function renderEditAttachmentPreview(post) {
         class="rounded"
         style="max-height:220px; width:100%;"
       >
-        <source src="${post.attachment_url}">
+        <source src="${mediaUrl}">
       </video>
     `;
   }
 
   return `
     <a
-      href="${post.attachment_url}"
+      href="${mediaUrl}"
       target="_blank"
       class="btn btn-outline-secondary btn-sm"
     >
