@@ -190,6 +190,25 @@ window.addEventListener('DOMContentLoaded', async () => {
     } else {
       document.getElementById('manageGroupButton').style.display = 'none';
     }
+
+    const buttonGroup = document.getElementById('tabButtons');
+
+    function moveButtons(tabPane) {
+      const placeholder = tabPane.querySelector('.tab-buttons-placeholder');
+      if (placeholder) {
+        placeholder.appendChild(buttonGroup);
+      }
+    }
+    // Initial tab
+    moveButtons(document.querySelector('.tab-pane.active'));
+
+    // Bootstrap tab change
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach((btn) => {
+      btn.addEventListener('shown.bs.tab', function (e) {
+        const target = document.querySelector(e.target.dataset.bsTarget);
+        moveButtons(target);
+      });
+    });
   } catch (err) {
     console.error(err);
     alert('Error occured');

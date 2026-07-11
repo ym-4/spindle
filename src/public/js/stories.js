@@ -19,10 +19,16 @@ function getLoggedUserId() {
   if (loggedUserId) return loggedUserId;
   try {
     var u = getStoredUser();
-    if (u && u.id) { loggedUserId = u.id; return u.id; }
+    if (u && u.id) {
+      loggedUserId = u.id;
+      return u.id;
+    }
   } catch (e) {}
   var id = localStorage.getItem('loggedInUserId');
-  if (id) { loggedUserId = parseInt(id); return loggedUserId; }
+  if (id) {
+    loggedUserId = parseInt(id);
+    return loggedUserId;
+  }
   return null;
 }
 
@@ -38,15 +44,28 @@ function storyTimeAgo(created) {
 }
 
 function initials(name) {
-  return (name || '?').split(' ').map(function (p) { return p[0]; }).join('').slice(0, 2).toUpperCase();
+  return (name || '?')
+    .split(' ')
+    .map(function (p) {
+      return p[0];
+    })
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 function getUserData() {
-  try { return getStoredUser(); } catch (e) { return null; }
+  try {
+    return getStoredUser();
+  } catch (e) {
+    return null;
+  }
 }
 
 function hasUnseenStories(stories) {
-  return stories.some(function (s) { return !isSeen(s); });
+  return stories.some(function (s) {
+    return !isSeen(s);
+  });
 }
 
 /* ========================= LOAD & RENDER =============================== */
@@ -69,8 +88,12 @@ async function loadStories() {
   }
 
   var uid = getLoggedUserId();
-  var myStories = allStories.filter(function (s) { return parseInt(s.user_id) === uid; });
-  var friendStories = allStories.filter(function (s) { return parseInt(s.user_id) !== uid; });
+  var myStories = allStories.filter(function (s) {
+    return parseInt(s.user_id) === uid;
+  });
+  var friendStories = allStories.filter(function (s) {
+    return parseInt(s.user_id) !== uid;
+  });
 
   renderRingsRow(myStories, friendStories, ringsRow);
   bindRingClicks();
@@ -100,8 +123,8 @@ function renderRingsRow(myStories, friendStories, container) {
     ownName = myStories[0].display_name || myStories[0].name;
   }
   if (!ownAvatarUrl) {
-    ownAvatarUrl = u ? (u.profile_image || u.avatar) : null;
-    ownName = u ? (u.display_name || u.name) : 'Me';
+    ownAvatarUrl = u ? u.profile_image || u.avatar : null;
+    ownName = u ? u.display_name || u.name : 'Me';
   }
   var ownInitial = initials(ownName);
   var ownUnseen = myStories.length > 0 && hasUnseenStories(myStories);
@@ -132,23 +155,33 @@ function renderRingsRow(myStories, friendStories, container) {
     }
   });
 
-  var authorList = Object.keys(authorMap).map(function (k) { return authorMap[k]; });
-  authorList.sort(function (a, b) { return new Date(b.created_at) - new Date(a.created_at); });
+  var authorList = Object.keys(authorMap).map(function (k) {
+    return authorMap[k];
+  });
+  authorList.sort(function (a, b) {
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
 
   authorList.forEach(function (s) {
     var avatarSrc = s.profile_image || s.avatar;
     var avatarHtml = avatarSrc
       ? '<img src="' + mediaUrl(avatarSrc) + '" alt="' + esc(s.display_name || s.name) + '" />'
       : esc(initials(s.display_name || s.name));
-    var authorAllStories = allStories.filter(function (x) { return parseInt(x.user_id) === parseInt(s.user_id); });
+    var authorAllStories = allStories.filter(function (x) {
+      return parseInt(x.user_id) === parseInt(s.user_id);
+    });
     var unseen = hasUnseenStories(authorAllStories);
     var ringClass = unseen ? 'story-ring' : 'story-ring seen';
-    html += '<div class="story-ring-wrap story-ring-item" data-author-id="' + s.user_id + '" role="listitem">';
+    html +=
+      '<div class="story-ring-wrap story-ring-item" data-author-id="' +
+      s.user_id +
+      '" role="listitem">';
     html += '<div class="' + ringClass + '" tabindex="0">';
     html += '<div class="story-ring-inner">';
     html += '<span class="story-ring-avatar">' + avatarHtml + '</span>';
     html += '</div></div>';
-    html += '<span class="story-ring-label">' + esc(s.display_name || s.name || 'User') + '</span></div>';
+    html +=
+      '<span class="story-ring-label">' + esc(s.display_name || s.name || 'User') + '</span></div>';
   });
 
   container.innerHTML = html;
@@ -158,13 +191,17 @@ function bindRingClicks() {
   // Own ring — context-aware
   document.getElementById('ownRingBtn')?.addEventListener('click', function () {
     var uid = getLoggedUserId();
-    var myStories = allStories.filter(function (s) { return parseInt(s.user_id) === uid; });
+    var myStories = allStories.filter(function (s) {
+      return parseInt(s.user_id) === uid;
+    });
     if (myStories.length === 0) {
       // No active story → open composer
       var composer = document.getElementById('composerCard');
       if (composer) {
         composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(function () { document.getElementById('captionInput').focus(); }, 300);
+        setTimeout(function () {
+          document.getElementById('captionInput').focus();
+        }, 300);
       }
     } else {
       // Has active story → open viewer from own stories, continuous through friends
@@ -173,12 +210,15 @@ function bindRingClicks() {
   });
 
   // Friend rings open viewer
-  document.getElementById('ringsRow').querySelectorAll('.story-ring-item').forEach(function (el) {
-    el.addEventListener('click', function () {
-      var authorId = parseInt(el.dataset.authorId);
-      openContinuousViewer(authorId);
+  document
+    .getElementById('ringsRow')
+    .querySelectorAll('.story-ring-item')
+    .forEach(function (el) {
+      el.addEventListener('click', function () {
+        var authorId = parseInt(el.dataset.authorId);
+        openContinuousViewer(authorId);
+      });
     });
-  });
 }
 
 function renderList() {
@@ -192,9 +232,20 @@ function renderList() {
     var aid = s.user_id;
     if (!seenAuthors[aid]) {
       seenAuthors[aid] = true;
-      var authorStories = allStories.filter(function (x) { return parseInt(x.user_id) === parseInt(aid); });
-      authorStories.sort(function (a, b) { return new Date(b.created_at) - new Date(a.created_at); });
-      grouped.push({ user_id: aid, display_name: s.display_name || s.name, name: s.name, profile_image: s.profile_image, avatar: s.avatar, stories: authorStories });
+      var authorStories = allStories.filter(function (x) {
+        return parseInt(x.user_id) === parseInt(aid);
+      });
+      authorStories.sort(function (a, b) {
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+      grouped.push({
+        user_id: aid,
+        display_name: s.display_name || s.name,
+        name: s.name,
+        profile_image: s.profile_image,
+        avatar: s.avatar,
+        stories: authorStories,
+      });
     }
   });
 
@@ -205,27 +256,43 @@ function renderList() {
     return new Date(b.stories[0].created_at) - new Date(a.stories[0].created_at);
   });
 
-  list.innerHTML = grouped.map(function (g) {
-    var latest = g.stories[0];
-    var avatarSrc = g.profile_image || g.avatar;
-    var avatarHtml = avatarSrc
-      ? '<img src="' + mediaUrl(avatarSrc) + '" alt="' + esc(g.display_name || g.name) + '" />'
-      : esc(initials(g.display_name || g.name));
-    var unseen = hasUnseenStories(g.stories);
-    var listRingClass = unseen ? 'stories-list-ring' : 'stories-list-ring seen';
-    return '<div class="stories-list-item" data-author-id="' + g.user_id + '">' +
-      '<div class="' + listRingClass + '"><div class="stories-list-ring-inner">' +
-      '<span class="stories-list-avatar">' + avatarHtml + '</span>' +
-      '</div></div>' +
-      '<div class="stories-list-info">' +
-      '<div class="stories-list-name">' + esc(g.display_name || g.name) + '</div>' +
-      '<div class="stories-list-meta">' +
-      '<span>' + storyTimeAgo(latest.created_at) + '</span>' +
-      (latest.privacy === 'friends' ? '<span> · <i class="fas fa-lock" style="font-size:0.6rem;"></i> Friends</span>' : '') +
-      '</div>' +
-      '</div>' +
-      '</div>';
-  }).join('');
+  list.innerHTML = grouped
+    .map(function (g) {
+      var latest = g.stories[0];
+      var avatarSrc = g.profile_image || g.avatar;
+      var avatarHtml = avatarSrc
+        ? '<img src="' + mediaUrl(avatarSrc) + '" alt="' + esc(g.display_name || g.name) + '" />'
+        : esc(initials(g.display_name || g.name));
+      var unseen = hasUnseenStories(g.stories);
+      var listRingClass = unseen ? 'stories-list-ring' : 'stories-list-ring seen';
+      return (
+        '<div class="stories-list-item" data-author-id="' +
+        g.user_id +
+        '">' +
+        '<div class="' +
+        listRingClass +
+        '"><div class="stories-list-ring-inner">' +
+        '<span class="stories-list-avatar">' +
+        avatarHtml +
+        '</span>' +
+        '</div></div>' +
+        '<div class="stories-list-info">' +
+        '<div class="stories-list-name">' +
+        esc(g.display_name || g.name) +
+        '</div>' +
+        '<div class="stories-list-meta">' +
+        '<span>' +
+        storyTimeAgo(latest.created_at) +
+        '</span>' +
+        (latest.privacy === 'friends'
+          ? '<span> · <i class="fas fa-lock" style="font-size:0.6rem;"></i> Friends</span>'
+          : '') +
+        '</div>' +
+        '</div>' +
+        '</div>'
+      );
+    })
+    .join('');
 
   list.querySelectorAll('.stories-list-item').forEach(function (item) {
     item.addEventListener('click', function () {
@@ -330,8 +397,8 @@ document.getElementById('addDescBtn')?.addEventListener('click', function () {
 
 var rotators = [
   'Share a moment from your day',
-  'What\'s on your mind today?',
-  'How\'s your day going?',
+  "What's on your mind today?",
+  "How's your day going?",
   'Got something to share?',
   'Capture the moment...',
   'Thinking about something?',
@@ -356,7 +423,10 @@ document.getElementById('sendBtn')?.addEventListener('click', async function () 
   var description = document.getElementById('descInput').value.trim();
   var privacy = document.getElementById('privToggle').dataset.privacy || 'public';
 
-  if (!file && !caption) { btn.disabled = false; return; }
+  if (!file && !caption) {
+    btn.disabled = false;
+    return;
+  }
 
   var fd = new FormData();
   if (file) {
@@ -376,8 +446,14 @@ document.getElementById('sendBtn')?.addEventListener('click', async function () 
       headers: { Authorization: 'Bearer ' + getToken() },
       body: fd,
     });
-    var data = await res.json().catch(function () { return {}; });
-    if (!res.ok) { alert(data.error || 'Failed to post status.'); btn.disabled = false; return; }
+    var data = await res.json().catch(function () {
+      return {};
+    });
+    if (!res.ok) {
+      alert(data.error || 'Failed to post status.');
+      btn.disabled = false;
+      return;
+    }
     clearComposer();
     await loadStories();
   } catch (err) {
@@ -397,7 +473,10 @@ document.getElementById('saveDraftBtn')?.addEventListener('click', async functio
   var caption = document.getElementById('captionInput').value.trim();
   var description = document.getElementById('descInput').value.trim();
 
-  if (!file && !caption) { btn.disabled = false; return; }
+  if (!file && !caption) {
+    btn.disabled = false;
+    return;
+  }
 
   var fd = new FormData();
   if (file) {
@@ -413,8 +492,14 @@ document.getElementById('saveDraftBtn')?.addEventListener('click', async functio
       headers: { Authorization: 'Bearer ' + getToken() },
       body: fd,
     });
-    var data = await res.json().catch(function () { return {}; });
-    if (!res.ok) { alert(data.error || 'Failed to save draft.'); btn.disabled = false; return; }
+    var data = await res.json().catch(function () {
+      return {};
+    });
+    if (!res.ok) {
+      alert(data.error || 'Failed to save draft.');
+      btn.disabled = false;
+      return;
+    }
     clearComposer();
     loadDrafts();
   } catch (err) {
@@ -429,45 +514,83 @@ async function loadDrafts() {
   try {
     var data = await authFetch('/stories/drafts');
     var drafts = data.drafts || [];
-    if (drafts.length === 0) { section.classList.add('hidden'); return; }
+    if (drafts.length === 0) {
+      section.classList.add('hidden');
+      return;
+    }
     section.classList.remove('hidden');
-    list.innerHTML = drafts.map(function (d) {
-      var preview = d.caption || d.description || 'Untitled draft';
-      if (preview.length > 50) preview = preview.slice(0, 50) + '...';
-      var typeIcon = d.story_type === 'image' ? '<i class="fas fa-image"></i>' : '<i class="fas fa-font"></i>';
-      return '<div class="stories-draft-item" data-id="' + d.id + '">' +
-        '<div class="stories-draft-info">' +
-        '<div class="stories-draft-preview">' + typeIcon + ' ' + esc(preview) + '</div>' +
-        '<div class="stories-draft-time">Saved ' + storyTimeAgo(d.created_at) + '</div>' +
-        '</div>' +
-        '<div class="stories-draft-actions">' +
-        '<button class="stories-draft-resume" data-id="' + d.id + '" title="Resume editing"><i class="fas fa-edit"></i></button>' +
-        '<button class="stories-draft-publish" data-id="' + d.id + '" title="Publish now"><i class="fas fa-arrow-up"></i></button>' +
-        '<button class="stories-draft-discard" data-id="' + d.id + '" title="Discard draft"><i class="fas fa-trash"></i></button>' +
-        '</div>' +
-        '</div>';
-    }).join('');
+    list.innerHTML = drafts
+      .map(function (d) {
+        var preview = d.caption || d.description || 'Untitled draft';
+        if (preview.length > 50) preview = preview.slice(0, 50) + '...';
+        var typeIcon =
+          d.story_type === 'image' ? '<i class="fas fa-image"></i>' : '<i class="fas fa-font"></i>';
+        return (
+          '<div class="stories-draft-item" data-id="' +
+          d.id +
+          '">' +
+          '<div class="stories-draft-info">' +
+          '<div class="stories-draft-preview">' +
+          typeIcon +
+          ' ' +
+          esc(preview) +
+          '</div>' +
+          '<div class="stories-draft-time">Saved ' +
+          storyTimeAgo(d.created_at) +
+          '</div>' +
+          '</div>' +
+          '<div class="stories-draft-actions">' +
+          '<button class="stories-draft-resume" data-id="' +
+          d.id +
+          '" title="Resume editing"><i class="fas fa-edit"></i></button>' +
+          '<button class="stories-draft-publish" data-id="' +
+          d.id +
+          '" title="Publish now"><i class="fas fa-arrow-up"></i></button>' +
+          '<button class="stories-draft-discard" data-id="' +
+          d.id +
+          '" title="Discard draft"><i class="fas fa-trash"></i></button>' +
+          '</div>' +
+          '</div>'
+        );
+      })
+      .join('');
     list.querySelectorAll('.stories-draft-resume').forEach(function (btn) {
-      btn.addEventListener('click', function (e) { e.stopPropagation(); resumeDraft(parseInt(btn.dataset.id)); });
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        resumeDraft(parseInt(btn.dataset.id));
+      });
     });
     list.querySelectorAll('.stories-draft-publish').forEach(function (btn) {
-      btn.addEventListener('click', function (e) { e.stopPropagation(); publishDraft(parseInt(btn.dataset.id)); });
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        publishDraft(parseInt(btn.dataset.id));
+      });
     });
     list.querySelectorAll('.stories-draft-discard').forEach(function (btn) {
-      btn.addEventListener('click', function (e) { e.stopPropagation(); discardDraft(parseInt(btn.dataset.id)); });
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        discardDraft(parseInt(btn.dataset.id));
+      });
     });
-  } catch (e) { section.classList.add('hidden'); }
+  } catch (e) {
+    section.classList.add('hidden');
+  }
 }
 
 async function resumeDraft(draftId) {
   try {
     var data = await authFetch('/stories/drafts');
     var drafts = data.drafts || [];
-    var draft = drafts.find(function (d) { return d.id === draftId; });
+    var draft = drafts.find(function (d) {
+      return d.id === draftId;
+    });
     if (!draft) return;
     document.getElementById('captionInput').value = draft.caption || '';
     document.getElementById('descInput').value = draft.description || '';
-    if (draft.description) { document.getElementById('descWrap').classList.remove('hidden'); document.getElementById('addDescBtn').classList.add('hidden'); }
+    if (draft.description) {
+      document.getElementById('descWrap').classList.remove('hidden');
+      document.getElementById('addDescBtn').classList.add('hidden');
+    }
     document.getElementById('composerCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
     document.getElementById('captionInput').focus();
     checkSendReady();
@@ -477,13 +600,19 @@ async function resumeDraft(draftId) {
 async function publishDraft(draftId) {
   try {
     var res = await authFetch('/stories/draft/' + draftId + '/publish', { method: 'POST' });
-    if (res.story) { loadDrafts(); await loadStories(); }
+    if (res.story) {
+      loadDrafts();
+      await loadStories();
+    }
   } catch (e) {}
 }
 
 async function discardDraft(draftId) {
   if (!confirm('Discard this draft?')) return;
-  try { await authFetch('/stories/draft/' + draftId, { method: 'DELETE' }); loadDrafts(); } catch (e) {}
+  try {
+    await authFetch('/stories/draft/' + draftId, { method: 'DELETE' });
+    loadDrafts();
+  } catch (e) {}
 }
 
 /* Get current story's index within its author's story sequence */
@@ -491,7 +620,8 @@ function getLocalStoryIndex() {
   var story = viewerQueue[currentViewerIndex];
   if (!story) return { localIndex: 0, totalCount: 0 };
   var authorId = parseInt(story.user_id);
-  var localIdx = 0, total = 0;
+  var localIdx = 0,
+    total = 0;
   for (var i = 0; i < viewerQueue.length; i++) {
     if (parseInt(viewerQueue[i].user_id) === authorId) {
       if (i < currentViewerIndex) localIdx++;
@@ -507,8 +637,13 @@ function buildProgressBars() {
   var row = document.getElementById('progressRow');
   var html = '';
   for (var i = 0; i < pos.totalCount; i++) {
-    var fill = i < pos.localIndex ? 100 : (i === pos.localIndex ? 0 : 0);
-    html += '<div class="stories-progress-bar"><div class="stories-progress-fill" data-seg="' + i + '" style="width:' + fill + '%"></div></div>';
+    var fill = i < pos.localIndex ? 100 : i === pos.localIndex ? 0 : 0;
+    html +=
+      '<div class="stories-progress-bar"><div class="stories-progress-fill" data-seg="' +
+      i +
+      '" style="width:' +
+      fill +
+      '%"></div></div>';
   }
   row.innerHTML = html;
 }
@@ -530,7 +665,9 @@ function openContinuousViewer(targetAuthorId) {
 
   // Sort each author's stories chronologically (oldest first)
   Object.keys(authorGroups).forEach(function (aid) {
-    authorGroups[aid].sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); });
+    authorGroups[aid].sort(function (a, b) {
+      return new Date(a.created_at) - new Date(b.created_at);
+    });
   });
 
   // Order authors: target first, then others by latest story time desc
@@ -593,7 +730,11 @@ function showCurrentViewerStory() {
 
   var avatarSrc = story.profile_image || story.avatar;
   avatarEl.innerHTML = avatarSrc
-    ? '<img src="' + mediaUrl(avatarSrc) + '" alt="' + esc(story.display_name || story.name) + '" />'
+    ? '<img src="' +
+      mediaUrl(avatarSrc) +
+      '" alt="' +
+      esc(story.display_name || story.name) +
+      '" />'
     : esc(initials(story.display_name || story.name));
 
   if (story.story_type === 'text') {
@@ -641,7 +782,10 @@ function startViewTimer(storyId) {
   recordView(storyId);
 
   viewTimer = setInterval(function () {
-    if (isPaused) { start = Date.now(); return; }
+    if (isPaused) {
+      start = Date.now();
+      return;
+    }
     var elapsed = Date.now() - start;
     viewProgress = Math.min((elapsed / VIEW_DURATION) * 100, 100);
     var fills = document.querySelectorAll('.stories-progress-fill');
@@ -680,13 +824,21 @@ document.getElementById('viewerDelete')?.addEventListener('click', async functio
   try {
     await authFetch('/stories/' + storyId, { method: 'DELETE' });
     // Remove from viewerQueue and adjust index
-    var idx = viewerQueue.findIndex(function (s) { return s.id === storyId; });
+    var idx = viewerQueue.findIndex(function (s) {
+      return s.id === storyId;
+    });
     if (idx !== -1) viewerQueue.splice(idx, 1);
     if (currentViewerIndex >= viewerQueue.length) currentViewerIndex = viewerQueue.length - 1;
-    if (viewerQueue.length === 0) { closeViewer(); await loadStories(); return; }
+    if (viewerQueue.length === 0) {
+      closeViewer();
+      await loadStories();
+      return;
+    }
     showCurrentViewerStory();
     await loadStories();
-  } catch (err) { alert(err.message || 'Failed to delete.'); }
+  } catch (err) {
+    alert(err.message || 'Failed to delete.');
+  }
 });
 
 // "Add another" — closes viewer and opens composer
@@ -695,7 +847,9 @@ document.getElementById('viewerAddBtn')?.addEventListener('click', function () {
   var composer = document.getElementById('composerCard');
   if (composer) {
     composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setTimeout(function () { document.getElementById('captionInput').focus(); }, 300);
+    setTimeout(function () {
+      document.getElementById('captionInput').focus();
+    }, 300);
   }
 });
 
@@ -720,10 +874,18 @@ document.getElementById('tapPrev')?.addEventListener('click', function (e) {
   }
 });
 
-document.getElementById('viewerBody')?.addEventListener('mousedown', function () { isPaused = true; });
-document.getElementById('viewerBody')?.addEventListener('mouseup', function () { isPaused = false; });
-document.getElementById('viewerBody')?.addEventListener('touchstart', function () { isPaused = true; });
-document.getElementById('viewerBody')?.addEventListener('touchend', function () { isPaused = false; });
+document.getElementById('viewerBody')?.addEventListener('mousedown', function () {
+  isPaused = true;
+});
+document.getElementById('viewerBody')?.addEventListener('mouseup', function () {
+  isPaused = false;
+});
+document.getElementById('viewerBody')?.addEventListener('touchstart', function () {
+  isPaused = true;
+});
+document.getElementById('viewerBody')?.addEventListener('touchend', function () {
+  isPaused = false;
+});
 
 document.getElementById('viewerClose')?.addEventListener('click', closeViewer);
 
@@ -734,15 +896,33 @@ document.getElementById('viewerOverlay')?.addEventListener('click', function (e)
 document.addEventListener('keydown', function (e) {
   var overlay = document.getElementById('viewerOverlay');
   if (overlay.classList.contains('hidden')) return;
-  if (e.key === 'Escape') { closeViewer(); return; }
-  if (e.key === 'ArrowRight') { clearInterval(viewTimer); currentViewerIndex++; showCurrentViewerStory(); return; }
-  if (e.key === 'ArrowLeft') { if (currentViewerIndex > 0) { clearInterval(viewTimer); currentViewerIndex--; showCurrentViewerStory(); } return; }
+  if (e.key === 'Escape') {
+    closeViewer();
+    return;
+  }
+  if (e.key === 'ArrowRight') {
+    clearInterval(viewTimer);
+    currentViewerIndex++;
+    showCurrentViewerStory();
+    return;
+  }
+  if (e.key === 'ArrowLeft') {
+    if (currentViewerIndex > 0) {
+      clearInterval(viewTimer);
+      currentViewerIndex--;
+      showCurrentViewerStory();
+    }
+    return;
+  }
 });
 
 /* ========================= INIT ======================================== */
 
 document.addEventListener('DOMContentLoaded', async function () {
-  if (!isLoggedIn()) { redirectToLogin('stories.html'); return; }
+  if (!isLoggedIn()) {
+    redirectToLogin('stories.html');
+    return;
+  }
   refreshNotifBadge();
   // Refresh cached user profile so avatar is always up-to-date
   try {
@@ -750,7 +930,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (me && me.id && typeof setAuth === 'function' && getToken()) {
       setAuth(me, getToken());
     }
-  } catch (e) { /* use cached data */ }
+  } catch (e) {
+    /* use cached data */
+  }
   loadStories();
   loadDrafts();
 });

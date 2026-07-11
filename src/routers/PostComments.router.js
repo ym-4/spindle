@@ -7,7 +7,7 @@ const {
   insertComments,
   updateCommentsByID,
   deleteCommentsByID,
-  deleteCommentByPostOwner
+  deleteCommentByPostOwner,
 } = require('../models/PostComments.model');
 
 const router = express.Router();
@@ -81,14 +81,11 @@ router.put('/:id', authenticateJWT, (req, res, next) => {
 });
 
 // delete Comments (owner or post owner)
-router.delete('/:id', 
-  authenticateJWT,
-  (req, res, next) => {
-    
-   const data = {
+router.delete('/:id', authenticateJWT, (req, res, next) => {
+  const data = {
     id: req.params.id,
-    user_id: req.user.id
-  }
+    user_id: req.user.id,
+  };
   // First try as comment owner
   deleteCommentsByID(data)
     .then((results) => {

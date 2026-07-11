@@ -24,7 +24,7 @@ const {
   insertReport,
   getAllReports,
   searchAllPosts,
-  togglePin
+  togglePin,
 } = require('../models/Posts.model');
 
 const router = express.Router();

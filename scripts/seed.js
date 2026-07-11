@@ -880,6 +880,112 @@ const groupAnnouncements = [
   },
 ];
 
+// Example tasks
+const tasks = [
+  {
+    groupName: 'SOC Software Engineering',
+    title: 'Build Login Page',
+    description: 'Implement login UI and authentication.',
+    status: 'todo',
+    creatorEmail: 'alice@example.com',
+    assigneeEmail: 'bob@example.com',
+    dueDate: '2026-09-01',
+  },
+  {
+    groupName: 'SOC Database Club',
+    title: 'Database Schema',
+    description: 'Design PostgreSQL database schema.',
+    status: 'in_progress',
+    creatorEmail: 'alice@example.com',
+    assigneeEmail: 'carol@example.com',
+    dueDate: '2026-09-03',
+  },
+  {
+    groupName: 'SOC Software Engineering',
+    title: 'Marketplace API',
+    description: 'Implement CRUD APIs for marketplace.',
+    status: 'todo',
+    creatorEmail: 'bob@example.com',
+    assigneeEmail: 'dave@example.com',
+    dueDate: '2026-09-05',
+  },
+  {
+    groupName: 'MAD Project Team',
+    title: 'UI Polish',
+    description: 'Improve responsiveness and styling.',
+    status: 'done',
+    creatorEmail: 'frank@example.com',
+    assigneeEmail: 'grace@example.com',
+    dueDate: '2026-08-20',
+  },
+];
+
+// Example sub tasks
+const subtasks = [
+  // Build Login Page
+  {
+    taskTitle: 'Build Login Page',
+    text: 'Create Login Form',
+    completed: true,
+  },
+  {
+    taskTitle: 'Build Login Page',
+    text: 'Connect Login API',
+    completed: false,
+  },
+  {
+    taskTitle: 'Build Login Page',
+    text: 'Remember Me Function',
+    completed: false,
+  },
+
+  // Database Schema
+  {
+    taskTitle: 'Database Schema',
+    text: 'Create ER Diagram',
+    completed: true,
+  },
+  {
+    taskTitle: 'Database Schema',
+    text: 'Write SQL Schema',
+    completed: true,
+  },
+  {
+    taskTitle: 'Database Schema',
+    text: 'Add Indexes',
+    completed: false,
+  },
+
+  // Marketplace API
+  {
+    taskTitle: 'Marketplace API',
+    text: 'Create GET Endpoint',
+    completed: true,
+  },
+  {
+    taskTitle: 'Marketplace API',
+    text: 'Create POST Endpoint',
+    completed: false,
+  },
+  {
+    taskTitle: 'Marketplace API',
+    text: 'Write Unit Tests',
+    completed: false,
+  },
+
+  // UI Polish
+  {
+    taskTitle: 'UI Polish',
+    text: 'Fix Mobile Layout',
+    completed: true,
+  },
+  {
+    taskTitle: 'UI Polish',
+    text: 'Improve Colors',
+    completed: true,
+  },
+];
+
 async function seed() {
   console.log('Seeding data...');
 
@@ -1028,49 +1134,6 @@ async function seed() {
   }
   console.log(`Inserted ${savedPosts.length} saved posts.`);
 
-  // // Insert groups
-  // for (const group of groups) {
-  //   const creatorRes = await pool.query(
-  //     `SELECT id FROM "Person" WHERE email = $1`,
-  //     [group.creatorEmail]
-  //   );
-
-  //   if (creatorRes.rows.length > 0) {
-  //     await pool.query(
-  //       `INSERT INTO "Groups"
-  //       ("name", "creator_id", "description", "school", "module", "public")
-  //       VALUES ($1, $2, $3, $4, $5, $6)
-  //       ON CONFLICT ("name") DO NOTHING`,
-  //       [
-  //         group.name,
-  //         creatorRes.rows[0].id,
-  //         group.description,
-  //         group.school,
-  //         group.module,
-  //         group.public,
-  //       ]
-  //     );
-  //   }
-  // }
-
-  // console.log(`Inserted ${groups.length} groups.`);
-
-  //   // Insert group members
-  // for (const gm of groupMembers) {
-  //   const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [gm.userEmail]);
-  //   const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [gm.groupName]);
-
-  //   if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
-  //     await pool.query(
-  //       `INSERT INTO "GroupMembers" ("group_id", "user_id", "role")
-  //        VALUES ($1, $2, $3)
-  //        ON CONFLICT DO NOTHING`,
-  //       [groupRes.rows[0].id, userRes.rows[0].id, gm.role],
-  //     );
-  //   }
-  // }
-  // console.log(`Inserted ${groupMembers.length} group members.`);
-
   // Insert marketplace items
   const sellerRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
     'alice@example.com',
@@ -1190,6 +1253,65 @@ async function seed() {
       );
     }
   }
+  // -----------------------------------------------------------------------------
+  // Insert Tasks
+  // -----------------------------------------------------------------------------
+
+  for (const task of tasks) {
+    const creatorRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      task.creatorEmail,
+    ]);
+
+    const assigneeRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      task.assigneeEmail,
+    ]);
+
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [task.groupName]);
+
+    if (
+      creatorRes.rows.length === 0 ||
+      assigneeRes.rows.length === 0 ||
+      groupRes.rows.length === 0
+    ) {
+      continue;
+    }
+
+    await pool.query(
+      `INSERT INTO "GroupTasks"
+    ("group_id","creator_id","assignee_id","title","description","status","due_date")
+    VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [
+        groupRes.rows[0].id,
+        creatorRes.rows[0].id,
+        assigneeRes.rows[0].id,
+        task.title,
+        task.description,
+        task.status,
+        task.dueDate,
+      ],
+    );
+  }
+  console.log(`Inserted ${tasks.length} tasks.`);
+  // -----------------------------------------------------------------------------
+  // Insert Sub Tasks
+  // -----------------------------------------------------------------------------
+
+  for (const subtask of subtasks) {
+    const taskRes = await pool.query(`SELECT id FROM "GroupTasks" WHERE title = $1`, [
+      subtask.taskTitle,
+    ]);
+
+    if (taskRes.rows.length === 0) continue;
+
+    await pool.query(
+      `INSERT INTO "GroupTaskItems"
+    ("task_id","text","completed")
+    VALUES ($1,$2,$3)`,
+      [taskRes.rows[0].id, subtask.text, subtask.completed],
+    );
+  }
+
+  console.log(`Inserted ${subtasks.length} subtasks.`);
 
   console.log(`Inserted ${groupAnnouncements.length} group announcements.`);
 

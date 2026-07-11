@@ -240,6 +240,49 @@ CREATE TABLE "GroupAnnouncements" (
   FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
 );
 
+CREATE TYPE task_status AS ENUM (
+  'todo',
+  'in_progress',
+  'done'
+);
+
+CREATE TABLE "GroupTasks" (
+  "id" SERIAL PRIMARY KEY,
+  "group_id" INT NOT NULL,
+  "creator_id" INT NOT NULL,
+  "assignee_id" INT,
+  "title" TEXT NOT NULL,
+  "description" TEXT DEFAULT '',
+  "status" task_status NOT NULL DEFAULT 'todo',
+  "due_date" TIMESTAMP,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY ("group_id")
+    REFERENCES "Groups"("id") ON DELETE CASCADE,
+
+  FOREIGN KEY ("creator_id")
+    REFERENCES "Person"("id") ON DELETE CASCADE,
+
+  FOREIGN KEY ("assignee_id")
+    REFERENCES "Person"("id") ON DELETE SET NULL
+);
+
+CREATE TABLE "GroupTaskItems" (
+  "id" SERIAL PRIMARY KEY,
+  "task_id" INT NOT NULL,
+  "text" TEXT NOT NULL,
+  "completed" BOOLEAN DEFAULT FALSE,
+  "completed_by" INT,
+  "completed_at" TIMESTAMP,
+
+  FOREIGN KEY ("task_id")
+    REFERENCES "GroupTasks"("id") ON DELETE CASCADE,
+
+  FOREIGN KEY ("completed_by")
+    REFERENCES "Person"("id") ON DELETE SET NULL
+);
+
+
 ---------------------------------------------------------------------------------------
 --                                  USER
 -- -------------------------------------------------------------------------------------
