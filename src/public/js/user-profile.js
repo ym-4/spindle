@@ -124,7 +124,8 @@ function renderView(profile) {
   const name = profile.display_name || profile.name;
   const skills = parseSkills(profile.skills);
   const stats = profile.stats || {};
-  const coverStyle = profile.cover_image
+  const isPrivate = profile.is_private && !isOwnProfile && profile.relationship !== 'friends';
+  const coverStyle = profile.cover_image && !isPrivate
     ? `<img src="${esc(mediaUrl(profile.cover_image))}" alt="Cover photo" />`
     : '';
   const avatarInner = profile.profile_image
@@ -138,7 +139,41 @@ function renderView(profile) {
     ? `Member since ${new Date(profile.member_since).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}`
     : '';
 
+  const backBtn = !isOwnProfile
+    ? '<a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary mb-2"><i class="fas fa-arrow-left me-1"></i>Back</a>'
+    : '';
+
+  const reportBtn = !isOwnProfile
+    ? '<button type="button" class="btn btn-sm btn-outline-danger" id="reportProfileBtn"><i class="fas fa-flag me-1"></i>Report</button>'
+    : '';
+
+  if (isPrivate) {
+    root.innerHTML = `
+      ${backBtn}
+      <div class="pro-profile__cover" style="height:120px;background:#f0f0f0;"></div>
+      <div class="pro-profile__head">
+        <div class="pro-profile__avatar-wrap">
+          <div class="pro-profile__avatar">${avatarInner}</div>
+        </div>
+        <h1 class="pro-profile__name">${esc(name)}</h1>
+        <p class="pro-profile__meta-line">@${esc(profile.username || profile.name)}</p>
+      </div>
+      <div class="text-center py-4">
+        <i class="fas fa-lock fa-3x mb-3 text-muted"></i>
+        <p class="text-muted">This profile is private.</p>
+        <p class="small text-muted">Send a friend request to view their profile.</p>
+      </div>
+      <div class="pro-profile__friend-actions text-center" id="friendActions">${relActions(profile)}</div>
+      ${!isOwnProfile ? `<div class="text-center mt-2">${reportBtn}</div>` : ''}`;
+    if (!isOwnProfile) {
+      bindFriendActions(document.getElementById('friendActions'));
+      document.getElementById('reportProfileBtn')?.addEventListener('click', () => openReportProfileModal(profile.id, name));
+    }
+    return;
+  }
+
   root.innerHTML = `
+    ${backBtn}
     <div class="pro-profile__cover">${coverStyle}
       ${isOwnProfile ? `<label class="btn btn-sm btn-light pro-profile__cover-edit"><i class="fas fa-camera"></i> Cover<input type="file" id="coverFile" accept="image/*" hidden /></label>` : ''}
     </div>
@@ -148,9 +183,7 @@ function renderView(profile) {
           ? `<div class="pro-profile__actions-top">
         <button type="button" class="btn btn-outline-danger btn-sm" id="btnEditProfile">Edit profile</button>
         <a href="settings.html" class="btn btn-outline-secondary btn-sm">Settings</a>
-      </div>`
-          : ''
-      }
+      </div>` : `<div class="pro-profile__actions-top">${reportBtn}</div>`}
       <div class="pro-profile__avatar-wrap">
         <div class="pro-profile__avatar">${avatarInner}</div>
         ${isOwnProfile ? `<label class="btn btn-sm btn-light pro-profile__avatar-edit"><i class="fas fa-camera"></i><input type="file" id="avatarFile" accept="image/*" hidden /></label>` : ''}
@@ -181,13 +214,87 @@ function renderView(profile) {
       ${renderLinks(profile)}
     </div>`;
 
-  if (!isOwnProfile) bindFriendActions(document.getElementById('friendActions'));
+  if (!isOwnProfile) {
+    bindFriendActions(document.getElementById('friendActions'));
+    document.getElementById('reportProfileBtn')?.addEventListener('click', () => openReportProfileModal(profile.id, name));
+  }
   if (isOwnProfile) {
     document
       .getElementById('btnEditProfile')
       ?.addEventListener('click', () => showEditForm(profile));
     document.getElementById('avatarFile')?.addEventListener('change', uploadAvatar);
     document.getElementById('coverFile')?.addEventListener('change', uploadCover);
+  }
+}
+
+function openReportProfileModal(targetId, targetName) {
+  const existing = document.getElementById('reportProfileOverlay');
+  if (existing) existing.remove();
+
+  const reasons = [
+    'Fake account', 'Harassment', 'Inappropriate content',
+    'Impersonation', 'Spam', 'Other',
+  ];
+
+  const overlay = document.createElement('div');
+  overlay.id = 'reportProfileOverlay';
+  overlay.className = 'report-modal-overlay';
+  overlay.innerHTML = `
+    <div class="report-modal-card">
+      <h5>Report ${esc(targetName)}</h5>
+      <p class="report-modal-sub">Why are you reporting this user?</p>
+      <div id="reportProfileReasons">
+        ${reasons.map(r => `<button class="report-reason-btn" data-reason="${r}"><i class="fas fa-flag"></i> ${r}</button>`).join('')}
+      </div>
+      <div id="reportProfileDesc" style="display:none;">
+        <textarea id="reportProfileDescInput" class="form-control form-control-sm mb-2" rows="3" placeholder="Optional details..."></textarea>
+        <button class="btn btn-danger btn-sm" id="reportProfileSubmitBtn">Submit report</button>
+      </div>
+      <div id="reportProfileThanks" style="display:none;text-align:center;padding:1rem 0;"></div>
+      <div class="report-modal-actions">
+        <button class="btn btn-outline-secondary btn-sm" id="reportProfileCancelBtn">Cancel</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  let selectedReason = null;
+
+  overlay.querySelectorAll('.report-reason-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedReason = btn.dataset.reason;
+      document.getElementById('reportProfileReasons').style.display = 'none';
+      document.getElementById('reportProfileDesc').style.display = 'block';
+    });
+  });
+
+  document.getElementById('reportProfileSubmitBtn').addEventListener('click', async () => {
+    const desc = document.getElementById('reportProfileDescInput').value.trim();
+    try {
+      await authFetch('/auth/report-user', {
+        method: 'POST',
+        body: JSON.stringify({ reported_id: targetId, reason: selectedReason, description: desc }),
+      });
+      document.getElementById('reportProfileDesc').style.display = 'none';
+      const thanks = document.getElementById('reportProfileThanks');
+      thanks.style.display = 'block';
+      thanks.innerHTML = '<i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i><div class="fw-bold">Report submitted</div><div class="text-muted small mt-1">We\'ll review this profile.</div>';
+      document.getElementById('reportProfileCancelBtn').textContent = 'Close';
+      setTimeout(() => closeReportProfileModal(), 2500);
+    } catch (err) {
+      alert(err.message || 'Failed to submit report.');
+    }
+  });
+
+  document.getElementById('reportProfileCancelBtn').addEventListener('click', closeReportProfileModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeReportProfileModal(); });
+}
+
+function closeReportProfileModal() {
+  const overlay = document.getElementById('reportProfileOverlay');
+  if (overlay) {
+    overlay.remove();
+    document.body.style.overflow = '';
   }
 }
 

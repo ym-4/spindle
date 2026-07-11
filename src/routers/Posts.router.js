@@ -24,6 +24,7 @@ const {
   insertReport,
   getAllReports,
   searchAllPosts,
+  togglePin
 } = require('../models/Posts.model');
 
 const router = express.Router();
@@ -138,6 +139,7 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
     content: req.body.content,
     attachment_url: attachmentUrl,
     is_anonymous: req.body.is_anonymous === 'true',
+    visibility: req.body.visibility || 'everyone',
   };
 
   insertPost(data)
@@ -212,6 +214,7 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
         content: req.body.content,
         category: req.body.category,
         attachment_url: attachmentUrl,
+        visibility: req.body.visibility || 'everyone',
       };
       return updatePostByID(data);
     })
@@ -364,6 +367,19 @@ router.delete('/reaction/:id', (req, res, next) => {
       console.error('Error deleteReaction: ' + error);
       res.status(500).json(error);
     });
+});
+
+// Toggle pin post (owner only)
+router.post('/:id/pin', authenticateJWT, async (req, res, next) => {
+  try {
+    const postId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(postId)) return res.status(400).json({ error: 'Invalid post id.' });
+    const result = await togglePin(postId, req.user.id);
+    if (!result) return res.status(404).json({ error: 'Post not found or not yours.' });
+    res.status(200).json({ pinned: result.pinned });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Report a post

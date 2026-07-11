@@ -343,7 +343,11 @@ function buildPostCard(post) {
       </div>
     </div>
 
-    <span class="post-category ${getCategoryClass(post.category)}">${getCategoryLabel(post.category)}</span>
+    <div class="d-flex gap-1 align-items-center flex-wrap">
+      <span class="post-category ${getCategoryClass(post.category)}">${getCategoryLabel(post.category)}</span>
+      ${post.visibility === 'friends_only' ? '<span class="badge bg-warning text-dark" style="font-size:0.65rem;"><i class="fas fa-user-friends me-1"></i>Friends</span>' : ''}
+      ${post.pinned ? '<span class="badge bg-info text-dark" style="font-size:0.65rem;"><i class="fas fa-thumbtack me-1"></i>Pinned</span>' : ''}
+    </div>
 
     <div class="post-content">
       ${escapeHtml(post.content)}
@@ -747,6 +751,7 @@ function setupCreatePost() {
     formData.append('category', category);
     formData.append('content', content);
     formData.append('is_anonymous', isAnonymous);
+    formData.append('visibility', document.getElementById('postVisibility').value);
 
     const attachmentInput = document.getElementById('postAttachment');
 

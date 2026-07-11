@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="en">
-  <head>
+<html lang="en" data-theme="light" data-accessibility="off">
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin — Spindle</title>
@@ -13,272 +13,196 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <style>
-      body {
-        background: #f0f2f5;
-        font-family: 'Segoe UI', sans-serif;
-      }
-      .admin-wrapper {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-      }
-      .admin-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 2rem;
-      }
-      .admin-header h1 {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #1a1a2e;
-        margin: 0;
-      }
-      .admin-header h1 i {
-        color: #1877f2;
-        margin-right: 0.5rem;
-      }
-      .admin-tabs {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 2px solid #e4e6eb;
-        padding-bottom: 0.5rem;
-        flex-wrap: wrap;
-      }
-      .admin-tabs .tab-btn {
-        border: none;
-        background: none;
-        padding: 0.6rem 1.2rem;
-        font-weight: 600;
-        color: #65676b;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .admin-tabs .tab-btn:hover {
-        background: #e4e6eb;
-      }
-      .admin-tabs .tab-btn.active {
-        background: #1877f2;
-        color: #fff;
-      }
-      .admin-card {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-        margin-bottom: 1.5rem;
-      }
-      .admin-card-header {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #e4e6eb;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: #fafafa;
-      }
-      .admin-card-header h5 {
-        margin: 0;
-        font-weight: 600;
-      }
-      .admin-card-body {
-        padding: 1.5rem;
-      }
-      .stat-card {
-        text-align: center;
-        padding: 1.25rem;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      }
-      .stat-card .num {
-        font-size: 2rem;
-        font-weight: 800;
-      }
-      .stat-card .trend {
-        font-size: 0.8rem;
-        margin-top: 0.25rem;
-      }
-      .stat-card .label {
-        font-size: 0.85rem;
-        color: #65676b;
-        margin-top: 0.25rem;
-      }
-      .admin-table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      .admin-table th {
-        text-align: left;
-        padding: 0.75rem 0.5rem;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        color: #65676b;
-        border-bottom: 2px solid #e4e6eb;
-        font-weight: 600;
-        white-space: nowrap;
-      }
-      .admin-table td {
-        padding: 0.75rem 0.5rem;
-        border-bottom: 1px solid #e4e6eb;
-        font-size: 0.9rem;
-      }
-      .admin-table tr:hover td {
-        background: #f7f8fa;
-      }
-      .filter-bar {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        flex-wrap: wrap;
-        margin-bottom: 1rem;
-        padding: 0.75rem;
-        background: #f7f8fa;
-        border-radius: 8px;
-      }
-      .filter-bar select,
-      .filter-bar input {
-        border: 1px solid #ccd0d5;
-        border-radius: 6px;
-        padding: 0.35rem 0.6rem;
-        font-size: 0.85rem;
-      }
-      .role-badge {
-        display: inline-block;
-        padding: 0.2rem 0.6rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-      }
-      .role-badge--admin {
-        background: #e7f3ff;
-        color: #1877f2;
-      }
-      .role-badge--user {
-        background: #f0f2f5;
-        color: #65676b;
-      }
-      .btn-action {
-        padding: 0.3rem 0.7rem;
-        font-size: 0.8rem;
-        border-radius: 6px;
-        border: none;
-        cursor: pointer;
-      }
-      .btn-action:hover {
-        opacity: 0.85;
-      }
-      .btn-danger-sm {
-        background: #fee;
-        color: #e41e3f;
-      }
-      .btn-danger-sm:hover {
-        background: #fcc;
-      }
-      .btn-edit-sm {
-        background: #e7f3ff;
-        color: #1877f2;
-      }
-      .btn-success-sm {
-        background: #e6f9ee;
-        color: #1b9c4b;
-      }
-      .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .modal-overlay.hidden {
-        display: none;
-      }
-      .modal-box {
-        background: #fff;
-        border-radius: 12px;
-        max-width: 500px;
-        width: 90%;
-        padding: 1.5rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      }
-      .modal-box h3 {
-        margin-bottom: 0.75rem;
-      }
-      .modal-box p {
-        color: #65676b;
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-      }
-      .modal-box .modal-actions {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: flex-end;
-      }
-      .hidden {
-        display: none !important;
-      }
-      .badge-pending {
-        background: #fff3cd;
-        color: #856404;
-      }
-      .badge-approved {
-        background: #d4edda;
-        color: #155724;
-      }
-      .badge-dismissed {
-        background: #f8d7da;
-        color: #721c24;
-      }
+        :root { --bg: #f0f2f5; --card-bg: #fff; --text: #1a1a2e; --text-muted: #65676b; --border: #e4e6eb; --hover: #f7f8fa; --accent: #1877f2; --danger: #e41e3f; --success: #1b9c4b; --warning: #f5a623; --shadow: rgba(0,0,0,0.08); --sidebar-bg: #fff; }
+        [data-theme="dark"] { --bg: #1a1a2e; --card-bg: #2a2a3e; --text: #e4e6eb; --text-muted: #a0a0b0; --border: #3a3a4e; --hover: #3a3a4e; --shadow: rgba(0,0,0,0.3); --sidebar-bg: #222236; }
+        [data-accessibility="on"] .admin-wrapper { border: 3px solid #e41e3f; border-radius: 6px; padding: calc(1.5rem - 3px) 1rem; background: #fffdf5; }
+        [data-accessibility="on"] .admin-table td, [data-accessibility="on"] .admin-table th { border-width: 2px !important; border-color: #333 !important; }
+        [data-accessibility="on"] .badge { border: 2px solid currentColor !important; }
+        [data-accessibility="on"] .filter-bar, [data-accessibility="on"] .admin-card { border: 2px solid #555 !important; box-shadow: none !important; }
+        [data-accessibility="on"] body { background: #f5f0e8; }
+        [data-accessibility="on"] .admin-table tr:hover td { background: #e8e0d0 !important; }
+        [data-accessibility="on"] .admin-card-header { background: #e8e0d0 !important; }
+        [data-accessibility="on"] .stat-card { border: 2px solid #555 !important; box-shadow: none !important; }
+        [data-accessibility="on"] .btn-action, [data-accessibility="on"] .tab-btn { border: 1px solid currentColor !important; }
+        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; color: var(--text); transition: background .3s, color .3s; }
+        .admin-wrapper { max-width: 1440px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+        .admin-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text); margin: 0; }
+        .admin-header h1 i { color: var(--accent); margin-right: 0.5rem; }
+        .header-actions { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+        .header-actions button, .header-actions .btn { font-size: 0.8rem; }
+        .priority-strip { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; padding: 0.6rem 1rem; background: var(--card-bg); border-radius: 10px; box-shadow: 0 1px 4px var(--shadow); margin-bottom: 1rem; border-left: 4px solid var(--danger); }
+        .priority-strip .strip-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text); }
+        .priority-strip .strip-item .badge { font-size: 0.75rem; }
+        .priority-strip .strip-action { font-size: 0.75rem; padding: 0.15rem 0.6rem; border-radius: 4px; border: none; cursor: pointer; background: var(--accent); color: #fff; }
+        .breadcrumb-wrap { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem; display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; min-height: 1.4rem; }
+        .breadcrumb-wrap .bc-sep { color: var(--text-muted); }
+        .breadcrumb-wrap .bc-link { cursor: pointer; color: var(--accent); text-decoration: none; }
+        .breadcrumb-wrap .bc-link:hover { text-decoration: underline; }
+        .breadcrumb-wrap .bc-current { font-weight: 600; color: var(--text); }
+        .admin-tabs { display: flex; gap: 0.3rem; margin-bottom: 1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; flex-wrap: wrap; }
+        .admin-tabs .tab-btn { border: none; background: none; padding: 0.5rem 1rem; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .admin-tabs .tab-btn:hover { background: var(--hover); }
+        .admin-tabs .tab-btn.active { background: var(--accent); color: #fff; }
+        .admin-card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 2px 8px var(--shadow); overflow: hidden; margin-bottom: 1.5rem; transition: background .3s; }
+        .admin-card-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--hover); flex-wrap: wrap; gap: 0.5rem; }
+        .admin-card-header h5 { margin: 0; font-weight: 600; font-size: 0.95rem; }
+        .admin-card-body { padding: 1.25rem; }
+        .stat-card { text-align: center; padding: 1rem; background: var(--card-bg); border-radius: 12px; box-shadow: 0 2px 8px var(--shadow); transition: background .3s; }
+        .stat-card .num { font-size: 1.8rem; font-weight: 800; }
+        .stat-card .trend { font-size: 0.78rem; margin-top: 0.2rem; }
+        .stat-card .label { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; }
+        .admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th { text-align: left; padding: 0.6rem 0.4rem; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 2px solid var(--border); font-weight: 600; white-space: nowrap; }
+        .admin-table td { padding: 0.6rem 0.4rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; vertical-align: middle; }
+        .admin-table tr:hover td { background: var(--hover); }
+        .admin-table tr.row-ban { border-left: 3px solid var(--danger); }
+        .admin-table tr.row-warning { border-left: 3px solid var(--warning); }
+        .admin-table tr.row-ok { border-left: 3px solid var(--success); }
+        .admin-table tr.row-default { border-left: 3px solid transparent; }
+        .admin-table td:first-child, .admin-table th:first-child { padding-left: 0.75rem; }
+        .filter-bar { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem; padding: 0.6rem 0.75rem; background: var(--hover); border-radius: 8px; }
+        .filter-bar select, .filter-bar input { border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.5rem; font-size: 0.82rem; background: var(--card-bg); color: var(--text); }
+        .filter-preset-chips { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+        .filter-chip { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.6rem; font-size: 0.75rem; border-radius: 12px; border: 1px solid var(--border); background: var(--card-bg); cursor: pointer; color: var(--text-muted); }
+        .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .filter-chip .chip-remove { cursor: pointer; font-size: 0.7rem; opacity: 0.6; }
+        .filter-chip .chip-remove:hover { opacity: 1; }
+        .role-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
+        .role-badge--admin { background: #e7f3ff; color: var(--accent); }
+        .role-badge--moderator { background: #e6f9ee; color: var(--success); }
+        .role-badge--user { background: var(--hover); color: var(--text-muted); }
+        .btn-action { padding: 0.25rem 0.6rem; font-size: 0.75rem; border-radius: 6px; border: none; cursor: pointer; }
+        .btn-action:hover { opacity: 0.85; }
+        .btn-danger-sm { background: #fee; color: var(--danger); }
+        .btn-danger-sm:hover { background: #fcc; }
+        .btn-edit-sm { background: #e7f3ff; color: var(--accent); }
+        .btn-success-sm { background: #e6f9ee; color: var(--success); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .modal-overlay.hidden { display: none; }
+        .modal-box { background: var(--card-bg); border-radius: 12px; max-width: 520px; width: 90%; padding: 1.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.2); color: var(--text); }
+        .modal-box h3 { margin-bottom: 0.75rem; font-size: 1.1rem; }
+        .modal-box p { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem; }
+        .modal-box .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+        .modal-box input, .modal-box select, .modal-box textarea { border: 1px solid var(--border); border-radius: 6px; padding: 0.35rem 0.5rem; font-size: 0.85rem; width: 100%; background: var(--card-bg); color: var(--text); }
+        .hidden { display: none !important; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-approved { background: #d4edda; color: #155724; }
+        .badge-dismissed { background: #f8d7da; color: #721c24; }
+        .badge-danger { background: #fee; color: var(--danger); }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-info { background: #e7f3ff; color: var(--accent); }
+        .badge-secondary { background: var(--hover); color: var(--text-muted); }
+        .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.4; }
+        .empty-state p { font-size: 0.9rem; margin: 0; }
+        /* Command palette */
+        .cmd-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: flex-start; justify-content: center; padding-top: 10vh; }
+        .cmd-overlay.hidden { display: none; }
+        .cmd-box { background: var(--card-bg); border-radius: 12px; width: 90%; max-width: 600px; max-height: 70vh; box-shadow: 0 16px 48px rgba(0,0,0,0.25); display: flex; flex-direction: column; overflow: hidden; }
+        .cmd-input-wrap { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+        .cmd-input-wrap i { color: var(--text-muted); font-size: 1rem; }
+        .cmd-input-wrap input { flex: 1; border: none; outline: none; font-size: 1rem; background: transparent; color: var(--text); }
+        .cmd-input-wrap input::placeholder { color: var(--text-muted); }
+        .cmd-results { overflow-y: auto; padding: 0.5rem 0; max-height: 50vh; }
+        .cmd-group { padding: 0.25rem 0.75rem; }
+        .cmd-group-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; padding: 0.3rem 0.5rem; letter-spacing: 0.5px; }
+        .cmd-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text); }
+        .cmd-item:hover { background: var(--hover); }
+        .cmd-item .cmd-type { font-size: 0.7rem; color: var(--text-muted); background: var(--hover); padding: 0.1rem 0.4rem; border-radius: 4px; }
+        .cmd-empty { padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+        /* Side panel */
+        .side-panel { position: fixed; top: 0; right: 0; width: 420px; max-width: 100%; height: 100%; background: var(--card-bg); z-index: 9998; box-shadow: -4px 0 24px var(--shadow); overflow-y: auto; transition: transform .3s; transform: translateX(0); padding: 1.5rem; }
+        .side-panel.hidden { transform: translateX(100%); }
+        .side-panel h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; }
+        .side-panel .sp-close { float: right; border: none; background: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); }
+        .side-panel-section { margin-bottom: 1.25rem; }
+        .side-panel-section h6 { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 0.5rem; letter-spacing: 0.3px; }
+        .side-panel-section .sp-item { padding: 0.3rem 0; font-size: 0.85rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+        .sp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 9997; }
+        .sp-overlay.hidden { display: none; }
+        /* Skeleton */
+        .skel { background: linear-gradient(90deg, var(--hover) 25%, var(--border) 50%, var(--hover) 75%); background-size: 200% 100%; animation: skel-shimmer 1.5s infinite; border-radius: 6px; }
+        .skel-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .skel-cell { height: 1rem; border-radius: 4px; }
+        @keyframes skel-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        /* Bulk bar */
+        .bulk-bar { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; background: var(--accent); color: #fff; border-radius: 8px; font-size: 0.82rem; margin-bottom: 0.5rem; }
+        .bulk-bar.hidden { display: none; }
+        .bulk-bar button { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 0.2rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.78rem; }
+        .bulk-bar button:hover { background: rgba(255,255,255,0.3); }
+        /* Quick nav hint */
+        .kbd-hint { font-size: 0.7rem; color: var(--text-muted); margin-left: 0.5rem; }
+        .kbd-hint kbd { display: inline-block; padding: 0.1rem 0.3rem; font-size: 0.65rem; background: var(--hover); border: 1px solid var(--border); border-radius: 3px; font-family: monospace; }
+        @media(max-width:768px) { .admin-header h1 { font-size: 1.2rem; } .side-panel { width: 100%; } .stat-card .num { font-size: 1.3rem; } .priority-strip { font-size: 0.78rem; } }
     </style>
-  </head>
-  <body>
+</head>
+<body>
+    <!-- Command palette -->
+    <div id="cmdOverlay" class="cmd-overlay hidden">
+        <div class="cmd-box">
+            <div class="cmd-input-wrap"><i class="fas fa-search"></i><input type="text" id="cmdInput" placeholder="Search users, posts, reports…" autocomplete="off" spellcheck="false"></div>
+            <div id="cmdResults" class="cmd-results"></div>
+        </div>
+    </div>
+
+    <!-- Side panel -->
+    <div id="spOverlay" class="sp-overlay hidden"></div>
+    <div id="sidePanel" class="side-panel hidden">
+        <button class="sp-close" id="spClose"><i class="fas fa-times"></i></button>
+        <div id="spContent"></div>
+    </div>
+
     <div class="admin-wrapper">
-      <div class="admin-header">
-        <h1><i class="fas fa-shield-alt"></i>Admin Dashboard</h1>
-        <div>
-          <button class="btn btn-outline-danger btn-sm" id="btnLogout">
-            <i class="fas fa-sign-out-alt"></i> Logout
-          </button>
+        <div class="admin-header">
+            <h1><i class="fas fa-shield-alt"></i>Admin Dashboard</h1>
+            <div class="header-actions">
+                <button class="btn btn-outline-secondary btn-sm" id="btnCmdPalette" title="Search (Ctrl+K)"><i class="fas fa-search"></i></button>
+                <div class="btn-group btn-group-sm me-1">
+                    <button class="btn btn-outline-secondary btn-sm" id="btnDarkMode" title="Toggle dark mode"><i class="fas fa-moon"></i></button>
+                    <button class="btn btn-outline-secondary btn-sm" id="btnAccessibility" title="Toggle high-contrast mode"><i class="fas fa-eye"></i> <span id="accLabel">OFF</span></button>
+                </div>
+                <button class="btn btn-outline-danger btn-sm" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
         </div>
       </div>
 
-      <!-- Stats -->
-      <div id="adminStats" class="row g-3 mb-4"></div>
+        <!-- Breadcrumb -->
+        <div id="breadcrumb" class="breadcrumb-wrap"></div>
 
-      <!-- Tabs -->
-      <div class="admin-tabs">
-        <button class="tab-btn active" data-tab="users">
-          <i class="fas fa-users me-1"></i>Users
-        </button>
-        <button class="tab-btn" data-tab="posts"><i class="fas fa-newspaper me-1"></i>Posts</button>
-        <button class="tab-btn" data-tab="reports"><i class="fas fa-flag me-1"></i>Reports</button>
-        <button class="tab-btn" data-tab="appeals"><i class="fas fa-gavel me-1"></i>Appeals</button>
-        <button class="tab-btn" data-tab="audit">
-          <i class="fas fa-history me-1"></i>Audit Log
-        </button>
-      </div>
+        <!-- Priority Needs Attention strip -->
+        <div id="priorityStrip" class="priority-strip hidden"></div>
 
-      <!-- ===== USERS TAB ===== -->
-      <div id="tabUsers" class="tab-content">
-        <div class="admin-card">
-          <div class="admin-card-header">
-            <h5><i class="fas fa-users me-2"></i>All Users</h5>
-            <span id="userCount" class="badge bg-secondary"></span>
-          </div>
-          <div class="admin-card-body">
-            <div class="filter-bar">
-              <input
-                type="text"
-                id="userSearch"
-                placeholder="Search by name or email..."
-                style="flex: 1; min-width: 150px"
-              />
-              <button class="btn btn-outline-secondary btn-sm" id="showBannedBtn">
-                <i class="fas fa-ban me-1"></i>Show Banned
-              </button>
+        <!-- Stats -->
+        <div id="adminStats" class="row g-3 mb-4"></div>
+
+        <!-- Tabs -->
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="users"><i class="fas fa-users me-1"></i>Users <span class="kbd-hint"><kbd>G</kbd> <kbd>U</kbd></span></button>
+            <button class="tab-btn" data-tab="posts"><i class="fas fa-newspaper me-1"></i>Posts <span class="kbd-hint"><kbd>G</kbd> <kbd>P</kbd></span></button>
+            <button class="tab-btn" data-tab="reports"><i class="fas fa-flag me-1"></i>Reports <span class="kbd-hint"><kbd>G</kbd> <kbd>R</kbd></span></button>
+            <button class="tab-btn" data-tab="appeals"><i class="fas fa-gavel me-1"></i>Appeals <span class="kbd-hint"><kbd>G</kbd> <kbd>A</kbd></span></button>
+            <button class="tab-btn" data-tab="audit"><i class="fas fa-history me-1"></i>Audit Log <span class="kbd-hint"><kbd>G</kbd> <kbd>L</kbd></span></button>
+        </div>
+
+        <!-- ===== USERS TAB ===== -->
+        <div id="tabUsers" class="tab-content"><div class="admin-card">
+            <div class="admin-card-header"><h5><i class="fas fa-users me-2"></i>All Users</h5><div><span id="userCount" class="badge bg-secondary me-2"></span><button class="btn btn-outline-secondary btn-sm" id="exportUsersBtn"><i class="fas fa-download me-1"></i>Export CSV</button></div></div>
+            <div class="admin-card-body">
+                <div class="filter-preset-chips" id="userPresetChips"></div>
+                <div class="filter-bar">
+                    <input type="text" id="userSearch" placeholder="Search by name or email..." style="flex:1;min-width:120px;">
+                    <select id="userFilterRole"><option value="">All Roles</option><option value="user">User</option><option value="moderator">Moderator</option><option value="admin">Admin</option></select>
+                    <select id="userFilterStatus"><option value="">All Status</option><option value="active">Active</option><option value="banned">Banned</option></select>
+                    <button class="btn btn-outline-secondary btn-sm" id="showBannedBtn"><i class="fas fa-ban me-1"></i>Show Banned</button>
+                    <button class="btn btn-outline-secondary btn-sm" id="saveUserFilterBtn" title="Save current filter as preset"><i class="fas fa-bookmark"></i></button>
+                </div>
+                <div id="bulkUserBar" class="bulk-bar hidden"><span id="bulkUserCount">0 selected</span><button id="bulkUserDelete"><i class="fas fa-trash me-1"></i>Delete</button><button id="bulkUserBan"><i class="fas fa-ban me-1"></i>Ban</button><button id="bulkUserClear">Clear</button></div>
+                <div id="adminLoading" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading users...</div>
+                <div id="adminError" class="alert alert-danger hidden"></div>
+                <div id="adminPanel" class="hidden">
+                    <table class="admin-table"><thead><tr><th style="width:32px;"><input type="checkbox" id="userSelectAll"></th><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th style="width:200px;">Actions</th></tr></thead><tbody id="adminUsersBody"></tbody></table>
+                </div>
             </div>
             <div id="adminLoading" class="text-center py-4 text-muted">
               <i class="fas fa-spinner fa-spin me-2"></i>Loading users...
@@ -303,33 +227,22 @@
         </div>
       </div>
 
-      <!-- ===== POSTS TAB ===== -->
-      <div id="tabPosts" class="tab-content hidden">
-        <div class="admin-card">
-          <div class="admin-card-header">
-            <h5><i class="fas fa-newspaper me-2"></i>All Posts</h5>
-            <span id="postCount" class="badge bg-secondary"></span>
-          </div>
-          <div class="admin-card-body">
-            <div class="filter-bar">
-              <input
-                type="text"
-                id="postSearch"
-                placeholder="Search by title, author, or content..."
-                style="flex: 1; min-width: 150px"
-              />
-              <select id="filterCategory">
-                <option value="">All Categories</option>
-                <option value="Confession">Confession</option>
-                <option value="Q&A">Q&amp;A</option>
-                <option value="General">General</option>
-              </select>
-              <select id="filterDate">
-                <option value="">All Time</option>
-                <option value="1">Last Hour</option>
-                <option value="24">Last 24 Hours</option>
-                <option value="720">Last 30 Days</option>
-              </select>
+        <!-- ===== POSTS TAB ===== -->
+        <div id="tabPosts" class="tab-content hidden"><div class="admin-card">
+            <div class="admin-card-header"><h5><i class="fas fa-newspaper me-2"></i>All Posts</h5><span id="postCount" class="badge bg-secondary"></span></div>
+            <div class="admin-card-body">
+                <div class="filter-preset-chips" id="postPresetChips"></div>
+                <div class="filter-bar">
+                    <input type="text" id="postSearch" placeholder="Search by title, author, or content..." style="flex:1;min-width:120px;">
+                    <select id="filterCategory"><option value="">All Categories</option><option value="Confession">Confession</option><option value="Q&A">Q&amp;A</option><option value="General">General</option></select>
+                    <select id="filterDate"><option value="">All Time</option><option value="1">Last Hour</option><option value="24">Last 24 Hours</option><option value="720">Last 30 Days</option></select>
+                    <button class="btn btn-outline-secondary btn-sm" id="savePostFilterBtn" title="Save filter as preset"><i class="fas fa-bookmark"></i></button>
+                </div>
+                <div id="postsLoading" class="loading-skel hidden"></div>
+                <div id="postsError" class="alert alert-danger hidden"></div>
+                <div id="postsPanel" class="hidden">
+                    <table class="admin-table"><thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Category</th><th>Date</th><th style="width:80px;">Action</th></tr></thead><tbody id="adminPostsBody"></tbody></table>
+                </div>
             </div>
             <div id="postsLoading" class="text-center py-4 text-muted">
               <i class="fas fa-spinner fa-spin me-2"></i>Loading posts...
@@ -354,53 +267,31 @@
         </div>
       </div>
 
-      <!-- ===== REPORTS TAB ===== -->
-      <div id="tabReports" class="tab-content hidden">
-        <div class="admin-card">
-          <div class="admin-card-header">
-            <h5><i class="fas fa-flag me-2"></i>Reports</h5>
-            <div>
-              <button class="btn btn-outline-secondary btn-sm me-2" id="showResolvedReportsBtn">
-                Resolved</button
-              ><span id="reportCount" class="badge bg-danger"></span>
+        <!-- ===== REPORTS TAB ===== -->
+        <div id="tabReports" class="tab-content hidden"><div class="admin-card">
+            <div class="admin-card-header"><h5><i class="fas fa-flag me-2"></i>Reports</h5>
+                <div><button class="btn btn-outline-secondary btn-sm me-2" id="showResolvedReportsBtn"><i class="fas fa-check-double me-1"></i>Resolved</button><span id="reportCount" class="badge bg-danger"></span></div>
             </div>
-          </div>
-          <div class="admin-card-body">
-            <div id="reportsLoading" class="text-center py-4 text-muted">
-              <i class="fas fa-spinner fa-spin me-2"></i>Loading reports...
-            </div>
-            <div id="reportsError" class="alert alert-danger hidden"></div>
-            <div id="reportsPanel" class="hidden">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Post</th>
-                    <th>Reason</th>
-                    <th>Description</th>
-                    <th>Reporter</th>
-                    <th>Author</th>
-                    <th>Date</th>
-                    <th style="width: 200px">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="reportsBody"></tbody>
-              </table>
+            <div class="admin-card-body">
+                <div id="reportsLoading" class="loading-skel hidden"></div>
+                <div id="reportsError" class="alert alert-danger hidden"></div>
+                <div id="reportsPanel" class="hidden">
+                    <table class="admin-table"><thead><tr><th>ID</th><th>Post</th><th>Reason</th><th>Description</th><th>Reporter</th><th>Author</th><th>Date</th><th style="width:200px;">Actions</th></tr></thead><tbody id="reportsBody"></tbody></table>
+                </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ===== APPEALS TAB ===== -->
-      <div id="tabAppeals" class="tab-content hidden">
-        <div class="admin-card">
-          <div class="admin-card-header">
-            <h5><i class="fas fa-gavel me-2"></i>Ban Appeals</h5>
-            <span id="appealCount" class="badge bg-warning"></span>
-          </div>
-          <div class="admin-card-body">
-            <div id="appealsLoading" class="text-center py-4 text-muted">
-              <i class="fas fa-spinner fa-spin me-2"></i>Loading appeals...
+        <!-- ===== APPEALS TAB ===== -->
+        <div id="tabAppeals" class="tab-content hidden"><div class="admin-card">
+            <div class="admin-card-header"><h5><i class="fas fa-gavel me-2"></i>Ban Appeals</h5><span id="appealCount" class="badge bg-warning"></span></div>
+            <div class="admin-card-body">
+                <div id="appealsLoading" class="loading-skel hidden"></div>
+                <div id="appealsError" class="alert alert-danger hidden"></div>
+                <div id="appealsPanel" class="hidden">
+                    <table class="admin-table"><thead><tr><th>ID</th><th>User</th><th>Ban Reason</th><th>Duration</th><th>Appeal Message</th><th>Submitted</th><th style="width:180px;">Actions</th></tr></thead><tbody id="appealsBody"></tbody></table>
+                </div>
             </div>
             <div id="appealsError" class="alert alert-danger hidden"></div>
             <div id="appealsPanel" class="hidden">
@@ -423,30 +314,15 @@
         </div>
       </div>
 
-      <!-- ===== AUDIT LOG TAB ===== -->
-      <div id="tabAudit" class="tab-content hidden">
-        <div class="admin-card">
-          <div class="admin-card-header">
-            <h5><i class="fas fa-history me-2"></i>Audit Log</h5>
-          </div>
-          <div class="admin-card-body">
-            <div id="auditLoading" class="text-center py-4 text-muted">
-              <i class="fas fa-spinner fa-spin me-2"></i>Loading audit log...
-            </div>
-            <div id="auditError" class="alert alert-danger hidden"></div>
-            <div id="auditPanel" class="hidden">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Admin</th>
-                    <th>Action</th>
-                    <th>Target</th>
-                    <th>Details</th>
-                  </tr>
-                </thead>
-                <tbody id="auditBody"></tbody>
-              </table>
+        <!-- ===== AUDIT LOG TAB ===== -->
+        <div id="tabAudit" class="tab-content hidden"><div class="admin-card">
+            <div class="admin-card-header"><h5><i class="fas fa-history me-2"></i>Audit Log</h5><button class="btn btn-outline-secondary btn-sm" id="exportAuditBtn"><i class="fas fa-download me-1"></i>Export CSV</button></div>
+            <div class="admin-card-body">
+                <div id="auditLoading" class="loading-skel hidden"></div>
+                <div id="auditError" class="alert alert-danger hidden"></div>
+                <div id="auditPanel" class="hidden">
+                    <table class="admin-table"><thead><tr><th>Date</th><th>Admin</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody id="auditBody"></tbody></table>
+                </div>
             </div>
           </div>
         </div>
@@ -512,6 +388,21 @@
           <button class="btn btn-danger btn-sm" id="banConfirm">Ban User</button>
         </div>
       </div>
+    </div>
+
+    <!-- Preset name modal -->
+    <div id="presetModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>Save Filter Preset</h3>
+            <p>Give this filter combination a name so you can reuse it later.</p>
+            <div class="mb-2">
+                <input type="text" id="presetNameInput" class="form-control" placeholder="e.g. Banned + Last 30 Days">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline-secondary btn-sm" id="presetCancel">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="presetSave">Save Preset</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

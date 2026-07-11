@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <title>Item</title>
+
+    <!-- CSS -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="css/posts.css" />
+    <link rel="stylesheet" href="css/temp.css" />
+    <link rel="stylesheet" href="css/marketplace.css" />
+    <link rel="stylesheet" href="css/marketplace-cards.css" />
+    <link rel="stylesheet" href="css/item-page.css" />
+    <link rel="stylesheet" href="css/spindle-notif.css" />
+    <link rel="stylesheet" href="css/profile-page.css" />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- Google Fonts: Poppins for headings/price, Inter for body copy -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- JS -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/wa-nav.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        updateNavForUser(getStoredUser());
+        syncLegacyNavbar();
+      });
+    </script>
+  </head>
+
+  <body class="" data-page="item">
+    <!-- Navigation-->
+    <nav class="navbar">
+      <div class="container-fluid px-4 d-flex align-items-center">
+        <a class="navbar-brand" href="index.html">
+          <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
+          <span class="brand-name">spindle</span>
+        </a>
+
+        <div class="navbar-right">
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a href="profile.html" class="btn-navbar-profile" id="profileButton">
+            <i class="fas fa-user-circle"></i> Profile
+          </a>
+          <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+      <!-- Left Sidebar -->
+      <aside class="sidebar">
+        <a href="index.html" class="sidebar-item">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="groups.html" class="sidebar-item">
+          <i class="fas fa-users"></i>
+          <span>Study Groups</span>
+        </a>
+        <a href="marketplace.html" class="sidebar-item active">
+          <i class="fas fa-store"></i>
+          <span>Marketplace</span>
+        </a>
+        <a href="profile.html" class="sidebar-item">
+          <i class="fas fa-user"></i>
+          <span>Profile</span>
+        </a>
+      </aside>
+
+      <main id="content-area">
+        <div class="item-page">
+          <div class="item-breadcrumb">
+            <a href="marketplace.html">Marketplace</a> / <span id="breadcrumbTitle">Item</span>
+          </div>
+
+          <!-- Loaded state -->
+          <div id="itemLoaded" class="d-none">
+            <div class="item-layout">
+              <div class="item-media">
+                <img id="itemImage" src="https://placehold.co/600x500" alt="" />
+              </div>
+
+              <div class="item-details">
+                <span id="itemQuality" class="quality-pill d-none"></span>
+                <h1 id="itemTitle">Loading item&hellip;</h1>
+                <p id="itemPrice" class="item-price">$0.00</p>
+
+                <div class="meetup-ticket">
+                  <div class="meetup-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                  </div>
+                  <div class="meetup-copy">
+                    <p class="meetup-label">Meet-up spot</p>
+                    <p class="meetup-value" id="itemMeetup">—</p>
+                  </div>
+                </div>
+
+                <div class="seller-card">
+                  <i class="fas fa-user-circle"></i>
+                  <div>
+                    <p class="seller-name" id="itemSeller">Student seller</p>
+                    <p class="seller-tag">Listed on Spindle</p>
+                  </div>
+                </div>
+
+                <div class="item-purchase-row">
+                  <div class="item-qty">
+                    <button type="button" id="qtyMinus" aria-label="Decrease quantity">−</button>
+                    <input type="number" id="qtyInput" value="1" min="1" max="99" />
+                    <button type="button" id="qtyPlus" aria-label="Increase quantity">+</button>
+                  </div>
+                  <button
+                    type="button"
+                    id="addToCartBtn"
+                    class="item-add-btn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addedToCartModal"
+                  >
+                    <i class="fas fa-cart-plus"></i> Add to cart
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="item-description-section">
+              <h2>Description</h2>
+              <p id="itemDescription"></p>
+            </div>
+          </div>
+
+          <!-- Not found / error state -->
+          <div id="itemNotFound" class="item-not-found d-none">
+            <i class="fas fa-box-open"></i>
+            <h4>We couldn't find that listing</h4>
+            <p>It may have been sold or removed by the seller.</p>
+            <a href="marketplace.html" class="btn btn-outline-dark">Back to Marketplace</a>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Item Added to Cart Modal -->
+    <div
+      class="modal fade"
+      id="addedToCartModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="addedToCartModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addedToCartModalLabel">Item Added to Cart Successfully!</h5>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
+    <script src="js/queryCmds.js" type="text/javascript"></script>
+    <script src="js/getCurrentURL.js" type="text/javascript"></script>
+    <script src="js/cartFunctions.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/wa-nav.js"></script>
+    <script src="js/socket-client.js"></script>
+    <script src="js/spindle-sidebar.js"></script>
+    <script src="js/item-page.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof injectWaHeader === 'function') {
+          injectWaHeader('Item');
+        }
+        if (typeof injectNotificationsOnly === 'function') {
+          injectNotificationsOnly('spindleNotifSlot');
+        }
+      });
+    </script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const logoutBtn = document.getElementById('logoutButton');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            clearAuth();
+            window.location.href = 'home.html';
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

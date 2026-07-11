@@ -615,4 +615,39 @@ router.post('/check-ban', async (req, res, next) => {
   }
 });
 
+// Admin: Global search
+router.get('/admin/global-search', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const term = req.query.q || '';
+    const results = await Auth.globalSearch(term);
+    res.status(200).json(results);
+  } catch (err) { next(err); }
+});
+
+// Admin: User activity drill-down
+router.get('/admin/users/:id/activity', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    const activity = await Auth.getUserActivity(userId);
+    res.status(200).json(activity);
+  } catch (err) { next(err); }
+});
+
+// Report a user/profile
+router.post('/report-user', authenticateJWT, async (req, res, next) => {
+  try {
+    const { reported_id, reason, description } = req.body;
+    if (!reported_id || !reason) {
+      return res.status(400).json({ error: 'reported_id and reason are required.' });
+    }
+    if (parseInt(reported_id, 10) === req.user.id) {
+      return res.status(400).json({ error: 'Cannot report yourself.' });
+    }
+    await Auth.reportUser(req.user.id, parseInt(reported_id, 10), reason, description || '');
+    res.status(201).json({ message: 'Report submitted.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

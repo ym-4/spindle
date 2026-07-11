@@ -184,17 +184,29 @@
               ></textarea>
             </div>
 
-            <div class="post-meta-section">
-              <div class="row g-3">
-                <!-- CATEGORY -->
-                <div class="col-md-6">
-                  <label class="form-label subtle-label"> Category </label>
-
-                  <select class="form-select modern-select" id="postCategory">
-                    <option value="confession">Confession</option>
-                    <option value="qna">Q&amp;A</option>
-                    <option value="general">General Talk</option>
-                  </select>
+                                <select class="form-select modern-select"
+                                        id="postAs">
+                                    <option value="named">Loading…</option>
+                                    <option value="Anonymous">Anonymous</option>
+                                </select>
+                                <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="postAnonymous">
+                                <label class="form-check-label" for="postAnonymous">
+                                    Anonymous ☕︎
+                                </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label class="form-label subtle-label">Visibility</label>
+                                <select class="form-select modern-select" id="postVisibility">
+                                    <option value="everyone">Everyone</option>
+                                    <option value="friends_only">Friends only</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- POST AS -->
