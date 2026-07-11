@@ -849,37 +849,31 @@ const groupDiscussions = [
 // Example Group Announcements
 const groupAnnouncements = [
   {
-    announcementId: 1,
     groupName: 'SOC Study Buddies',
     userEmail: 'alice@example.com',
     text: '📢 Welcome to SOC Study Buddies! Please introduce yourself in the general channel.',
   },
   {
-    announcementId: 2,
     groupName: 'SOC Study Buddies',
     userEmail: 'beni@example.com',
     text: 'Reminder: CS1010 assignment is due this Friday at 11:59 PM.',
   },
   {
-    announcementId: 3,
     groupName: 'MAD Project Team',
     userEmail: 'bob@example.com',
     text: 'Sprint 2 starts tomorrow. Please update your assigned tasks.',
   },
   {
-    announcementId: 4,
     groupName: 'MAD Project Team',
     userEmail: 'bob@example.com',
     text: 'Team meeting this Thursday at 3:00 PM in Classroom T203.',
   },
   {
-    announcementId: 5,
     groupName: 'EEE Circuit Masters',
     userEmail: 'carol@example.com',
     text: 'Lab report submission deadline has been extended to Wednesday.',
   },
   {
-    announcementId: 6,
     groupName: 'EEE Circuit Masters',
     userEmail: 'carol@example.com',
     text: 'Exam revision session will be held this Saturday at 10 AM.',
@@ -1100,17 +1094,18 @@ async function seed() {
       group.creatorEmail,
     ]);
 
-    if (userRes.rows.length > 0) {
-      await pool.query(
-        `INSERT INTO "Groups" ("name", "creator_id", "description", "school", "module")
-         VALUES ($1, $2, $3, $4, $5)`,
-        [group.name, userRes.rows[0].id, group.description, group.school, group.module],
-      );
-    }
+    if (userRes.rows.length === 0) continue;
+
+    await pool.query(
+      `INSERT INTO "Groups"
+      ("name", "creator_id", "description", "school", "module", "public")
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT ("name") DO NOTHING`,
+      [group.name, userRes.rows[0].id, group.description, group.school, group.module, group.public],
+    );
   }
 
   console.log(`Inserted ${groups.length} groups.`);
-
   // Insert group members
   for (const member of groupMembers) {
     const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
@@ -1132,6 +1127,27 @@ async function seed() {
   }
 
   console.log(`Inserted ${groupMembers.length} group members.`);
+
+  // Insert default "general" message for every group
+  for (const group of groups) {
+    const creatorRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      group.creatorEmail,
+    ]);
+
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [group.name]);
+
+    if (creatorRes.rows.length === 0 || groupRes.rows.length === 0) continue;
+
+    await pool.query(
+      `INSERT INTO "GroupDiscussions"
+      ("group_id", "user_id", "channel_name", "message")
+     VALUES ($1, $2, 'general', 'Welcome to the group!')
+     ON CONFLICT DO NOTHING`,
+      [groupRes.rows[0].id, creatorRes.rows[0].id],
+    );
+  }
+
+  console.log('Created default general discussion for every group.');
 
   // Insert group discussions
   for (const discussion of groupDiscussions) {
@@ -1167,10 +1183,10 @@ async function seed() {
     if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
       await pool.query(
         `INSERT INTO "GroupAnnouncements"
-        ("announcement_id", "user_id", "group_id", "text")
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT ("announcement_id") DO NOTHING`,
-        [announcement.announcementId, userRes.rows[0].id, groupRes.rows[0].id, announcement.text],
+        ("user_id", "group_id", "text")
+        VALUES ($1, $2, $3)
+        ON CONFLICT DO NOTHING`,
+        [userRes.rows[0].id, groupRes.rows[0].id, announcement.text],
       );
     }
   }

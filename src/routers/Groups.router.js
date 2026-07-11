@@ -71,7 +71,7 @@ router.get('/group/:group_id', (req, res, next) => {
 // GET Groups by creator id (get groups that user is the creator of)
 router.get('/creator/:creator_id', authenticateJWT, (req, res, next) => {
   const data = {
-    creator_id: res.locals.userId,
+    creator_id: req.user.id,
   };
 
   getGroupByCreatorID(data)
@@ -157,7 +157,7 @@ router.put('/name/:group_id', authenticateJWT, (req, res, next) => {
 
   const data = {
     group_id: req.params.group_id,
-    creator_id: res.locals.userId,
+    creator_id: req.user.id,
     name: req.body.name,
   };
 

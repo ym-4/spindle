@@ -230,7 +230,7 @@ CREATE TABLE "GroupFiles" (
 );
 
 CREATE TABLE "GroupAnnouncements" (
-  "announcement_id" SERIAL,
+  "announcement_id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
   "group_id" INT NOT NULL,
   "text" TEXT NOT NULL,

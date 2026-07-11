@@ -226,7 +226,10 @@ module.exports.getAllGroupDiscussionByGroupID = async function getAllGroupDiscus
   data,
 ) {
   const VALUES = [data.group_id];
-  const { rows } = await pool.query('SELECT * FROM "GroupDiscussions" WHERE group_id = $1', VALUES);
+  const { rows } = await pool.query(
+    'SELECT * FROM "GroupDiscussions" WHERE group_id = $1 ORDER BY created_at ASC',
+    VALUES,
+  );
   return rows;
 };
 

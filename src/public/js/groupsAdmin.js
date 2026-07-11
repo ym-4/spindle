@@ -15,6 +15,8 @@ let groupChannels;
 let groupAnnouncements;
 let users;
 let groupJoinRequests;
+let editingAnnouncementId = null;
+let deletingAnnouncementId = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
   toggleButtons();
@@ -123,6 +125,67 @@ function addEventListeners() {
       rejectingJoinRequest(userId);
     }
   });
+
+  // Announcement
+  document.getElementById('post-annoucement-button').addEventListener('click', createAnnouncement);
+  document.getElementById('saveAnnouncementBtn').addEventListener('click', saveAnnouncement);
+
+  document.getElementById('announcementList').addEventListener('click', (e) => {
+    const editBtn = e.target.closest('.edit-announcement');
+    const deleteBtn = e.target.closest('.delete-announcement');
+
+    if (editBtn) {
+      editAnnouncement(editBtn.dataset.id);
+    }
+
+    if (deleteBtn) {
+      deleteAnnouncement(deleteBtn.dataset.id);
+    }
+  });
+
+  document.getElementById('confirmDeleteAnnouncement').addEventListener('click', async () => {
+    try {
+      await deleteGroupAnnouncement(deletingAnnouncementId);
+
+      groupAnnouncements = await fetchGroupAnnouncements();
+      displayGroupAnnouncements();
+
+      displayToast('success', 'Succesfully deleted announcement!');
+
+      bootstrap.Modal.getInstance(document.getElementById('deleteAnnouncementModal')).hide();
+    } catch (err) {
+      console.error(err);
+      displayToast('error', 'Failed to delete announcement');
+    }
+  });
+
+  // Delete group
+  const confirmInput = document.getElementById('deleteGroupConfirm');
+  const deleteBtn = document.getElementById('confirmDeleteGroup');
+
+  confirmInput.addEventListener('input', () => {
+    deleteBtn.disabled = confirmInput.value !== 'DELETE';
+  });
+
+  deleteBtn.addEventListener('click', async () => {
+    try {
+      await deleteGroup();
+
+      displayToast('success', 'Group deleted!');
+
+      setTimeout(() => {
+        window.location.href = 'groups.html';
+      }, 1000);
+    } catch (err) {
+      console.error(err);
+      displayToast('error', 'Failed to delete group');
+    }
+  });
+
+  document.getElementById('deleteGroupModal').addEventListener('hidden.bs.modal', () => {
+    confirmInput.value = '';
+    deleteBtn.disabled = true;
+  });
 }
 
 // -------------------------------------------------------------------------------------
@@ -195,15 +258,91 @@ async function removeMember(removedMemberUserId) {
   }
 }
 
-function editChannel() {}
+async function deleteChannel(channel_name) {
+  try {
+    await deleteGroupDiscussionChannel(channel_name);
 
-function deleteChannel() {}
+    // refresh data
+    groupChannels = await fetchGroupChannels();
+    displayGroupChannels();
 
-function createAnnouncement() {}
+    displayToast('success', 'Successfully deleted channel');
+  } catch (err) {
+    console.error(err);
+    displayToast('error', 'Failed to delete channel');
+  }
+}
 
-function editAnnouncement() {}
+async function createAnnouncement() {
+  const text = document.getElementById('announcementText').value.trim();
 
-function deleteAnnouncement() {}
+  if (!text) {
+    displayToast('error', 'Announcement cannot be empty.');
+    return;
+  }
+
+  try {
+    await createGroupAnnouncement(text);
+
+    document.getElementById('announcementText').value = '';
+
+    groupAnnouncements = await fetchGroupAnnouncements();
+
+    displayGroupAnnouncements();
+
+    displayToast('success', 'Announcement posted!');
+  } catch (err) {
+    console.error(err);
+
+    displayToast('error', 'Failed to create announcement.');
+  }
+}
+
+function editAnnouncement(id) {
+  const announcement = groupAnnouncements.find((a) => a.announcement_id == id);
+
+  if (!announcement) return;
+
+  editingAnnouncementId = id;
+
+  document.getElementById('modalMessageText').textContent = announcement.text;
+
+  document.getElementById('editMessageInput').value = announcement.text;
+
+  const modal = new bootstrap.Modal(document.getElementById('announcementModal'));
+
+  modal.show();
+}
+
+async function saveAnnouncement() {
+  const text = document.getElementById('editMessageInput').value.trim();
+
+  if (!text) return;
+
+  try {
+    await updateGroupAnnouncement(text, editingAnnouncementId);
+
+    // refresh data
+    groupAnnouncements = await fetchGroupAnnouncements();
+
+    displayGroupAnnouncements();
+
+    bootstrap.Modal.getInstance(document.getElementById('announcementModal')).hide();
+
+    displayToast('success', 'Successfully updated announcement!');
+  } catch (err) {
+    console.error(err);
+    displayToast('error', 'Failed to update announcement');
+  }
+}
+
+async function deleteAnnouncement(id) {
+  deletingAnnouncementId = id;
+
+  const modal = new bootstrap.Modal(document.getElementById('deleteAnnouncementModal'));
+
+  modal.show();
+}
 
 async function updateGroup(data) {
   await Promise.all([
@@ -406,13 +545,15 @@ function displayGroupAnnouncements() {
                 </div>
 
                 <div>
-                    <button class="btn btn-outline-secondary btn-sm me-2"
-                            data-id="${announcement.announcement_id}">
+                    <button
+                        class="btn btn-outline-secondary btn-sm me-2 edit-announcement"
+                        data-id="${announcement.announcement_id}">
                         <i class="bi bi-pencil"></i>
                     </button>
 
-                    <button class="btn btn-outline-danger btn-sm"
-                            data-id="${announcement.announcement_id}">
+                    <button
+                        class="btn btn-outline-danger btn-sm delete-announcement"
+                        data-id="${announcement.announcement_id}">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
