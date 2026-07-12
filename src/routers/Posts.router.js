@@ -29,7 +29,10 @@ const {
   insertPollOption,
   getPollByPostID,
   insertPollVote,
-  getUserPollVote
+  getUserPollVote,
+  deleteUserPollVote,
+  updatePollQuestion,
+  deletePollByPostID
 } = require('../models/Posts.model');
 
 const router = express.Router();
@@ -135,17 +138,54 @@ router.post('/:id/poll', authenticateJWT, async (req, res, next) => {
   }
 });
 
+// Update poll (question only)
+router.put('/:id/poll', authenticateJWT, (req, res, next) => {
+  const data = {
+    question: req.body.question,
+    post_id: req.params.id
+  }
+
+  if (!data.question) 
+    return res.status(400).json({ message: 'question is required.' });
+
+  updatePollQuestion(data)
+    .then(result => {
+      if (!result) 
+        return res.status(404).json({ message: 'Poll not found.' });
+      res.status(200).json({ question: result.question, id: result.id });
+    })
+    .catch(next);
+});
+
+// Delete poll from a post
+router.delete('/:id/poll', authenticateJWT, (req, res, next) => {
+  const data = {
+    post_id: req.params.id
+  }
+  
+  deletePollByPostID(data)
+    .then(result => {
+      if (!result) 
+        return res.status(404).json({ message: 'Poll not found.' });
+      res.status(200).json(result);
+    })
+    .catch(next);
+});
+
 // POST vote on a poll option
 router.post('/:id/poll/vote', authenticateJWT, async (req, res, next) => {
-  const { option_id, poll_id } = req.body;
-  const user_id = req.user.id;
+  const data = {
+    option_id: req.body.option_id,
+    poll_id: req.body.poll_id,
+    user_id: req.user.id
+  }
 
-  if (!option_id || !poll_id) {
+  if (!data.option_id || !data.poll_id) {
     return res.status(400).json({ message: 'option_id and poll_id are required.' });
   }
 
   try {
-    const vote = await insertPollVote({ poll_id, option_id, user_id });
+    const vote = await insertPollVote(data);
     const updatedPoll = await getPollByPostID({ post_id: req.params.id });
     res.status(201).json({ vote, poll: updatedPoll });
   } catch (error) {
@@ -170,6 +210,27 @@ router.get('/:id/poll/vote/:user_id', authenticateJWT, (req, res, next) => {
     .then(vote => res.status(200).json({ vote: vote || null }))
     .catch(next);
 });
+
+// DELETE user's vote on a poll
+router.delete('/:id/poll/vote', authenticateJWT, (req, res, next) => {
+  const data = {
+    poll_id: req.body.poll_id,
+    user_id: req.user.id
+  } 
+
+  if (!data.poll_id) {
+    return res.status(400).json({ message: 'poll_id is required.' });
+  }
+
+  deleteUserPollVote(data)
+    .then(result => {
+      if (!result) return res.status(404).json({ message: 'Vote not found.' });
+      res.status(200).json(result);
+    })
+    .catch(next);
+});
+
+//================================================
 
 // Get post by ID
 router.get('/:id', (req, res, next) => {
@@ -213,7 +274,7 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
     user_id: req.body.user_id,
     title: req.body.title,
     category: req.body.category,
-    content: req.body.content,
+    content: req.body.content || '',
     attachment_url: attachmentUrl,
     gif_url: req.body.gif_url || null,
     is_anonymous: req.body.is_anonymous === 'true',

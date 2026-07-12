@@ -443,8 +443,9 @@ function renderPost(post) {
       </div>
 
       ${post.title ? `<div class="fw-bold mt-2 mb-1" style="font-size:1.05rem;">${escapeHtml(post.title)}</div>` : ''}
-      <div class="post-content">${escapeHtml(post.content)}</div>
+      <div class="post-content ql-editor" style="padding:0; font-size:inherit; line-height:1.5;">${post.content || ''}</div>
       ${renderPostAttachment(post)}
+      <div id="pollContainer-${post.id}"></div>
 
       <div class="post-actions">
         <button 
@@ -473,6 +474,7 @@ function renderPost(post) {
 
   setupReactionButtons(post.id);
   loadRelatedPosts(post.id, post.category);
+  loadAndRenderPollOnPostPage(post.id);
 
   // Share button
   document.querySelector('.share-btn')?.addEventListener('click', (e) => {
@@ -558,8 +560,9 @@ function submitPostEdit(post) {
     return Promise.reject(new Error('Title cannot be empty.'));
   }
 
-  if (!content) {
-    errEl.textContent = 'Content cannot be empty.';
+  const hasPollInEdit = !!document.getElementById('editPollSection')?.dataset.hasPoll;
+  if (!content && !hasPollInEdit) {
+    errEl.textContent = 'Content cannot be empty when there is no poll.';
     errEl.classList.remove('d-none');
     return Promise.reject(new Error('Content cannot be empty.'));
   }
@@ -660,9 +663,11 @@ function renderPostEditMode(post) {
       </div>
 
       <div class="mb-3">
-        <textarea class="form-control" id="editContent" rows="5"
-          placeholder="Post content">${escapeHtml(post.content || '')}</textarea>
+        <div id="editQuillEditor" style="height:180px; border-radius:0 0 8px 8px;"></div>
+        <input type="hidden" id="editContent">
       </div>
+
+      <div id="editPollSection" class="mb-3"></div>
 
       <div class="mb-3">
         <label class="form-label fw-semibold">
@@ -699,9 +704,36 @@ function renderPostEditMode(post) {
 
   pendingEditGifUrl = null;
   removeCurrentAttachment = false;
+
+  // Quill edit mode
+  const editQuill = new Quill('#editQuillEditor', {
+    theme: 'snow',
+    placeholder: "Post content (optional if poll exists)",
+    modules: {
+      toolbar: [
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
+        ['clean']
+      ]
+    }
+  });
+
+  if (post.content) {
+    editQuill.root.innerHTML = post.content;
+  }
+
+  editQuill.on('text-change', () => {
+    document.getElementById('editContent').value =
+      editQuill.getText().trim() === '' ? '' : editQuill.root.innerHTML;
+  });
+  document.getElementById('editContent').value = post.content || '';
+
   renderEditGifPreview();
   setupEditGifPicker(post);
   setupRemoveAttachmentButton(post);
+  setupEditPollSection(post);
   
   document.getElementById('cancelEditBtn').addEventListener('click', () => {
     const url = new URL(window.location.href);
@@ -722,9 +754,10 @@ function renderPostEditMode(post) {
       errEl.classList.remove('d-none');
       return;
     }
-
-    if (!content) {
-      errEl.textContent = 'Content cannot be empty.';
+    // Content is only required if no poll 
+    const hasPollInEdit = !!document.getElementById('editPollSection')?.dataset.hasPoll;
+    if (!content && !hasPollInEdit) {
+      errEl.textContent = 'Content cannot be empty when there is no poll.';
       errEl.classList.remove('d-none');
       return;
     }
@@ -750,6 +783,238 @@ function renderPostEditMode(post) {
         saveBtn.textContent = 'Save changes';
       });
   });
+}
+
+function setupEditPollSection(post) {
+  const section = document.getElementById('editPollSection');
+  if (!section) return;
+
+  const token = localStorage.getItem('token');
+
+  // Fetch existing poll for this post
+  fetchMethod(`${currentUrl}/posts/${post.id}/poll`, (status, poll) => {
+    if (status !== 200 || !poll) {
+      // No poll 
+      section.innerHTML = '';
+      return;
+    }
+
+    section.dataset.hasPoll = 'true';
+
+    section.innerHTML = `
+      <div class="poll-edit-block p-3 border rounded" style="border-radius:10px; background:var(--background-color);">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="subtle-label mb-0">POLL</span>
+          <button type="button" class="btn btn-sm btn-outline-danger" id="deletePollEditBtn">
+            <i class="fas fa-trash-alt me-1"></i>Remove poll
+          </button>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label small text-muted">Poll question</label>
+          <input type="text" class="form-control form-control-sm" id="editPollQuestion"
+            value="${escapeHtml(typeof poll.question === 'object' ? (poll.question?.question || '') : (poll.question || ''))}">
+        </div>
+
+        <div class="text-muted small mb-1">
+          <i class="fas fa-info-circle me-1"></i>
+          Options cannot be edited — only the question can be changed.
+        </div>
+
+        <div class="mt-2">
+          ${poll.options.map(opt => `
+            <div class="poll-option voted mb-1" style="cursor:default; pointer-events:none;">
+              <div class="poll-option-bar" style="width:0%"></div>
+              <span class="poll-option-label">${escapeHtml(opt.option_text)}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="mt-2 d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-primary" id="savePollQuestionBtn">
+            Save question
+          </button>
+        </div>
+
+        <div id="pollEditMsg" class="mt-2" style="font-size:0.85rem;"></div>
+      </div>
+    `;
+
+    // Save poll question
+    document.getElementById('savePollQuestionBtn').addEventListener('click', () => {
+      const newQuestion = document.getElementById('editPollQuestion').value.trim();
+      const msgEl = document.getElementById('pollEditMsg');
+
+      if (!newQuestion) {
+        msgEl.innerHTML = `<span class="text-danger">Question cannot be empty.</span>`;
+        return;
+      }
+
+      fetchMethod(`${currentUrl}/posts/${post.id}/poll`, (s) => {
+        if (s === 200) {
+          msgEl.innerHTML = `<span class="text-success"><i class="fas fa-check me-1"></i>Question saved.</span>`;
+          setTimeout(() => { msgEl.innerHTML = ''; }, 2000);
+        } else {
+          msgEl.innerHTML = `<span class="text-danger">Failed to update question.</span>`;
+        }
+      }, 'PUT', { question: newQuestion }, token);
+    });
+
+    // Delete poll
+    document.getElementById('deletePollEditBtn').addEventListener('click', () => {
+      showConfirm(
+        'Remove poll?',
+        'This will permanently delete the poll and all its votes.',
+        () => {
+          fetchMethod(`${currentUrl}/posts/${post.id}/poll`, (s) => {
+            if (s === 200) {
+              section.dataset.hasPoll = '';
+              section.innerHTML = '';
+            } else {
+              alert('Failed to remove poll.');
+            }
+          }, 'DELETE', null, token);
+        }
+      );
+    });
+  });
+}
+
+// ==========================
+// POLL 
+// ==========================
+function loadAndRenderPollOnPostPage(postId) {
+  const token  = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  fetchMethod(`${currentUrl}/posts/${postId}/poll`, (status, poll) => {
+    const container = document.getElementById(`pollContainer-${postId}`);
+    if (!container || status !== 200) return;
+
+    const totalVotes = poll.options.reduce((sum, o) => sum + (o.vote_count || 0), 0);
+
+    const userVoteCheck = (token && userId)
+      ? new Promise(resolve => {
+          fetchMethod(
+            `${currentUrl}/posts/${postId}/poll/vote/${userId}`,
+            (vs, vd) => resolve(vs === 200 ? vd.vote : null),
+            'GET', null, token
+          );
+        })
+      : Promise.resolve(null);
+
+    userVoteCheck.then(userVote => {
+      renderPollInContainer(container, poll, postId, totalVotes, userVote, token);
+    });
+  });
+}
+
+function renderPollInContainer(container, poll, postId, totalVotes, userVote, token) {
+  const hasVoted = !!userVote;
+  const pollQuestion = typeof poll.question === 'object'
+    ? (poll.question?.question || JSON.stringify(poll.question))
+    : (poll.question || '');
+
+  const optionsHtml = poll.options.map(opt => {
+    const pct          = totalVotes > 0 ? Math.round((opt.vote_count / totalVotes) * 100) : 0;
+    const isUserChoice = userVote && parseInt(userVote.option_id) === parseInt(opt.id);
+    const votedClass   = hasVoted ? 'voted' : '';
+    const choiceClass  = isUserChoice ? 'user-voted' : '';
+
+    return [
+      `<div class="poll-option ${votedClass} ${choiceClass}"`,
+      `  data-option-id="${opt.id}"`,
+      `  data-poll-id="${poll.id}"`,
+      `  data-post-id="${postId}">`,
+      `  <div class="poll-option-bar" style="width:${hasVoted ? pct : 0}%"></div>`,
+      `  <span class="poll-option-label">${escapeHtml(opt.option_text)}</span>`,
+      hasVoted ? `<span class="poll-option-pct">${pct}%</span>` : '',
+      `</div>`
+    ].join('');
+  }).join('');
+
+  const undoHtml = hasVoted
+    ? `<button class="btn btn-link btn-sm p-0 mt-1 undo-vote-btn"
+         style="font-size:0.8rem; color:var(--text-secondary);">
+         <i class="fas fa-times-circle me-1"></i>Remove vote
+       </button>`
+    : '';
+
+  container.innerHTML = [
+    `<div class="poll-container">`,
+    `<div class="poll-question">${escapeHtml(pollQuestion)}</div>`,
+    optionsHtml,
+    `<div class="poll-meta d-flex align-items-center gap-2">`,
+    `  <span>${totalVotes} vote${totalVotes !== 1 ? 's' : ''}</span>`,
+    undoHtml,
+    `</div>`,
+    `</div>`
+  ].join('');
+
+  // Vote 
+  if (!hasVoted && token) {
+    container.querySelectorAll('.poll-option').forEach(optEl => {
+      optEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fetchMethod(
+          `${currentUrl}/posts/${postId}/poll/vote`,
+          (vs) => {
+            if (vs === 201 || vs === 409) loadAndRenderPollOnPostPage(postId);
+          },
+          'POST',
+          { poll_id: poll.id, option_id: optEl.dataset.optionId },
+          token
+        );
+      });
+    });
+  }
+
+  // Change vote
+  if (hasVoted && token) {
+    container.querySelectorAll('.poll-option').forEach(optEl => {
+      if (optEl.classList.contains('user-voted')) return;
+      optEl.style.cursor = 'pointer';
+      optEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fetchMethod(
+          `${currentUrl}/posts/${postId}/poll/vote`,
+          (ds) => {
+            if (ds === 200) {
+              fetchMethod(
+                `${currentUrl}/posts/${postId}/poll/vote`,
+                (vs) => {
+                  if (vs === 201 || vs === 409) loadAndRenderPollOnPostPage(postId);
+                },
+                'POST',
+                { poll_id: poll.id, option_id: optEl.dataset.optionId },
+                token
+              );
+            }
+          },
+          'DELETE',
+          { poll_id: poll.id },
+          token
+        );
+      });
+    });
+  }
+
+  // Remove vote 
+  const undoBtn = container.querySelector('.undo-vote-btn');
+  if (undoBtn && token) {
+    undoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fetchMethod(
+        `${currentUrl}/posts/${postId}/poll/vote`,
+        (ds) => {
+          if (ds === 200) loadAndRenderPollOnPostPage(postId);
+        },
+        'DELETE',
+        { poll_id: poll.id },
+        token
+      );
+    });
+  }
 }
 
 // COMMENTS

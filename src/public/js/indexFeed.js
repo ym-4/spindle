@@ -471,9 +471,7 @@ function buildPostCard(post) {
         ${DOMPurify.sanitize(post.content)}
     </div>
 
-    ${post.poll_id ? renderPollCard(post, post.id) : ""}
-    ${
-    (post.gif_url || post.giphy_url || post.attachment_url) ? `
+    ${(post.gif_url || post.giphy_url || post.attachment_url) ? `
       <div class="post-image-container mt-2">
         <img
           src="${post.gif_url || post.giphy_url || post.attachment_url}"
@@ -481,8 +479,8 @@ function buildPostCard(post) {
           alt="Post attachment"
         >
       </div>
-    ` : ''
-    }
+    ` : ''}
+    ${post.poll_id ? renderPollCard(post, post.id) : ""}
 
     <div class="post-actions">
       <button class="post-action-btn like-btn" data-post-id="${post.id}">
@@ -680,27 +678,44 @@ function loadAndRenderPoll(postId, cardEl) {
     userVoteCheck.then(userVote => {
       const hasVoted = !!userVote;
 
-      container.innerHTML = `
-        <div class="poll-question">${escapeHtml(poll.question)}</div>
-        ${poll.options.map(opt => {
-          const pct = totalVotes > 0
-            ? Math.round((opt.vote_count / totalVotes) * 100)
-            : 0;
-          const isUserChoice = userVote && userVote.option_id === opt.id;
+      const optionsHtml = poll.options.map(opt => {
+        const pct = totalVotes > 0
+          ? Math.round((opt.vote_count / totalVotes) * 100)
+          : 0;
+        const isUserChoice = userVote && parseInt(userVote.option_id) === parseInt(opt.id);
+        const votedClass   = hasVoted ? 'voted' : '';
+        const choiceClass  = isUserChoice ? 'user-voted' : '';
 
-          return `
-            <div class="poll-option ${hasVoted ? 'voted' : ''} ${isUserChoice ? 'user-voted' : ''}"
-              data-option-id="${opt.id}"
-              data-poll-id="${poll.id}"
-              data-post-id="${postId}">
-              <div class="poll-option-bar" style="width:${hasVoted ? pct : 0}%"></div>
-              <span class="poll-option-label">${escapeHtml(opt.option_text)}</span>
-              ${hasVoted ? `<span class="poll-option-pct">${pct}%</span>` : ''}
-            </div>`;
-        }).join('')}
-        <div class="poll-meta">${totalVotes} vote${totalVotes !== 1 ? 's' : ''}</div>
-      `;
+        return [
+          `<div class="poll-option ${votedClass} ${choiceClass}"`,
+          `  data-option-id="${opt.id}"`,
+          `  data-poll-id="${poll.id}"`,
+          `  data-post-id="${postId}">`,
+          `  <div class="poll-option-bar" style="width:${hasVoted ? pct : 0}%"></div>`,
+          `  <span class="poll-option-label">${escapeHtml(opt.option_text)}</span>`,
+          hasVoted
+            ? `<span class="poll-option-pct">${pct}%</span>`
+            : '',
+          `</div>`
+        ].join('');
+      }).join('');
 
+      const undoHtml = hasVoted
+        ? `<button class="btn btn-link btn-sm p-0 mt-1 undo-vote-btn" style="font-size:0.8rem; color:var(--text-secondary);">
+             <i class="fas fa-times-circle me-1"></i>Remove vote
+           </button>`
+        : '';
+
+      container.innerHTML = [
+        `<div class="poll-question">${escapeHtml(poll.question)}</div>`,
+        optionsHtml,
+        `<div class="poll-meta d-flex align-items-center gap-2">`,
+        `  <span>${totalVotes} vote${totalVotes !== 1 ? 's' : ''}</span>`,
+        undoHtml,
+        `</div>`
+      ].join('');
+
+      // Vote 
       if (!hasVoted && token) {
         container.querySelectorAll('.poll-option').forEach(optEl => {
           optEl.addEventListener('click', (e) => {
@@ -708,22 +723,76 @@ function loadAndRenderPoll(postId, cardEl) {
             const optionId = optEl.dataset.optionId;
             const pollId   = optEl.dataset.pollId;
 
-            fetchMethod(`${feedApiBase()}/posts/${postId}/poll/vote`,
-              (vs, vd) => {
-                if (vs === 201) {
-                  loadAndRenderPoll(postId, cardEl);
-                } else if (vs === 409) {
+            fetchMethod(
+              `${feedApiBase()}/posts/${postId}/poll/vote`,
+              (vs) => {
+                if (vs === 201 || vs === 409) {
                   loadAndRenderPoll(postId, cardEl);
                 }
               },
-              'POST', { poll_id: pollId, option_id: optionId }, token
+              'POST',
+              { poll_id: pollId, option_id: optionId },
+              token
             );
           });
         });
       }
-    });
+
+      // Change vote 
+      if (hasVoted && token) {
+        container.querySelectorAll('.poll-option').forEach(optEl => {
+          if (optEl.classList.contains('user-voted')) return; 
+          optEl.style.cursor = 'pointer';
+          optEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const optionId = optEl.dataset.optionId;
+            const pollId   = optEl.dataset.pollId;
+
+            // Delete old vote then revote
+            fetchMethod(
+              `${feedApiBase()}/posts/${postId}/poll/vote`,
+              (ds) => {
+                if (ds === 200) {
+                  fetchMethod(
+                    `${feedApiBase()}/posts/${postId}/poll/vote`,
+                    (vs) => {
+                      if (vs === 201 || vs === 409) {
+                        loadAndRenderPoll(postId, cardEl);
+                      }
+                    },
+                    'POST',
+                    { poll_id: pollId, option_id: optionId },
+                    token
+                  );
+                }
+              },
+              'DELETE',
+              { poll_id: pollId },
+              token
+            );
+          });
+        });
+      }
+
+      // Remove vote 
+      const undoBtn = container.querySelector('.undo-vote-btn');
+      if (undoBtn && token) {
+        undoBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          fetchMethod(
+            `${feedApiBase()}/posts/${postId}/poll/vote`,
+            (ds) => {
+              if (ds === 200) loadAndRenderPoll(postId, cardEl);
+            },
+            'DELETE',
+            { poll_id: poll.id },
+            token
+          );
+        });
+      }
+    }); 
   });
-}
+} 
 
 function resetHotPostsLoading() {
   const container = document.getElementById('top5Container');
@@ -999,10 +1068,22 @@ function setupCreatePost() {
   const contentInput = document.getElementById('postContent');
 
   function validateForm() {
-    const hasContent = quillEditor
+    const hasContent  = quillEditor
       ? quillEditor.getText().trim().length > 0
       : (contentInput.value.trim().length > 0);
-    submitBtn.disabled = !(titleInput.value.trim() && categoryInput.value && hasContent);
+    const hasTitle    = titleInput.value.trim().length > 0;
+    const hasCategory = !!categoryInput.value;
+
+    if (pollActive) {
+      const pollQuestion = document.getElementById('pollQuestion')?.value.trim() || '';
+      const pollOptionEls = document.querySelectorAll('.poll-option-input');
+      const filledOptions = [...pollOptionEls].filter(el => el.value.trim().length > 0);
+      const validPoll = pollQuestion.length > 0 && filledOptions.length >= 2;
+
+      submitBtn.disabled = !(hasTitle && hasCategory && validPoll);
+    } else {
+      submitBtn.disabled = !(hasTitle && hasCategory && hasContent);
+    }
   }
   window.validatePostForm = validateForm;
 
@@ -1068,24 +1149,27 @@ function setupCreatePost() {
         submitBtn.textContent = 'Post';
 
         if (response.status === 201) {
-          const postId = data.id; // make sure your POST /posts returns id
+          const postId = data.id; 
           // poll added
+          const afterPost = () => {
+            bootstrap.Modal.getInstance(document.getElementById('createPostModal')).hide();
+            clearCreatePostForm();
+            validateForm();
+            if (currentCategory === 'all') loadPosts();
+            else loadPostsByCategory(currentCategory);
+          };
+
           if (hasPoll && postId) {
-            fetchMethod(`${API_BASE}/posts/${postId}/poll`, (pStatus) => {
+            fetchMethod(`${feedApiBase()}/posts/${postId}/poll`, (pStatus) => {
               if (pStatus !== 201) console.warn('Poll creation failed');
+              afterPost();
             }, 'POST', {
               question: pollQuestion,
               options:  pollOptions
             }, token);
+          } else {
+            afterPost();
           }
-
-          bootstrap.Modal.getInstance(document.getElementById('createPostModal')).hide();
-
-          clearCreatePostForm();
-          validateForm();
-
-          if (currentCategory === 'all') loadPosts();
-          else loadPostsByCategory(currentCategory);
         } else {
           submitBtn.disabled = false;
           showModalError(data.message || 'Failed to create post.');
@@ -1628,6 +1712,15 @@ function setupPollBuilder() {
     if (pollActive) {
       document.getElementById('pollQuestion').focus();
     }
+    // Revalidate
+    document.getElementById('pollQuestion')?.addEventListener('input', () => {
+      if (typeof validatePostForm === 'function') validatePostForm();
+    });
+    document.getElementById('pollOptionsContainer')?.addEventListener('input', () => {
+      if (typeof validatePostForm === 'function') validatePostForm();
+    });
+   
+    if (typeof validatePostForm === 'function') validatePostForm();
   });
 
   addOptionBtn.addEventListener('click', () => {

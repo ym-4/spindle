@@ -294,6 +294,18 @@ module.exports.insertPollOption = async function insertPollOption(data) {
   return rows[0];
 };
 
+module.exports.updatePollQuestion = async function updatePollQuestion(data) {
+  const VALUES = [data.question, data.post_id];
+  const { rows } = await pool.query(`UPDATE "PostPolls" SET question = $1 WHERE post_id = $2 RETURNING *`, VALUES);
+  return rows[0] || null;
+};
+
+module.exports.deletePollByPostID = async function deletePollByPostID(data) {
+  const VALUES = [data.post_id];
+  const { rows } = await pool.query(`DELETE FROM "PostPolls" WHERE post_id = $1 RETURNING *`, VALUES);
+  return rows[0] || null;
+};
+
 // GET poll by post ID (with options + vote counts)
 module.exports.getPollByPostID = async function getPollByPostID(data) {
   const pollSQL = `SELECT * FROM "PostPolls" WHERE post_id = $1`;
@@ -329,6 +341,12 @@ module.exports.insertPollVote = async function insertPollVote(data) {
 module.exports.getUserPollVote = async function getUserPollVote(data) {
   const VALUES = [data.poll_id, data.user_id];
   const { rows } = await pool.query(`SELECT * FROM "PollVotes" WHERE poll_id = $1 AND user_id = $2`, VALUES);
+  return rows[0] || null;
+};
+
+module.exports.deleteUserPollVote = async function deleteUserPollVote(data) {
+  const VALUES = [data.poll_id, data.user_id];
+  const { rows } = await pool.query(`DELETE FROM "PollVotes" WHERE poll_id = $1 AND user_id = $2 RETURNING *`, VALUES);
   return rows[0] || null;
 };
 
