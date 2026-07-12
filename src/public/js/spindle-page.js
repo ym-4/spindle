@@ -20,4 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
   ) {
     injectNotificationsOnly('spindleNotifSlot');
   }
+
+  // Apply saved theme site-wide (excluding groups pages)
+  if (!file.startsWith('groups')) {
+    var savedTheme = localStorage.getItem('spindle-theme');
+    if (savedTheme) {
+      document.documentElement.dataset.theme = savedTheme;
+    }
+  }
 });

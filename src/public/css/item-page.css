@@ -5,22 +5,22 @@
   margin: 0 auto;
   padding: 24px 16px 64px;
   font-family: 'Inter', sans-serif;
-  color: var(--sp-text, #1a1a1e);
+  color: var(--sp-text, var(--text));
 }
 
 .item-breadcrumb {
   font-size: 0.8rem;
-  color: var(--sp-muted, #6b7280);
+  color: var(--sp-muted, var(--text-secondary));
   margin-bottom: 16px;
 }
 
 .item-breadcrumb a {
-  color: var(--sp-muted, #6b7280);
+  color: var(--sp-muted, var(--text-secondary));
   text-decoration: none;
 }
 
 .item-breadcrumb a:hover {
-  color: var(--sp-accent, #ee4d2d);
+  color: var(--sp-accent, var(--accent));
 }
 
 .item-layout {
@@ -37,11 +37,11 @@
 
 .item-media {
   position: relative;
-  border: 1px solid var(--sp-border, #e8e8ed);
+  border: 1px solid var(--sp-border, var(--border));
   border-radius: 12px;
   overflow: hidden;
   aspect-ratio: 1 / 1;
-  background: var(--sp-bg, #f7f7fb);
+  background: var(--sp-bg, var(--bg));
 }
 
 .item-media img {
@@ -63,7 +63,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #fff;
+  color: var(--text-inverse);
   padding: 4px 10px;
   border-radius: 999px;
   margin-bottom: 14px;
@@ -91,7 +91,7 @@
   align-items: center;
   gap: 12px;
   background: var(--sp-navy, #14213d);
-  color: #fff;
+  color: var(--text-inverse);
   border-radius: 10px;
   padding: 14px 18px;
   margin-bottom: 22px;
@@ -111,7 +111,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: var(--sp-accent, #ee4d2d);
+  background: var(--sp-accent, var(--accent));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -140,7 +140,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid var(--sp-border, #e8e8ed);
+  border: 1px solid var(--sp-border, var(--border));
   border-radius: 10px;
   padding: 12px 14px;
   margin-bottom: 22px;
@@ -159,7 +159,7 @@
 
 .seller-card .seller-tag {
   font-size: 0.72rem;
-  color: var(--sp-muted, #6b7280);
+  color: var(--sp-muted, var(--text-secondary));
   margin: 0;
 }
 
@@ -173,13 +173,13 @@
 .item-qty {
   display: flex;
   align-items: center;
-  border: 1px solid var(--sp-border, #e8e8ed);
+  border: 1px solid var(--sp-border, var(--border));
   border-radius: 8px;
   overflow: hidden;
 }
 
 .item-qty button {
-  background: var(--sp-bg, #f7f7fb);
+  background: var(--sp-bg, var(--bg));
   border: none;
   width: 36px;
   height: 40px;
@@ -192,13 +192,13 @@
   height: 40px;
   text-align: center;
   border: none;
-  border-left: 1px solid var(--sp-border, #e8e8ed);
-  border-right: 1px solid var(--sp-border, #e8e8ed);
+  border-left: 1px solid var(--sp-border, var(--border));
+  border-right: 1px solid var(--sp-border, var(--border));
 }
 
 .item-add-btn {
-  background: var(--sp-accent, #ee4d2d);
-  color: #fff;
+  background: var(--sp-accent, var(--accent));
+  color: var(--text-inverse);
   border: none;
   border-radius: 8px;
   padding: 0 24px;
@@ -213,12 +213,12 @@
 }
 
 .item-add-btn:hover {
-  background: var(--sp-accent-dark, #c9391c);
+  background: var(--sp-accent-dark, var(--accent-hover));
 }
 
 .item-description-section {
   margin-top: 40px;
-  border-top: 1px solid var(--sp-border, #e8e8ed);
+  border-top: 1px solid var(--sp-border, var(--border));
   padding-top: 24px;
 }
 
@@ -232,18 +232,18 @@
 .item-description-section p {
   font-size: 0.9rem;
   line-height: 1.6;
-  color: var(--sp-text, #1a1a1e);
+  color: var(--sp-text, var(--text));
   white-space: pre-wrap;
 }
 
 .item-not-found {
   text-align: center;
   padding: 80px 20px;
-  color: var(--sp-muted, #6b7280);
+  color: var(--sp-muted, var(--text-secondary));
 }
 
 .item-not-found i {
   font-size: 2.6rem;
-  color: var(--sp-border, #e8e8ed);
+  color: var(--sp-border, var(--border));
   margin-bottom: 14px;
 }

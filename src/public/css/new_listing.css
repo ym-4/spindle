@@ -5,10 +5,10 @@
 }
 
 .create-listing-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
   border-radius: 1rem;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+  box-shadow: var(--shadow-lg);
   padding: 2.5rem 2rem;
 }
 
@@ -16,11 +16,11 @@
   font-size: 1.6rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
-  color: #1a202c;
+  color: var(--text);
 }
 
 .create-listing-card .subtitle {
-  color: #718096;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   margin-bottom: 2rem;
 }
@@ -28,26 +28,26 @@
 .form-label {
   font-weight: 600;
   font-size: 0.875rem;
-  color: #2d3748;
+  color: var(--text);
   margin-bottom: 0.35rem;
 }
 
 .form-control,
 .form-select {
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--border);
   border-radius: 0.6rem;
   padding: 0.65rem 0.9rem;
   font-size: 0.95rem;
   transition:
     border-color 0.18s,
     box-shadow 0.18s;
-  color: #2d3748;
+  color: var(--text);
 }
 
 .form-control:focus,
 .form-select:focus {
-  border-color: #4a5568;
-  box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.12);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(224, 32, 32, 0.12);
   outline: none;
 }
 
@@ -58,9 +58,9 @@ textarea.form-control {
 
 /* Image upload drop zone */
 .upload-zone {
-  border: 2px dashed #cbd5e0;
+  border: 2px dashed var(--border);
   border-radius: 0.75rem;
-  background: #f7fafc;
+  background: var(--bg);
   padding: 2rem 1rem;
   text-align: center;
   cursor: pointer;
@@ -72,8 +72,8 @@ textarea.form-control {
 
 .upload-zone:hover,
 .upload-zone.drag-over {
-  border-color: #4a5568;
-  background: #edf2f7;
+  border-color: var(--accent);
+  background: var(--bg-hover);
 }
 
 .upload-zone input[type='file'] {
@@ -87,18 +87,18 @@ textarea.form-control {
 
 .upload-zone .upload-icon {
   font-size: 2rem;
-  color: #a0aec0;
+  color: var(--text-muted);
   margin-bottom: 0.5rem;
 }
 
 .upload-zone p {
   margin: 0;
-  color: #718096;
+  color: var(--text-secondary);
   font-size: 0.875rem;
 }
 
 .upload-zone p strong {
-  color: #2d3748;
+  color: var(--text);
 }
 
 /* Image previews */
@@ -115,7 +115,7 @@ textarea.form-control {
   height: 80px;
   border-radius: 0.5rem;
   overflow: hidden;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--border);
 }
 
 .preview-thumb img {
@@ -128,8 +128,8 @@ textarea.form-control {
   position: absolute;
   top: 2px;
   right: 2px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  background: var(--bg-overlay);
+  color: var(--text-inverse);
   border: none;
   border-radius: 50%;
   width: 20px;
@@ -145,11 +145,11 @@ textarea.form-control {
 
 /* Price field prefix */
 .input-group-text {
-  background: #f7fafc;
-  border: 1.5px solid #e2e8f0;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
   border-right: none;
   border-radius: 0.6rem 0 0 0.6rem;
-  color: #4a5568;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -160,14 +160,14 @@ textarea.form-control {
 /* Divider */
 .section-divider {
   border: none;
-  border-top: 1.5px solid #edf2f7;
+  border-top: 1.5px solid var(--divider);
   margin: 1.75rem 0;
 }
 
 /* Submit button */
 .btn-create-listing {
-  background: #1a202c;
-  color: #fff;
+  background: var(--accent);
+  color: var(--text-inverse);
   border: none;
   border-radius: 0.65rem;
   padding: 0.75rem 2.25rem;
@@ -181,7 +181,7 @@ textarea.form-control {
 }
 
 .btn-create-listing:hover {
-  background: #2d3748;
+  background: var(--accent-hover);
   transform: translateY(-1px);
 }
 
@@ -191,8 +191,8 @@ textarea.form-control {
 
 .btn-cancel-listing {
   background: transparent;
-  color: #718096;
-  border: 1.5px solid #e2e8f0;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
   border-radius: 0.65rem;
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
@@ -207,14 +207,14 @@ textarea.form-control {
 }
 
 .btn-cancel-listing:hover {
-  border-color: #4a5568;
-  color: #2d3748;
+  border-color: var(--accent);
+  color: var(--text);
 }
 
 /* Character counter */
 .char-counter {
   font-size: 0.78rem;
-  color: #a0aec0;
+  color: var(--text-muted);
   text-align: right;
   margin-top: 0.25rem;
 }
@@ -231,12 +231,12 @@ textarea.form-control {
 }
 
 .condition-options label {
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--border);
   border-radius: 2rem;
   padding: 0.35rem 1rem;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #4a5568;
+  color: var(--text-secondary);
   cursor: pointer;
   transition:
     border-color 0.15s,
@@ -246,13 +246,13 @@ textarea.form-control {
 }
 
 .condition-options input[type='radio']:checked + label {
-  border-color: #1a202c;
-  background: #1a202c;
-  color: #fff;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--text-inverse);
 }
 
 .condition-options label:hover {
-  border-color: #4a5568;
+  border-color: var(--accent);
 }
 
 /* Success toast */

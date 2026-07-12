@@ -78,7 +78,7 @@ body.wa-body {
 
 .wa-badge {
   background: var(--wa-green);
-  color: #fff;
+  color: var(--text-inverse);
   font-size: 0.7rem;
   padding: 0.1rem 0.45rem;
   border-radius: 999px;
@@ -111,7 +111,7 @@ body.wa-body {
 
 .wa-btn {
   background: var(--wa-green);
-  color: #fff;
+  color: var(--text-inverse);
   border: none;
   border-radius: 8px;
   padding: 0.5rem 1rem;
@@ -305,7 +305,7 @@ body.wa-body {
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-inverse);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -355,7 +355,7 @@ body.wa-body {
   padding: 0 0.35rem;
   border-radius: 999px;
   background: var(--wa-green);
-  color: #0b141a;
+  color: var(--bg);
   font-size: 0.75rem;
   font-weight: 700;
   display: inline-flex;
@@ -373,7 +373,7 @@ body.wa-body {
   padding: 0 0.3rem;
   border-radius: 999px;
   background: var(--wa-green);
-  color: #0b141a;
+  color: var(--bg);
   font-size: 0.65rem;
   font-weight: 700;
   vertical-align: middle;
@@ -456,7 +456,7 @@ body.wa-body {
   top: 0;
   right: 0;
   background: var(--wa-danger);
-  color: #fff;
+  color: var(--text-inverse);
   font-size: 0.65rem;
   min-width: 1rem;
   height: 1rem;
@@ -476,7 +476,7 @@ body.wa-body {
   background: var(--wa-panel);
   border: 1px solid var(--wa-border);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-xl);
   z-index: 500;
   overflow: hidden;
 }
@@ -657,7 +657,7 @@ body.wa-body {
   height: 30px;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-hover);
   color: var(--wa-text);
   font-size: 1.1rem;
   line-height: 1;
@@ -768,7 +768,7 @@ body.wa-body {
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
   z-index: 300;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 .wa-toast.hidden {
@@ -789,7 +789,7 @@ body.wa-body {
 .wa-call-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.92);
+  background: var(--bg-overlay);
   z-index: 400;
   display: flex;
   align-items: center;
@@ -822,7 +822,7 @@ body.wa-body {
   width: 100%;
   max-width: 280px;
   border-radius: 12px;
-  background: #000;
+  background: var(--bg);
   margin-bottom: 0.5rem;
 }
 
@@ -840,11 +840,11 @@ body.wa-body {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 .wa-call-btn--accept {
-  background: #25d366;
+  background: var(--success);
 }
 
 .wa-call-btn--decline {
@@ -863,7 +863,7 @@ body.wa-body {
   height: 52px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--bg-hover);
   font-size: 1.25rem;
   cursor: pointer;
 }
@@ -887,9 +887,9 @@ body.wa-body {
   position: fixed;
   z-index: 350;
   min-width: 160px;
-  background: #233138;
+  background: var(--bg-elevated);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-xl);
   padding: 0.35rem 0;
 }
 
@@ -910,7 +910,7 @@ body.wa-body {
 }
 
 .wa-msg-menu button:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-hover);
 }
 
 .wa-msg-emoji-bar {
@@ -951,7 +951,7 @@ body.wa-body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.75);
+  background: var(--modal-overlay);
   padding: 1rem;
 }
 
