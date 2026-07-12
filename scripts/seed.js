@@ -883,7 +883,7 @@ const groupAnnouncements = [
 // Example tasks
 const tasks = [
   {
-    groupName: 'SOC Software Engineering',
+    groupName: 'SOC Study Buddies',
     title: 'Build Login Page',
     description: 'Implement login UI and authentication.',
     status: 'todo',
@@ -896,12 +896,12 @@ const tasks = [
     title: 'Database Schema',
     description: 'Design PostgreSQL database schema.',
     status: 'in_progress',
-    creatorEmail: 'alice@example.com',
+    creatorEmail: 'beni@example.com',
     assigneeEmail: 'carol@example.com',
     dueDate: '2026-09-03',
   },
   {
-    groupName: 'SOC Software Engineering',
+    groupName: 'SOC Study Buddies',
     title: 'Marketplace API',
     description: 'Implement CRUD APIs for marketplace.',
     status: 'todo',

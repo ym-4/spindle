@@ -572,9 +572,15 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                       <strong><i class="bi bi-journal-text me-2"></i>Notes</strong>
 
-                      <button class="btn btn-sm btn-light">
-                        <i class="bi bi-plus-lg"></i>
-                      </button>
+                      <div class="d-flex align-items-center">
+                        <div class="d-flex gap-1">
+                          <button class="btn btn-light">
+                            <i class="bi bi-diagram-3"></i>
+                          </button>
+
+                          <button class="btn btn-light"><i class="bi bi-plus-lg"></i></button>
+                        </div>
+                      </div>
                     </div>
 
                     <div class="card-body p-2">
@@ -858,7 +864,11 @@
                     Filter
                   </button>
 
-                  <button class="btn btn-primary btn-sm">
+                  <button
+                    class="btn btn-primary btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createTaskModal"
+                  >
                     <i class="bi bi-plus-lg"></i>
                     Add Task
                   </button>
@@ -870,23 +880,23 @@
                 <div class="kanban-column">
                   <div class="column-header todo">
                     📌 To Do
-                    <span class="badge bg-light text-dark">2</span>
+                    <span class="badge bg-light text-dark" id="todoNum">2</span>
                   </div>
 
-                  <div class="task-container">
+                  <div class="task-container" data-status="todo">
                     <div class="task-card note-yellow" draggable="true" data-id="1">
                       <h6>Finish Assignment 2</h6>
 
                       <div class="subtasks">
-                        <div class="subtask">
+                        <div class="subtask" data-id="1">
                           <i class="bi bi-square subtask-icon me-2"></i>
                           <span>Research</span>
                         </div>
-                        <div class="subtask">
+                        <div class="subtask" data-id="2">
                           <i class="bi bi-square subtask-icon me-2"></i>
                           <span>Write report</span>
                         </div>
-                        <div class="subtask">
+                        <div class="subtask" data-id="3">
                           <i class="bi bi-square subtask-icon me-2"></i>
                           <span>Submit on Canvas</span>
                         </div>
@@ -913,15 +923,15 @@
                       <h6>Prepare Midterm Cheat Sheet</h6>
 
                       <div class="subtasks">
-                        <div class="subtask">
+                        <div class="subtask" data-id="4">
                           <i class="bi bi-square subtask-icon me-2"></i>
                           <span>Summarise Week 7</span>
                         </div>
-                        <div class="subtask">
+                        <div class="subtask" data-id="5">
                           <i class="bi bi-square subtask-icon me-2"></i>
                           <span>Add BST examples</span>
                         </div>
-                        <div class="subtask">
+                        <div class="subtask" data-id="6">
                           <i class="bi bi-square subtask-icon me-2"></i>
                           <span>Review recursion</span>
                         </div>
@@ -953,23 +963,23 @@
                 <div class="kanban-column">
                   <div class="column-header in-progress">
                     🚧 In Progress
-                    <span class="badge bg-light text-dark">1</span>
+                    <span class="badge bg-light text-dark" id="inProgressNum">1</span>
                   </div>
 
-                  <div class="task-container">
+                  <div class="task-container" data-status="in_progress">
                     <div class="task-card note-blue" draggable="true" data-id="3">
                       <h6>Complete Tutorial 3</h6>
 
                       <div class="subtasks">
-                        <div class="subtask">
+                        <div class="subtask" data-id="7">
                           <i class="bi bi-square subtask-icon me-2"></i>
                           <span>Finish code</span>
                         </div>
-                        <div class="subtask">
+                        <div class="subtask" data-id="8">
                           <i class="bi bi-square subtask-icon me-2"></i>
                           <span>Write individual report</span>
                         </div>
-                        <div class="subtask">
+                        <div class="subtask" data-id="9">
                           <i class="bi bi-square subtask-icon me-2"></i>
                           <span>Submit on BrightSpace</span>
                         </div>
@@ -998,19 +1008,19 @@
                 <div class="kanban-column">
                   <div class="column-header done">
                     ✅ Done
-                    <span class="badge bg-light text-dark">1</span>
+                    <span class="badge bg-light text-dark" id="doneNum">1</span>
                   </div>
 
-                  <div class="task-container">
+                  <div class="task-container" data-status="done">
                     <div class="task-card note-green" draggable="true" data-id="4">
                       <h6>Upload Lecture 6 Notes</h6>
 
                       <div class="subtasks mb-2">
-                        <div class="subtask">
+                        <div class="subtask" data-id="10">
                           <i class="bi bi-square subtask-icon me-2"></i>
                           <span>PDF uploaded</span>
                         </div>
-                        <div class="subtask">
+                        <div class="subtask" data-id="11">
                           <i class="bi bi-square subtask-icon me-2"></i>
                           <span>Shared with group</span>
                         </div>
@@ -1200,6 +1210,100 @@
               Cancel
             </button>
             <button class="btn btn-primary px-4" id="createNewChannelBtn">Create Channel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Task Modal -->
+    <div class="modal fade" id="createTaskModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+          <div class="modal-header border-0">
+            <div>
+              <h5 class="modal-title fw-bold"><i class="bi bi-kanban me-2"></i>Create New Task</h5>
+              <small class="text-muted"> Create a task for your study group </small>
+            </div>
+
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <!-- Task Name -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Task Title</label>
+              <input type="text" class="form-control" id="taskTitleInput" placeholder="Finish..." />
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea
+                class="form-control"
+                rows="3"
+                id="taskDescriptionInput"
+                placeholder="Describe the task..."
+              ></textarea>
+            </div>
+
+            <div class="row">
+              <!-- Assignee -->
+              <div class="col-md-6 mb-3">
+                <label for="taskAssignee" class="form-label">Assign To</label>
+
+                <div class="dropdown" id="taskAssignee">
+                  <button
+                    id="assigneeDropdownBtn"
+                    class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                  >
+                    Select member
+                  </button>
+
+                  <ul class="dropdown-menu w-100" id="dropdownMember">
+                    <li><a class="dropdown-item" href="#">You</a></li>
+                    <li><a class="dropdown-item" href="#">Alex</a></li>
+                    <li><a class="dropdown-item" href="#">Jamie</a></li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Due Date -->
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Due Date</label>
+
+                <input type="date" class="form-control" id="taskDueDateInput" />
+              </div>
+            </div>
+
+            <!-- Subtasks -->
+            <div class="mb-2">
+              <label class="form-label fw-semibold">Subtasks</label>
+
+              <div id="subtaskContainer">
+                <div class="input-group mb-2">
+                  <input type="text" class="form-control subtask-input" placeholder="New subtask" />
+                  <button class="btn btn-outline-danger removeSubtaskBtn" type="button">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button class="btn btn-outline-primary btn-sm" type="button" id="addSubtaskBtn">
+                <i class="bi bi-plus-lg"></i>
+                Add Subtask
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-footer border-0">
+            <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-primary px-4" id="createTaskBtn">
+              <i class="bi bi-check2 me-1"></i>
+              Create Task
+            </button>
           </div>
         </div>
       </div>

@@ -22,6 +22,7 @@ const groupRouter = require('./routers/Groups.router');
 const marketplaceRouter = require('./routers/Marketplace.router');
 const cartRouter = require('./routers/Cart.router');
 const blockRouter = require('./routers/BlockedUsers.router');
+const tasksRouter = require('./routers/Tasks.router');
 
 const app = express();
 app.use(cors()); // Might remove later
@@ -69,6 +70,7 @@ app.use('/groups', groupRouter);
 app.use('/marketplace', marketplaceRouter);
 app.use('/cart', cartRouter);
 app.use('/block', blockRouter);
+app.use('/groupTasks', tasksRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
