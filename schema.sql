@@ -84,7 +84,8 @@ CREATE TABLE "UserSessions" (
 --                                  POSTS
 -- -------------------------------------------------------------------------------------
 
-CREATE TYPE post_categories AS ENUM ('confession', 'qna', 'general');
+CREATE TYPE post_categories AS ENUM ('confession', 'qna', 'general', 'ABE', 'SB', 'CLS', 
+  'SOC', 'EEE', 'MAD', 'MAE', 'SMA', 'internship', 'cca', 'events', 'news');
 
 CREATE TABLE "Posts" (
   "id" SERIAL NOT NULL,
@@ -95,6 +96,7 @@ CREATE TABLE "Posts" (
   "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "content" TEXT NOT NULL,
   "attachment_url" TEXT,
+  "gif_url" TEXT,
   "is_anonymous" BOOLEAN DEFAULT FALSE,
   CONSTRAINT "Posts_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
@@ -142,6 +144,18 @@ CREATE TABLE "PostReactions" (
   UNIQUE ("post_id", "user_id")
 );
 
+CREATE TABLE "CommentReactions" (
+  "id" SERIAL NOT NULL,
+  "comment_id" INT NOT NULL,
+  "user_id" INT NOT NULL,
+  "reaction_type" reaction_types NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY ("comment_id") REFERENCES "PostComments"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  CONSTRAINT "CommentReactions_pkey" PRIMARY KEY ("id"),
+  UNIQUE ("comment_id", "user_id")
+);
+
 CREATE TABLE "SavedPosts" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
@@ -151,6 +165,17 @@ CREATE TABLE "SavedPosts" (
   FOREIGN KEY ("post_id") REFERENCES "Posts"("id") ON DELETE CASCADE,
   CONSTRAINT "SavedPosts_pkey" PRIMARY KEY ("id"), 
   UNIQUE(user_id, post_id)
+);
+
+CREATE TABLE "SavedComments" (
+  "id" SERIAL NOT NULL,
+  "user_id" INT NOT NULL,
+  "comment_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("comment_id") REFERENCES "PostComments"("id") ON DELETE CASCADE,
+  CONSTRAINT "SavedComments_pkey" PRIMARY KEY ("id"),
+  UNIQUE("user_id", "comment_id")
 );
 
 CREATE TABLE "Reports" (

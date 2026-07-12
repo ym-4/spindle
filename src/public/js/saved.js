@@ -13,13 +13,12 @@ function savedApiBase() {
 let savedRows = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-  const token = typeof getToken === 'function' ? getToken() : localStorage.getItem('token');
-  let userId = localStorage.getItem('loggedInUserId');
-  if (!userId && typeof getStoredUser === 'function') {
-    userId = getStoredUser()?.id;
-  }
+  const token  = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
 
+  loadYourGroups();
   loadHotPosts();
+  setupSavedTabs(); 
 
   if (!token || !userId) {
     showLoginPrompt();
@@ -255,6 +254,135 @@ function unsavePost(saveRowId, cardEl) {
     null,
     token,
   );
+}
+
+function setupSavedTabs() {
+  const postsTab      = document.getElementById('savedPostsTab');
+  const commentsTab   = document.getElementById('savedCommentsTab');
+  const postsPanel    = document.getElementById('savedPostsPanel');
+  const commentsPanel = document.getElementById('savedCommentsPanel');
+
+  postsTab.addEventListener('click', (e) => {
+    e.preventDefault();
+    postsTab.classList.add('active');
+    commentsTab.classList.remove('active');
+    postsPanel.style.display    = 'block';
+    commentsPanel.style.display = 'none';
+  });
+
+  commentsTab.addEventListener('click', (e) => {
+    e.preventDefault();
+    commentsTab.classList.add('active');
+    postsTab.classList.remove('active');
+    commentsPanel.style.display = 'block';
+    postsPanel.style.display    = 'none';
+
+    if (!commentsPanel.dataset.loaded) {
+      const token  = localStorage.getItem('token');
+      const userId = localStorage.getItem('loggedInUserId');
+      loadSavedComments(userId, token);
+      commentsPanel.dataset.loaded = 'true';
+    }
+  });
+}
+
+function loadSavedComments(userId, token) {
+  const container = document.getElementById('savedCommentsContainer');
+  container.innerHTML = `
+    <div class="post-card text-center py-4 text-muted">
+      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+      Loading saved comments...
+    </div>`;
+
+  fetchMethod(`${savedApiBase()}/comments/saved/${userId}`, (status, data) => {
+    container.innerHTML = '';
+
+    if (status !== 200 || !Array.isArray(data) || data.length === 0) {
+      container.innerHTML = `
+        <div class="post-card text-center py-4 text-muted">
+          <i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>
+          No saved comments yet.
+        </div>`;
+      return;
+    }
+
+    data.forEach(item => container.appendChild(buildSavedCommentCard(item, token)));
+  }, 'GET', null, token);
+}
+
+function buildSavedCommentCard(item, token) {
+  const el = document.createElement('div');
+  el.className = 'post-card';
+
+  const { timeStr } = formatTimestamp(item.created_at, null);
+  const initial = item.author_name ? item.author_name.charAt(0).toUpperCase() : 'U';
+
+  el.innerHTML = `
+    <div class="post-header">
+      <div class="post-avatar">${initial}</div>
+      <div class="post-author">
+        <div class="post-author-name">${escapeHtml(item.author_name || 'User')}</div>
+        <div class="post-timestamp">${timeStr}</div>
+      </div>
+      <div class="dropdown">
+        <button class="btn btn-sm post-menu-btn" data-bs-toggle="dropdown">
+          <i class="fas fa-ellipsis-h"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li>
+            <button class="dropdown-item text-danger unsave-comment-btn"
+              data-save-id="${item.save_id}">
+              <i class="fas fa-bookmark me-2"></i>Unsave
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="text-muted small mb-2">
+      Commented on post: <strong>${escapeHtml(item.post_title)}</strong>
+    </div>
+
+    <div class="post-content"
+      style="background:var(--hover-bg); border-radius:8px; padding:0.75rem; font-size:0.95rem;">
+      ${escapeHtml(item.content)}
+    </div>
+  `;
+
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('.dropdown')) return;
+    window.location.href = `posts.html?id=${item.post_id}`;
+  });
+
+  el.querySelector('.post-menu-btn').addEventListener('click', (e) => e.stopPropagation());
+
+  // Unsave
+  el.querySelector('.unsave-comment-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const saveId = e.currentTarget.dataset.saveId;
+
+    fetchMethod(`${savedApiBase()}/comments/saved/${saveId}`, (status) => {
+      if (status === 200) {
+        el.style.transition = 'opacity 0.2s';
+        el.style.opacity    = '0';
+        setTimeout(() => {
+          el.remove();
+          const remaining = document.querySelectorAll('#savedCommentsContainer .post-card').length;
+          if (remaining === 0) {
+            document.getElementById('savedCommentsContainer').innerHTML = `
+              <div class="post-card text-center py-4 text-muted">
+                <i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>
+                No saved comments yet.
+              </div>`;
+          }
+        }, 200);
+      } else {
+        alert('Failed to unsave comment.');
+      }
+    }, 'DELETE', null, token);
+  });
+
+  return el;
 }
 
 function showEmpty() {
