@@ -10,7 +10,9 @@ function escapeHtml(str) {
 }
 
 function qualityBadgeClass(rawQuality) {
-  const q = String(rawQuality || '').trim().toLowerCase();
+  const q = String(rawQuality || '')
+    .trim()
+    .toLowerCase();
   if (q === 'new') return 'new';
   if (q === 'like new' || q === 'likenew') return 'likenew';
   if (q === 'good') return 'good';

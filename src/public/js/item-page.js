@@ -11,7 +11,9 @@ function escapeHtml(str) {
 }
 
 function qualityMeta(rawQuality) {
-  const q = String(rawQuality || '').trim().toLowerCase();
+  const q = String(rawQuality || '')
+    .trim()
+    .toLowerCase();
   if (q === 'new') return { className: 'new' };
   if (q === 'like new' || q === 'likenew') return { className: 'likenew' };
   if (q === 'good') return { className: 'good' };

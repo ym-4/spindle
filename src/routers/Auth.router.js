@@ -621,7 +621,9 @@ router.get('/admin/global-search', authenticateJWT, requireAdmin, async (req, re
     const term = req.query.q || '';
     const results = await Auth.globalSearch(term);
     res.status(200).json(results);
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Admin: User activity drill-down
@@ -630,7 +632,9 @@ router.get('/admin/users/:id/activity', authenticateJWT, requireAdmin, async (re
     const userId = parseInt(req.params.id, 10);
     const activity = await Auth.getUserActivity(userId);
     res.status(200).json(activity);
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Report a user/profile

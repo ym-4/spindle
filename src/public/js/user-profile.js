@@ -125,9 +125,10 @@ function renderView(profile) {
   const skills = parseSkills(profile.skills);
   const stats = profile.stats || {};
   const isPrivate = profile.is_private && !isOwnProfile && profile.relationship !== 'friends';
-  const coverStyle = profile.cover_image && !isPrivate
-    ? `<img src="${esc(mediaUrl(profile.cover_image))}" alt="Cover photo" />`
-    : '';
+  const coverStyle =
+    profile.cover_image && !isPrivate
+      ? `<img src="${esc(mediaUrl(profile.cover_image))}" alt="Cover photo" />`
+      : '';
   const avatarInner = profile.profile_image
     ? `<img src="${esc(mediaUrl(profile.profile_image))}" alt="${esc(name)}" />`
     : esc(initials(name));
@@ -167,7 +168,9 @@ function renderView(profile) {
       ${!isOwnProfile ? `<div class="text-center mt-2">${reportBtn}</div>` : ''}`;
     if (!isOwnProfile) {
       bindFriendActions(document.getElementById('friendActions'));
-      document.getElementById('reportProfileBtn')?.addEventListener('click', () => openReportProfileModal(profile.id, name));
+      document
+        .getElementById('reportProfileBtn')
+        ?.addEventListener('click', () => openReportProfileModal(profile.id, name));
     }
     return;
   }
@@ -183,7 +186,9 @@ function renderView(profile) {
           ? `<div class="pro-profile__actions-top">
         <button type="button" class="btn btn-outline-danger btn-sm" id="btnEditProfile">Edit profile</button>
         <a href="settings.html" class="btn btn-outline-secondary btn-sm">Settings</a>
-      </div>` : `<div class="pro-profile__actions-top">${reportBtn}</div>`}
+      </div>`
+          : `<div class="pro-profile__actions-top">${reportBtn}</div>`
+      }
       <div class="pro-profile__avatar-wrap">
         <div class="pro-profile__avatar">${avatarInner}</div>
         ${isOwnProfile ? `<label class="btn btn-sm btn-light pro-profile__avatar-edit"><i class="fas fa-camera"></i><input type="file" id="avatarFile" accept="image/*" hidden /></label>` : ''}
@@ -216,7 +221,9 @@ function renderView(profile) {
 
   if (!isOwnProfile) {
     bindFriendActions(document.getElementById('friendActions'));
-    document.getElementById('reportProfileBtn')?.addEventListener('click', () => openReportProfileModal(profile.id, name));
+    document
+      .getElementById('reportProfileBtn')
+      ?.addEventListener('click', () => openReportProfileModal(profile.id, name));
   }
   if (isOwnProfile) {
     document
@@ -232,8 +239,12 @@ function openReportProfileModal(targetId, targetName) {
   if (existing) existing.remove();
 
   const reasons = [
-    'Fake account', 'Harassment', 'Inappropriate content',
-    'Impersonation', 'Spam', 'Other',
+    'Fake account',
+    'Harassment',
+    'Inappropriate content',
+    'Impersonation',
+    'Spam',
+    'Other',
   ];
 
   const overlay = document.createElement('div');
@@ -244,7 +255,7 @@ function openReportProfileModal(targetId, targetName) {
       <h5>Report ${esc(targetName)}</h5>
       <p class="report-modal-sub">Why are you reporting this user?</p>
       <div id="reportProfileReasons">
-        ${reasons.map(r => `<button class="report-reason-btn" data-reason="${r}"><i class="fas fa-flag"></i> ${r}</button>`).join('')}
+        ${reasons.map((r) => `<button class="report-reason-btn" data-reason="${r}"><i class="fas fa-flag"></i> ${r}</button>`).join('')}
       </div>
       <div id="reportProfileDesc" style="display:none;">
         <textarea id="reportProfileDescInput" class="form-control form-control-sm mb-2" rows="3" placeholder="Optional details..."></textarea>
@@ -260,7 +271,7 @@ function openReportProfileModal(targetId, targetName) {
 
   let selectedReason = null;
 
-  overlay.querySelectorAll('.report-reason-btn').forEach(btn => {
+  overlay.querySelectorAll('.report-reason-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       selectedReason = btn.dataset.reason;
       document.getElementById('reportProfileReasons').style.display = 'none';
@@ -278,7 +289,8 @@ function openReportProfileModal(targetId, targetName) {
       document.getElementById('reportProfileDesc').style.display = 'none';
       const thanks = document.getElementById('reportProfileThanks');
       thanks.style.display = 'block';
-      thanks.innerHTML = '<i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i><div class="fw-bold">Report submitted</div><div class="text-muted small mt-1">We\'ll review this profile.</div>';
+      thanks.innerHTML =
+        '<i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i><div class="fw-bold">Report submitted</div><div class="text-muted small mt-1">We\'ll review this profile.</div>';
       document.getElementById('reportProfileCancelBtn').textContent = 'Close';
       setTimeout(() => closeReportProfileModal(), 2500);
     } catch (err) {
@@ -286,8 +298,12 @@ function openReportProfileModal(targetId, targetName) {
     }
   });
 
-  document.getElementById('reportProfileCancelBtn').addEventListener('click', closeReportProfileModal);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeReportProfileModal(); });
+  document
+    .getElementById('reportProfileCancelBtn')
+    .addEventListener('click', closeReportProfileModal);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeReportProfileModal();
+  });
 }
 
 function closeReportProfileModal() {

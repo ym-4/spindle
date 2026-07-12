@@ -98,6 +98,8 @@ CREATE TABLE "Posts" (
   "attachment_url" TEXT,
   "gif_url" TEXT,
   "is_anonymous" BOOLEAN DEFAULT FALSE,
+  "visibility" TEXT DEFAULT 'everyone',
+  "pinned" BOOLEAN DEFAULT FALSE,
   CONSTRAINT "Posts_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
@@ -214,6 +216,8 @@ CREATE TABLE "Reports" (
   "post_id"   INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
   "user_id"   INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
   "reason"    VARCHAR(100) NOT NULL,
+  "description" TEXT DEFAULT '',
+  "dismissed" BOOLEAN DEFAULT FALSE,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE ("post_id", "user_id")
 );
