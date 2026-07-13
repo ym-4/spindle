@@ -212,7 +212,7 @@
             <div class="post-meta-section">
               <div class="row g-3">
                 <!-- CATEGORY -->
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <label class="form-label subtle-label"> Category </label>
 
                   <select class="form-select modern-select" id="postCategory">
@@ -234,14 +234,18 @@
                   </select>
                 </div>
 
-                <!-- POST AS -->
-                <div class="col-md-6">
-                  <label class="form-label subtle-label"> Post as </label>
-
-                  <select class="form-select modern-select" id="postAs">
-                    <option value="named">Loading…</option>
-                    <option value="Anonymous">Anonymous</option>
+                <!-- Visibility -->
+                <div class="col-md-4">
+                  <label class="form-label subtle-label">Visibility</label>
+                  <select class="form-select modern-select" id="postVisibility">
+                    <option value="everyone">Everyone</option>
+                    <option value="friends_only">Friends only</option>
                   </select>
+                </div>
+
+                <!-- POST AS -->
+                <div class="col-md-4">
+                  <label class="form-label subtle-label"> Post as </label>
                   <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" id="postAnonymous" />
                     <label class="form-check-label" for="postAnonymous"> Anonymous ☕︎ </label>
@@ -249,14 +253,28 @@
                 </div>
               </div>
 
-              <div class="row g-3 mt-1">
-                <div class="col-md-6">
-                  <label class="form-label subtle-label">Visibility</label>
-                  <select class="form-select modern-select" id="postVisibility">
-                    <option value="everyone">Everyone</option>
-                    <option value="friends_only">Friends only</option>
-                  </select>
+              <!-- TAGS -->
+              <div class="mt-3">
+                <label class="form-label subtle-label"
+                  >Tags
+                  <span class="text-muted" style="font-weight: 400"
+                    >(up to 10, press Enter or comma to add)</span
+                  ></label
+                >
+                <div class="position-relative">
+                  <div class="tag-input-wrapper" id="tagInputWrapper">
+                    <input
+                      type="text"
+                      class="tag-text-input"
+                      id="tagTextInput"
+                      placeholder="#addtag"
+                      autocomplete="off"
+                      maxlength="50"
+                    />
+                  </div>
+                  <div class="tag-autocomplete" id="tagAutocomplete" style="display: none"></div>
                 </div>
+                <div class="tag-count-hint" id="tagCountHint">0 / 10 tags</div>
               </div>
             </div>
           </div>

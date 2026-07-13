@@ -33,6 +33,11 @@ const {
   deleteUserPollVote,
   updatePollQuestion,
   deletePollByPostID,
+  upsertTag,
+  insertPostTags,
+  getTagsByPostID,
+  deletePostTags,
+  searchTags,
 } = require('../models/Posts.model');
 
 const router = express.Router();
@@ -95,7 +100,7 @@ router.get('/related/:category/:id', (req, res, next) => {
     .catch(next);
 });
 
-// Saved posts 
+// Saved posts
 router.get('/saved/:user_id', (req, res, next) => {
   const data = {
     user_id: req.params.user_id,
@@ -239,7 +244,59 @@ router.delete('/:id/poll/vote', authenticateJWT, (req, res, next) => {
     .catch(next);
 });
 
+// ======================== TAGGING SYSTEM ===========================
+// GET tags for a post
+router.get('/:id/tags', (req, res, next) => {
+  const data = {
+    post_id: req.params.id,
+  };
+
+  getTagsByPostID(data)
+    .then((tags) => res.status(200).json(tags))
+    .catch(next);
+});
+
+// Search existing tags by prefix
+router.get('/tags/search', (req, res, next) => {
+  const data = {
+    query: (req.query.q || '').trim(),
+  };
+
+  if (!data.query) return res.status(200).json([]);
+
+  searchTags(data)
+    .then((tags) => res.status(200).json(tags))
+    .catch(next);
+});
+
+// Replace all tags for a post (owner only)
+router.put('/:id/tags', authenticateJWT, async (req, res, next) => {
+  const { tag_names } = req.body;
+
+  if (!Array.isArray(tag_names)) {
+    return res.status(400).json({ message: 'tag_names must be an array of strings.' });
+  }
+  if (tag_names.length > 10) {
+    return res.status(400).json({ message: 'A post can have a maximum of 10 tags.' });
+  }
+
+  try {
+    const tagRows = await Promise.all(tag_names.map((name) => upsertTag({ name })));
+    const tag_ids = tagRows.map((t) => t.id);
+
+    await deletePostTags({ post_id: req.params.id });
+    await insertPostTags({ post_id: req.params.id, tag_ids });
+
+    const updatedTags = await getTagsByPostID({ post_id: req.params.id });
+    res.status(200).json(updatedTags);
+  } catch (err) {
+    console.error('Error updating post tags:', err);
+    next(err);
+  }
+});
+
 //================================================
+
 // Get post by ID
 router.get('/:id', (req, res, next) => {
   const data = {
@@ -285,7 +342,22 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
   };
 
   insertPost(data)
-    .then((results) =>
+    .then(async (results) => {
+      // Save tags if provided
+      const rawTags = req.body.tags;
+      if (rawTags) {
+        try {
+          const tagNames = JSON.parse(rawTags);
+          if (Array.isArray(tagNames) && tagNames.length > 0) {
+            const tagRows = await Promise.all(
+              tagNames.slice(0, 10).map((name) => upsertTag({ name })),
+            );
+            await insertPostTags({ post_id: results.id, tag_ids: tagRows.map((t) => t.id) });
+          }
+        } catch (e) {
+          console.warn('Tag save warning:', e.message);
+        }
+      }
       res.status(201).json({
         id: results.id,
         user_id: data.user_id,
@@ -294,8 +366,8 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
         content: data.content,
         attachment_url: data.attachment_url,
         gif_url: data.gif_url,
-      }),
-    )
+      });
+    })
     .catch((error) => {
       console.error('Error insertPost:', error);
       res.status(500).json(error);

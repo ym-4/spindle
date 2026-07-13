@@ -351,6 +351,213 @@ async function searchEditGifs(query, post, gifModal) {
   }
 }
 
+// TAGS
+function loadPostTagsOnPostPage(postId) {
+  fetchMethod(`${currentUrl}/posts/${postId}/tags`, (status, tags) => {
+    const container = document.getElementById(`postTags-${postId}`);
+    if (!container || status !== 200 || !Array.isArray(tags) || !tags.length) return;
+
+    container.innerHTML = tags
+      .map((tag) => `<span class="post-tag">#${escapeHtml(tag.name)}</span>`)
+      .join('');
+  });
+}
+
+function setupEditTagSection(post) {
+  const section = document.getElementById('editTagSection');
+  if (!section) return;
+
+  const token = localStorage.getItem('token');
+  let editTags = [];
+
+  // Load existing tags for this post
+  fetchMethod(`${currentUrl}/posts/${post.id}/tags`, (status, tags) => {
+    editTags = status === 200 && Array.isArray(tags) ? tags.map((t) => t.name) : [];
+    renderEditTagSection();
+  });
+
+  function renderEditTagSection() {
+    section.innerHTML = `
+      <div class="p-3 border rounded" style="border-radius:10px; background:var(--background-color);">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="subtle-label mb-0">TAGS</span>
+          <span class="tag-count-hint" id="editTagCountHint">${editTags.length} / 10</span>
+        </div>
+
+        <div class="position-relative">
+          <div class="tag-input-wrapper" id="editTagInputWrapper">
+            <input
+              type="text"
+              class="tag-text-input"
+              id="editTagTextInput"
+              placeholder="#addtag"
+              autocomplete="off"
+              maxlength="50"
+            >
+          </div>
+          <div class="tag-autocomplete" id="editTagAutocomplete" style="display:none;"></div>
+        </div>
+
+        <div class="mt-2">
+          <button type="button" class="btn btn-sm btn-outline-primary" id="saveTagsBtn">
+            <i class="fas fa-tags me-1"></i>Save tags
+          </button>
+        </div>
+        <div id="tagEditMsg" class="mt-2" style="font-size:0.85rem;"></div>
+      </div>
+    `;
+
+    // Render tags
+    renderEditTagChips();
+    setupEditTagInput();
+
+    // Save tags button
+    document.getElementById('saveTagsBtn').addEventListener('click', () => {
+      const msgEl = document.getElementById('tagEditMsg');
+      msgEl.innerHTML = '';
+
+      fetchMethod(
+        `${currentUrl}/posts/${post.id}/tags`,
+        (s, data) => {
+          if (s === 200) {
+            msgEl.innerHTML = `<span class="text-success"><i class="fas fa-check me-1"></i>Tags saved.</span>`;
+            setTimeout(() => {
+              msgEl.innerHTML = '';
+            }, 2000);
+          } else {
+            msgEl.innerHTML = `<span class="text-danger">${data?.message || 'Failed to save tags.'}</span>`;
+          }
+        },
+        'PUT',
+        { tag_names: editTags },
+        token,
+      );
+    });
+  }
+
+  function renderEditTagChips() {
+    const wrapper = document.getElementById('editTagInputWrapper');
+    const input = document.getElementById('editTagTextInput');
+    if (!wrapper || !input) return;
+
+    wrapper.querySelectorAll('.tag-chip').forEach((el) => el.remove());
+
+    editTags.forEach((name) => {
+      const chip = document.createElement('div');
+      chip.className = 'tag-chip';
+      chip.innerHTML = `
+        #${escapeHtml(name)}
+        <button type="button" class="tag-chip-remove" title="Remove">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      chip.querySelector('.tag-chip-remove').addEventListener('click', (e) => {
+        e.stopPropagation();
+        editTags = editTags.filter((t) => t !== name);
+        renderEditTagChips();
+        updateEditTagHint();
+      });
+      wrapper.insertBefore(chip, input);
+    });
+  }
+
+  function setupEditTagInput() {
+    const wrapper = document.getElementById('editTagInputWrapper');
+    const input = document.getElementById('editTagTextInput');
+    const autocomplete = document.getElementById('editTagAutocomplete');
+    if (!wrapper || !input || !autocomplete) return;
+
+    let debounce;
+
+    wrapper.addEventListener('click', () => input.focus());
+
+    input.addEventListener('input', () => {
+      const query = input.value.replace(/^#/, '').trim();
+      if (!query) {
+        autocomplete.style.display = 'none';
+        return;
+      }
+
+      clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        fetchMethod(
+          `${currentUrl}/posts/tags/search?q=${encodeURIComponent(query)}`,
+          (status, data) => {
+            if (status !== 200 || !data.length) {
+              autocomplete.style.display = 'none';
+              return;
+            }
+            renderEditAutocomplete(data, query);
+          },
+        );
+      }, 250);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
+        e.preventDefault();
+        addEditTag(input.value.replace(/^#/, '').trim());
+      }
+      if (e.key === 'Backspace' && !input.value && editTags.length) {
+        editTags.pop();
+        renderEditTagChips();
+        updateEditTagHint();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) autocomplete.style.display = 'none';
+    });
+
+    function renderEditAutocomplete(tags, query) {
+      autocomplete.innerHTML = '';
+      const exactMatch = tags.some((t) => t.name === query.toLowerCase());
+
+      if (!exactMatch) {
+        const createItem = document.createElement('div');
+        createItem.className = 'tag-autocomplete-item';
+        createItem.innerHTML = `<span>Create <strong>#${escapeHtml(query)}</strong></span>`;
+        createItem.addEventListener('click', () => {
+          addEditTag(query);
+          autocomplete.style.display = 'none';
+        });
+        autocomplete.appendChild(createItem);
+      }
+
+      tags.forEach((tag) => {
+        const item = document.createElement('div');
+        item.className = 'tag-autocomplete-item';
+        item.innerHTML = `
+          <span>#${escapeHtml(tag.name)}</span>
+          <span class="tag-usage">${tag.usage_count} post${tag.usage_count !== 1 ? 's' : ''}</span>
+        `;
+        item.addEventListener('click', () => {
+          addEditTag(tag.name);
+          autocomplete.style.display = 'none';
+        });
+        autocomplete.appendChild(item);
+      });
+
+      autocomplete.style.display = 'block';
+    }
+
+    function addEditTag(name) {
+      const clean = name.toLowerCase().trim().replace(/\s+/g, '');
+      if (!clean || editTags.includes(clean) || editTags.length >= 10) return;
+      editTags.push(clean);
+      renderEditTagChips();
+      input.value = '';
+      autocomplete.style.display = 'none';
+      updateEditTagHint();
+    }
+  }
+
+  function updateEditTagHint() {
+    const hint = document.getElementById('editTagCountHint');
+    if (hint) hint.textContent = `${editTags.length} / 10`;
+  }
+}
+
 //Load post
 function loadPost(postId, editMode = false) {
   const token = localStorage.getItem('token');
@@ -473,7 +680,9 @@ function renderPost(post) {
       ${post.title ? `<div class="fw-bold mt-2 mb-1" style="font-size:1.05rem;">${escapeHtml(post.title)}</div>` : ''}
       <div class="post-content ql-editor" style="padding:0; font-size:inherit; line-height:1.5;">${post.content || ''}</div>
       ${renderPostAttachment(post)}
-      <div id="pollContainer-${post.id}"></div>
+
+      ${post.poll_id ? `<div id="pollContainer-${post.id}"></div>` : ''}
+      <div class="post-tags" id="postTags-${post.id}"></div>
 
       <div class="post-actions">
         <button 
@@ -502,7 +711,11 @@ function renderPost(post) {
 
   setupReactionButtons(post.id);
   loadRelatedPosts(post.id, post.category);
-  loadAndRenderPollOnPostPage(post.id);
+
+  if (post.poll_id) {
+    loadAndRenderPollOnPostPage(post.id);
+  }
+  loadPostTagsOnPostPage(post.id);
 
   // Share button
   document.querySelector('.share-btn')?.addEventListener('click', (e) => {
@@ -696,6 +909,7 @@ function renderPostEditMode(post) {
       </div>
 
       <div id="editPollSection" class="mb-3"></div>
+      <div id="editTagSection" class="mb-3"></div>
 
       <div class="mb-3">
         <label class="form-label fw-semibold">
@@ -762,6 +976,7 @@ function renderPostEditMode(post) {
   setupEditGifPicker(post);
   setupRemoveAttachmentButton(post);
   setupEditPollSection(post);
+  setupEditTagSection(post);
 
   document.getElementById('cancelEditBtn').addEventListener('click', () => {
     const url = new URL(window.location.href);

@@ -147,26 +147,34 @@ function buildSavedPostCard(post, saveRow) {
       </div>
     </div>
 
-    <span class="post-category ${getCategoryClass(post.category)}">${getCategoryLabel(post.category)}</span>
-    <div class="post-content">${escapeHtml(post.content)}</div>
+    <div class="d-flex gap-1 align-items-center flex-wrap">
+      <span class="post-category ${getCategoryClass(post.category)}">${getCategoryLabel(post.category)}</span>
+      ${post.visibility === 'friends_only' ? '<span class="badge bg-warning text-dark" style="font-size:0.65rem;"><i class="fas fa-user-friends me-1"></i>Friends</span>' : ''}
+      ${post.pinned ? '<span class="badge bg-info text-dark" style="font-size:0.65rem;"><i class="fas fa-thumbtack me-1"></i>Pinned</span>' : ''}
+    </div>
+    <div class="post-content">${DOMPurify.sanitize(post.content)}</div>
+
     ${
-      post.attachment_url
-        ? `
-      <div class="post-attachment mt-2">
-        ${
-          post.attachment_url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
-            ? `
-              <img src="${currentUrl}${post.attachment_url}" alt="Post attachment" class="img-fluid rounded post-image">`
-            : `
-              <video controls class="img-fluid rounded post-video">
-                <source src="${currentUrl}${post.attachment_url}">
-              </video>
-            `
-        }
-      </div>
-    `
+      post.gif_url || post.giphy_url || post.attachment_url
+        ? (() => {
+            const mediaUrl = post.gif_url || post.giphy_url || post.attachment_url;
+            const isRelative = mediaUrl.startsWith('/');
+            const src = isRelative ? `${currentUrl}${mediaUrl}` : mediaUrl;
+            const isVideo = /\.(mp4|webm|mov)$/i.test(mediaUrl);
+            return `
+              <div class="post-attachment mt-2">
+                ${
+                  isVideo
+                    ? `<video controls class="img-fluid rounded post-video"><source src="${src}"></video>`
+                    : `<img src="${src}" alt="Post attachment" class="img-fluid rounded post-image">`
+                }
+              </div>`;
+          })()
         : ''
     }
+
+    ${post.poll_id ? renderPollCard(post, post.id) : ''}
+    <div class="post-tags" id="postTags-${post.id}"></div>
 
     <div class="post-actions">
         <button class="post-action-btn like-btn" data-post-id="${post.id}">
@@ -227,7 +235,180 @@ function buildSavedPostCard(post, saveRow) {
     );
   });
 
+  // Load poll
+  if (post.poll_id) {
+    loadAndRenderPoll(post.id, card);
+  }
+  // Load tags
+  loadPostTags(post.id, card);
+
   return card;
+}
+
+function renderPollCard(post, postId) {
+  return `<div class="poll-container" id="pollContainer-${postId}">
+    <div class="text-muted small text-center py-2">
+      <div class="spinner-border spinner-border-sm" role="status"></div>
+    </div>
+  </div>`;
+}
+
+function loadAndRenderPoll(postId, cardEl) {
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  fetchMethod(`${savedApiBase()}/posts/${postId}/poll`, (status, poll) => {
+    const container =
+      cardEl?.querySelector(`#pollContainer-${postId}`) ||
+      document.getElementById(`pollContainer-${postId}`);
+    if (!container || status !== 200) return;
+
+    const totalVotes = poll.options.reduce((sum, o) => sum + (o.vote_count || 0), 0);
+
+    // Check if user already voted
+    const userVoteCheck =
+      token && userId
+        ? new Promise((resolve) => {
+            fetchMethod(
+              `${savedApiBase()}/posts/${postId}/poll/vote/${userId}`,
+              (vs, vd) => resolve(vs === 200 ? vd.vote : null),
+              'GET',
+              null,
+              token,
+            );
+          })
+        : Promise.resolve(null);
+
+    userVoteCheck.then((userVote) => {
+      const hasVoted = !!userVote;
+
+      const optionsHtml = poll.options
+        .map((opt) => {
+          const pct = totalVotes > 0 ? Math.round((opt.vote_count / totalVotes) * 100) : 0;
+          const isUserChoice = userVote && parseInt(userVote.option_id) === parseInt(opt.id);
+          const votedClass = hasVoted ? 'voted' : '';
+          const choiceClass = isUserChoice ? 'user-voted' : '';
+
+          return [
+            `<div class="poll-option ${votedClass} ${choiceClass}"`,
+            `  data-option-id="${opt.id}"`,
+            `  data-poll-id="${poll.id}"`,
+            `  data-post-id="${postId}">`,
+            `  <div class="poll-option-bar" style="width:${hasVoted ? pct : 0}%"></div>`,
+            `  <span class="poll-option-label">${escapeHtml(opt.option_text)}</span>`,
+            hasVoted ? `<span class="poll-option-pct">${pct}%</span>` : '',
+            `</div>`,
+          ].join('');
+        })
+        .join('');
+
+      const undoHtml = hasVoted
+        ? `<button class="btn btn-link btn-sm p-0 mt-1 undo-vote-btn" style="font-size:0.8rem; color:var(--text-secondary);">
+             <i class="fas fa-times-circle me-1"></i>Remove vote
+           </button>`
+        : '';
+
+      container.innerHTML = [
+        `<div class="poll-question">${escapeHtml(poll.question)}</div>`,
+        optionsHtml,
+        `<div class="poll-meta d-flex align-items-center gap-2">`,
+        `  <span>${totalVotes} vote${totalVotes !== 1 ? 's' : ''}</span>`,
+        undoHtml,
+        `</div>`,
+      ].join('');
+
+      // Vote
+      if (!hasVoted && token) {
+        container.querySelectorAll('.poll-option').forEach((optEl) => {
+          optEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const optionId = optEl.dataset.optionId;
+            const pollId = optEl.dataset.pollId;
+
+            fetchMethod(
+              `${savedApiBase()}/posts/${postId}/poll/vote`,
+              (vs) => {
+                if (vs === 201 || vs === 409) {
+                  loadAndRenderPoll(postId, cardEl);
+                }
+              },
+              'POST',
+              { poll_id: pollId, option_id: optionId },
+              token,
+            );
+          });
+        });
+      }
+
+      // Change vote
+      if (hasVoted && token) {
+        container.querySelectorAll('.poll-option').forEach((optEl) => {
+          if (optEl.classList.contains('user-voted')) return;
+          optEl.style.cursor = 'pointer';
+          optEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const optionId = optEl.dataset.optionId;
+            const pollId = optEl.dataset.pollId;
+
+            // Delete old vote then revote
+            fetchMethod(
+              `${savedApiBase()}/posts/${postId}/poll/vote`,
+              (ds) => {
+                if (ds === 200) {
+                  fetchMethod(
+                    `${savedApiBase()}/posts/${postId}/poll/vote`,
+                    (vs) => {
+                      if (vs === 201 || vs === 409) {
+                        loadAndRenderPoll(postId, cardEl);
+                      }
+                    },
+                    'POST',
+                    { poll_id: pollId, option_id: optionId },
+                    token,
+                  );
+                }
+              },
+              'DELETE',
+              { poll_id: pollId },
+              token,
+            );
+          });
+        });
+      }
+
+      // Remove vote
+      const undoBtn = container.querySelector('.undo-vote-btn');
+      if (undoBtn && token) {
+        undoBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          fetchMethod(
+            `${savedApiBase()}/posts/${postId}/poll/vote`,
+            (ds) => {
+              if (ds === 200) loadAndRenderPoll(postId, cardEl);
+            },
+            'DELETE',
+            { poll_id: poll.id },
+            token,
+          );
+        });
+      }
+    });
+  });
+}
+
+function loadPostTags(postId, cardEl) {
+  fetchMethod(`${savedApiBase()}/posts/${postId}/tags`, (status, tags) => {
+    if (status !== 200 || !Array.isArray(tags) || !tags.length) return;
+
+    const container = cardEl
+      ? cardEl.querySelector(`#postTags-${postId}`)
+      : document.getElementById(`postTags-${postId}`);
+    if (!container) return;
+
+    container.innerHTML = tags
+      .map((tag) => `<span class="post-tag">#${escapeHtml(tag.name)}</span>`)
+      .join('');
+  });
 }
 
 //  DELETE /posts/saved/:id
@@ -451,14 +632,51 @@ function formatTimestamp(createdAt, updatedAt) {
   return { timeStr, wasEdited: wasEditedResult };
 }
 
-function getCategoryLabel(c) {
-  return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[c] || c;
+const CATEGORIES = [
+  // Primary pills
+  { value: 'all', label: 'All', primary: true },
+  { value: 'general', label: 'General', primary: true },
+  { value: 'events', label: 'Events', primary: true },
+  { value: 'news', label: 'News', primary: true },
+  { value: 'cca', label: 'CCA', primary: true },
+  { value: 'internship', label: 'Internship', primary: true },
+  // Secondary shown in "More" dropdown
+  { value: 'confession', label: 'Confession', primary: false },
+  { value: 'qna', label: 'Q&A', primary: false },
+  { value: 'SOC', label: 'SOC', primary: false },
+  { value: 'ABE', label: 'ABE', primary: false },
+  { value: 'SB', label: 'SB', primary: false },
+  { value: 'CLS', label: 'CLS', primary: false },
+  { value: 'EEE', label: 'EEE', primary: false },
+  { value: 'MAD', label: 'MAD', primary: false },
+  { value: 'MAE', label: 'MAE', primary: false },
+  { value: 'SMA', label: 'SMA', primary: false },
+];
+
+function getCategoryLabel(category) {
+  const found = CATEGORIES.find((c) => c.value === category);
+  return found ? found.label : category;
 }
 
-function getCategoryClass(c) {
-  return (
-    { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[c] || ''
-  );
+function getCategoryClass(category) {
+  const map = {
+    confession: 'category-confession',
+    qna: 'category-qna',
+    general: 'category-general',
+    events: 'category-events',
+    news: 'category-news',
+    internship: 'category-internship',
+    cca: 'category-cca',
+    SOC: 'category-SOC',
+    ABE: 'category-ABE',
+    SB: 'category-SB',
+    CLS: 'category-CLS',
+    EEE: 'category-EEE',
+    MAD: 'category-MAD',
+    MAE: 'category-MAE',
+    SMA: 'category-SMA',
+  };
+  return map[category] || 'category-general';
 }
 
 function getAvatarInitial(post) {

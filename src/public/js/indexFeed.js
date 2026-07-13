@@ -36,6 +36,7 @@ let currentCategory = 'all';
 let savedPostIds = new Set();
 let quillEditor = null;
 let pollActive = false;
+let selectedTags = [];
 
 function initFeedPage() {
   setupCreatePostAvatar();
@@ -57,11 +58,13 @@ function initFeedPage() {
     setupAuthPopup();
     protectCreatePostUI();
 
+    //create post form buttons
     setupAttachmentUpload();
     setupGifPicker();
     setupGifSearch();
     setupQuillEditor();
     setupPollBuilder();
+    setupTagInput();
   } catch (err) {
     console.error('Feed setup error:', err);
   }
@@ -93,13 +96,6 @@ async function populateFeedUser() {
 
   const avatar = document.querySelector('.create-post-box .post-avatar');
   if (avatar) avatar.textContent = initial;
-
-  const postAs = document.getElementById('postAs');
-  if (postAs) {
-    postAs.innerHTML = `
-      <option value="named">${escapeHtml(name)}</option>
-      <option value="Anonymous">Anonymous</option>`;
-  }
 }
 
 // gif
@@ -405,7 +401,7 @@ function setupCreatePostAvatar() {
   }
 }
 
-// post card
+// displayed post card
 function buildPostCard(post) {
   const { timeStr, wasEdited } = formatTimestamp(post.created_at, post.updated_at);
 
@@ -484,6 +480,7 @@ function buildPostCard(post) {
         : ''
     }
     ${post.poll_id ? renderPollCard(post, post.id) : ''}
+    <div class="post-tags" id="postTags-${post.id}"></div>
 
     <div class="post-actions">
       <button class="post-action-btn like-btn" data-post-id="${post.id}">
@@ -573,6 +570,8 @@ function buildPostCard(post) {
   if (post.poll_id) {
     loadAndRenderPoll(post.id, card);
   }
+  // load tags
+  loadPostTags(post.id, card);
 
   return card;
 }
@@ -597,7 +596,6 @@ function deletePost(postId, cardEl) {
   );
 }
 
-// render posts
 function renderPosts(posts) {
   const container = document.getElementById('postsContainer');
   container.innerHTML = '';
@@ -626,6 +624,7 @@ function sortNewestFirst(posts) {
   return posts.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }
 
+// fetch APIs
 function loadPosts() {
   showPostsLoading();
   resetHotPostsLoading();
@@ -797,6 +796,21 @@ function loadAndRenderPoll(postId, cardEl) {
         });
       }
     });
+  });
+}
+
+function loadPostTags(postId, cardEl) {
+  fetchMethod(`${feedApiBase()}/posts/${postId}/tags`, (status, tags) => {
+    if (status !== 200 || !Array.isArray(tags) || !tags.length) return;
+
+    const container = cardEl
+      ? cardEl.querySelector(`#postTags-${postId}`)
+      : document.getElementById(`postTags-${postId}`);
+    if (!container) return;
+
+    container.innerHTML = tags
+      .map((tag) => `<span class="post-tag">#${escapeHtml(tag.name)}</span>`)
+      .join('');
   });
 }
 
@@ -1033,42 +1047,6 @@ document.getElementById('reportModalOverlay')?.addEventListener('click', (e) => 
   if (e.target === e.currentTarget) closeReportModal();
 });
 
-function renderTop3(posts) {
-  const container = document.getElementById('top5Container');
-  if (!container) return;
-
-  const list = Array.isArray(posts) ? posts : [];
-  const top3 = list
-    .slice()
-    .sort(
-      (a, b) =>
-        (b.like_count || 0) - (a.like_count || 0) ||
-        (b.comment_count || 0) - (a.comment_count || 0),
-    )
-    .slice(0, 3);
-
-  container.innerHTML = '';
-
-  if (top3.length === 0) {
-    container.innerHTML = `<div class="list-group-item text-muted small text-center py-3">No posts yet.</div>`;
-    return;
-  }
-
-  top3.forEach((post, index) => {
-    const item = document.createElement('a');
-    item.href = '#';
-    item.className = 'list-group-item list-group-item-action py-2';
-    item.innerHTML = `
-      <div class="text-muted mb-1" style="font-size:0.75rem;">Trending #${index + 1}</div>
-      <div class="fw-bold" style="font-size:0.9rem;">${escapeHtml(post.title)}</div>`;
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      window.location.href = `posts.html?id=${post.id}`;
-    });
-    container.appendChild(item);
-  });
-}
-
 function setupCreatePost() {
   const submitBtn = document.getElementById('submitPostBtn');
   if (!submitBtn) return;
@@ -1131,6 +1109,10 @@ function setupCreatePost() {
     formData.append('content', content);
     formData.append('is_anonymous', isAnonymous);
     formData.append('visibility', document.getElementById('postVisibility').value);
+
+    if (selectedTags.length > 0) {
+      formData.append('tags', JSON.stringify(selectedTags));
+    }
 
     // Poll data — submitted after post is created
     const pollQuestion = document.getElementById('pollQuestion')?.value.trim();
@@ -1202,6 +1184,68 @@ function setupCreatePost() {
   });
 }
 
+function clearCreatePostForm() {
+  const errEl = document.getElementById('postModalError');
+  if (errEl) errEl.style.display = 'none';
+
+  document.getElementById('postTitle').value = '';
+  document.getElementById('postContent').value = '';
+  document.getElementById('postCategory').value = 'confession';
+  document.getElementById('postAnonymous').checked = false;
+  document.getElementById('submitPostBtn').disabled = true;
+
+  // Reset attachment
+  uploadedAttachmentUrl = null;
+  selectedGiphyUrl = null;
+
+  const attachmentInput = document.getElementById('postAttachment');
+  if (attachmentInput) attachmentInput.value = '';
+
+  const preview = document.getElementById('attachmentPreviewContainer');
+  if (preview) preview.innerHTML = '';
+
+  // Reset GIF picker
+  const gifPanel = document.getElementById('gifPickerPanel');
+  const gifSearch = document.getElementById('gifSearchInput');
+  const gifResults = document.getElementById('giphyResults');
+
+  if (gifPanel) gifPanel.classList.remove('open');
+  if (gifSearch) gifSearch.value = '';
+  if (gifResults) gifResults.innerHTML = '';
+
+  // Reset Quill
+  if (quillEditor) {
+    quillEditor.setContents([]);
+  }
+
+  // Reset poll
+  pollActive = false;
+  const pollPanel = document.getElementById('pollBuilderPanel');
+  const pollQ = document.getElementById('pollQuestion');
+  const pollOpts = document.getElementById('pollOptionsContainer');
+  const pollBtn = document.getElementById('pollToggleBtn');
+  if (pollPanel) pollPanel.style.display = 'none';
+  if (pollQ) pollQ.value = '';
+  if (pollBtn) pollBtn.classList.remove('active');
+  if (pollOpts) {
+    pollOpts.innerHTML = `
+      <input type="text" class="form-control mb-2 poll-option-input" placeholder="Option 1">
+      <input type="text" class="form-control mb-2 poll-option-input" placeholder="Option 2">
+    `;
+  }
+
+  // Reset tags
+  selectedTags = [];
+  const tagWrapper = document.getElementById('tagInputWrapper');
+  if (tagWrapper) tagWrapper.querySelectorAll('.tag-chip').forEach((el) => el.remove());
+  const tagInput = document.getElementById('tagTextInput');
+  if (tagInput) tagInput.value = '';
+  const tagHint = document.getElementById('tagCountHint');
+  if (tagHint) tagHint.textContent = '0 / 10 tags';
+  const tagAuto = document.getElementById('tagAutocomplete');
+  if (tagAuto) tagAuto.style.display = 'none';
+}
+
 // search bar
 function setupSearch() {
   const input = document.getElementById('searchInput');
@@ -1266,6 +1310,7 @@ function renderSearchResults(results, query) {
   });
 }
 
+// helper functions
 function buildGroupResult(group) {
   const el = document.createElement('div');
   el.className = 'post-card';
@@ -1368,57 +1413,6 @@ function showModalError(message) {
   }
   errEl.textContent = message;
   errEl.style.display = 'block';
-}
-
-function clearCreatePostForm() {
-  const errEl = document.getElementById('postModalError');
-  if (errEl) errEl.style.display = 'none';
-
-  document.getElementById('postTitle').value = '';
-  document.getElementById('postContent').value = '';
-  document.getElementById('postCategory').value = 'confession';
-  document.getElementById('postAnonymous').checked = false;
-  document.getElementById('submitPostBtn').disabled = true;
-
-  // Reset attachment
-  uploadedAttachmentUrl = null;
-  selectedGiphyUrl = null;
-
-  const attachmentInput = document.getElementById('postAttachment');
-  if (attachmentInput) attachmentInput.value = '';
-
-  const preview = document.getElementById('attachmentPreviewContainer');
-  if (preview) preview.innerHTML = '';
-
-  // Reset GIF picker
-  const gifPanel = document.getElementById('gifPickerPanel');
-  const gifSearch = document.getElementById('gifSearchInput');
-  const gifResults = document.getElementById('giphyResults');
-
-  if (gifPanel) gifPanel.classList.remove('open');
-  if (gifSearch) gifSearch.value = '';
-  if (gifResults) gifResults.innerHTML = '';
-
-  // Reset Quill
-  if (quillEditor) {
-    quillEditor.setContents([]);
-  }
-
-  // Reset poll
-  pollActive = false;
-  const pollPanel = document.getElementById('pollBuilderPanel');
-  const pollQ = document.getElementById('pollQuestion');
-  const pollOpts = document.getElementById('pollOptionsContainer');
-  const pollBtn = document.getElementById('pollToggleBtn');
-  if (pollPanel) pollPanel.style.display = 'none';
-  if (pollQ) pollQ.value = '';
-  if (pollBtn) pollBtn.classList.remove('active');
-  if (pollOpts) {
-    pollOpts.innerHTML = `
-      <input type="text" class="form-control mb-2 poll-option-input" placeholder="Option 1">
-      <input type="text" class="form-control mb-2 poll-option-input" placeholder="Option 2">
-    `;
-  }
 }
 
 function feedIsLoggedIn() {
@@ -1630,6 +1624,42 @@ function renderYourGroups(groups) {
   container.appendChild(seeAll);
 }
 
+function renderTop3(posts) {
+  const container = document.getElementById('top5Container');
+  if (!container) return;
+
+  const list = Array.isArray(posts) ? posts : [];
+  const top3 = list
+    .slice()
+    .sort(
+      (a, b) =>
+        (b.like_count || 0) - (a.like_count || 0) ||
+        (b.comment_count || 0) - (a.comment_count || 0),
+    )
+    .slice(0, 3);
+
+  container.innerHTML = '';
+
+  if (top3.length === 0) {
+    container.innerHTML = `<div class="list-group-item text-muted small text-center py-3">No posts yet.</div>`;
+    return;
+  }
+
+  top3.forEach((post, index) => {
+    const item = document.createElement('a');
+    item.href = '#';
+    item.className = 'list-group-item list-group-item-action py-2';
+    item.innerHTML = `
+      <div class="text-muted mb-1" style="font-size:0.75rem;">Trending #${index + 1}</div>
+      <div class="fw-bold" style="font-size:0.9rem;">${escapeHtml(post.title)}</div>`;
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = `posts.html?id=${post.id}`;
+    });
+    container.appendChild(item);
+  });
+}
+
 // =========================
 // post actions
 // =========================
@@ -1823,6 +1853,130 @@ async function searchGiphy(query) {
   } catch (err) {
     console.error(err);
     resultsContainer.innerHTML = 'Failed to load GIFs';
+  }
+}
+
+// Tag input
+function setupTagInput() {
+  const wrapper = document.getElementById('tagInputWrapper');
+  const input = document.getElementById('tagTextInput');
+  const autocomplete = document.getElementById('tagAutocomplete');
+  const hint = document.getElementById('tagCountHint');
+
+  if (!wrapper || !input) return;
+
+  let debounce;
+
+  wrapper.addEventListener('click', () => input.focus());
+
+  input.addEventListener('input', () => {
+    const query = input.value.replace(/^#/, '').trim();
+    updateTagHint();
+    if (!query) {
+      autocomplete.style.display = 'none';
+      return;
+    }
+
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      fetchMethod(
+        `${feedApiBase()}/posts/tags/search?q=${encodeURIComponent(query)}`,
+        (status, data) => {
+          if (status !== 200 || !data.length) {
+            autocomplete.style.display = 'none';
+            return;
+          }
+          renderAutocomplete(data, query);
+        },
+      );
+    }, 250);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
+      e.preventDefault();
+      addTag(input.value.replace(/^#/, '').trim());
+    }
+    if (e.key === 'Backspace' && !input.value && selectedTags.length) {
+      removeTag(selectedTags[selectedTags.length - 1]);
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target) && e.target !== input) {
+      autocomplete.style.display = 'none';
+    }
+  });
+
+  function renderAutocomplete(tags, query) {
+    autocomplete.innerHTML = '';
+    const exactMatch = tags.some((t) => t.name === query.toLowerCase());
+
+    if (!exactMatch) {
+      const createItem = document.createElement('div');
+      createItem.className = 'tag-autocomplete-item';
+      createItem.innerHTML = `<span>Create <strong>#${escapeHtml(query)}</strong></span>`;
+      createItem.addEventListener('click', () => {
+        addTag(query);
+        autocomplete.style.display = 'none';
+      });
+      autocomplete.appendChild(createItem);
+    }
+
+    tags.forEach((tag) => {
+      const item = document.createElement('div');
+      item.className = 'tag-autocomplete-item';
+      item.innerHTML = `
+        <span>#${escapeHtml(tag.name)}</span>
+        <span class="tag-usage">${tag.usage_count} post${tag.usage_count !== 1 ? 's' : ''}</span>
+      `;
+      item.addEventListener('click', () => {
+        addTag(tag.name);
+        autocomplete.style.display = 'none';
+      });
+      autocomplete.appendChild(item);
+    });
+
+    autocomplete.style.display = 'block';
+  }
+
+  function addTag(name) {
+    const clean = name.toLowerCase().trim().replace(/\s+/g, '');
+    if (!clean || selectedTags.includes(clean) || selectedTags.length >= 10) return;
+    selectedTags.push(clean);
+    renderChips();
+    input.value = '';
+    autocomplete.style.display = 'none';
+    updateTagHint();
+  }
+
+  function removeTag(name) {
+    selectedTags = selectedTags.filter((t) => t !== name);
+    renderChips();
+    updateTagHint();
+  }
+
+  function renderChips() {
+    wrapper.querySelectorAll('.tag-chip').forEach((el) => el.remove());
+    selectedTags.forEach((name) => {
+      const chip = document.createElement('div');
+      chip.className = 'tag-chip';
+      chip.innerHTML = `
+        #${escapeHtml(name)}
+        <button type="button" class="tag-chip-remove" title="Remove">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      chip.querySelector('.tag-chip-remove').addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeTag(name);
+      });
+      wrapper.insertBefore(chip, input);
+    });
+  }
+
+  function updateTagHint() {
+    if (hint) hint.textContent = `${selectedTags.length} / 10 tags`;
   }
 }
 

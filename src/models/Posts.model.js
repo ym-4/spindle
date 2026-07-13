@@ -382,6 +382,80 @@ module.exports.deleteUserPollVote = async function deleteUserPollVote(data) {
   return rows[0] || null;
 };
 
+//========== TAGGING ==============
+// Find or create a tag by name, return the full row (id, name)
+module.exports.upsertTag = async function upsertTag(data) {
+  const VALUES = [data.name.toLowerCase().trim()];
+  const { rows } = await pool.query(
+    `INSERT INTO "Tags" (name)
+     VALUES ($1)
+     ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+     RETURNING *`,
+    VALUES,
+  );
+
+  return rows[0];
+};
+
+// Attach an array of tag ids to a post
+module.exports.insertPostTags = async function insertPostTags(data) {
+  if (!data.tag_ids.length) return;
+
+  const placeholders = data.tag_ids.map((_, i) => `($1, $${i + 2})`).join(', ');
+  const VALUES = [data.post_id, ...data.tag_ids];
+
+  await pool.query(
+    `INSERT INTO "PostTags" (post_id, tag_id) VALUES ${placeholders} ON CONFLICT DO NOTHING`,
+    VALUES,
+  );
+};
+
+// GET all tags attached to a post
+module.exports.getTagsByPostID = async function getTagsByPostID(data) {
+  const VALUES = [data.post_id];
+
+  const { rows } = await pool.query(
+    `SELECT t.id, t.name
+     FROM "Tags" t
+     JOIN "PostTags" pt ON pt.tag_id = t.id
+     WHERE pt.post_id = $1
+     ORDER BY t.name`,
+    VALUES,
+  );
+
+  return rows;
+};
+
+// Remove all tags currently attached to a post
+module.exports.deletePostTags = async function deletePostTags(data) {
+  const VALUES = [data.post_id];
+
+  const { rows } = await pool.query(
+    'DELETE FROM "PostTags" WHERE "post_id" = $1 RETURNING *',
+    VALUES,
+  );
+
+  return rows;
+};
+
+// Search existing tags by prefix
+module.exports.searchTags = async function searchTags(data) {
+  const VALUES = [`${data.query.toLowerCase()}%`];
+
+  const { rows } = await pool.query(
+    `SELECT t.id, t.name, COUNT(pt.post_id)::int AS usage_count
+     FROM "Tags" t
+     LEFT JOIN "PostTags" pt ON pt.tag_id = t.id
+     WHERE t.name ILIKE $1
+     GROUP BY t.id
+     ORDER BY usage_count DESC, t.name
+     LIMIT 10`,
+    VALUES,
+  );
+
+  return rows;
+};
+
 //==================== post interactions (saves, likes, etc) ================================
 // saves
 // GET saved posts by user ID

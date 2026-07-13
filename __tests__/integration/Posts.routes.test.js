@@ -7,7 +7,7 @@ const pool = require('../../src/models/db');
 // which runs scripts/reset.js before any test file executes.
 
 beforeEach(async () => {
-// Clean slate for every test
+  // Clean slate for every test
   await pool.query('DELETE FROM "PollVotes"');
   await pool.query('DELETE FROM "PollOptions"');
   await pool.query('DELETE FROM "PostPolls"');
@@ -96,10 +96,7 @@ describe('GET /posts', () => {
 
   // Valid partition: existing posts are returned
   test('should return 200 and all posts', async () => {
-    const user = await registerAndVerify(
-      'PostAuthor',
-      'postauthor@example.com',
-    );
+    const user = await registerAndVerify('PostAuthor', 'postauthor@example.com');
 
     await pool.query(
       `INSERT INTO "Posts"
@@ -129,10 +126,7 @@ describe('GET /posts', () => {
 describe('GET /posts/tag/:category', () => {
   // Valid partition: returns only posts belonging to the category
   test('should return 200 and an empty array when the category has no posts', async () => {
-    const user = await registerAndVerify(
-      'CategoryUser',
-      'category@example.com',
-    );
+    const user = await registerAndVerify('CategoryUser', 'category@example.com');
 
     await pool.query(
       `INSERT INTO "Posts" (user_id, title, category, content)
@@ -155,10 +149,7 @@ describe('GET /posts/tag/:category', () => {
 
   // Boundary: no posts exist for the category
   test('should return 200 and an empty array when no posts match the category', async () => {
-    const user = await registerAndVerify(
-      'EmptyCategoryUser',
-      'emptycategory@example.com',
-    );
+    const user = await registerAndVerify('EmptyCategoryUser', 'emptycategory@example.com');
 
     await pool.query(
       `INSERT INTO "Posts" (user_id, title, category, content)
@@ -187,10 +178,7 @@ describe('GET /posts/tag/:category', () => {
 describe('GET /posts/:id', () => {
   // Valid partition: existing post id returns the correct post
   test('should return 200 and the requested post', async () => {
-    const user = await registerAndVerify(
-      'SinglePostUser',
-      'singlepost@example.com',
-    );
+    const user = await registerAndVerify('SinglePostUser', 'singlepost@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -237,10 +225,7 @@ describe('GET /posts/:id', () => {
 describe('GET /posts/related/:category/:id', () => {
   // Valid partition: returns related posts from the same category
   test('should return related posts from the same category', async () => {
-    const user = await registerAndVerify(
-      'RelatedUser',
-      'related@example.com',
-    );
+    const user = await registerAndVerify('RelatedUser', 'related@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -256,9 +241,7 @@ describe('GET /posts/related/:category/:id', () => {
 
     const currentPostId = rows[0].id;
 
-    const res = await request(app).get(
-      `/posts/related/general/${currentPostId}`,
-    );
+    const res = await request(app).get(`/posts/related/general/${currentPostId}`);
 
     expect(res.status).toBe(200);
 
@@ -270,10 +253,7 @@ describe('GET /posts/related/:category/:id', () => {
 
   // Boundary: no related posts exist
   test('should return an empty array when no related posts exist', async () => {
-    const user = await registerAndVerify(
-      'LonelyUser',
-      'lonely@example.com',
-    );
+    const user = await registerAndVerify('LonelyUser', 'lonely@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -285,9 +265,7 @@ describe('GET /posts/related/:category/:id', () => {
 
     const postId = rows[0].id;
 
-    const res = await request(app).get(
-      `/posts/related/general/${postId}`,
-    );
+    const res = await request(app).get(`/posts/related/general/${postId}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
@@ -295,9 +273,7 @@ describe('GET /posts/related/:category/:id', () => {
 
   // Boundary: non-existent post id
   test('should return an empty array for a non-existent post id', async () => {
-    const res = await request(app).get(
-      '/posts/related/general/999999',
-    );
+    const res = await request(app).get('/posts/related/general/999999');
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
@@ -310,10 +286,7 @@ describe('GET /posts/related/:category/:id', () => {
 describe('POST /posts', () => {
   // Valid partition: create a new post successfully
   test('should return 201 and create a new post', async () => {
-    const user = await registerAndVerify(
-      'CreatePostUser',
-      'createpost@example.com',
-    );
+    const user = await registerAndVerify('CreatePostUser', 'createpost@example.com');
 
     const res = await request(app)
       .post('/posts')
@@ -332,10 +305,7 @@ describe('POST /posts', () => {
 
   // Valid partition: verify created post in the database
   test('created post should be persisted', async () => {
-    const user = await registerAndVerify(
-      'PersistUser',
-      'persist@example.com',
-    );
+    const user = await registerAndVerify('PersistUser', 'persist@example.com');
 
     await request(app)
       .post('/posts')
@@ -352,9 +322,7 @@ describe('POST /posts', () => {
 
   // Invalid partition: required fields missing
   test('should return 400 when required fields are missing', async () => {
-    const res = await request(app)
-      .post('/posts')
-      .field('title', 'Incomplete Post');
+    const res = await request(app).post('/posts').field('title', 'Incomplete Post');
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/undefined/i);
@@ -367,10 +335,7 @@ describe('POST /posts', () => {
 describe('PUT /posts/:id', () => {
   // Valid partition: update an existing post
   test('should return 200 and update the post', async () => {
-    const user = await registerAndVerify(
-      'UpdateUser',
-      'update@example.com',
-    );
+    const user = await registerAndVerify('UpdateUser', 'update@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -395,12 +360,9 @@ describe('PUT /posts/:id', () => {
     expect(res.body.content).toBe('Updated content');
   });
 
-  // Valid partition: verify updated values 
+  // Valid partition: verify updated values
   test('updated post should persist in the database', async () => {
-    const user = await registerAndVerify(
-      'PersistUpdateUser',
-      'persistupdate@example.com',
-    );
+    const user = await registerAndVerify('PersistUpdateUser', 'persistupdate@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -445,10 +407,7 @@ describe('PUT /posts/:id', () => {
 describe('DELETE /posts/:id', () => {
   // Valid partition: owner deletes their own post
   test('should return 200 and delete the post', async () => {
-    const user = await registerAndVerify(
-      'DeleteOwner',
-      'deleteowner@example.com',
-    );
+    const user = await registerAndVerify('DeleteOwner', 'deleteowner@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -473,16 +432,10 @@ describe('DELETE /posts/:id', () => {
   });
 
   // Invalid partition: authenticated user is not the owner
-  test('should return 403 when deleting another user\'s post', async () => {
-    const owner = await registerAndVerify(
-      'PostOwner',
-      'owner@example.com',
-    );
+  test("should return 403 when deleting another user's post", async () => {
+    const owner = await registerAndVerify('PostOwner', 'owner@example.com');
 
-    const stranger = await registerAndVerify(
-      'OtherUser',
-      'other@example.com',
-    );
+    const stranger = await registerAndVerify('OtherUser', 'other@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -504,10 +457,7 @@ describe('DELETE /posts/:id', () => {
 
   // Boundary: non-existent id
   test('should return 404 when deleting a non-existent post', async () => {
-    const user = await registerAndVerify(
-      'GhostDelete',
-      'ghostdelete@example.com',
-    );
+    const user = await registerAndVerify('GhostDelete', 'ghostdelete@example.com');
 
     const res = await request(app)
       .delete('/posts/999999')

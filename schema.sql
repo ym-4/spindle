@@ -150,6 +150,17 @@ CREATE TABLE "PollVotes" (
   UNIQUE ("poll_id", "user_id")
 );
 
+CREATE TABLE "Tags" (
+  "id" SERIAL PRIMARY KEY,
+  "name" VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE "PostTags" (
+  "post_id" INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
+  "tag_id"  INT NOT NULL REFERENCES "Tags"("id")  ON DELETE CASCADE,
+  PRIMARY KEY ("post_id", "tag_id")
+);
+
 CREATE TABLE "PostComments" (
   "id" SERIAL NOT NULL, 
   "user_id" INT NOT NULL,
