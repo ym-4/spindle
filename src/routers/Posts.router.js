@@ -25,6 +25,14 @@ const {
   getAllReports,
   searchAllPosts,
   togglePin,
+  insertPoll,
+  insertPollOption,
+  getPollByPostID,
+  insertPollVote,
+  getUserPollVote,
+  deleteUserPollVote,
+  updatePollQuestion,
+  deletePollByPostID,
 } = require('../models/Posts.model');
 
 const router = express.Router();
@@ -50,7 +58,7 @@ router.get('/admin/all', authenticateJWT, async (req, res, next) => {
   }
 });
 
-// Get all reports (admin only) — must be before /:id
+// Get all reports (admin only)
 router.get('/reports', authenticateJWT, async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
@@ -64,7 +72,7 @@ router.get('/reports', authenticateJWT, async (req, res, next) => {
   }
 });
 
-// Get post by Category (must be before /:id)
+// Get post by Category
 router.get('/tag/:category', (req, res, next) => {
   const data = {
     category: req.params.category,
@@ -75,7 +83,19 @@ router.get('/tag/:category', (req, res, next) => {
     .catch(next);
 });
 
-// Saved posts & reactions (must be before /:id)
+// Get 3 random related posts
+router.get('/related/:category/:id', (req, res, next) => {
+  const data = {
+    category: req.params.category,
+    id: req.params.id,
+  };
+
+  getRelatedPosts(data)
+    .then((posts) => res.status(200).json(posts))
+    .catch(next);
+});
+
+// Saved posts
 router.get('/saved/:user_id', (req, res, next) => {
   const data = {
     user_id: req.params.user_id,
@@ -94,6 +114,132 @@ router.get('/reaction/:user_id', (req, res, next) => {
     .catch(next);
 });
 
+// ======================== POLL POSTS ===========================
+// get poll for a post
+router.get('/:id/poll', (req, res, next) => {
+  const data = {
+    post_id: req.params.id,
+  };
+
+  getPollByPostID(data)
+    .then((poll) => {
+      if (!poll) return res.status(404).json({ message: 'No poll found.' });
+      res.status(200).json(poll);
+    })
+    .catch(next);
+});
+
+// create a poll for a post
+router.post('/:id/poll', authenticateJWT, async (req, res, next) => {
+  const { question, options } = req.body;
+
+  if (!question || !Array.isArray(options) || options.length < 2) {
+    return res.status(400).json({ message: 'A question and at least 2 options are required.' });
+  }
+
+  try {
+    const poll = await insertPoll({ post_id: req.params.id, question });
+    const insertedOptions = await Promise.all(
+      options.map((opt) => insertPollOption({ poll_id: poll.id, option_text: opt })),
+    );
+    poll.options = insertedOptions;
+    res.status(201).json(poll);
+  } catch (error) {
+    console.error('Error creating poll:', error);
+    next(error);
+  }
+});
+
+// Update poll (question only)
+router.put('/:id/poll', authenticateJWT, (req, res, next) => {
+  const data = {
+    question: req.body.question,
+    post_id: req.params.id,
+  };
+
+  if (!data.question) return res.status(400).json({ message: 'question is required.' });
+
+  updatePollQuestion(data)
+    .then((result) => {
+      if (!result) return res.status(404).json({ message: 'Poll not found.' });
+      res.status(200).json({ question: result.question, id: result.id });
+    })
+    .catch(next);
+});
+
+// Delete poll from a post
+router.delete('/:id/poll', authenticateJWT, (req, res, next) => {
+  const data = {
+    post_id: req.params.id,
+  };
+
+  deletePollByPostID(data)
+    .then((result) => {
+      if (!result) return res.status(404).json({ message: 'Poll not found.' });
+      res.status(200).json(result);
+    })
+    .catch(next);
+});
+
+// POST vote on a poll option
+router.post('/:id/poll/vote', authenticateJWT, async (req, res, next) => {
+  const data = {
+    option_id: req.body.option_id,
+    poll_id: req.body.poll_id,
+    user_id: req.user.id,
+  };
+
+  if (!data.option_id || !data.poll_id) {
+    return res.status(400).json({ message: 'option_id and poll_id are required.' });
+  }
+
+  try {
+    const vote = await insertPollVote(data);
+    const updatedPoll = await getPollByPostID({ post_id: req.params.id });
+    res.status(201).json({ vote, poll: updatedPoll });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ message: 'You have already voted on this poll.' });
+    }
+    next(error);
+  }
+});
+
+// GET user's vote on a post's poll
+router.get('/:id/poll/vote/:user_id', authenticateJWT, (req, res, next) => {
+  const data = {
+    post_id: req.params.id,
+  };
+
+  getPollByPostID(data)
+    .then((poll) => {
+      if (!poll) return res.status(404).json({ message: 'No poll.' });
+      return getUserPollVote({ poll_id: poll.id, user_id: req.params.user_id });
+    })
+    .then((vote) => res.status(200).json({ vote: vote || null }))
+    .catch(next);
+});
+
+// DELETE user's vote on a poll
+router.delete('/:id/poll/vote', authenticateJWT, (req, res, next) => {
+  const data = {
+    poll_id: req.body.poll_id,
+    user_id: req.user.id,
+  };
+
+  if (!data.poll_id) {
+    return res.status(400).json({ message: 'poll_id is required.' });
+  }
+
+  deleteUserPollVote(data)
+    .then((result) => {
+      if (!result) return res.status(404).json({ message: 'Vote not found.' });
+      res.status(200).json(result);
+    })
+    .catch(next);
+});
+
+//================================================
 // Get post by ID
 router.get('/:id', (req, res, next) => {
   const data = {
@@ -101,19 +247,14 @@ router.get('/:id', (req, res, next) => {
   };
 
   getPostByID(data)
-    .then((post) => res.status(200).json(post))
-    .catch(next);
-});
-
-// Get 3 random related posts
-router.get('/related/:category/:id', (req, res, next) => {
-  const data = {
-    category: req.params.category,
-    id: req.params.id,
-  };
-
-  getRelatedPosts(data)
-    .then((posts) => res.status(200).json(posts))
+    .then((post) => {
+      if (!post) {
+        return res.status(404).json({
+          error: 'Post not found',
+        });
+      }
+      res.status(200).json(post);
+    })
     .catch(next);
 });
 
@@ -136,23 +277,25 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
     user_id: req.body.user_id,
     title: req.body.title,
     category: req.body.category,
-    content: req.body.content,
+    content: req.body.content || '',
     attachment_url: attachmentUrl,
     gif_url: req.body.gif_url || null,
     is_anonymous: req.body.is_anonymous === 'true',
-    visibility: req.body.visibility || 'everyone'
+    visibility: req.body.visibility || 'everyone',
   };
 
   insertPost(data)
-    .then(results => res.status(201).json({
-      id: results.id,
-      user_id: data.user_id,
-      title: data.title,
-      category: data.category,
-      content: data.content,
-      attachment_url: data.attachment_url,
-      gif_url: data.gif_url
-    }))
+    .then((results) =>
+      res.status(201).json({
+        id: results.id,
+        user_id: data.user_id,
+        title: data.title,
+        category: data.category,
+        content: data.content,
+        attachment_url: data.attachment_url,
+        gif_url: data.gif_url,
+      }),
+    )
     .catch((error) => {
       console.error('Error insertPost:', error);
       res.status(500).json(error);
@@ -167,9 +310,7 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
   getPostByID({ id: req.params.id })
     .then((existingPost) => {
       if (!existingPost) {
-        return res.status(404).json({
-          error: 'Post not found',
-        });
+        return null;
       }
 
       attachmentUrl = existingPost.attachment_url;
@@ -223,7 +364,7 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
       return updatePostByID(data);
     })
     .then((results) => {
-      if (!results) {
+      if (results === null) {
         return res.status(404).json({ error: 'Post not found' });
       }
       res.status(200).json(results);
