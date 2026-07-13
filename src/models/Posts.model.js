@@ -200,9 +200,6 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
   `,
     VALUES,
   );
-  `,
-    VALUES,
-  );
 
   return rows;
 };
