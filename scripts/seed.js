@@ -85,7 +85,8 @@ const marketplaceItems = [
     description: 'Durable everyday backpack with multiple compartments.',
     price: 49.9,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -93,7 +94,8 @@ const marketplaceItems = [
     description: 'Scientific calculator suitable for engineering modules.',
     price: 15.0,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -101,7 +103,8 @@ const marketplaceItems = [
     description: 'A4 document folder to keep your notes organised.',
     price: 3.5,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -109,7 +112,8 @@ const marketplaceItems = [
     description: 'Lined notebook, 200 pages, hardcover.',
     price: 6.9,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -117,7 +121,8 @@ const marketplaceItems = [
     description: 'A4 80gsm printing paper, 500 sheets per ream.',
     price: 8.0,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -125,7 +130,8 @@ const marketplaceItems = [
     description: 'Smooth ballpoint pen, blue ink.',
     price: 1.5,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -133,7 +139,8 @@ const marketplaceItems = [
     description: 'HB pencil, ideal for sketching and writing.',
     price: 0.8,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -141,7 +148,8 @@ const marketplaceItems = [
     description: 'Bundle of essentials: pens, pencils, ruler, eraser, and sharpener.',
     price: 12.0,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -149,7 +157,8 @@ const marketplaceItems = [
     description: 'Pack of 6 pastel highlighters, low bleed-through.',
     price: 5.5,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -157,7 +166,8 @@ const marketplaceItems = [
     description: 'Assorted colour sticky notes, 5 pads.',
     price: 3.0,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -165,7 +175,8 @@ const marketplaceItems = [
     description: 'Set of 4 whiteboard markers with eraser cap.',
     price: 4.5,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -173,7 +184,8 @@ const marketplaceItems = [
     description: 'Compact correction tape roller, 6m length.',
     price: 2.2,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -181,7 +193,8 @@ const marketplaceItems = [
     description: 'Clear acrylic ruler with cm and inch markings.',
     price: 1.2,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -189,7 +202,8 @@ const marketplaceItems = [
     description: 'Soft white eraser, smudge-free.',
     price: 0.6,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -197,7 +211,8 @@ const marketplaceItems = [
     description: 'Compact desktop stapler with 1000 staples included.',
     price: 7.5,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -205,7 +220,8 @@ const marketplaceItems = [
     description: 'Engineering graph paper pad, 50 sheets, 5mm grid.',
     price: 4.0,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -213,7 +229,8 @@ const marketplaceItems = [
     description: 'Assorted size binder clips, 24 pieces.',
     price: 2.5,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -221,7 +238,8 @@ const marketplaceItems = [
     description: 'Ruled index cards, 100 pieces, ring-bound.',
     price: 3.2,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -229,7 +247,8 @@ const marketplaceItems = [
     description: '13-inch neoprene laptop sleeve, water-resistant.',
     price: 14.9,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -237,7 +256,8 @@ const marketplaceItems = [
     description: 'Compact USB 3.0 flash drive, 32GB capacity.',
     price: 9.9,
     quality: "Brand New",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
 
   {
@@ -246,7 +266,8 @@ const marketplaceItems = [
     description: 'CLRS 3rd edition, some highlighting in first 3 chapters.',
     price: 35.0,
     quality: "Good",
-    meetup: "Clementi MRT"
+    meetup: "Clementi MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -254,7 +275,8 @@ const marketplaceItems = [
     description: 'TKL mechanical keyboard with brown switches, RGB backlight.',
     price: 55.0,
     quality: "Like New",
-    meetup: "Buona Vista MRT"
+    meetup: "Buona Vista MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -262,7 +284,8 @@ const marketplaceItems = [
     description: 'Adjustable LED desk lamp with 3 brightness settings.',
     price: 18.0,
     quality: "Good",
-    meetup: "Jurong East MRT"
+    meetup: "Jurong East MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -270,7 +293,8 @@ const marketplaceItems = [
     description: 'Ergonomic mesh-back office chair, minor scuffs on base.',
     price: 60.0,
     quality: "Fair",
-    meetup: "Tampines MRT"
+    meetup: "Tampines MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -278,7 +302,8 @@ const marketplaceItems = [
     description: 'Bluetooth wireless mouse, works perfectly, light scratches on top.',
     price: 8.5,
     quality: "Fair",
-    meetup: "Bishan MRT"
+    meetup: "Bishan MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -286,7 +311,8 @@ const marketplaceItems = [
     description: 'Compiled lecture notes and past year papers, spiral-bound.',
     price: 6.0,
     quality: "Good",
-    meetup: "Serangoon MRT"
+    meetup: "Serangoon MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -294,7 +320,8 @@ const marketplaceItems = [
     description: 'Portable USB-C SSD, fast transfer speeds, barely used.',
     price: 65.0,
     quality: "Like New",
-    meetup: "Yishun MRT"
+    meetup: "Yishun MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -302,7 +329,8 @@ const marketplaceItems = [
     description: 'Foldable laptop table, some wear on the surface.',
     price: 20.0,
     quality: "Well Used",
-    meetup: "Woodlands MRT"
+    meetup: "Woodlands MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -310,7 +338,8 @@ const marketplaceItems = [
     description: 'Over-ear ANC headphones, minor cosmetic wear, great sound.',
     price: 70.0,
     quality: "Good",
-    meetup: "Punggol MRT"
+    meetup: "Punggol MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -318,7 +347,8 @@ const marketplaceItems = [
     description: 'Used for a semester-long IoT project, fully functional.',
     price: 45.0,
     quality: "Good",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -326,7 +356,8 @@ const marketplaceItems = [
     description: 'Electronics prototyping kit, a few wires slightly bent.',
     price: 10.0,
     quality: "Fair",
-    meetup: "Clementi MRT"
+    meetup: "Clementi MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -334,7 +365,8 @@ const marketplaceItems = [
     description: 'Complete starter kit with sensors, mostly unused.',
     price: 30.0,
     quality: "Like New",
-    meetup: "Buona Vista MRT"
+    meetup: "Buona Vista MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -342,7 +374,8 @@ const marketplaceItems = [
     description: 'Elmasri & Navathe, cover slightly bent, no writing inside.',
     price: 25.0,
     quality: "Good",
-    meetup: "Jurong East MRT"
+    meetup: "Jurong East MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -350,7 +383,8 @@ const marketplaceItems = [
     description: 'Wooden monitor stand with storage space underneath.',
     price: 12.0,
     quality: "Good",
-    meetup: "Tampines MRT"
+    meetup: "Tampines MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -358,7 +392,8 @@ const marketplaceItems = [
     description: 'TI-84 Plus, buttons slightly worn but fully functional.',
     price: 40.0,
     quality: "Fair",
-    meetup: "Bishan MRT"
+    meetup: "Bishan MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -366,7 +401,8 @@ const marketplaceItems = [
     description: 'Comfy bean bag for dorm room, some fading on fabric.',
     price: 15.0,
     quality: "Well Used",
-    meetup: "Serangoon MRT"
+    meetup: "Serangoon MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -374,7 +410,8 @@ const marketplaceItems = [
     description: 'A3-size portable whiteboard, great for practicing diagrams.',
     price: 9.0,
     quality: "Good",
-    meetup: "Yishun MRT"
+    meetup: "Yishun MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -382,7 +419,8 @@ const marketplaceItems = [
     description: 'Compact portable speaker, decent battery life.',
     price: 20.0,
     quality: "Fair",
-    meetup: "Woodlands MRT"
+    meetup: "Woodlands MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -390,7 +428,8 @@ const marketplaceItems = [
     description: 'Compact dorm-size fridge, works well, some rust on hinge.',
     price: 80.0,
     quality: "Well Used",
-    meetup: "Punggol MRT"
+    meetup: "Punggol MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -398,7 +437,8 @@ const marketplaceItems = [
     description: 'Kurose & Ross top-down approach, 7th edition.',
     price: 28.0,
     quality: "Good",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -406,7 +446,8 @@ const marketplaceItems = [
     description: 'HD webcam with built-in mic, used for online classes.',
     price: 18.0,
     quality: "Like New",
-    meetup: "Clementi MRT"
+    meetup: "Clementi MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -414,7 +455,8 @@ const marketplaceItems = [
     description: 'Small graphics tablet for digital sketching, pen included.',
     price: 35.0,
     quality: "Good",
-    meetup: "Buona Vista MRT"
+    meetup: "Buona Vista MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -422,7 +464,8 @@ const marketplaceItems = [
     description: 'Memory foam seat cushion for long study sessions.',
     price: 10.0,
     quality: "Brand New",
-    meetup: "Jurong East MRT"
+    meetup: "Jurong East MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -430,7 +473,8 @@ const marketplaceItems = [
     description: 'Serway & Jewett, some annotations in pencil.',
     price: 22.0,
     quality: "Fair",
-    meetup: "Tampines MRT"
+    meetup: "Tampines MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -438,7 +482,8 @@ const marketplaceItems = [
     description: 'Aluminium laptop stand, improves posture and airflow.',
     price: 16.0,
     quality: "Like New",
-    meetup: "Bishan MRT"
+    meetup: "Bishan MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -446,7 +491,8 @@ const marketplaceItems = [
     description: 'Multi-compartment tray for pens, cables, and stationery.',
     price: 7.0,
     quality: "Good",
-    meetup: "Serangoon MRT"
+    meetup: "Serangoon MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -454,7 +500,8 @@ const marketplaceItems = [
     description: 'Home Wi-Fi router, reliable for dorm/home use.',
     price: 25.0,
     quality: "Fair",
-    meetup: "Yishun MRT"
+    meetup: "Yishun MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -462,7 +509,8 @@ const marketplaceItems = [
     description: '3-tier bookshelf, some scratches on the sides.',
     price: 18.0,
     quality: "Well Used",
-    meetup: "Woodlands MRT"
+    meetup: "Woodlands MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -470,7 +518,8 @@ const marketplaceItems = [
     description: 'USB-C portable monitor, great for a dual-screen setup.',
     price: 90.0,
     quality: "Like New",
-    meetup: "Punggol MRT"
+    meetup: "Punggol MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -478,7 +527,8 @@ const marketplaceItems = [
     description: 'Covers OWASP Top 10 and network security basics.',
     price: 20.0,
     quality: "Good",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -486,7 +536,8 @@ const marketplaceItems = [
     description: 'Set of 3 mechanical pencils with extra lead refills.',
     price: 4.5,
     quality: "Brand New",
-    meetup: "Clementi MRT"
+    meetup: "Clementi MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -494,7 +545,8 @@ const marketplaceItems = [
     description: 'Compact desk fan, 3 speed settings, quiet motor.',
     price: 12.0,
     quality: "Fair",
-    meetup: "Buona Vista MRT"
+    meetup: "Buona Vista MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -502,7 +554,8 @@ const marketplaceItems = [
     description: 'High-speed HDMI cable, supports 4K resolution.',
     price: 5.0,
     quality: "Brand New",
-    meetup: "Jurong East MRT"
+    meetup: "Jurong East MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -510,7 +563,8 @@ const marketplaceItems = [
     description: 'Cat6 ethernet cable, good for stable connections.',
     price: 6.0,
     quality: "Like New",
-    meetup: "Tampines MRT"
+    meetup: "Tampines MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -518,7 +572,8 @@ const marketplaceItems = [
     description: 'Stackable plastic storage bins, ideal for dorm rooms.',
     price: 14.0,
     quality: "Good",
-    meetup: "Bishan MRT"
+    meetup: "Bishan MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -526,7 +581,8 @@ const marketplaceItems = [
     description: 'Digital timer clock, useful for Pomodoro study sessions.',
     price: 8.0,
     quality: "Fair",
-    meetup: "Serangoon MRT"
+    meetup: "Serangoon MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -534,7 +590,8 @@ const marketplaceItems = [
     description: 'Compact document scanner, scans directly to USB drive.',
     price: 30.0,
     quality: "Well Used",
-    meetup: "Yishun MRT"
+    meetup: "Yishun MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -542,7 +599,8 @@ const marketplaceItems = [
     description: 'Non-slip yoga mat, used occasionally for stretching breaks.',
     price: 10.0,
     quality: "Good",
-    meetup: "Woodlands MRT"
+    meetup: "Woodlands MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -550,7 +608,8 @@ const marketplaceItems = [
     description: '750ml stainless steel insulated bottle, keeps drinks cold.',
     price: 9.0,
     quality: "Like New",
-    meetup: "Punggol MRT"
+    meetup: "Punggol MRT",
+    image: "/marketplace-uploads/1.png"
   },
   {
     sellerEmail: 'alice@example.com',
@@ -558,9 +617,12 @@ const marketplaceItems = [
     description: 'Sommerville 10th edition, covers CI/CD and agile methods.',
     price: 27.0,
     quality: "Good",
-    meetup: "Dover MRT"
+    meetup: "Dover MRT",
+    image: "/marketplace-uploads/1.png"
   },
 ];
+
+module.exports = marketplaceItems;
 
 module.exports = marketplaceItems;
 

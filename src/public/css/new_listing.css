@@ -252,29 +252,6 @@ right: 1.25rem;
 z-index: 9999;
 }
 
-.btn-back-listing {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: transparent;
-  border: none;
-  color: #495057;
-  font-weight: 500;
-  font-size: 1.1rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: 6px;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.btn-back-listing:hover {
-  background-color: #f1f3f5;
-  color: #212529;
-}
-
-.btn-back-listing i {
-  font-size: 0.85rem;
-}
-
 .tag-tooltip-icon {
   color: #6c757d;
   font-size: 0.85rem;
@@ -351,4 +328,19 @@ z-index: 9999;
 .tag-add-btn:hover {
   border-color: #0d6efd;
   color: #0d6efd;
+}
+
+#image-preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.image-preview-thumb img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
 }

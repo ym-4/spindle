@@ -23,7 +23,11 @@ function renderItem(item) {
   document.getElementById('itemLoaded').classList.remove('d-none');
   document.getElementById('itemNotFound').classList.add('d-none');
 
-  document.getElementById('itemImage').alt = escapeHtml(item.name);
+  const itemImageEl = document.getElementById('itemImage');
+  itemImageEl.alt = escapeHtml(item.name);
+  if (item.images && item.images.length > 0) {
+    itemImageEl.src = item.images[0].image_url;
+  }
   document.getElementById('itemTitle').textContent = item.name;
   document.getElementById('itemPrice').textContent = `$${Number(item.price).toFixed(2)}`;
   document.getElementById('itemDescription').textContent =

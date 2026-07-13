@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById } = require('../models/Marketplace.model');
+const upload = require('../middlewares/upload');
+const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage } = require('../models/Marketplace.model');
 
 // Create a new item
 router.post('/', (req, res, next) => {
@@ -32,6 +33,29 @@ router.put('/:id', (req, res, next) => {
     .then((item) => {
       if (!item) return res.status(404).json({ error: 'Item not found' });
       res.status(200).json(item);
+    })
+    .catch(next);
+});
+
+// Upload images for an item (field name must be "images", max 6 files)
+router.post('/:id/images', upload.array('images', 6), (req, res, next) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: 'No images uploaded' });
+  }
+
+  const imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
+
+  addImagesToItem(req.params.id, imagePaths)
+    .then((images) => res.status(201).json({ images }))
+    .catch(next);
+});
+
+// Delete a single image from an item
+router.delete('/:id/images/:imageId', (req, res, next) => {
+  deleteItemImage(req.params.imageId, req.params.id)
+    .then((image) => {
+      if (!image) return res.status(404).json({ error: 'Image not found' });
+      res.status(200).json(image);
     })
     .catch(next);
 });

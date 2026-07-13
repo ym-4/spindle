@@ -20,7 +20,7 @@ function qualityBadgeClass(rawQuality) {
   return 'default';
 }
 
-function addListing(seller_id, id, name, description, price, quality, meetup) {
+function addListing(seller_id, id, name, description, price, quality, meetup, images) {
   const container = document.getElementById('listings-container');
 
   const card = document.createElement('div');
@@ -34,11 +34,12 @@ function addListing(seller_id, id, name, description, price, quality, meetup) {
   const meetupMarkup = meetup
     ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(meetup)}</p>`
     : '';
+  const thumbnailSrc = images && images.length > 0 ? images[0].image_url : '../marketplace-uploads/1.png';
 
   card.innerHTML = `
     <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(id)}">
       <div class="spindle-card-media">
-        <img src="https://placehold.co/450x450" alt="${escapeHtml(name)}" loading="lazy" />
+        <img src="${escapeHtml(thumbnailSrc)}" alt="">
         ${badgeMarkup}
       </div>
       <div class="spindle-card-body">
@@ -127,6 +128,7 @@ async function loadListings() {
             data[i].price,
             data[i].quality,
             data[i].meetup,
+            data[i].images,
           );
         }
       }
@@ -183,6 +185,7 @@ async function loadUserListings() {
             userListings[i].price,
             userListings[i].quality,
             userListings[i].meetup,
+            userListings[i].images,
           );
         }
       }

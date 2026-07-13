@@ -321,26 +321,16 @@ CREATE TABLE "UserCart" (
   FOREIGN KEY ("item_id") REFERENCES "MarketplaceItems"("id") ON DELETE CASCADE
 );
 
-CREATE TABLE tags (
-  tag_id SERIAL PRIMARY KEY,
-  name VARCHAR(50) UNIQUE NOT NULL
+-- Tags table goes here
+
+CREATE TABLE IF NOT EXISTS "ListingImages" (
+  "id" SERIAL PRIMARY KEY,
+  "item_id" INTEGER NOT NULL REFERENCES "MarketplaceItems"("id") ON DELETE CASCADE,
+  "image_url" TEXT NOT NULL,
+  "sort_order" INTEGER DEFAULT 0
 );
 
-CREATE TABLE listing_tags (
-  listing_id INTEGER NOT NULL REFERENCES listings(listing_id) ON DELETE CASCADE,
-  tag_id INTEGER NOT NULL REFERENCES tags(tag_id) ON DELETE CASCADE,
-  PRIMARY KEY (listing_id, tag_id)
-);
-
-CREATE TABLE IF NOT EXISTS listing_images (
-  image_id SERIAL PRIMARY KEY,
-  listing_id INTEGER NOT NULL REFERENCES listings(listing_id) ON DELETE CASCADE,
-  image_url TEXT NOT NULL,
-  sort_order INTEGER DEFAULT 0
-);
-
-CREATE INDEX idx_listing_tags_tag_id ON listing_tags(tag_id);
-CREATE INDEX IF NOT EXISTS idx_listing_images_listing_id ON listing_images(listing_id);
+CREATE INDEX IF NOT EXISTS idx_listing_images_item_id ON "ListingImages"("item_id");
 
 -- -------------------------------------------------------------------------------------
 --                                  Chatroom
@@ -551,4 +541,3 @@ CREATE INDEX ON "PostComments"("post_id");
 CREATE INDEX ON "GroupDiscussions"("group_id");
 CREATE INDEX ON "MarketplaceItems"("seller_id");
 CREATE INDEX ON "ChatroomMessages"("chatroom_id");
-

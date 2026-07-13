@@ -43,8 +43,37 @@ form.addEventListener('submit', (e) => {
 
   fetchMethod(
     `http://localhost:3000/marketplace/`,
-    (status, data) => {
-      console.log(status, data);
+    async (status, responseData) => {
+      console.log(status, responseData);
+
+      if (status < 200 || status >= 300 || !responseData?.id) {
+        console.error('Listing creation failed', status, responseData);
+        return;
+      }
+
+      const itemId = responseData.id;
+      const files = document.getElementById('listingImages').files;
+
+      if (files.length > 0) {
+        const formData = new FormData();
+        for (const file of files) {
+          formData.append('images', file);
+        }
+
+        try {
+          const res = await fetch(`http://localhost:3000/marketplace/${itemId}/images`, {
+            method: 'POST',
+            body: formData, // no Content-Type header — browser sets the multipart boundary
+          });
+          if (!res.ok) {
+            console.error('Image upload failed', await res.text());
+          }
+        } catch (err) {
+          console.error('Image upload error:', err);
+        }
+      }
+
+      window.location.href = 'marketplace.html';
     },
     'POST',
     data,
@@ -127,4 +156,27 @@ tagAddBtn.addEventListener('click', () => {
     return;
   }
   createTagOval();
+});
+
+// ── Image preview ──
+const uploadZone = document.getElementById('uploadZone');
+const listingImagesInput = document.getElementById('listingImages');
+const previewContainer = document.getElementById('image-preview-container');
+
+uploadZone.addEventListener('click', () => listingImagesInput.click());
+
+listingImagesInput.addEventListener('change', () => {
+  previewContainer.innerHTML = '';
+  const files = Array.from(listingImagesInput.files).slice(0, 6); // enforce max 6 client-side
+
+  files.forEach((file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'image-preview-thumb';
+      wrapper.innerHTML = `<img src="${e.target.result}" alt="${file.name}">`;
+      previewContainer.appendChild(wrapper);
+    };
+    reader.readAsDataURL(file);
+  });
 });
