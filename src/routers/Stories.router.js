@@ -84,7 +84,9 @@ router.delete('/:id', async function (req, res, next) {
     // Delete the uploaded file if it exists
     if (result.media_url) {
       var filePath = path.join(__dirname, '../public', result.media_url.replace(/^\/+/, ''));
-      fs.unlink(filePath, function () { /* ignore if file doesn't exist */ });
+      fs.unlink(filePath, function () {
+        /* ignore if file doesn't exist */
+      });
     }
     res.status(200).json({ message: 'Story deleted.' });
   } catch (err) {

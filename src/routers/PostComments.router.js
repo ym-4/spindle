@@ -10,11 +10,11 @@ const {
   getSavedCommentsByUserID,
   insertSavedComment,
   deleteSavedCommentByID,
-  getCommentReactionByUserID,   
-  insertCommentLike,             
-  updateCommentReaction,         
-  deleteCommentReaction  
-  deleteCommentByPostOwner
+  getCommentReactionByUserID,
+  insertCommentLike,
+  updateCommentReaction,
+  deleteCommentReaction,
+  deleteCommentByPostOwner,
 } = require('../models/PostComments.model');
 
 const router = express.Router();
@@ -31,30 +31,32 @@ router.get('/', (req, res, next) => {
 // GET saved comments by user
 router.get('/saved/:user_id', authenticateJWT, (req, res, next) => {
   getSavedCommentsByUserID({ user_id: req.params.user_id })
-    .then(results => res.status(200).json(results))
+    .then((results) => res.status(200).json(results))
     .catch(next);
 });
 
 // Save a comment
 router.post('/saved', authenticateJWT, (req, res, next) => {
   if (!req.body?.comment_id) {
-    return res.status(400).json({"message": "Error: comment_id is undefined"});
+    return res.status(400).json({ message: 'Error: comment_id is undefined' });
   }
   const data = {
-    user_id: req.user.id, 
-    comment_id: req.body.comment_id
-  }
+    user_id: req.user.id,
+    comment_id: req.body.comment_id,
+  };
 
   insertSavedComment(data)
-    .then(results => res.status(201).json({
-      "id": results.id, 
-      "user_id": data.user_id,
-      "comment_id": data.comment_id
-    }))
+    .then((results) =>
+      res.status(201).json({
+        id: results.id,
+        user_id: data.user_id,
+        comment_id: data.comment_id,
+      }),
+    )
     .catch((error) => {
-      console.error("Error insertSaved: " + error);
+      console.error('Error insertSaved: ' + error);
       res.status(500).json(error);
-    })
+    });
 });
 
 // Unsave a comment
@@ -68,19 +70,19 @@ router.delete('/saved/:id', (req, res, next) => {
       res.status(200).json(results);
     })
     .catch((error) => {
-      console.error("Error deleteSavedByID: " + error);
+      console.error('Error deleteSavedByID: ' + error);
       res.status(500).json(error);
-    })
+    });
 });
 
 // get comment reactions by user
 router.get('/reaction/:user_id', authenticateJWT, (req, res, next) => {
   const data = {
-    user_id: req.params.user_id
-  }
-  
+    user_id: req.params.user_id,
+  };
+
   getCommentReactionByUserID(data)
-    .then(results => res.status(200).json(results))
+    .then((results) => res.status(200).json(results))
     .catch(next);
 });
 
@@ -92,15 +94,17 @@ router.post('/like', authenticateJWT, (req, res, next) => {
   const data = {
     comment_id: req.body.comment_id,
     user_id: req.user.id,
-    reaction_type: req.body.reaction_type
+    reaction_type: req.body.reaction_type,
   };
   insertCommentLike(data)
-    .then(results => res.status(201).json({
-      id:            results.id,
-      comment_id: data.comment_id,
-      user_id: data.user_id,
-      reaction_type: data.reaction_type
-    }))
+    .then((results) =>
+      res.status(201).json({
+        id: results.id,
+        comment_id: data.comment_id,
+        user_id: data.user_id,
+        reaction_type: data.reaction_type,
+      }),
+    )
     .catch((error) => {
       console.error('Error insertCommentLike: ' + error);
       res.status(500).json(error);
@@ -112,10 +116,10 @@ router.put('/reaction/:id', (req, res, next) => {
   const data = {
     id: req.params.id,
     user_id: req.body.user_id,
-    reaction_type: req.body.reaction_type
+    reaction_type: req.body.reaction_type,
   };
   updateCommentReaction(data)
-    .then(results => {
+    .then((results) => {
       if (!results) return res.status(404).json({ error: 'Reaction not found' });
       res.status(200).json(results);
     })
@@ -129,10 +133,10 @@ router.put('/reaction/:id', (req, res, next) => {
 router.delete('/reaction/:id', (req, res, next) => {
   const data = {
     id: req.params.id,
-    user_id: req.body.user_id
+    user_id: req.body.user_id,
   };
   deleteCommentReaction(data)
-    .then(results => {
+    .then((results) => {
       if (!results) return res.status(404).json({ error: 'Reaction not found' });
       res.status(200).json(results);
     })
@@ -204,14 +208,11 @@ router.put('/:id', authenticateJWT, (req, res, next) => {
 });
 
 // delete Comments (owner or post owner)
-router.delete('/:id', 
-  authenticateJWT,
-  (req, res, next) => {
-    
-   const data = {
+router.delete('/:id', authenticateJWT, (req, res, next) => {
+  const data = {
     id: req.params.id,
-    user_id: req.user.id
-  }
+    user_id: req.user.id,
+  };
   // First try as comment owner
   deleteCommentsByID(data)
     .then((results) => {

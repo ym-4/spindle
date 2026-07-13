@@ -288,17 +288,23 @@ module.exports.deleteGroupChannelByChannelName = async function deleteGroupChann
 // -----------------------------------------------------------------------------------------------------
 
 function ensureGroupAnnouncementsTable() {
-  return pool.query(`CREATE TABLE IF NOT EXISTS "GroupAnnouncements" (
+  return pool
+    .query(
+      `CREATE TABLE IF NOT EXISTS "GroupAnnouncements" (
     "announcement_id" SERIAL PRIMARY KEY,
     "user_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
     "group_id" INT NOT NULL REFERENCES "Groups"("id") ON DELETE CASCADE,
     "text" TEXT NOT NULL,
     "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )`).catch(function () {});
+  )`,
+    )
+    .catch(function () {});
 }
 
 // GET all group announcements by group_id
-module.exports.getGroupAnnouncementsByGroupID = async function getGroupAnnouncementsByGroupID(data) {
+module.exports.getGroupAnnouncementsByGroupID = async function getGroupAnnouncementsByGroupID(
+  data,
+) {
   await ensureGroupAnnouncementsTable();
   const VALUES = [data.group_id];
   const { rows } = await pool.query(

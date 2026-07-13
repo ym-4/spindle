@@ -4,11 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Status — Spindle</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/posts.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
@@ -55,7 +64,12 @@
           <section class="stories-composer-section" aria-label="New status">
             <div class="stories-composer-card" id="composerCard">
               <div class="stories-composer-row">
-                <button class="stories-camera-btn" id="cameraBtn" type="button" aria-label="Choose image">
+                <button
+                  class="stories-camera-btn"
+                  id="cameraBtn"
+                  type="button"
+                  aria-label="Choose image"
+                >
                   <i class="fas fa-camera"></i>
                 </button>
                 <input
@@ -78,31 +92,57 @@
                 >
                   <i class="fas fa-globe-asia"></i>
                 </button>
-                <button class="stories-send-btn" id="sendBtn" type="button" disabled aria-label="Post status" title="Post your status">
+                <button
+                  class="stories-send-btn"
+                  id="sendBtn"
+                  type="button"
+                  disabled
+                  aria-label="Post status"
+                  title="Post your status"
+                >
                   <i class="fas fa-arrow-up"></i>
                 </button>
               </div>
               <div class="stories-composer-actions">
-                <button class="stories-draft-btn" id="saveDraftBtn" type="button" disabled><i class="fas fa-save"></i> Save draft</button>
+                <button class="stories-draft-btn" id="saveDraftBtn" type="button" disabled>
+                  <i class="fas fa-save"></i> Save draft
+                </button>
               </div>
               <div class="stories-preview-wrap hidden" id="previewWrap">
                 <img id="previewImg" alt="Preview of selected image" />
-                <button class="stories-preview-remove" id="previewRemove" type="button" aria-label="Remove selected image">
+                <button
+                  class="stories-preview-remove"
+                  id="previewRemove"
+                  type="button"
+                  aria-label="Remove selected image"
+                >
                   <i class="fas fa-times"></i>
                 </button>
               </div>
               <div class="stories-rotator" id="rotatorText">Share a moment from your day</div>
               <div class="stories-desc-section">
-                <button class="stories-add-desc" id="addDescBtn" type="button"><i class="fas fa-plus"></i> Add description</button>
+                <button class="stories-add-desc" id="addDescBtn" type="button">
+                  <i class="fas fa-plus"></i> Add description
+                </button>
                 <div class="stories-desc-wrap hidden" id="descWrap">
-                  <textarea class="stories-desc-input" id="descInput" maxlength="500" placeholder="Add a longer description..." aria-label="Story description"></textarea>
+                  <textarea
+                    class="stories-desc-input"
+                    id="descInput"
+                    maxlength="500"
+                    placeholder="Add a longer description..."
+                    aria-label="Story description"
+                  ></textarea>
                 </div>
               </div>
             </div>
           </section>
 
           <!-- Drafts list -->
-          <section class="stories-drafts-section hidden" id="draftsSection" aria-label="Saved drafts">
+          <section
+            class="stories-drafts-section hidden"
+            id="draftsSection"
+            aria-label="Saved drafts"
+          >
             <h3 class="stories-list-heading">Saved drafts</h3>
             <div id="draftsList"></div>
           </section>
@@ -116,13 +156,26 @@
 
           <!-- Loading skeleton -->
           <section class="stories-loading-state" id="loadingState" aria-label="Loading stories">
-            <div class="stories-skeleton"><div class="stories-skeleton-ring"></div><div class="stories-skeleton-line"></div></div>
-            <div class="stories-skeleton"><div class="stories-skeleton-ring"></div><div class="stories-skeleton-line"></div></div>
-            <div class="stories-skeleton"><div class="stories-skeleton-ring"></div><div class="stories-skeleton-line"></div></div>
+            <div class="stories-skeleton">
+              <div class="stories-skeleton-ring"></div>
+              <div class="stories-skeleton-line"></div>
+            </div>
+            <div class="stories-skeleton">
+              <div class="stories-skeleton-ring"></div>
+              <div class="stories-skeleton-line"></div>
+            </div>
+            <div class="stories-skeleton">
+              <div class="stories-skeleton-ring"></div>
+              <div class="stories-skeleton-line"></div>
+            </div>
           </section>
 
           <!-- Stories list -->
-          <section class="stories-list-section hidden" id="listSection" aria-label="Recent status updates">
+          <section
+            class="stories-list-section hidden"
+            id="listSection"
+            aria-label="Recent status updates"
+          >
             <h3 class="stories-list-heading">Recent updates</h3>
             <div id="storiesList"></div>
           </section>
@@ -131,10 +184,23 @@
     </div>
 
     <!-- Full-screen viewer overlay -->
-    <div class="stories-viewer-overlay hidden" id="viewerOverlay" role="dialog" aria-modal="true" aria-label="Story viewer">
+    <div
+      class="stories-viewer-overlay hidden"
+      id="viewerOverlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Story viewer"
+    >
       <div class="stories-viewer" id="viewerContent">
         <!-- Progress bars -->
-        <div class="stories-progress-row" id="progressRow" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        <div
+          class="stories-progress-row"
+          id="progressRow"
+          role="progressbar"
+          aria-valuenow="0"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        ></div>
 
         <!-- Viewer header -->
         <div class="stories-viewer-header">
@@ -144,8 +210,22 @@
             <span class="stories-viewer-time" id="viewerTime"></span>
           </div>
           <div class="stories-viewer-header-actions">
-            <button class="stories-viewer-delete hidden" id="viewerDelete" type="button" aria-label="Delete story"><i class="fas fa-trash"></i></button>
-            <button class="stories-viewer-close" id="viewerClose" type="button" aria-label="Close viewer"><i class="fas fa-times"></i></button>
+            <button
+              class="stories-viewer-delete hidden"
+              id="viewerDelete"
+              type="button"
+              aria-label="Delete story"
+            >
+              <i class="fas fa-trash"></i>
+            </button>
+            <button
+              class="stories-viewer-close"
+              id="viewerClose"
+              type="button"
+              aria-label="Close viewer"
+            >
+              <i class="fas fa-times"></i>
+            </button>
           </div>
         </div>
 
@@ -167,7 +247,9 @@
           <p class="stories-viewer-caption" id="viewerCaption"></p>
         </div>
         <div class="stories-viewer-add-wrap hidden" id="viewerAddWrap">
-          <button class="stories-viewer-add" id="viewerAddBtn" type="button"><i class="fas fa-plus"></i> Add another</button>
+          <button class="stories-viewer-add" id="viewerAddBtn" type="button">
+            <i class="fas fa-plus"></i> Add another
+          </button>
         </div>
       </div>
     </div>

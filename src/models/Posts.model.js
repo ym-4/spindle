@@ -2,8 +2,6 @@ const pool = require('./db');
 
 // Get all Posts
 module.exports.getAllPost = async function getAllPost() {
-  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS visibility TEXT DEFAULT 'everyone'`);
-  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`);
   const { rows } = await pool.query(`
   SELECT 
     p.id,
@@ -13,6 +11,7 @@ module.exports.getAllPost = async function getAllPost() {
     p.content,
     p.attachment_url,
     p.gif_url,
+    pp.id AS poll_id,
     p.created_at,
     p.updated_at,
     p.is_anonymous,
@@ -29,6 +28,9 @@ module.exports.getAllPost = async function getAllPost() {
       FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
 
   FROM "Posts" p
+
+  LEFT JOIN "PostPolls" pp
+  ON pp.post_id = p.id
 
   JOIN "Person" per
     ON p.user_id = per.id
@@ -47,6 +49,8 @@ module.exports.getAllPost = async function getAllPost() {
     p.content,
     p.attachment_url,
     p.gif_url,
+    pp.id,
+    p.is_anonymous,
     p.created_at,
     p.updated_at,
     p.visibility,
@@ -61,8 +65,6 @@ module.exports.getAllPost = async function getAllPost() {
 
 // GET post by id
 module.exports.getPostByID = async function getPostByID(data) {
-  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS visibility TEXT DEFAULT 'everyone'`);
-  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`);
   const VALUES = [data.id];
 
   const { rows } = await pool.query(
@@ -75,6 +77,7 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.content,
       p.attachment_url,
       p.gif_url,
+      pp.id AS poll_id,
       p.created_at,
       p.updated_at,
       p.is_anonymous,
@@ -92,6 +95,9 @@ module.exports.getPostByID = async function getPostByID(data) {
         FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
 
     FROM "Posts" p
+
+    LEFT JOIN "PostPolls" pp
+    ON pp.post_id = p.id
 
     JOIN "Person" per
       ON p.user_id = per.id
@@ -112,6 +118,8 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.content,
       p.attachment_url,
       p.gif_url,
+      pp.id,
+      p.is_anonymous,
       p.created_at,
       p.updated_at,
       p.visibility,
@@ -126,9 +134,7 @@ module.exports.getPostByID = async function getPostByID(data) {
 
 // GET Post by Category (confession/qna/general)
 module.exports.getPostByCategory = async function getPostByCategory(data) {
-  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS visibility TEXT DEFAULT 'everyone'`);
-  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`);
-  const categoryMap = { 'confession': 'confession', 'q&a': 'qna', 'qna': 'qna', 'general': 'general' };
+  const categoryMap = { confession: 'confession', 'q&a': 'qna', qna: 'qna', general: 'general' };
   const cat = categoryMap[(data.category || '').toLowerCase()] || data.category;
   const VALUES = [cat];
 
@@ -141,6 +147,7 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.content,
       p.attachment_url,
       p.gif_url,
+      pp.id AS poll_id,
       p.created_at,
       p.updated_at,
       p.is_anonymous,
@@ -158,6 +165,9 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
         FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
 
     FROM "Posts" p
+
+    LEFT JOIN "PostPolls" pp
+    ON pp.post_id = p.id
 
     JOIN "Person" per
       ON p.user_id = per.id
@@ -178,6 +188,8 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.content,
       p.attachment_url,
       p.gif_url,
+      pp.id,
+      p.is_anonymous,
       p.created_at,
       p.updated_at,
       p.visibility,
@@ -185,7 +197,9 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       per.name
 
     ORDER BY p.pinned DESC, p.created_at DESC
-  `, VALUES);
+  `,
+    VALUES,
+  );
 
   return rows;
 };
@@ -216,34 +230,50 @@ module.exports.getPostByUserID = async function getPostByUserID(data) {
 
 // Create new post
 module.exports.insertPost = async function insertPost(data) {
-  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS visibility TEXT DEFAULT 'everyone'`);
-  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`);
-  await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS gif_url TEXT`);
-
   const visibility = data.visibility || 'everyone';
   const pinned = data.pinned || false;
 
-  const VALUES = [data.user_id, data.title, data.category, data.content, data.attachment_url, data.gif_url, data.is_anonymous, visibility, pinned
+  const VALUES = [
+    data.user_id,
+    data.title,
+    data.category,
+    data.content,
+    data.attachment_url,
+    data.gif_url,
+    data.is_anonymous,
+    visibility,
+    pinned,
   ];
 
-  const { rows } = await pool.query(`INSERT INTO "Posts" (user_id, title, category, content, attachment_url, gif_url, is_anonymous, visibility, pinned) 
-  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`, VALUES);
-
-  return rows[0];
-}
-
-
-// update post by ID (owner only)
-module.exports.updatePostByID = async function updatePostByID(data) {
-  const VALUES = [data.title, data.content, data.category, data.attachment_url, data.gif_url, data.visibility || 'everyone', data.id
-  ];
-
-  const { rows } = await pool.query(`UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4, "gif_url" = $5, "visibility" = $6, "updated_at" = CURRENT_TIMESTAMP 
-     WHERE "id" = $7 RETURNING *`, VALUES);
+  const { rows } = await pool.query(
+    `INSERT INTO "Posts" (user_id, title, category, content, attachment_url, gif_url, is_anonymous, visibility, pinned) 
+  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+    VALUES,
+  );
 
   return rows[0];
 };
 
+// update post by ID (owner only)
+module.exports.updatePostByID = async function updatePostByID(data) {
+  const VALUES = [
+    data.title,
+    data.content,
+    data.category,
+    data.attachment_url,
+    data.gif_url,
+    data.visibility || 'everyone',
+    data.id,
+  ];
+
+  const { rows } = await pool.query(
+    `UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4, "gif_url" = $5, "visibility" = $6, "updated_at" = CURRENT_TIMESTAMP 
+     WHERE "id" = $7 RETURNING *`,
+    VALUES,
+  );
+
+  return rows[0];
+};
 
 module.exports.togglePin = async function togglePin(postId, userId) {
   const { rows } = await pool.query(
@@ -258,6 +288,98 @@ module.exports.deletePostByID = async function deletePostByID(data) {
   const VALUES = [data.id];
   const { rows } = await pool.query('DELETE FROM "Posts" WHERE "id" = $1 RETURNING *', VALUES);
   return rows[0];
+};
+
+// ========== poll ==============
+// Create a poll for a post
+module.exports.insertPoll = async function insertPoll(data) {
+  const VALUES = [data.post_id, data.question];
+  const { rows } = await pool.query(
+    'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id',
+    VALUES,
+  );
+  return rows[0];
+};
+
+// Insert a poll option
+module.exports.insertPollOption = async function insertPollOption(data) {
+  const VALUES = [data.poll_id, data.option_text];
+  const { rows } = await pool.query(
+    'INSERT INTO "PollOptions" (poll_id, option_text) VALUES ($1, $2) RETURNING id',
+    VALUES,
+  );
+  return rows[0];
+};
+
+module.exports.updatePollQuestion = async function updatePollQuestion(data) {
+  const VALUES = [data.question, data.post_id];
+  const { rows } = await pool.query(
+    `UPDATE "PostPolls" SET question = $1 WHERE post_id = $2 RETURNING *`,
+    VALUES,
+  );
+  return rows[0] || null;
+};
+
+module.exports.deletePollByPostID = async function deletePollByPostID(data) {
+  const VALUES = [data.post_id];
+  const { rows } = await pool.query(
+    `DELETE FROM "PostPolls" WHERE post_id = $1 RETURNING *`,
+    VALUES,
+  );
+  return rows[0] || null;
+};
+
+// GET poll by post ID (with options + vote counts)
+module.exports.getPollByPostID = async function getPollByPostID(data) {
+  const pollSQL = `SELECT * FROM "PostPolls" WHERE post_id = $1`;
+  const { rows: pollRows } = await pool.query(pollSQL, [data.post_id]);
+  if (!pollRows[0]) return null;
+
+  const poll = pollRows[0];
+
+  const optionsSQL = `
+    SELECT
+      po.id,
+      po.option_text,
+      COUNT(pv.id)::int AS vote_count
+    FROM "PollOptions" po
+    LEFT JOIN "PollVotes" pv ON pv.option_id = po.id
+    WHERE po.poll_id = $1
+    GROUP BY po.id
+    ORDER BY po.id
+  `;
+  const { rows: optionRows } = await pool.query(optionsSQL, [poll.id]);
+  poll.options = optionRows;
+  return poll;
+};
+
+// Vote on a poll option
+module.exports.insertPollVote = async function insertPollVote(data) {
+  const VALUES = [data.poll_id, data.option_id, data.user_id];
+  const { rows } = await pool.query(
+    'INSERT INTO "PollVotes" (poll_id, option_id, user_id) VALUES ($1, $2, $3) RETURNING *',
+    VALUES,
+  );
+  return rows[0];
+};
+
+// GET user's vote on a poll
+module.exports.getUserPollVote = async function getUserPollVote(data) {
+  const VALUES = [data.poll_id, data.user_id];
+  const { rows } = await pool.query(
+    `SELECT * FROM "PollVotes" WHERE poll_id = $1 AND user_id = $2`,
+    VALUES,
+  );
+  return rows[0] || null;
+};
+
+module.exports.deleteUserPollVote = async function deleteUserPollVote(data) {
+  const VALUES = [data.poll_id, data.user_id];
+  const { rows } = await pool.query(
+    `DELETE FROM "PollVotes" WHERE poll_id = $1 AND user_id = $2 RETURNING *`,
+    VALUES,
+  );
+  return rows[0] || null;
 };
 
 //==================== post interactions (saves, likes, etc) ================================
@@ -326,9 +448,6 @@ module.exports.deleteReaction = async function deleteReaction(data) {
 
 // reporting a post
 module.exports.insertReport = async function insertReport(data) {
-  try {
-    await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS description TEXT DEFAULT ''`);
-  } catch {}
   const VALUES = [data.post_id, data.user_id, data.reason, data.description || ''];
   const { rows } = await pool.query(
     'INSERT INTO "Reports" (post_id, user_id, reason, description) VALUES ($1, $2, $3, $4) RETURNING *',
@@ -338,14 +457,6 @@ module.exports.insertReport = async function insertReport(data) {
 };
 
 module.exports.getAllReports = async function getAllReports(includeDismissed) {
-  try {
-    await pool.query(
-      `ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`,
-    );
-  } catch {}
-  try {
-    await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS description TEXT DEFAULT ''`);
-  } catch {}
   const { rows } = await pool.query(
     `SELECT r.id, r.post_id, r.reason, r.description, r.created_at, r.dismissed,
             u.id AS reporter_id, u.name AS reporter_name, u.email AS reporter_email,

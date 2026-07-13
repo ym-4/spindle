@@ -13,12 +13,12 @@ function savedApiBase() {
 let savedRows = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-  const token  = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
   const userId = localStorage.getItem('loggedInUserId');
 
   loadYourGroups();
   loadHotPosts();
-  setupSavedTabs(); 
+  setupSavedTabs();
 
   if (!token || !userId) {
     showLoginPrompt();
@@ -257,16 +257,16 @@ function unsavePost(saveRowId, cardEl) {
 }
 
 function setupSavedTabs() {
-  const postsTab      = document.getElementById('savedPostsTab');
-  const commentsTab   = document.getElementById('savedCommentsTab');
-  const postsPanel    = document.getElementById('savedPostsPanel');
+  const postsTab = document.getElementById('savedPostsTab');
+  const commentsTab = document.getElementById('savedCommentsTab');
+  const postsPanel = document.getElementById('savedPostsPanel');
   const commentsPanel = document.getElementById('savedCommentsPanel');
 
   postsTab.addEventListener('click', (e) => {
     e.preventDefault();
     postsTab.classList.add('active');
     commentsTab.classList.remove('active');
-    postsPanel.style.display    = 'block';
+    postsPanel.style.display = 'block';
     commentsPanel.style.display = 'none';
   });
 
@@ -275,10 +275,10 @@ function setupSavedTabs() {
     commentsTab.classList.add('active');
     postsTab.classList.remove('active');
     commentsPanel.style.display = 'block';
-    postsPanel.style.display    = 'none';
+    postsPanel.style.display = 'none';
 
     if (!commentsPanel.dataset.loaded) {
-      const token  = localStorage.getItem('token');
+      const token = localStorage.getItem('token');
       const userId = localStorage.getItem('loggedInUserId');
       loadSavedComments(userId, token);
       commentsPanel.dataset.loaded = 'true';
@@ -294,20 +294,26 @@ function loadSavedComments(userId, token) {
       Loading saved comments...
     </div>`;
 
-  fetchMethod(`${savedApiBase()}/comments/saved/${userId}`, (status, data) => {
-    container.innerHTML = '';
+  fetchMethod(
+    `${savedApiBase()}/comments/saved/${userId}`,
+    (status, data) => {
+      container.innerHTML = '';
 
-    if (status !== 200 || !Array.isArray(data) || data.length === 0) {
-      container.innerHTML = `
+      if (status !== 200 || !Array.isArray(data) || data.length === 0) {
+        container.innerHTML = `
         <div class="post-card text-center py-4 text-muted">
           <i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>
           No saved comments yet.
         </div>`;
-      return;
-    }
+        return;
+      }
 
-    data.forEach(item => container.appendChild(buildSavedCommentCard(item, token)));
-  }, 'GET', null, token);
+      data.forEach((item) => container.appendChild(buildSavedCommentCard(item, token)));
+    },
+    'GET',
+    null,
+    token,
+  );
 }
 
 function buildSavedCommentCard(item, token) {
@@ -361,25 +367,33 @@ function buildSavedCommentCard(item, token) {
     e.stopPropagation();
     const saveId = e.currentTarget.dataset.saveId;
 
-    fetchMethod(`${savedApiBase()}/comments/saved/${saveId}`, (status) => {
-      if (status === 200) {
-        el.style.transition = 'opacity 0.2s';
-        el.style.opacity    = '0';
-        setTimeout(() => {
-          el.remove();
-          const remaining = document.querySelectorAll('#savedCommentsContainer .post-card').length;
-          if (remaining === 0) {
-            document.getElementById('savedCommentsContainer').innerHTML = `
+    fetchMethod(
+      `${savedApiBase()}/comments/saved/${saveId}`,
+      (status) => {
+        if (status === 200) {
+          el.style.transition = 'opacity 0.2s';
+          el.style.opacity = '0';
+          setTimeout(() => {
+            el.remove();
+            const remaining = document.querySelectorAll(
+              '#savedCommentsContainer .post-card',
+            ).length;
+            if (remaining === 0) {
+              document.getElementById('savedCommentsContainer').innerHTML = `
               <div class="post-card text-center py-4 text-muted">
                 <i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>
                 No saved comments yet.
               </div>`;
-          }
-        }, 200);
-      } else {
-        alert('Failed to unsave comment.');
-      }
-    }, 'DELETE', null, token);
+            }
+          }, 200);
+        } else {
+          alert('Failed to unsave comment.');
+        }
+      },
+      'DELETE',
+      null,
+      token,
+    );
   });
 
   return el;

@@ -44,8 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const REACTIONS_BASE = `${currentUrl}/posts`;
 let currentReaction = null;
-let commentReactions = new Map(); 
-let openReplyThreads = new Set(); 
+let commentReactions = new Map();
+let openReplyThreads = new Set();
 let savedPostIds = new Set();
 let savedCommentMap = new Map();
 let currentCommentSort = 'newest';
@@ -62,21 +62,33 @@ function loadSavedIds() {
   if (!userId || !token) return Promise.resolve();
 
   return new Promise((resolve) => {
-    fetchMethod(`${currentUrl}/posts/saved/${userId}`, (status, data) => {
-      if (status === 200 && Array.isArray(data)) {
-        savedPostIds = new Set(data.map(row => parseInt(row.post_id)));
-      }
-      // load saved comments
-      fetchMethod(`${currentUrl}/comments/saved/${userId}`, (cStatus, cData) => {
-        if (cStatus === 200 && Array.isArray(cData)) {
-          cData.forEach(row => {
-            const saveId = row.save_id || row.id;
-            savedCommentMap.set(parseInt(row.comment_id), saveId);
-          });
+    fetchMethod(
+      `${currentUrl}/posts/saved/${userId}`,
+      (status, data) => {
+        if (status === 200 && Array.isArray(data)) {
+          savedPostIds = new Set(data.map((row) => parseInt(row.post_id)));
         }
-        resolve();
-      }, 'GET', null, token);
-    }, 'GET', null, token);
+        // load saved comments
+        fetchMethod(
+          `${currentUrl}/comments/saved/${userId}`,
+          (cStatus, cData) => {
+            if (cStatus === 200 && Array.isArray(cData)) {
+              cData.forEach((row) => {
+                const saveId = row.save_id || row.id;
+                savedCommentMap.set(parseInt(row.comment_id), saveId);
+              });
+            }
+            resolve();
+          },
+          'GET',
+          null,
+          token,
+        );
+      },
+      'GET',
+      null,
+      token,
+    );
   });
 }
 
@@ -190,7 +202,6 @@ function showConfirm(title, message, onConfirm) {
 function showLoginRequiredModal() {
   document.getElementById('authOverlay').classList.remove('d-none');
 }
-
 
 // gifs
 function clearEditGifPreview() {
@@ -307,8 +318,13 @@ async function searchEditGifs(query, post, gifModal) {
     }
 
     gifs.forEach((gif) => {
-      const previewUrl = gif?.images?.fixed_height_small?.url || gif?.images?.downsized_medium?.url || gif?.images?.original?.url || gif?.url;
-      const originalUrl = gif?.images?.original?.url || gif?.images?.downsized_large?.url || gif?.url || previewUrl;
+      const previewUrl =
+        gif?.images?.fixed_height_small?.url ||
+        gif?.images?.downsized_medium?.url ||
+        gif?.images?.original?.url ||
+        gif?.url;
+      const originalUrl =
+        gif?.images?.original?.url || gif?.images?.downsized_large?.url || gif?.url || previewUrl;
       if (!previewUrl || !originalUrl) return;
 
       const img = document.createElement('img');
@@ -320,7 +336,9 @@ async function searchEditGifs(query, post, gifModal) {
         removeCurrentAttachment = false;
         renderEditGifPreview();
         clearCurrentAttachmentPreviewUI();
-        resultsContainer.querySelectorAll('.selected').forEach((x) => x.classList.remove('selected'));
+        resultsContainer
+          .querySelectorAll('.selected')
+          .forEach((x) => x.classList.remove('selected'));
         img.classList.add('selected');
         if (gifModal) gifModal.hide();
         autoSaveAttachmentChange(post);
@@ -333,24 +351,34 @@ async function searchEditGifs(query, post, gifModal) {
   }
 }
 
-//Load post 
+//Load post
 function loadPost(postId, editMode = false) {
-  const token  = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
   const userId = localStorage.getItem('loggedInUserId');
 
   // Load comment reactions
-  const reactionsPromise = (token && userId)
-    ? new Promise((resolve) => {
-        fetchMethod(`${currentUrl}/comments/reaction/${userId}`, (status, data) => {
-          if (status === 200 && Array.isArray(data)) {
-            commentReactions = new Map(
-              data.map(r => [parseInt(r.comment_id), { id: r.id, reaction_type: r.reaction_type }])
-            );
-          }
-          resolve();
-        }, 'GET', null, token);
-      })
-    : Promise.resolve();
+  const reactionsPromise =
+    token && userId
+      ? new Promise((resolve) => {
+          fetchMethod(
+            `${currentUrl}/comments/reaction/${userId}`,
+            (status, data) => {
+              if (status === 200 && Array.isArray(data)) {
+                commentReactions = new Map(
+                  data.map((r) => [
+                    parseInt(r.comment_id),
+                    { id: r.id, reaction_type: r.reaction_type },
+                  ]),
+                );
+              }
+              resolve();
+            },
+            'GET',
+            null,
+            token,
+          );
+        })
+      : Promise.resolve();
 
   reactionsPromise.then(() => {
     fetchMethod(`${currentUrl}/posts/${postId}`, (status, data) => {
@@ -443,8 +471,9 @@ function renderPost(post) {
       </div>
 
       ${post.title ? `<div class="fw-bold mt-2 mb-1" style="font-size:1.05rem;">${escapeHtml(post.title)}</div>` : ''}
-      <div class="post-content">${escapeHtml(post.content)}</div>
+      <div class="post-content ql-editor" style="padding:0; font-size:inherit; line-height:1.5;">${post.content || ''}</div>
       ${renderPostAttachment(post)}
+      <div id="pollContainer-${post.id}"></div>
 
       <div class="post-actions">
         <button 
@@ -473,6 +502,7 @@ function renderPost(post) {
 
   setupReactionButtons(post.id);
   loadRelatedPosts(post.id, post.category);
+  loadAndRenderPollOnPostPage(post.id);
 
   // Share button
   document.querySelector('.share-btn')?.addEventListener('click', (e) => {
@@ -545,8 +575,8 @@ function renderPost(post) {
 }
 
 function submitPostEdit(post) {
-  const title    = document.getElementById('editTitle').value.trim();
-  const content  = document.getElementById('editContent').value.trim();
+  const title = document.getElementById('editTitle').value.trim();
+  const content = document.getElementById('editContent').value.trim();
   const category = document.getElementById('editCategory').value;
 
   const attachmentInput = document.getElementById('editAttachment');
@@ -558,15 +588,16 @@ function submitPostEdit(post) {
     return Promise.reject(new Error('Title cannot be empty.'));
   }
 
-  if (!content) {
-    errEl.textContent = 'Content cannot be empty.';
+  const hasPollInEdit = !!document.getElementById('editPollSection')?.dataset.hasPoll;
+  if (!content && !hasPollInEdit) {
+    errEl.textContent = 'Content cannot be empty when there is no poll.';
     errEl.classList.remove('d-none');
     return Promise.reject(new Error('Content cannot be empty.'));
   }
 
   errEl.classList.add('d-none');
 
-  const token   = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
   const user_id = localStorage.getItem('loggedInUserId');
 
   const formData = new FormData();
@@ -586,18 +617,18 @@ function submitPostEdit(post) {
   return fetch(`${currentUrl}/posts/${post.id}`, {
     method: 'PUT',
     headers: { Authorization: `Bearer ${token}` },
-    body: formData
+    body: formData,
   })
-  .then(async (res) => {
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to save changes.');
-    return data;
-  })
-  .catch((err) => {
-    errEl.textContent = err.message || 'Something went wrong.';
-    errEl.classList.remove('d-none');
-    throw err;
-  });
+    .then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to save changes.');
+      return data;
+    })
+    .catch((err) => {
+      errEl.textContent = err.message || 'Something went wrong.';
+      errEl.classList.remove('d-none');
+      throw err;
+    });
 }
 
 function autoSaveAttachmentChange(post) {
@@ -609,7 +640,7 @@ function autoSaveAttachmentChange(post) {
 
   submitPostEdit(post)
     .then(() => {
-      loadPost(post.id, true); 
+      loadPost(post.id, true);
     })
     .catch((err) => {
       console.error(err);
@@ -660,9 +691,11 @@ function renderPostEditMode(post) {
       </div>
 
       <div class="mb-3">
-        <textarea class="form-control" id="editContent" rows="5"
-          placeholder="Post content">${escapeHtml(post.content || '')}</textarea>
+        <div id="editQuillEditor" style="height:180px; border-radius:0 0 8px 8px;"></div>
+        <input type="hidden" id="editContent">
       </div>
+
+      <div id="editPollSection" class="mb-3"></div>
 
       <div class="mb-3">
         <label class="form-label fw-semibold">
@@ -699,12 +732,37 @@ function renderPostEditMode(post) {
 
   pendingEditGifUrl = null;
   removeCurrentAttachment = false;
+
+  // Quill edit mode
+  const editQuill = new Quill('#editQuillEditor', {
+    theme: 'snow',
+    placeholder: 'Post content (optional if poll exists)',
+    modules: {
+      toolbar: [
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
+        ['clean'],
+      ],
+    },
+  });
+
+  if (post.content) {
+    editQuill.root.innerHTML = post.content;
+  }
+
+  editQuill.on('text-change', () => {
+    document.getElementById('editContent').value =
+      editQuill.getText().trim() === '' ? '' : editQuill.root.innerHTML;
+  });
+  document.getElementById('editContent').value = post.content || '';
+
   renderEditGifPreview();
-  // setupEditGifPicker();
-  // setupRemoveAttachmentButton();
   setupEditGifPicker(post);
   setupRemoveAttachmentButton(post);
-  
+  setupEditPollSection(post);
+
   document.getElementById('cancelEditBtn').addEventListener('click', () => {
     const url = new URL(window.location.href);
     url.searchParams.delete('edit');
@@ -716,11 +774,6 @@ function renderPostEditMode(post) {
     const title = document.getElementById('editTitle').value.trim();
     const content = document.getElementById('editContent').value.trim();
     const category = document.getElementById('editCategory').value;
-    const visibility = document.getElementById('editVisibility').value;
-
-    const attachmentInput = document.getElementById('editAttachment');
-
-    const removeAttachmentCheckbox = document.getElementById('removeAttachment');
 
     const errEl = document.getElementById('editError');
 
@@ -729,17 +782,15 @@ function renderPostEditMode(post) {
       errEl.classList.remove('d-none');
       return;
     }
-
-    if (!content) {
-      errEl.textContent = 'Content cannot be empty.';
+    // Content is only required if no poll
+    const hasPollInEdit = !!document.getElementById('editPollSection')?.dataset.hasPoll;
+    if (!content && !hasPollInEdit) {
+      errEl.textContent = 'Content cannot be empty when there is no poll.';
       errEl.classList.remove('d-none');
       return;
     }
 
     errEl.classList.add('d-none');
-
-    const token = localStorage.getItem('token');
-    const user_id = localStorage.getItem('loggedInUserId');
 
     const saveBtn = document.getElementById('saveEditBtn');
     saveBtn.disabled = true;
@@ -758,57 +809,264 @@ function renderPostEditMode(post) {
       .finally(() => {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save changes';
-    const formData = new FormData();
-    formData.append('user_id', user_id);
-    formData.append('title', title);
-    formData.append('content', content);
-    formData.append('category', category);
-    formData.append('visibility', visibility);
-
-    // new uploaded file
-    if (attachmentInput.files.length > 0) {
-      formData.append('attachment', attachmentInput.files[0]);
-    }
-    // remove current attachment
-    if (removeAttachmentCheckbox && removeAttachmentCheckbox.checked) {
-      formData.append('remove_attachment', 'true');
-    }
-
-    fetch(`${currentUrl}/posts/${post.id}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    })
-      .then(async (res) => {
-        const data = await res.json();
-
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save changes';
-
-        if (res.ok) {
-          const url = new URL(window.location.href);
-          url.searchParams.delete('edit');
-
-          window.history.replaceState({}, '', url);
-          loadPost(post.id);
-        } else {
-          errEl.textContent = data.message || 'Failed to save changes.';
-
-          errEl.classList.remove('d-none');
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save changes';
-
-        errEl.textContent = 'Something went wrong.';
-        errEl.classList.remove('d-none');
       });
   });
+}
+
+function setupEditPollSection(post) {
+  const section = document.getElementById('editPollSection');
+  if (!section) return;
+
+  const token = localStorage.getItem('token');
+
+  // Fetch existing poll for this post
+  fetchMethod(`${currentUrl}/posts/${post.id}/poll`, (status, poll) => {
+    if (status !== 200 || !poll) {
+      // No poll
+      section.innerHTML = '';
+      return;
+    }
+
+    section.dataset.hasPoll = 'true';
+
+    section.innerHTML = `
+      <div class="poll-edit-block p-3 border rounded" style="border-radius:10px; background:var(--background-color);">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="subtle-label mb-0">POLL</span>
+          <button type="button" class="btn btn-sm btn-outline-danger" id="deletePollEditBtn">
+            <i class="fas fa-trash-alt me-1"></i>Remove poll
+          </button>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label small text-muted">Poll question</label>
+          <input type="text" class="form-control form-control-sm" id="editPollQuestion"
+            value="${escapeHtml(typeof poll.question === 'object' ? poll.question?.question || '' : poll.question || '')}">
+        </div>
+
+        <div class="text-muted small mb-1">
+          <i class="fas fa-info-circle me-1"></i>
+          Options cannot be edited — only the question can be changed.
+        </div>
+
+        <div class="mt-2">
+          ${poll.options
+            .map(
+              (opt) => `
+            <div class="poll-option voted mb-1" style="cursor:default; pointer-events:none;">
+              <div class="poll-option-bar" style="width:0%"></div>
+              <span class="poll-option-label">${escapeHtml(opt.option_text)}</span>
+            </div>
+          `,
+            )
+            .join('')}
+        </div>
+
+        <div class="mt-2 d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-primary" id="savePollQuestionBtn">
+            Save question
+          </button>
+        </div>
+
+        <div id="pollEditMsg" class="mt-2" style="font-size:0.85rem;"></div>
+      </div>
+    `;
+
+    // Save poll question
+    document.getElementById('savePollQuestionBtn').addEventListener('click', () => {
+      const newQuestion = document.getElementById('editPollQuestion').value.trim();
+      const msgEl = document.getElementById('pollEditMsg');
+
+      if (!newQuestion) {
+        msgEl.innerHTML = `<span class="text-danger">Question cannot be empty.</span>`;
+        return;
+      }
+
+      fetchMethod(
+        `${currentUrl}/posts/${post.id}/poll`,
+        (s) => {
+          if (s === 200) {
+            msgEl.innerHTML = `<span class="text-success"><i class="fas fa-check me-1"></i>Question saved.</span>`;
+            setTimeout(() => {
+              msgEl.innerHTML = '';
+            }, 2000);
+          } else {
+            msgEl.innerHTML = `<span class="text-danger">Failed to update question.</span>`;
+          }
+        },
+        'PUT',
+        { question: newQuestion },
+        token,
+      );
+    });
+
+    // Delete poll
+    document.getElementById('deletePollEditBtn').addEventListener('click', () => {
+      showConfirm(
+        'Remove poll?',
+        'This will permanently delete the poll and all its votes.',
+        () => {
+          fetchMethod(
+            `${currentUrl}/posts/${post.id}/poll`,
+            (s) => {
+              if (s === 200) {
+                section.dataset.hasPoll = '';
+                section.innerHTML = '';
+              } else {
+                alert('Failed to remove poll.');
+              }
+            },
+            'DELETE',
+            null,
+            token,
+          );
+        },
+      );
+    });
+  });
+}
+
+// ==========================
+// POLL
+// ==========================
+function loadAndRenderPollOnPostPage(postId) {
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  fetchMethod(`${currentUrl}/posts/${postId}/poll`, (status, poll) => {
+    const container = document.getElementById(`pollContainer-${postId}`);
+    if (!container || status !== 200) return;
+
+    const totalVotes = poll.options.reduce((sum, o) => sum + (o.vote_count || 0), 0);
+
+    const userVoteCheck =
+      token && userId
+        ? new Promise((resolve) => {
+            fetchMethod(
+              `${currentUrl}/posts/${postId}/poll/vote/${userId}`,
+              (vs, vd) => resolve(vs === 200 ? vd.vote : null),
+              'GET',
+              null,
+              token,
+            );
+          })
+        : Promise.resolve(null);
+
+    userVoteCheck.then((userVote) => {
+      renderPollInContainer(container, poll, postId, totalVotes, userVote, token);
+    });
+  });
+}
+
+function renderPollInContainer(container, poll, postId, totalVotes, userVote, token) {
+  const hasVoted = !!userVote;
+  const pollQuestion =
+    typeof poll.question === 'object'
+      ? poll.question?.question || JSON.stringify(poll.question)
+      : poll.question || '';
+
+  const optionsHtml = poll.options
+    .map((opt) => {
+      const pct = totalVotes > 0 ? Math.round((opt.vote_count / totalVotes) * 100) : 0;
+      const isUserChoice = userVote && parseInt(userVote.option_id) === parseInt(opt.id);
+      const votedClass = hasVoted ? 'voted' : '';
+      const choiceClass = isUserChoice ? 'user-voted' : '';
+
+      return [
+        `<div class="poll-option ${votedClass} ${choiceClass}"`,
+        `  data-option-id="${opt.id}"`,
+        `  data-poll-id="${poll.id}"`,
+        `  data-post-id="${postId}">`,
+        `  <div class="poll-option-bar" style="width:${hasVoted ? pct : 0}%"></div>`,
+        `  <span class="poll-option-label">${escapeHtml(opt.option_text)}</span>`,
+        hasVoted ? `<span class="poll-option-pct">${pct}%</span>` : '',
+        `</div>`,
+      ].join('');
+    })
+    .join('');
+
+  const undoHtml = hasVoted
+    ? `<button class="btn btn-link btn-sm p-0 mt-1 undo-vote-btn"
+         style="font-size:0.8rem; color:var(--text-secondary);">
+         <i class="fas fa-times-circle me-1"></i>Remove vote
+       </button>`
+    : '';
+
+  container.innerHTML = [
+    `<div class="poll-container">`,
+    `<div class="poll-question">${escapeHtml(pollQuestion)}</div>`,
+    optionsHtml,
+    `<div class="poll-meta d-flex align-items-center gap-2">`,
+    `  <span>${totalVotes} vote${totalVotes !== 1 ? 's' : ''}</span>`,
+    undoHtml,
+    `</div>`,
+    `</div>`,
+  ].join('');
+
+  // Vote
+  if (!hasVoted && token) {
+    container.querySelectorAll('.poll-option').forEach((optEl) => {
+      optEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fetchMethod(
+          `${currentUrl}/posts/${postId}/poll/vote`,
+          (vs) => {
+            if (vs === 201 || vs === 409) loadAndRenderPollOnPostPage(postId);
+          },
+          'POST',
+          { poll_id: poll.id, option_id: optEl.dataset.optionId },
+          token,
+        );
+      });
+    });
+  }
+
+  // Change vote
+  if (hasVoted && token) {
+    container.querySelectorAll('.poll-option').forEach((optEl) => {
+      if (optEl.classList.contains('user-voted')) return;
+      optEl.style.cursor = 'pointer';
+      optEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fetchMethod(
+          `${currentUrl}/posts/${postId}/poll/vote`,
+          (ds) => {
+            if (ds === 200) {
+              fetchMethod(
+                `${currentUrl}/posts/${postId}/poll/vote`,
+                (vs) => {
+                  if (vs === 201 || vs === 409) loadAndRenderPollOnPostPage(postId);
+                },
+                'POST',
+                { poll_id: poll.id, option_id: optEl.dataset.optionId },
+                token,
+              );
+            }
+          },
+          'DELETE',
+          { poll_id: poll.id },
+          token,
+        );
+      });
+    });
+  }
+
+  // Remove vote
+  const undoBtn = container.querySelector('.undo-vote-btn');
+  if (undoBtn && token) {
+    undoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fetchMethod(
+        `${currentUrl}/posts/${postId}/poll/vote`,
+        (ds) => {
+          if (ds === 200) loadAndRenderPollOnPostPage(postId);
+        },
+        'DELETE',
+        { poll_id: poll.id },
+        token,
+      );
+    });
+  }
 }
 
 // COMMENTS
@@ -1048,7 +1306,9 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
   const isOwner = isLoggedIn && parseInt(comment.user_id) === loggedInUserId;
 
   const menuOptions = `
-    ${isLoggedIn ? `
+    ${
+      isLoggedIn
+        ? `
     <li>
       <button class="dropdown-item save-comment-btn"
         data-comment-id="${comment.id}"
@@ -1057,7 +1317,9 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
         <i class="far fa-bookmark me-2"></i>Save
       </button>
     </li>
-    <li><hr class="dropdown-divider"></li>` : ''}
+    <li><hr class="dropdown-divider"></li>`
+        : ''
+    }
     <li>
       <button class="dropdown-item report-comment-btn">
         <i class="fas fa-flag me-2"></i>Report
@@ -1080,7 +1342,7 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
     }`;
 
   const el = document.createElement('div');
-  el.className         = isReply ? 'comment-item comment-reply' : 'comment-item';
+  el.className = isReply ? 'comment-item comment-reply' : 'comment-item';
   el.dataset.commentId = comment.id;
 
   el.innerHTML = `
@@ -1128,7 +1390,10 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
 
   el.querySelector('.report-comment-btn').addEventListener('click', (e) => {
     e.stopPropagation();
-    if (!localStorage.getItem('token')) { showLoginRequiredModal(); return; }
+    if (!localStorage.getItem('token')) {
+      showLoginRequiredModal();
+      return;
+    }
     openReportModal(comment.id, 'comment');
   });
 
@@ -1154,32 +1419,44 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
       const token = localStorage.getItem('token');
       const user_id = localStorage.getItem('loggedInUserId');
       const commentId = saveCommentBtn.dataset.commentId;
-      const isSaved   = saveCommentBtn.dataset.saved === 'true';
+      const isSaved = saveCommentBtn.dataset.saved === 'true';
       const saveRowId = saveCommentBtn.dataset.saveRowId;
 
       if (isSaved) {
-        fetchMethod(`${feedApiBase()}/comments/saved/${saveRowId}`, (status) => {
-          if (status === 200) {
-            saveCommentBtn.dataset.saved     = 'false';
-            saveCommentBtn.dataset.saveRowId = '';
-            saveCommentBtn.innerHTML = `<i class="far fa-bookmark me-2"></i>Save`;
-          } else {
-            alert('Failed to unsave comment.');
-          }
-        }, 'DELETE', null, token);
+        fetchMethod(
+          `${feedApiBase()}/comments/saved/${saveRowId}`,
+          (status) => {
+            if (status === 200) {
+              saveCommentBtn.dataset.saved = 'false';
+              saveCommentBtn.dataset.saveRowId = '';
+              saveCommentBtn.innerHTML = `<i class="far fa-bookmark me-2"></i>Save`;
+            } else {
+              alert('Failed to unsave comment.');
+            }
+          },
+          'DELETE',
+          null,
+          token,
+        );
       } else {
-        fetchMethod(`${feedApiBase()}/comments/saved`, (status, data) => {
-          if (status === 201) {
-            saveCommentBtn.dataset.saved     = 'true';
-            saveCommentBtn.dataset.saveRowId = data.id;
-            saveCommentBtn.innerHTML = `<i class="fas fa-bookmark me-2"></i>Unsave`;
-          } else if (status === 409) {
-            saveCommentBtn.dataset.saved = 'true';
-            saveCommentBtn.innerHTML = `<i class="fas fa-bookmark me-2"></i>Unsave`;
-          } else {
-            alert('Failed to save comment.');
-          }
-        }, 'POST', { user_id, comment_id: commentId }, token);
+        fetchMethod(
+          `${feedApiBase()}/comments/saved`,
+          (status, data) => {
+            if (status === 201) {
+              saveCommentBtn.dataset.saved = 'true';
+              saveCommentBtn.dataset.saveRowId = data.id;
+              saveCommentBtn.innerHTML = `<i class="fas fa-bookmark me-2"></i>Unsave`;
+            } else if (status === 409) {
+              saveCommentBtn.dataset.saved = 'true';
+              saveCommentBtn.innerHTML = `<i class="fas fa-bookmark me-2"></i>Unsave`;
+            } else {
+              alert('Failed to save comment.');
+            }
+          },
+          'POST',
+          { user_id, comment_id: commentId },
+          token,
+        );
       }
     });
   }
@@ -1188,15 +1465,15 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
     el.querySelector('.edit-comment-btn').addEventListener('click', () => enterEditMode(el));
 
     el.querySelector('.delete-comment-btn').addEventListener('click', () => {
-      showConfirm(
-        'Delete comment?',
-        'This will permanently remove your comment.',
-        () => deleteComment(comment.id, el, postId)
+      showConfirm('Delete comment?', 'This will permanently remove your comment.', () =>
+        deleteComment(comment.id, el, postId),
       );
     });
 
     el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
-    el.querySelector('.save-edit-comment-btn').addEventListener('click', () => saveCommentEdit(comment.id, el));
+    el.querySelector('.save-edit-comment-btn').addEventListener('click', () =>
+      saveCommentEdit(comment.id, el),
+    );
   }
 
   // Comment reactions
@@ -1375,42 +1652,61 @@ function showNoComments() {
 // COMMENT REACTIONS
 // ==========================
 function handleCommentReaction(commentId, newType, likeBtn, dislikeBtn) {
-  const token  = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
   const userId = localStorage.getItem('loggedInUserId');
 
-  if (!token) { showLoginRequiredModal(); return; }
+  if (!token) {
+    showLoginRequiredModal();
+    return;
+  }
 
   const existing = commentReactions.get(parseInt(commentId));
 
   if (!existing) {
     // post
-    fetchMethod(`${feedApiBase()}/comments/like`, (status, data) => {
-      if (status === 201) {
-        commentReactions.set(parseInt(commentId), { id: data.id, reaction_type: newType });
-        applyCommentReactionUI(likeBtn, dislikeBtn, newType);
-        updateCommentReactionCount(likeBtn, dislikeBtn, null, newType);
-      }
-    }, 'POST', { comment_id: parseInt(commentId), user_id: userId, reaction_type: newType }, token);
-
+    fetchMethod(
+      `${feedApiBase()}/comments/like`,
+      (status, data) => {
+        if (status === 201) {
+          commentReactions.set(parseInt(commentId), { id: data.id, reaction_type: newType });
+          applyCommentReactionUI(likeBtn, dislikeBtn, newType);
+          updateCommentReactionCount(likeBtn, dislikeBtn, null, newType);
+        }
+      },
+      'POST',
+      { comment_id: parseInt(commentId), user_id: userId, reaction_type: newType },
+      token,
+    );
   } else if (existing.reaction_type === newType) {
     // delete
-    fetchMethod(`${feedApiBase()}/comments/reaction/${existing.id}`, (status) => {
-      if (status === 200) {
-        updateCommentReactionCount(likeBtn, dislikeBtn, existing.reaction_type, null);
-        commentReactions.delete(parseInt(commentId));
-        applyCommentReactionUI(likeBtn, dislikeBtn, null);
-      }
-    }, 'DELETE', { user_id: userId }, token);
-
+    fetchMethod(
+      `${feedApiBase()}/comments/reaction/${existing.id}`,
+      (status) => {
+        if (status === 200) {
+          updateCommentReactionCount(likeBtn, dislikeBtn, existing.reaction_type, null);
+          commentReactions.delete(parseInt(commentId));
+          applyCommentReactionUI(likeBtn, dislikeBtn, null);
+        }
+      },
+      'DELETE',
+      { user_id: userId },
+      token,
+    );
   } else {
     // put
-    fetchMethod(`${feedApiBase()}/comments/reaction/${existing.id}`, (status) => {
-      if (status === 200) {
-        updateCommentReactionCount(likeBtn, dislikeBtn, existing.reaction_type, newType);
-        commentReactions.set(parseInt(commentId), { ...existing, reaction_type: newType });
-        applyCommentReactionUI(likeBtn, dislikeBtn, newType);
-      }
-    }, 'PUT', { user_id: userId, reaction_type: newType }, token);
+    fetchMethod(
+      `${feedApiBase()}/comments/reaction/${existing.id}`,
+      (status) => {
+        if (status === 200) {
+          updateCommentReactionCount(likeBtn, dislikeBtn, existing.reaction_type, newType);
+          commentReactions.set(parseInt(commentId), { ...existing, reaction_type: newType });
+          applyCommentReactionUI(likeBtn, dislikeBtn, newType);
+        }
+      },
+      'PUT',
+      { user_id: userId, reaction_type: newType },
+      token,
+    );
   }
 }
 
@@ -1434,7 +1730,7 @@ function updateCommentReactionCount(likeBtn, dislikeBtn, oldType, newType) {
   const likeCountEl = likeBtn.querySelector('.comment-like-count');
   const dislikeCountEl = dislikeBtn.querySelector('.comment-dislike-count');
 
-  let likes    = parseInt(likeCountEl.textContent) || 0;
+  let likes = parseInt(likeCountEl.textContent) || 0;
   let dislikes = parseInt(dislikeCountEl.textContent) || 0;
 
   if (oldType === 'like') likes = Math.max(0, likes - 1);
@@ -1445,7 +1741,6 @@ function updateCommentReactionCount(likeBtn, dislikeBtn, oldType, newType) {
   likeCountEl.textContent = likes;
   dislikeCountEl.textContent = dislikes;
 }
-
 
 function formatTimestamp(createdAt, updatedAt) {
   const created = new Date(createdAt);
@@ -1479,43 +1774,47 @@ function formatTimestamp(createdAt, updatedAt) {
 }
 
 function getCategoryLabel(c) {
-  return {
-    confession: 'Confession',
-    qna:        'Q&A',
-    general:    'General Talk',
-    events:     'Events',
-    news:       'News',
-    cca:        'CCA',
-    internship: 'Internship',
-    SOC:        'SOC',
-    ABE:        'ABE',
-    SB:         'SB',
-    CLS:        'CLS',
-    EEE:        'EEE',
-    MAD:        'MAD',
-    MAE:        'MAE',
-    SMA:        'SMA',
-  }[c] || c;
+  return (
+    {
+      confession: 'Confession',
+      qna: 'Q&A',
+      general: 'General Talk',
+      events: 'Events',
+      news: 'News',
+      cca: 'CCA',
+      internship: 'Internship',
+      SOC: 'SOC',
+      ABE: 'ABE',
+      SB: 'SB',
+      CLS: 'CLS',
+      EEE: 'EEE',
+      MAD: 'MAD',
+      MAE: 'MAE',
+      SMA: 'SMA',
+    }[c] || c
+  );
 }
 
 function getCategoryClass(c) {
-  return {
-    confession: 'category-confession',
-    qna:        'category-qna',
-    general:    'category-general',
-    events:     'category-events',
-    news:       'category-news',
-    cca:        'category-cca',
-    internship: 'category-internship',
-    SOC:        'category-SOC',
-    ABE:        'category-ABE',
-    SB:         'category-SB',
-    CLS:        'category-CLS',
-    EEE:        'category-EEE',
-    MAD:        'category-MAD',
-    MAE:        'category-MAE',
-    SMA:        'category-SMA',
-  }[c] || 'category-general';
+  return (
+    {
+      confession: 'category-confession',
+      qna: 'category-qna',
+      general: 'category-general',
+      events: 'category-events',
+      news: 'category-news',
+      cca: 'category-cca',
+      internship: 'category-internship',
+      SOC: 'category-SOC',
+      ABE: 'category-ABE',
+      SB: 'category-SB',
+      CLS: 'category-CLS',
+      EEE: 'category-EEE',
+      MAD: 'category-MAD',
+      MAE: 'category-MAE',
+      SMA: 'category-SMA',
+    }[c] || 'category-general'
+  );
 }
 
 function getAvatarInitial(post) {
@@ -1927,16 +2226,6 @@ function loadYourGroups() {
     null,
     token,
   );
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
 }
 
 function renderYourGroups(groups) {
