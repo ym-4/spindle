@@ -98,6 +98,8 @@ CREATE TABLE "Posts" (
   "attachment_url" TEXT,
   "gif_url" TEXT,
   "is_anonymous" BOOLEAN DEFAULT FALSE,
+  "visibility" TEXT DEFAULT 'everyone',
+  "pinned" BOOLEAN DEFAULT FALSE,
   CONSTRAINT "Posts_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
@@ -116,6 +118,37 @@ BEFORE UPDATE ON "Posts"
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
+-- POST: POLLS
+CREATE TABLE "PostPolls" (
+  "id" SERIAL NOT NULL,
+  "post_id" INT NOT NULL,
+  "question" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "PostPolls_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("post_id") REFERENCES "Posts"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "PollOptions" (
+  "id" SERIAL NOT NULL,
+  "poll_id" INT NOT NULL,
+  "option_text" TEXT NOT NULL,
+  "vote_count" INT DEFAULT 0,
+  CONSTRAINT "PollOptions_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("poll_id") REFERENCES "PostPolls"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "PollVotes" (
+  "id" SERIAL NOT NULL,
+  "poll_id" INT NOT NULL,
+  "option_id" INT NOT NULL,
+  "user_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "PollVotes_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("poll_id") REFERENCES "PostPolls"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("option_id") REFERENCES "PollOptions"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  UNIQUE ("poll_id", "user_id")
+);
 
 CREATE TABLE "PostComments" (
   "id" SERIAL NOT NULL, 
@@ -183,6 +216,8 @@ CREATE TABLE "Reports" (
   "post_id"   INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
   "user_id"   INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
   "reason"    VARCHAR(100) NOT NULL,
+  "description" TEXT DEFAULT '',
+  "dismissed" BOOLEAN DEFAULT FALSE,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE ("post_id", "user_id")
 );

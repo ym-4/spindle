@@ -533,7 +533,9 @@ module.exports.getTrendStats = async function getTrendStats() {
 
 module.exports.globalSearch = async function globalSearch(term) {
   try {
-    await pool.query(`ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`);
+    await pool.query(
+      `ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`,
+    );
   } catch {}
 
   const like = `%${term}%`;
@@ -544,7 +546,7 @@ module.exports.globalSearch = async function globalSearch(term) {
      WHERE (name ILIKE $1 OR display_name ILIKE $1 OR email ILIKE $1)
        AND deleted_at IS NULL
      LIMIT 10`,
-    [like]
+    [like],
   );
 
   const postsPromise = pool.query(
@@ -554,7 +556,7 @@ module.exports.globalSearch = async function globalSearch(term) {
      FROM "Posts" p
      WHERE title ILIKE $1 OR content ILIKE $1
      LIMIT 10`,
-    [like]
+    [like],
   );
 
   const reportsPromise = pool.query(
@@ -564,10 +566,14 @@ module.exports.globalSearch = async function globalSearch(term) {
      FROM "Reports" r
      WHERE r.reason ILIKE $1
      LIMIT 10`,
-    [like]
+    [like],
   );
 
-  const [usersRes, postsRes, reportsRes] = await Promise.all([usersPromise, postsPromise, reportsPromise]);
+  const [usersRes, postsRes, reportsRes] = await Promise.all([
+    usersPromise,
+    postsPromise,
+    reportsPromise,
+  ]);
 
   return {
     users: usersRes.rows,
@@ -583,7 +589,7 @@ module.exports.getUserActivity = async function getUserActivity(userId) {
      WHERE user_id = $1
      ORDER BY created_at DESC
      LIMIT 20`,
-    [userId]
+    [userId],
   );
 
   const reportsAgainstPromise = pool.query(
@@ -592,14 +598,14 @@ module.exports.getUserActivity = async function getUserActivity(userId) {
      JOIN "Posts" p ON p.id = r.post_id
      WHERE p.user_id = $1
      ORDER BY r.created_at DESC`,
-    [userId]
+    [userId],
   );
 
   const bansPromise = pool.query(
     `SELECT suspended_until, banned_reason
      FROM "Person"
      WHERE id = $1`,
-    [userId]
+    [userId],
   );
 
   const appealsPromise = pool.query(
@@ -607,11 +613,14 @@ module.exports.getUserActivity = async function getUserActivity(userId) {
      FROM "BanAppeals"
      WHERE user_id = $1
      ORDER BY created_at DESC`,
-    [userId]
+    [userId],
   );
 
   const [postsRes, reportsRes, bansRes, appealsRes] = await Promise.all([
-    postsPromise, reportsAgainstPromise, bansPromise, appealsPromise,
+    postsPromise,
+    reportsAgainstPromise,
+    bansPromise,
+    appealsPromise,
   ]);
 
   return {

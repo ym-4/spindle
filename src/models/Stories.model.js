@@ -9,7 +9,9 @@ module.exports.create = async function create(userId, mediaUrl, caption, opts) {
   var privacy = opts.privacy || 'public';
   var isDraft = opts.isDraft || false;
   await pool.query(`ALTER TABLE "Stories" ADD COLUMN IF NOT EXISTS privacy TEXT DEFAULT 'public'`);
-  await pool.query(`ALTER TABLE "Stories" ADD COLUMN IF NOT EXISTS story_type TEXT DEFAULT 'image'`);
+  await pool.query(
+    `ALTER TABLE "Stories" ADD COLUMN IF NOT EXISTS story_type TEXT DEFAULT 'image'`,
+  );
   await pool.query(`ALTER TABLE "Stories" ADD COLUMN IF NOT EXISTS background TEXT`);
   await pool.query(`ALTER TABLE "Stories" ALTER COLUMN media_url DROP NOT NULL`);
   await pool.query(`ALTER TABLE "Stories" ALTER COLUMN expires_at DROP NOT NULL`);
@@ -20,14 +22,26 @@ module.exports.create = async function create(userId, mediaUrl, caption, opts) {
     `INSERT INTO "Stories" (user_id, media_url, caption, description, expires_at, privacy, story_type, background, is_draft)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING id, user_id, media_url, caption, description, created_at, expires_at, privacy, story_type, background, is_draft`,
-    [userId, mediaUrl || null, (caption || ''), (opts.description || ''), expires, privacy, type, bg, isDraft],
+    [
+      userId,
+      mediaUrl || null,
+      caption || '',
+      opts.description || '',
+      expires,
+      privacy,
+      type,
+      bg,
+      isDraft,
+    ],
   );
   return rows[0];
 };
 
 module.exports.listFeed = async function listFeed(viewerId) {
   await pool.query(`ALTER TABLE "Stories" ADD COLUMN IF NOT EXISTS privacy TEXT DEFAULT 'public'`);
-  await pool.query(`ALTER TABLE "Stories" ADD COLUMN IF NOT EXISTS story_type TEXT DEFAULT 'image'`);
+  await pool.query(
+    `ALTER TABLE "Stories" ADD COLUMN IF NOT EXISTS story_type TEXT DEFAULT 'image'`,
+  );
   await pool.query(`ALTER TABLE "Stories" ADD COLUMN IF NOT EXISTS background TEXT`);
   await pool.query(`ALTER TABLE "Stories" ADD COLUMN IF NOT EXISTS description TEXT DEFAULT ''`);
   await pool.query(`ALTER TABLE "Stories" ALTER COLUMN expires_at DROP NOT NULL`);

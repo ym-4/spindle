@@ -69,11 +69,21 @@
   margin-bottom: 14px;
 }
 
-.quality-pill--new { background: var(--sp-quality-new, #1d4ed8); }
-.quality-pill--likenew { background: var(--sp-quality-likenew, #2e7d32); }
-.quality-pill--good { background: var(--sp-quality-good, #b7791f); }
-.quality-pill--fair { background: var(--sp-quality-fair, #9d4b16); }
-.quality-pill--default { background: var(--sp-quality-default, #4b5563); }
+.quality-pill--new {
+  background: var(--sp-quality-new, #1d4ed8);
+}
+.quality-pill--likenew {
+  background: var(--sp-quality-likenew, #2e7d32);
+}
+.quality-pill--good {
+  background: var(--sp-quality-good, #b7791f);
+}
+.quality-pill--fair {
+  background: var(--sp-quality-fair, #9d4b16);
+}
+.quality-pill--default {
+  background: var(--sp-quality-default, #4b5563);
+}
 
 .item-price {
   font-family: 'Poppins', sans-serif;
