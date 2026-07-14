@@ -30,6 +30,15 @@ function renderItem(item) {
   }
   document.getElementById('itemTitle').textContent = item.name;
   document.getElementById('itemPrice').textContent = `$${Number(item.price).toFixed(2)}`;
+
+  const itemTagsEl = document.getElementById('itemTags');
+  if (item.tags && item.tags.length > 0) {
+    itemTagsEl.innerHTML = item.tags
+      .map((t) => `<span class="item-tag-badge">${escapeHtml(t.name)}</span>`)
+      .join('');
+  } else {
+    itemTagsEl.innerHTML = '';
+  }
   document.getElementById('itemDescription').textContent =
     item.description || 'No description provided.';
   document.getElementById('itemMeetup').textContent =

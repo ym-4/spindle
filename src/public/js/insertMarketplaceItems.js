@@ -20,7 +20,7 @@ function qualityBadgeClass(rawQuality) {
   return 'default';
 }
 
-function addListing(seller_id, id, name, description, price, quality, meetup, images) {
+function addListing(seller_id, id, name, description, price, quality, meetup, images, tags) {
   const container = document.getElementById('listings-container');
 
   const card = document.createElement('div');
@@ -35,6 +35,9 @@ function addListing(seller_id, id, name, description, price, quality, meetup, im
     ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(meetup)}</p>`
     : '';
   const thumbnailSrc = images && images.length > 0 ? images[0].image_url : '../marketplace-uploads/1.png';
+  const tagsMarkup = tags && tags.length > 0
+    ? `<div class="spindle-card-tags">${tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
+    : '';
 
   card.innerHTML = `
     <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(id)}">
@@ -45,6 +48,7 @@ function addListing(seller_id, id, name, description, price, quality, meetup, im
       <div class="spindle-card-body">
         <h3 class="spindle-card-title">${escapeHtml(name)}</h3>
         <p class="spindle-card-price">$${Number(price).toFixed(2)}</p>
+        ${tagsMarkup}
         ${meetupMarkup}
       </div>
     </a>
@@ -129,6 +133,7 @@ async function loadListings() {
             data[i].quality,
             data[i].meetup,
             data[i].images,
+            data[i].tags,
           );
         }
       }
@@ -186,6 +191,7 @@ async function loadUserListings() {
             userListings[i].quality,
             userListings[i].meetup,
             userListings[i].images,
+            userListings[i].tags,
           );
         }
       }

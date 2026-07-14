@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middlewares/upload');
-const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage } = require('../models/Marketplace.model');
+const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage, setItemTags, getItemsByTag } = require('../models/Marketplace.model');
 
 // Create a new item
 router.post('/', (req, res, next) => {
@@ -14,6 +14,23 @@ router.post('/', (req, res, next) => {
 // Retrieve all items
 router.get('/', (req, res, next) => {
   getAllItems()
+    .then((items) => res.status(200).json(items))
+    .catch(next);
+});
+
+// Set the tags on an item (replaces any existing tags for the item)
+router.put('/:id/tags', (req, res, next) => {
+  const { tags } = req.body; // expects array of strings
+  if (!Array.isArray(tags)) return res.status(400).json({ error: 'tags must be an array' });
+
+  setItemTags(req.params.id, tags)
+    .then((attached) => res.status(200).json({ tags: attached }))
+    .catch(next);
+});
+
+// Retrieve items filtered by tag name
+router.get('/by-tag/:tagName', (req, res, next) => {
+  getItemsByTag(req.params.tagName)
     .then((items) => res.status(200).json(items))
     .catch(next);
 });

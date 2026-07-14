@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Tag = require('../models/Tag.model');
+const Tag = require('../models/Tags.model.js');
 
 // GET all tags — for autocomplete/filter chips
 router.get('/tags', async (req, res) => {

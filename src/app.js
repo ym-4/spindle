@@ -23,6 +23,7 @@ const searchRouter = require('./routers/Search.router');
 const groupRouter = require('./routers/Groups.router');
 const marketplaceRouter = require('./routers/Marketplace.router');
 const cartRouter = require('./routers/Cart.router');
+const tagsRouter = require('./routers/Tags.router');
 const blockRouter = require('./routers/BlockedUsers.router');
 
 const app = express();
@@ -71,6 +72,7 @@ app.use('/search', searchRouter);
 app.use('/groups', groupRouter);
 app.use('/marketplace', marketplaceRouter);
 app.use('/cart', cartRouter);
+app.use('/tags', tagsRouter);
 app.use('/block', blockRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));

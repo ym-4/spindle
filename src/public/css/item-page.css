@@ -80,7 +80,24 @@
   font-size: 2rem;
   font-weight: 700;
   color: var(--sp-accent, #ee4d2d);
+  margin: 0 0 12px;
+}
+
+.item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin: 0 0 20px;
+}
+
+.item-tag-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sp-muted, #6b7280);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  padding: 3px 10px;
 }
 
 /* Signature element: a torn meet-up "ticket" — the one thing that makes

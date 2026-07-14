@@ -73,6 +73,21 @@ form.addEventListener('submit', (e) => {
         }
       }
 
+      if (currentTags.length > 0) {
+        try {
+          const res = await fetch(`http://localhost:3000/marketplace/${itemId}/tags`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tags: currentTags }),
+          });
+          if (!res.ok) {
+            console.error('Tag save failed', await res.text());
+          }
+        } catch (err) {
+          console.error('Tag save error:', err);
+        }
+      }
+
       window.location.href = 'marketplace.html';
     },
     'POST',
@@ -85,11 +100,6 @@ const tagOvalContainer = document.getElementById('tagOvalContainer');
 const tagAddBtn = document.getElementById('tagAddBtn');
 const MAX_TAGS = 5;
 let currentTags = [];
-
-tagAddBtn.addEventListener('click', () => {
-  if (currentTags.length >= MAX_TAGS) return;
-  createTagOval();
-});
 
 function createTagOval() {
   const oval = document.createElement('div');
