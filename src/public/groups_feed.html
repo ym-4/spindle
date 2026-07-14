@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="css/groups_feed.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
     <link rel="stylesheet" href="css/profile-page.css" />
-    <script src="js/groupsSharedFunctions.js" defer></script>
     <!-- Dragging -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
     <!-- Bootstrap CSS -->
@@ -391,7 +390,7 @@
                     </div>
 
                     <!-- Folder List -->
-                    <div class="folder-list">
+                    <div class="folder-list" id="folderList">
                       <div class="folder-item active">
                         <div class="folder-icon">
                           <i class="bi bi-folder-fill"></i>
@@ -435,12 +434,13 @@
 
                     <!-- Bottom Quick Actions -->
                     <div class="quick-actions">
-                      <button class="btn btn-light w-100 mb-2">
+                      <input type="file" id="fileInput" hidden />
+                      <button class="btn btn-light w-100 mb-2" id="uploadGroupFileBtn">
                         <i class="bi bi-cloud-upload me-2"></i>
                         Upload File
                       </button>
 
-                      <button class="btn btn-light w-100">
+                      <button class="btn btn-light w-100" id="newFolderBtn">
                         <i class="bi bi-folder-plus me-2"></i>
                         New Folder
                       </button>
@@ -458,16 +458,11 @@
                     >
                       <h5 class="mb-0">
                         <i class="bi bi-folder-fill text-warning me-2"></i>
-                        Lecture Notes
+                        <span id="fileListHeader">Lecture Notes</span>
                       </h5>
-
-                      <button class="btn btn-primary">
-                        <i class="bi bi-upload me-1"></i>
-                        Upload
-                      </button>
                     </div>
 
-                    <div class="list-group list-group-flush">
+                    <div class="list-group list-group-flush" id="fileList">
                       <a
                         href="#"
                         class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
@@ -856,13 +851,59 @@
                 </h4>
 
                 <div class="d-flex gap-2">
-                  <button
-                    class="btn btn-outline-secondary btn-sm dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                  >
-                    <i class="bi bi-funnel"></i>
-                    Filter
-                  </button>
+                  <div class="dropdown">
+                    <button
+                      class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                      id="filterDropdown"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      <i class="bi bi-funnel"></i>
+                      Filter
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <a class="dropdown-item filter-option active" href="#" data-filter="all">
+                          All Tasks
+                        </a>
+                      </li>
+
+                      <li><hr class="dropdown-divider" /></li>
+
+                      <li>
+                        <a class="dropdown-item filter-option" href="#" data-filter="assigned">
+                          Assigned to Me
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="dropdown-item filter-option" href="#" data-filter="created">
+                          Created by Me
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="dropdown-item filter-option" href="#" data-filter="unassigned">
+                          Unassigned
+                        </a>
+                      </li>
+
+                      <li><hr class="dropdown-divider" /></li>
+
+                      <li>
+                        <a class="dropdown-item filter-option" href="#" data-filter="today">
+                          Due Today
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="dropdown-item filter-option" href="#" data-filter="overdue">
+                          Overdue
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
 
                   <button
                     class="btn btn-primary btn-sm"
@@ -1309,14 +1350,178 @@
       </div>
     </div>
 
+    <!-- Edit Task Modal -->
+    <div class="modal fade" id="editTaskModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+          <div class="modal-header border-0">
+            <div>
+              <h5 class="modal-title">
+                <i class="bi bi-pencil-square me-2"></i>
+                Edit Task
+              </h5>
+              <small class="text-muted"> Update task details </small>
+            </div>
+
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <!-- Title -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Task Title</label>
+              <input id="editTaskTitle" class="form-control" />
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea id="editTaskDescription" rows="3" class="form-control"> </textarea>
+            </div>
+
+            <div class="row">
+              <!-- Assignee -->
+              <div class="col-md-6 mb-3">
+                <label class="form-label"> Assign To </label>
+
+                <div class="dropdown">
+                  <button
+                    id="editAssigneeBtn"
+                    class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                    data-bs-toggle="dropdown"
+                  >
+                    Select member
+                  </button>
+
+                  <ul class="dropdown-menu w-100" id="editDropdownMember"></ul>
+                </div>
+              </div>
+
+              <!-- Due Date -->
+              <div class="col-md-6 mb-3">
+                <label class="form-label"> Due Date </label>
+
+                <input id="editTaskDueDate" type="date" class="form-control" />
+              </div>
+            </div>
+
+            <label class="form-label fw-semibold"> Subtasks </label>
+
+            <div id="editSubtaskContainer"></div>
+
+            <button id="addEditSubtaskBtn" class="btn btn-outline-primary btn-sm mt-2">
+              <i class="bi bi-plus"></i>
+              Add Subtask
+            </button>
+          </div>
+
+          <div class="modal-footer justify-content-between">
+            <button id="deleteTaskBtn" class="btn btn-outline-danger">
+              <i class="bi bi-trash"></i>
+              Delete Task
+            </button>
+
+            <div>
+              <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+              <button id="saveTaskBtn" class="btn btn-primary">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm delete modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Delete Task</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            Are you sure you want to delete this task? This action cannot be undone.
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Folder modal -->
+    <div class="modal fade" id="newFolderModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-folder-plus me-2"></i>
+              Create Folder
+            </h5>
+
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <label class="form-label">Folder Name</label>
+
+            <input
+              type="text"
+              id="folderNameInput"
+              class="form-control"
+              placeholder="e.g. Lecture Notes"
+              maxlength="40"
+            />
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-primary" id="createFolderBtn">Create Folder</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Move File Modal -->
+    <div class="modal fade" id="moveFileModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Move File</h5>
+
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <label class="form-label"> Destination Folder </label>
+
+            <select class="form-select" id="moveFolderSelect"></select>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-primary" id="moveFileBtn">Move</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="js/api.js"></script>
     <script src="js/getCurrentURL.js"></script>
     <script src="js/spindle-page.js" defer></script>
     <script src="js/queryCmds.js"></script>
     <script src="js/userNavBarToggle.js"></script>
     <script src="js/page-guard.js" data-require-login defer></script>
+    <script src="js/groupsSharedFunctions.js" defer></script>
     <script src="js/groupsFeed.js" defer></script>
     <script src="js/groupsTasks.js" defer></script>
+    <script src="js/groupsFiles.js" defer></script>
     <script src="js/spindle-sidebar.js" defer></script>
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>

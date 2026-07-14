@@ -694,7 +694,7 @@ main {
 
 #filesTab .list-group-item:hover {
   background: #f8f9fa;
-  transform: translateX(4px);
+  padding-left: 22px;
 }
 
 #filesTab .card-header {
@@ -802,7 +802,7 @@ main {
 }
 
 /* -------------------------------------------------------------- */
-/*                           NOTES TAB                            */
+/*                           TASKS TAB                            */
 /* -------------------------------------------------------------- */
 /* ---------------- KANBAN ---------------- */
 
@@ -1010,4 +1010,28 @@ main {
 
 .task-container {
   min-height: 250px;
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.edit-task-btn {
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  opacity: 0;
+  transition: 0.2s;
+}
+
+.task-card:hover .edit-task-btn {
+  opacity: 1;
+}
+
+.edit-task-btn:hover {
+  background: #f1f3f5;
 }

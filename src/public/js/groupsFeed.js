@@ -530,6 +530,10 @@ function displayChannelMessages(messages) {
       role = 'creator';
     }
 
+    console.log('currMessage.user_id:', currMessage.user_id);
+    console.log('users:', users);
+    console.log('currUser:', currUser);
+
     tempHTML += `
             <div class="msg ${isUsers ? 'msg-right' : 'msg-left'}">
 

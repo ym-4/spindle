@@ -1,28 +1,38 @@
-Front End: 
+1. Group Files
 
-HTML pages
-1. Login page
-2. Profile page
-3. Home page
+Backend
+- Create routes and model (GET, POST, DELETE)
+- Store file in a folder
 
-CSS 
+Frontend
+- Display folders and Files
+- Link to Backend
+- Modal for adding a file
+- Let user download the files
+- Let user delete the files
+- Let user add new file
 
+2. Group Notes
 
-JS
-1. Login: Call Backend to check that username and password are correct
-2. Profile page: Call Backend to GET user stats
-3. Hashing person passwords
-4. JWT sessions? 
+Database
+- Make table for notes and notes link
+- Make sample seed data
 
-----------------------------------------------------------------------
-Back End: 
+Backend
+- Create routes and model (GET, POST, PUT, DELETE)
+(Make sure to store folder path of notes)
 
-1. Login and Register System
-2. Setup routes
+Frontend
+- Display notes
+- Store notes as html (add the html tags manually through made text editor)
+- Make text editor function
+- Let user drag and organise notes into different folders
+- Let user create folders (only 1 level deep)
+- Let user add notes to folder/create notes
+- Let user edit notes (make a full screen mode)
 
-schema default entries?
+- Let user link notes using this [[link to note]] or some other way
+- Add graph view for notes (show notes name if zoomed in close enough)
+- (Maybe) Let users move the individual notes nodes
 
-
-Security issue: 
-1. Route for get person returns hashed_password
-
+- (Maybe) Include whiteboard mode for notes

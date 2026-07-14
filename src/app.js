@@ -24,6 +24,7 @@ const cartRouter = require('./routers/Cart.router');
 const giphyRouter = require('./routers/Giphy.router');
 const blockRouter = require('./routers/BlockedUsers.router');
 const tasksRouter = require('./routers/Tasks.router');
+const groupFilesRouter = require('./routers/GroupFiles.router');
 
 const app = express();
 app.use(cors()); // Might remove later
@@ -72,6 +73,7 @@ app.use('/marketplace', marketplaceRouter);
 app.use('/cart', cartRouter);
 app.use('/block', blockRouter);
 app.use('/groupTasks', tasksRouter);
+app.use('/groupFiles', groupFilesRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use('/giphy', giphyRouter);

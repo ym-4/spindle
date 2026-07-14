@@ -3,6 +3,8 @@ let tasks = [];
 let taskItems = [];
 let assigned = [];
 let people = [];
+let currentFilter = 'all';
+let editingTaskId = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
   // --------------
@@ -40,6 +42,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   attachAddSubtaskBtnListeners();
   addCreateTaskListeners();
+  addEditTaskListeners();
+  attachListenersForFilter();
 });
 
 // -------------------------------------------------------------------------------------
@@ -58,7 +62,8 @@ function displayGroupTasks() {
   progress.innerHTML = '';
   done.innerHTML = '';
 
-  tasks.forEach((task) => {
+  tasks;
+  tasks.filter(filterTask).forEach((task) => {
     const taskData = taskItems.find((t) => t.taskId === task.id);
 
     const items = taskData ? taskData.items : [];
@@ -87,6 +92,20 @@ function displayGroupTasks() {
 
     const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
 
+    const canEdit = task.creator_id == userId;
+
+    const editButton = canEdit
+      ? `
+      <button
+        class="btn btn-sm btn-light edit-task-btn"
+        data-id="${task.id}"
+        title="Edit Task"
+      >
+        <i class="bi bi-pencil"></i>
+      </button>
+    `
+      : '';
+
     const cardColor =
       task.status === 'todo'
         ? 'note-yellow'
@@ -99,7 +118,10 @@ function displayGroupTasks() {
     const html = `
       <div class="task-card ${cardColor}" draggable="true" data-id="${task.id}">
 
-          <h6>${task.title}</h6>
+          <div class="task-header">
+              <h6 class="mb-0">${task.title}</h6>
+              ${editButton}
+          </div>
 
           <div class="subtasks">
               ${items.length > 0 ? subtasks : `<p class="text-muted small mb-0">${task.description}</p>`}
@@ -152,6 +174,15 @@ function displayGroupTasks() {
   document.getElementById('todoNum').innerText = todoCount;
   document.getElementById('inProgressNum').innerText = progressCount;
   document.getElementById('doneNum').innerText = doneCount;
+  document.querySelectorAll('.edit-task-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      const taskId = btn.dataset.id;
+
+      openEditTaskModal(taskId);
+    });
+  });
 
   attachSubtaskListeners();
 }
@@ -194,6 +225,76 @@ function addCreateTaskListeners() {
   });
 }
 
+function addEditTaskListeners() {
+  const editMenu = document.getElementById('editDropdownMember');
+
+  editMenu.innerHTML = '';
+
+  members.forEach((member) => {
+    const person = people.find((p) => p.id == member.user_id);
+
+    editMenu.innerHTML += `
+        <li>
+            <a
+                class="dropdown-item edit-assignee-item"
+                href="#"
+                data-id="${person.id}">
+                ${person.name}
+            </a>
+        </li>
+    `;
+  });
+
+  document.querySelectorAll('.edit-assignee-item').forEach((item) => {
+    item.onclick = (e) => {
+      e.preventDefault();
+
+      editAssigneeBtn.textContent = item.textContent;
+
+      editAssigneeBtn.dataset.id = item.dataset.id;
+    };
+  });
+
+  document.querySelectorAll('.delete-existing-subtask').forEach((btn) => {
+    btn.onclick = async () => {
+      await deleteGroupTaskItems(btn.dataset.id);
+
+      btn.closest('.input-group').remove();
+    };
+  });
+
+  document.querySelectorAll('.new-subtask').forEach(async (input) => {
+    if (input.value.trim() != '') {
+      await createGroupTaskItems({ text: input.value }, editingTaskId);
+    }
+  });
+
+  document.getElementById('deleteTaskBtn').onclick = async () => {
+    const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+
+    modal.show();
+
+    document.getElementById('confirmDeleteBtn').onclick = async () => {
+      await deleteGroupTasks(editingTaskId);
+
+      modal.hide();
+
+      bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
+
+      await refreshTaskData();
+      displayGroupTasks();
+
+      displayToast('success', 'Task deleted!');
+    };
+
+    bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
+
+    await refreshTaskData();
+
+    displayGroupTasks();
+  };
+}
+
 function attachAddSubtaskBtnListeners() {
   const container = document.getElementById('subtaskContainer');
   const addBtn = document.getElementById('addSubtaskBtn');
@@ -227,6 +328,27 @@ function attachAddSubtaskBtnListeners() {
     if (!btn) return;
 
     btn.closest('.input-group').remove();
+  });
+}
+
+function attachListenersForFilter() {
+  document.querySelectorAll('.filter-option').forEach((option) => {
+    option.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      currentFilter = option.dataset.filter;
+
+      document.querySelectorAll('.filter-option').forEach((o) => o.classList.remove('active'));
+
+      option.classList.add('active');
+
+      document.getElementById('filterDropdown').innerHTML = `
+      <i class="bi bi-funnel"></i>
+      ${option.textContent.trim()}
+      `;
+
+      displayGroupTasks();
+    });
   });
 }
 
@@ -441,6 +563,233 @@ function resetCreateTaskModal() {
       </button>
     </div>
   `;
+}
+
+function filterTask(task) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  switch (currentFilter) {
+    case 'assigned':
+      return task.assignee_id == userId;
+
+    case 'created':
+      return task.creator_id == userId;
+
+    case 'unassigned':
+      return task.assignee_id == null;
+
+    case 'today':
+      if (!task.due_date) return false;
+
+      const due = new Date(task.due_date);
+      due.setHours(0, 0, 0, 0);
+
+      return due.getTime() === today.getTime();
+
+    case 'overdue':
+      if (!task.due_date) return false;
+
+      return new Date(task.due_date) < today && task.status !== 'done';
+
+    default:
+      return true;
+  }
+}
+
+function openEditTaskModal(taskId) {
+  editingTaskId = taskId;
+
+  const task = tasks.find((t) => t.id == taskId);
+
+  document.getElementById('editTaskTitle').value = task.title;
+
+  document.getElementById('editTaskDescription').value = task.description;
+
+  document.getElementById('editTaskDueDate').value = task.due_date
+    ? task.due_date.substring(0, 10)
+    : '';
+
+  const container = document.getElementById('editSubtaskContainer');
+
+  container.innerHTML = '';
+
+  const items = taskItems.find((t) => t.taskId == taskId)?.items || [];
+
+  items.forEach((item) => {
+    container.innerHTML += `
+    <div class="input-group mb-2">
+
+      <input
+        class="form-control edit-subtask"
+        data-id="${item.id}"
+        value="${item.text}"
+      >
+
+      <button
+        type="button"
+        class="btn btn-outline-danger delete-existing-subtask"
+        data-id="${item.id}">
+        <i class="bi bi-trash"></i>
+      </button>
+
+    </div>
+  `;
+  });
+
+  document.getElementById('addEditSubtaskBtn').onclick = () => {
+    container.insertAdjacentHTML(
+      'beforeend',
+      `
+      <div class="input-group mb-2">
+
+        <input
+          class="form-control new-subtask"
+          placeholder="New subtask"
+        >
+
+        <button
+          type="button"
+          class="btn btn-outline-danger remove-new-subtask">
+          <i class="bi bi-trash"></i>
+        </button>
+
+      </div>
+    `,
+    );
+  };
+
+  container.querySelectorAll('.delete-existing-subtask').forEach((btn) => {
+    btn.onclick = async () => {
+      try {
+        try {
+          await deleteGroupTaskItems(btn.dataset.id);
+
+          btn.closest('.input-group').remove();
+
+          displayToast('success', 'Subtask deleted!');
+        } catch (err) {
+          displayToast('error', err.message || 'Failed to delete subtask.');
+        }
+
+        btn.closest('.input-group').remove();
+
+        displayToast('success', 'Subtask deleted!');
+      } catch (err) {
+        displayToast('error', err.message || 'Failed to delete subtask.');
+      }
+
+      btn.closest('.input-group').remove();
+    };
+  });
+
+  container.addEventListener('click', (e) => {
+    const btn = e.target.closest('.remove-new-subtask');
+
+    if (!btn) return;
+
+    btn.closest('.input-group').remove();
+  });
+
+  document.getElementById('saveTaskBtn').onclick = async () => {
+    const task = tasks.find((t) => t.id == editingTaskId);
+
+    const data = {
+      title: document.getElementById('editTaskTitle').value.trim(),
+      description: document.getElementById('editTaskDescription').value.trim(),
+      due_date: document.getElementById('editTaskDueDate').value || null,
+      assignee_id: document.getElementById('editAssigneeBtn').dataset.id || null,
+      status: task.status,
+    };
+
+    try {
+      // Update task
+      await updateGroupTasks(data, editingTaskId);
+
+      // Update existing subtasks
+      const existing = document.querySelectorAll('.edit-subtask');
+
+      for (const input of existing) {
+        const oldItem = taskItems
+          .find((t) => t.taskId == editingTaskId)
+          .items.find((i) => i.id == input.dataset.id);
+
+        await updateGroupTaskItems(
+          {
+            text: input.value,
+            completed: oldItem.completed,
+            completed_at: oldItem.completed_at,
+          },
+          input.dataset.id,
+          editingTaskId,
+        );
+      }
+
+      // Create new subtasks
+      const newSubs = document.querySelectorAll('.new-subtask');
+
+      for (const input of newSubs) {
+        if (input.value.trim() === '') continue;
+
+        await createGroupTaskItems(
+          {
+            text: input.value.trim(),
+          },
+          editingTaskId,
+        );
+      }
+
+      bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
+
+      await refreshTaskData();
+
+      displayGroupTasks();
+
+      displayToast('success', 'Task updated!');
+    } catch (err) {
+      console.error(err);
+
+      displayToast('error', 'Failed to update task.');
+    }
+  };
+
+  const editBtn = document.getElementById('editAssigneeBtn');
+  const menu = document.getElementById('editDropdownMember');
+
+  menu.innerHTML = '';
+
+  members.forEach((member) => {
+    const person = people.find((p) => p.id == member.user_id);
+
+    menu.innerHTML += `
+        <li>
+            <a
+                class="dropdown-item edit-assignee-item"
+                href="#"
+                data-id="${person.id}">
+                ${person.name}
+            </a>
+        </li>
+    `;
+  });
+
+  document.querySelectorAll('.edit-assignee-item').forEach((item) => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      editBtn.textContent = item.textContent.trim();
+      editBtn.dataset.id = item.dataset.id;
+    });
+  });
+
+  const currentPerson = people.find((p) => p.id == task.assignee_id);
+
+  editBtn.textContent = currentPerson ? currentPerson.name : 'Unassigned';
+  editBtn.dataset.id = task.assignee_id || '';
+
+  const modal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+
+  modal.show();
 }
 
 // -------------------------------------------------------------------------------------

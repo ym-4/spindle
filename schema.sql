@@ -280,13 +280,24 @@ CREATE TABLE "GroupDiscussions" (
 CREATE TABLE "GroupFiles" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
-  "message" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "group_id" INT NOT NULL,
-  "description" TEXT NOT NULL,
   "file_path" TEXT NOT NULL,
+  "folder_name" TEXT NOT NULL,
   CONSTRAINT "GroupFiles_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
+  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "GroupFolders" (
+  "id" SERIAL PRIMARY KEY,
+  "group_id" INT NOT NULL,
+  "name" TEXT NOT NULL,
+  "created_by" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (group_id) REFERENCES "Groups"(id) ON DELETE CASCADE, 
+  UNIQUE(group_id, name)
 );
 
 CREATE TABLE "GroupAnnouncements" (
