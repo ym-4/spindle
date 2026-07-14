@@ -1,6 +1,19 @@
 const express = require('express');
 const { authenticateJWT } = require('../middlewares/auth.middleware');
 
+const multer  = require('multer');
+const path    = require('path');
+const fs      = require('fs');
+
+const commentUploadDir = path.join(__dirname, '../public/uploads/comments');
+if (!fs.existsSync(commentUploadDir)) fs.mkdirSync(commentUploadDir, { recursive: true });
+
+const commentStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, commentUploadDir),
+  filename:    (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+});
+const commentUpload = multer({ storage: commentStorage, limits: { fileSize: 8 * 1024 * 1024 } });
+
 const {
   getAllComments,
   getCommentsByPostID,
@@ -158,9 +171,16 @@ router.get('/:post_id', (req, res, next) => {
 });
 
 // Creates new comment under a post (post_id)
-router.post('/:post_id', authenticateJWT, (req, res, next) => {
-  if (!req.body || !req.params.post_id || !req.body.content) {
+router.post('/:post_id', authenticateJWT, commentUpload.single('attachment'), (req, res, next) => {
+  if (!req.params.post_id || !req.body.content) {
     return res.status(400).json({ message: 'Error: post_id or content is undefined' });
+  }
+
+  let attachment_url = req.body.attachment_url || null;
+
+  // file uploaded
+  if (req.file) {
+    attachment_url = `/uploads/comments/${req.file.filename}`;
   }
 
   const data = {
@@ -168,16 +188,18 @@ router.post('/:post_id', authenticateJWT, (req, res, next) => {
     post_id: req.params.post_id,
     content: req.body.content,
     parent_comment_id: req.body.parent_comment_id || null,
+    attachment_url
   };
 
   insertComments(data)
     .then((results) =>
       res.status(201).json({
-        id: results.id,
-        user_id: data.user_id,
-        commented_on: data.post_id,
-        content: data.content,
+        id:                results.id,
+        user_id:           data.user_id,
+        commented_on:      data.post_id,
+        content:           data.content,
         parent_comment_id: data.parent_comment_id,
+        attachment_url:    data.attachment_url
       }),
     )
     .catch((error) => {
@@ -187,11 +209,22 @@ router.post('/:post_id', authenticateJWT, (req, res, next) => {
 });
 
 // Update Comments (owner only)
-router.put('/:id', authenticateJWT, (req, res, next) => {
+router.put('/:id', authenticateJWT, commentUpload.single('attachment'), (req, res, next) => {
+  let attachment_url = req.body.attachment_url || null;
+
+  if (req.file) {
+    attachment_url = `/uploads/comments/${req.file.filename}`;
+  }
+
+  if (req.body.remove_attachment === 'true') {
+    attachment_url = null;
+  }
+
   const data = {
     id: req.params.id,
     user_id: req.user.id,
     content: req.body.content,
+    attachment_url,
   };
 
   updateCommentsByID(data)

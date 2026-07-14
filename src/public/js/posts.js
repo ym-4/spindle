@@ -53,6 +53,8 @@ let activeCommentPostId = null;
 let activeCommentsData = [];
 let pendingEditGifUrl = null;
 let removeCurrentAttachment = false;
+let commentAttachmentFile = null;
+let commentGifUrl = null;
 
 // Load saved IDs
 function loadSavedIds() {
@@ -1390,60 +1392,185 @@ function loadComments(postId) {
 
 // Submit comment
 function setupCommentSubmit(postId) {
-  const commentInput = document.getElementById('commentInput');
-  const submitBtn = document.getElementById('submitCommentBtn');
-  const authOverlay = document.getElementById('authOverlay');
+  const commentInput   = document.getElementById('commentInput');
+  const submitBtn      = document.getElementById('submitCommentBtn');
+  const authOverlay    = document.getElementById('authOverlay');
   const closeAuthPopup = document.getElementById('closeAuthPopup');
 
-  function openAuthPopup() {
-    authOverlay.classList.remove('d-none');
-  }
-  function closeAuthPopupFn() {
-    authOverlay.classList.add('d-none');
-  }
+  function openAuthPopup()    { authOverlay.classList.remove('d-none'); }
+  function closeAuthPopupFn() { authOverlay.classList.add('d-none'); }
 
   if (closeAuthPopup) closeAuthPopup.addEventListener('click', closeAuthPopupFn);
-  if (authOverlay)
-    authOverlay.addEventListener('click', (e) => {
-      if (e.target === authOverlay) closeAuthPopupFn();
-    });
+  if (authOverlay)    authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) closeAuthPopupFn(); });
 
   commentInput.addEventListener('focus', () => {
-    if (!localStorage.getItem('token')) {
-      commentInput.blur();
-      openAuthPopup();
-    }
+    if (!localStorage.getItem('token')) { commentInput.blur(); openAuthPopup(); }
   });
 
+  // Attachment file input
+  const attachmentInput = document.getElementById('commentAttachmentInput');
+  if (attachmentInput) {
+    attachmentInput.addEventListener('change', () => {
+      const file = attachmentInput.files[0];
+      if (!file) return;
+      if (file.size > 8 * 1024 * 1024) { alert('File too large. Max 8MB.'); attachmentInput.value = ''; return; }
+      commentAttachmentFile = file;
+      commentGifUrl = null;
+      renderCommentMediaPreview();
+    });
+  }
+
+  // GIF toggle button
+  const gifToggleBtn = document.getElementById('commentGifToggleBtn');
+  const gifPanel     = document.getElementById('commentGifPanel');
+  if (gifToggleBtn && gifPanel) {
+    gifToggleBtn.addEventListener('click', () => {
+      const isOpen = gifPanel.classList.contains('open');
+      gifPanel.classList.toggle('open', !isOpen);
+      if (!isOpen) document.getElementById('commentGifSearchInput')?.focus();
+    });
+  }
+
+  // GIF search
+  const gifSearchInput = document.getElementById('commentGifSearchInput');
+  if (gifSearchInput) {
+    let debounce;
+    gifSearchInput.addEventListener('input', () => {
+      clearTimeout(debounce);
+      const query = gifSearchInput.value.trim();
+      if (!query) { document.getElementById('commentGifResults').innerHTML = ''; return; }
+      debounce = setTimeout(() => searchCommentGifs(query), 300);
+    });
+  }
+
+  // Submit
   submitBtn.addEventListener('click', () => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      openAuthPopup();
-      return;
-    }
+    if (!token) { openAuthPopup(); return; }
 
     const content = commentInput.value.trim();
-    if (!content) return;
+    if (!content && !commentAttachmentFile && !commentGifUrl) return;
 
     const user_id = localStorage.getItem('loggedInUserId');
     submitBtn.disabled = true;
 
-    fetchMethod(
-      `${COMMENTS_BASE}/${postId}`,
-      (status, data) => {
+    const formData = new FormData();
+    formData.append('user_id', user_id);
+    formData.append('content', content || ' '); 
+
+    if (commentAttachmentFile) {
+      formData.append('attachment', commentAttachmentFile);
+    } else if (commentGifUrl) {
+      formData.append('attachment_url', commentGifUrl);
+    }
+
+    fetch(`${COMMENTS_BASE}/${postId}`, {
+      method:  'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body:    formData
+    })
+      .then(async (res) => {
+        const data = await res.json();
         submitBtn.disabled = false;
-        if (status === 200 || status === 201) {
-          commentInput.value = '';
+        if (res.status === 200 || res.status === 201) {
+          commentInput.value    = '';
+          commentAttachmentFile = null;
+          commentGifUrl         = null;
+          clearCommentMediaPreview();
+          if (gifPanel) gifPanel.classList.remove('open');
+          if (gifSearchInput) gifSearchInput.value = '';
+          document.getElementById('commentGifResults').innerHTML = '';
           loadComments(postId);
         } else {
           alert(data.error || data.message || 'Failed to post comment.');
         }
-      },
-      'POST',
-      { user_id, content },
-      token,
-    );
+      })
+      .catch((err) => {
+        submitBtn.disabled = false;
+        console.error(err);
+        alert('Failed to post comment.');
+      });
   });
+}
+
+function renderCommentMediaPreview() {
+  const preview = document.getElementById('commentAttachmentPreview');
+  if (!preview) return;
+
+  const src = commentAttachmentFile
+    ? URL.createObjectURL(commentAttachmentFile)
+    : commentGifUrl;
+
+  if (!src) { preview.innerHTML = ''; return; }
+
+  preview.innerHTML = `
+    <div class="position-relative d-inline-block">
+      <img src="${src}" alt="Comment attachment">
+      <button type="button" class="remove-comment-media-btn" title="Remove">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>`;
+
+  preview.querySelector('.remove-comment-media-btn').addEventListener('click', () => {
+    clearCommentMediaPreview();
+  });
+}
+
+function clearCommentMediaPreview() {
+  commentAttachmentFile = null;
+  commentGifUrl         = null;
+  const preview = document.getElementById('commentAttachmentPreview');
+  if (preview) preview.innerHTML = '';
+  const input = document.getElementById('commentAttachmentInput');
+  if (input) input.value = '';
+}
+
+async function searchCommentGifs(query) {
+  const container = document.getElementById('commentGifResults');
+  if (!container) return;
+  container.innerHTML = '<div class="gif-grid-empty">Searching...</div>';
+
+  try {
+    const res  = await fetch(`/giphy/search?q=${encodeURIComponent(query)}`);
+    const gifs = await res.json();
+    container.innerHTML = '';
+
+    if (!Array.isArray(gifs) || !gifs.length) {
+      container.innerHTML = '<div class="gif-grid-empty">No GIFs found.</div>';
+      return;
+    }
+
+    gifs.forEach(gif => {
+      const previewUrl = gif?.images?.fixed_height_small?.url || gif?.images?.original?.url;
+      const fullUrl    = gif?.images?.original?.url || previewUrl;
+      if (!previewUrl) return;
+
+      const img = document.createElement('img');
+      img.src = previewUrl;
+      img.loading = 'lazy';
+      img.alt = 'GIF';
+
+      img.addEventListener('click', () => {
+        commentGifUrl         = fullUrl;
+        commentAttachmentFile = null;
+        renderCommentMediaPreview();
+
+        // Close panel
+        document.getElementById('commentGifPanel')?.classList.remove('open');
+        document.getElementById('commentGifSearchInput').value = '';
+        container.innerHTML = '';
+
+        // Clear file input
+        const fileInput = document.getElementById('commentAttachmentInput');
+        if (fileInput) fileInput.value = '';
+      });
+
+      container.appendChild(img);
+    });
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = '<div class="gif-grid-empty">Failed to load GIFs.</div>';
+  }
 }
 
 //  Build comment thread
@@ -1577,9 +1704,36 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
             </div>
           </div>
           <div class="comment-text-display">${escapeHtml(comment.content)}</div>
+          ${comment.attachment_url ? `
+          <div class="comment-attachment mt-1">
+            <img
+              src="${comment.attachment_url}"
+              alt="Comment attachment"
+              class="img-fluid rounded"
+              style="max-height:200px; max-width:100%; object-fit:cover; cursor:pointer;"
+              onclick="window.open('${comment.attachment_url}', '_blank')"
+            >
+          </div>` : ''}
           <div class="comment-edit-form" style="display:none;">
             <textarea class="form-control form-control-sm comment-edit-input"
               rows="2">${escapeHtml(comment.content)}</textarea>
+
+            <div class="comment-edit-attachment-preview"></div>
+
+            <div class="d-flex align-items-center gap-2 mt-2">
+              <label class="btn btn-outline-secondary btn-sm mb-0" title="Attach image">
+                <i class="fas fa-paperclip"></i>
+                <input type="file" class="comment-edit-attachment-input" accept="image/*,.gif" style="display:none;">
+              </label>
+              <button type="button" class="btn btn-outline-secondary btn-sm comment-edit-gif-btn">
+                <i class="fas fa-images me-1"></i>GIF
+              </button>
+            </div>
+            <div class="comment-edit-gif-panel" style="display:none;">
+              <input type="text" class="form-control form-control-sm mt-2 comment-edit-gif-search" placeholder="Search GIFs...">
+              <div class="gif-grid comment-edit-gif-results mt-2"></div>
+            </div>
+
             <div class="mt-2 d-flex gap-2">
               <button class="btn btn-sm btn-outline-secondary cancel-edit-comment-btn">Cancel</button>
               <button class="btn btn-sm btn-primary save-edit-comment-btn">Save</button>
@@ -1677,7 +1831,9 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
   }
 
   if (isOwner) {
-    el.querySelector('.edit-comment-btn').addEventListener('click', () => enterEditMode(el));
+    setupCommentEditAttachment(el, comment);
+
+    el.querySelector('.edit-comment-btn').addEventListener('click', () => enterEditMode(el, comment));
 
     el.querySelector('.delete-comment-btn').addEventListener('click', () => {
       showConfirm('Delete comment?', 'This will permanently remove your comment.', () =>
@@ -1687,7 +1843,7 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
 
     el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
     el.querySelector('.save-edit-comment-btn').addEventListener('click', () =>
-      saveCommentEdit(comment.id, el),
+      saveCommentEdit(comment.id, el, postId),
     );
   }
 
@@ -1740,6 +1896,20 @@ function toggleReplyBox(commentEl, comment, postId, rootParentId) {
         <button class="btn btn-primary btn-sm submit-reply-btn">Reply</button>
         <button class="btn btn-outline-secondary btn-sm cancel-reply-btn">Cancel</button>
       </div>
+    </div>
+    <div class="reply-attachment-preview mt-2"></div>
+    <div class="d-flex align-items-center gap-2 mt-2">
+      <label class="btn btn-outline-secondary btn-sm mb-0" title="Attach image">
+        <i class="fas fa-paperclip"></i>
+        <input type="file" class="reply-attachment-input" accept="image/*,.gif" style="display:none;">
+      </label>
+      <button type="button" class="btn btn-outline-secondary btn-sm reply-gif-btn">
+        <i class="fas fa-images me-1"></i>GIF
+      </button>
+    </div>
+    <div class="reply-gif-panel" style="display:none;">
+      <input type="text" class="form-control form-control-sm mt-2 reply-gif-search" placeholder="Search GIFs...">
+      <div class="gif-grid reply-gif-results mt-2"></div>
     </div>`;
 
   const actionsEl = commentEl.querySelector('.comment-actions');
@@ -1752,12 +1922,115 @@ function toggleReplyBox(commentEl, comment, postId, rootParentId) {
 
   replyBox.querySelector('.cancel-reply-btn').addEventListener('click', () => replyBox.remove());
 
+  // Attachment/GIF picker wiring for this reply box
+  const replyFileInput = replyBox.querySelector('.reply-attachment-input');
+  const replyGifBtn = replyBox.querySelector('.reply-gif-btn');
+  const replyGifPanel = replyBox.querySelector('.reply-gif-panel');
+  const replyGifSearchInput = replyBox.querySelector('.reply-gif-search');
+  const replyGifResults = replyBox.querySelector('.reply-gif-results');
+  const replyAttachmentPreview = replyBox.querySelector('.reply-attachment-preview');
+
+  function renderReplyAttachmentPreview() {
+    const src = replyBox._attachmentFile
+      ? URL.createObjectURL(replyBox._attachmentFile)
+      : replyBox._gifUrl;
+    if (!src) {
+      replyAttachmentPreview.innerHTML = '';
+      return;
+    }
+    replyAttachmentPreview.innerHTML = `
+      <div class="position-relative d-inline-block">
+        <img src="${src}" alt="Attachment" style="max-height:150px; max-width:100%; border-radius:8px;">
+        <button type="button" class="remove-reply-attachment-btn" title="Remove"
+          style="position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; border:none; background:rgba(0,0,0,0.6); color:#fff; line-height:1;">
+          <i class="fas fa-times" style="font-size:0.65rem;"></i>
+        </button>
+      </div>`;
+    replyAttachmentPreview.querySelector('.remove-reply-attachment-btn').addEventListener('click', () => {
+      replyBox._attachmentFile = null;
+      replyBox._gifUrl = null;
+      if (replyFileInput) replyFileInput.value = '';
+      renderReplyAttachmentPreview();
+    });
+  }
+
+  if (replyFileInput) {
+    replyFileInput.addEventListener('change', () => {
+      const file = replyFileInput.files[0];
+      if (!file) return;
+      if (file.size > 8 * 1024 * 1024) {
+        alert('File too large. Max 8MB.');
+        replyFileInput.value = '';
+        return;
+      }
+      replyBox._attachmentFile = file;
+      replyBox._gifUrl = null;
+      renderReplyAttachmentPreview();
+    });
+  }
+
+  if (replyGifBtn && replyGifPanel) {
+    replyGifBtn.addEventListener('click', () => {
+      replyGifPanel.style.display = replyGifPanel.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+
+  if (replyGifSearchInput) {
+    let debounce;
+    replyGifSearchInput.addEventListener('input', () => {
+      clearTimeout(debounce);
+      const query = replyGifSearchInput.value.trim();
+      if (!query) {
+        replyGifResults.innerHTML = '';
+        return;
+      }
+      debounce = setTimeout(() => {
+        replyGifResults.innerHTML = '<div class="gif-grid-empty">Searching...</div>';
+        fetch(`/giphy/search?q=${encodeURIComponent(query)}`)
+          .then((res) => res.json())
+          .then((gifs) => {
+            replyGifResults.innerHTML = '';
+            if (!Array.isArray(gifs) || !gifs.length) {
+              replyGifResults.innerHTML = '<div class="gif-grid-empty">No GIFs found.</div>';
+              return;
+            }
+            gifs.forEach((gif) => {
+              const previewUrl = gif?.images?.fixed_height_small?.url || gif?.images?.original?.url;
+              const fullUrl = gif?.images?.original?.url || previewUrl;
+              if (!previewUrl) return;
+
+              const img = document.createElement('img');
+              img.src = previewUrl;
+              img.loading = 'lazy';
+              img.alt = 'GIF';
+              img.addEventListener('click', () => {
+                replyBox._gifUrl = fullUrl;
+                replyBox._attachmentFile = null;
+                renderReplyAttachmentPreview();
+                replyGifPanel.style.display = 'none';
+                replyGifSearchInput.value = '';
+                replyGifResults.innerHTML = '';
+                if (replyFileInput) replyFileInput.value = '';
+              });
+              replyGifResults.appendChild(img);
+            });
+          })
+          .catch((err) => {
+            console.error(err);
+            replyGifResults.innerHTML = '<div class="gif-grid-empty">Failed to load GIFs.</div>';
+          });
+      }, 300);
+    });
+  }
+
   replyBox.querySelector('.submit-reply-btn').addEventListener('click', () => {
     const rawContent = textarea.value.trim();
-    if (!rawContent) return;
+    if (!rawContent && !replyBox._attachmentFile && !replyBox._gifUrl) return;
 
     const mention = `@${replyingToName} `;
-    const content = rawContent.startsWith('@') ? rawContent : mention + rawContent;
+    const content = rawContent
+      ? (rawContent.startsWith('@') ? rawContent : mention + rawContent)
+      : mention.trim();
 
     const submitBtn = replyBox.querySelector('.submit-reply-btn');
     submitBtn.disabled = true;
@@ -1765,31 +2038,177 @@ function toggleReplyBox(commentEl, comment, postId, rootParentId) {
 
     openReplyThreads.add(parseInt(parentCommentId));
 
-    fetchMethod(
-      `${COMMENTS_BASE}/${postId}`,
-      (status, data) => {
+    const formData = new FormData();
+    formData.append('content', content);
+    formData.append('parent_comment_id', parentCommentId);
+    if (replyBox._attachmentFile) {
+      formData.append('attachment', replyBox._attachmentFile);
+    } else if (replyBox._gifUrl) {
+      formData.append('attachment_url', replyBox._gifUrl);
+    }
+
+    fetch(`${COMMENTS_BASE}/${postId}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    })
+      .then(async (res) => {
+        const data = await res.json();
         submitBtn.disabled = false;
         submitBtn.textContent = 'Reply';
 
-        if (status === 201 || status === 200) {
+        if (res.status === 201 || res.status === 200) {
           replyBox.remove();
           loadComments(postId);
         } else {
           alert(data.message || 'Failed to post reply.');
         }
-      },
-      'POST',
-      { content, parent_comment_id: parentCommentId },
-      token,
-    );
+      })
+      .catch((err) => {
+        console.error(err);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Reply';
+        alert('Failed to post reply.');
+      });
+  });
+}
+
+// Attach file/GIF picker
+function setupCommentEditAttachment(el, comment) {
+  const fileInput = el.querySelector('.comment-edit-attachment-input');
+  const gifBtn = el.querySelector('.comment-edit-gif-btn');
+  const gifPanel = el.querySelector('.comment-edit-gif-panel');
+  const gifSearchInput = el.querySelector('.comment-edit-gif-search');
+  const gifResults = el.querySelector('.comment-edit-gif-results');
+
+  if (fileInput) {
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      if (file.size > 8 * 1024 * 1024) {
+        alert('File too large. Max 8MB.');
+        fileInput.value = '';
+        return;
+      }
+      el._editAttachmentFile = file;
+      el._editGifUrl = null;
+      el._editRemoveAttachment = false;
+      renderCommentEditAttachmentPreview(el);
+    });
+  }
+
+  if (gifBtn && gifPanel) {
+    gifBtn.addEventListener('click', () => {
+      gifPanel.style.display = gifPanel.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+
+  if (gifSearchInput) {
+    let debounce;
+    gifSearchInput.addEventListener('input', () => {
+      clearTimeout(debounce);
+      const query = gifSearchInput.value.trim();
+      if (!query) {
+        gifResults.innerHTML = '';
+        return;
+      }
+      debounce = setTimeout(() => searchCommentEditGifs(query, el, gifResults, gifPanel, gifSearchInput), 300);
+    });
+  }
+}
+
+function searchCommentEditGifs(query, el, container, gifPanel, gifSearchInput) {
+  container.innerHTML = '<div class="gif-grid-empty">Searching...</div>';
+
+  fetch(`/giphy/search?q=${encodeURIComponent(query)}`)
+    .then((res) => res.json())
+    .then((gifs) => {
+      container.innerHTML = '';
+      if (!Array.isArray(gifs) || !gifs.length) {
+        container.innerHTML = '<div class="gif-grid-empty">No GIFs found.</div>';
+        return;
+      }
+      gifs.forEach((gif) => {
+        const previewUrl = gif?.images?.fixed_height_small?.url || gif?.images?.original?.url;
+        const fullUrl = gif?.images?.original?.url || previewUrl;
+        if (!previewUrl) return;
+
+        const img = document.createElement('img');
+        img.src = previewUrl;
+        img.loading = 'lazy';
+        img.alt = 'GIF';
+        img.addEventListener('click', () => {
+          el._editGifUrl = fullUrl;
+          el._editAttachmentFile = null;
+          el._editRemoveAttachment = false;
+          renderCommentEditAttachmentPreview(el);
+          gifPanel.style.display = 'none';
+          gifSearchInput.value = '';
+          container.innerHTML = '';
+          const fileInput = el.querySelector('.comment-edit-attachment-input');
+          if (fileInput) fileInput.value = '';
+        });
+        container.appendChild(img);
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      container.innerHTML = '<div class="gif-grid-empty">Failed to load GIFs.</div>';
+    });
+}
+
+function renderCommentEditAttachmentPreview(el) {
+  const preview = el.querySelector('.comment-edit-attachment-preview');
+  if (!preview) return;
+
+  let src = null;
+  if (el._editAttachmentFile) {
+    src = URL.createObjectURL(el._editAttachmentFile);
+  } else if (el._editGifUrl) {
+    src = el._editGifUrl;
+  } else if (!el._editRemoveAttachment && el._editOriginalAttachmentUrl) {
+    src = el._editOriginalAttachmentUrl;
+  }
+
+  if (!src) {
+    preview.innerHTML = '';
+    return;
+  }
+
+  preview.innerHTML = `
+    <div class="position-relative d-inline-block mt-2">
+      <img src="${src}" alt="Attachment" style="max-height:150px; max-width:100%; border-radius:8px;">
+      <button type="button" class="remove-comment-edit-attachment-btn" title="Remove"
+        style="position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; border:none; background:rgba(0,0,0,0.6); color:#fff; line-height:1;">
+        <i class="fas fa-times" style="font-size:0.65rem;"></i>
+      </button>
+    </div>`;
+
+  preview.querySelector('.remove-comment-edit-attachment-btn').addEventListener('click', () => {
+    el._editAttachmentFile = null;
+    el._editGifUrl = null;
+    el._editRemoveAttachment = true;
+    const fileInput = el.querySelector('.comment-edit-attachment-input');
+    if (fileInput) fileInput.value = '';
+    renderCommentEditAttachmentPreview(el);
   });
 }
 
 // Enter edit mode for comment
-function enterEditMode(commentEl) {
+function enterEditMode(commentEl, comment) {
+  commentEl._editOriginalAttachmentUrl = comment.attachment_url || null;
+  commentEl._editAttachmentFile = null;
+  commentEl._editGifUrl = null;
+  commentEl._editRemoveAttachment = false;
+  renderCommentEditAttachmentPreview(commentEl);
+
   commentEl.querySelector('.comment-text-display').style.display = 'none';
   commentEl.querySelector('.comment-edit-form').style.display = 'block';
   commentEl.querySelector('.comment-actions').style.display = 'none';
+
+  const staticAttachment = commentEl.querySelector('.comment-attachment');
+  if (staticAttachment) staticAttachment.style.display = 'none';
+
   commentEl.querySelector('.comment-edit-input').focus();
 }
 
@@ -1798,10 +2217,13 @@ function exitEditMode(commentEl) {
   commentEl.querySelector('.comment-text-display').style.display = 'block';
   commentEl.querySelector('.comment-edit-form').style.display = 'none';
   commentEl.querySelector('.comment-actions').style.display = 'flex';
+
+  const staticAttachment = commentEl.querySelector('.comment-attachment');
+  if (staticAttachment) staticAttachment.style.display = 'block';
 }
 
 // Save edited comment - PUT /comments/:id
-function saveCommentEdit(commentId, commentEl) {
+function saveCommentEdit(commentId, commentEl, postId) {
   const input = commentEl.querySelector('.comment-edit-input');
   const newContent = input.value.trim();
 
@@ -1816,24 +2238,41 @@ function saveCommentEdit(commentId, commentEl) {
   saveBtn.disabled = true;
   saveBtn.textContent = 'Saving...';
 
-  fetchMethod(
-    `${currentUrl}/comments/${commentId}`,
-    (status, data) => {
+  const formData = new FormData();
+  formData.append('content', newContent);
+
+  if (commentEl._editAttachmentFile) {
+    formData.append('attachment', commentEl._editAttachmentFile);
+  } else if (commentEl._editGifUrl) {
+    formData.append('attachment_url', commentEl._editGifUrl);
+  } else if (commentEl._editRemoveAttachment) {
+    formData.append('remove_attachment', 'true');
+  } else if (commentEl._editOriginalAttachmentUrl) {
+    formData.append('attachment_url', commentEl._editOriginalAttachmentUrl);
+  }
+
+  fetch(`${currentUrl}/comments/${commentId}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  })
+    .then(async (res) => {
+      const data = await res.json();
       saveBtn.disabled = false;
       saveBtn.textContent = 'Save';
 
-      if (status === 200) {
-        // Update the displayed text
-        commentEl.querySelector('.comment-text-display').textContent = newContent;
-        exitEditMode(commentEl);
+      if (res.ok) {
+        loadComments(postId);
       } else {
         alert(data.message || 'Failed to update comment.');
       }
-    },
-    'PUT',
-    { content: newContent },
-    token,
-  );
+    })
+    .catch((err) => {
+      console.error(err);
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save';
+      alert('Failed to update comment.');
+    });
 }
 
 //  Delete comment
@@ -1859,7 +2298,7 @@ function showNoComments() {
   document.getElementById('commentsContainer').innerHTML = `
     <div class="text-muted text-center py-3" id="commentsPlaceholder">
       <i class="fas fa-comments fa-2x mb-2 d-block"></i>
-      No comments yet. Be the first!
+      No comments yet. Be the first to comment!
     </div>`;
 }
 

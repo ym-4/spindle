@@ -123,31 +123,67 @@
             </div>
           </div>
           <div class="card-body">
+          
             <!-- Comment input -->
             <div class="comment-input-box mb-3">
-              <div class="d-flex">
-                <div class="post-avatar me-2">U</div>
-                <div class="flex-grow-1">
-                  <textarea
-                    class="form-control"
-                    id="commentInput"
-                    rows="2"
-                    placeholder="Write a comment..."
-                  ></textarea>
-                  <div class="mt-2 text-end">
-                    <button class="btn btn-primary btn-sm" id="submitCommentBtn">
-                      <i class="fas fa-paper-plane"></i> Comment
-                    </button>
-                  </div>
-                </div>
+            <div class="d-flex">
+            <div class="post-avatar me-2">U</div>
+            <div class="flex-grow-1">
+            <textarea
+              class="form-control"
+              id="commentInput"
+              rows="2"
+              placeholder="Write a comment..."
+            ></textarea>
+
+            <!-- GIF picker panel, hidden -->
+            <div class="gif-picker-panel" id="commentGifPanel">
+              <div class="gif-search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="commentGifSearchInput" placeholder="Search GIFs...">
               </div>
+              <div class="gif-grid" id="commentGifResults"></div>
+            </div>
+
+            <!-- Selected media preview -->
+            <div id="commentAttachmentPreview" class="mt-2"></div>
+
+            <div class="mt-2 d-flex align-items-center justify-content-between">
+              <!-- attachment  -->
+              <div class="d-flex align-items-center gap-2">
+                <label
+                  for="commentAttachmentInput"
+                  class="btn btn-light border rounded-circle d-flex justify-content-center align-items-center"
+                  style="width:36px; height:36px; cursor:pointer;"
+                  title="Attach image">
+                  <i class="fas fa-paperclip" style="font-size:0.85rem;"></i>
+                </label>
+                <input type="file" id="commentAttachmentInput" accept="image/*,.gif" style="display:none;">
+
+                <button
+                  type="button"
+                  class="btn btn-light border rounded-circle d-flex justify-content-center align-items-center"
+                  id="commentGifToggleBtn"
+                  title="Add GIF"
+                  style="width:36px; height:36px;">
+                  <span style="font-size:0.6rem; font-weight:700; color:var(--text-secondary);">GIF</span>
+                </button>
+              </div>
+
+              <!-- comment button -->
+              <button class="btn btn-primary btn-sm" id="submitCommentBtn">
+                <i class="fas fa-paper-plane"></i> Comment
+              </button>
+            </div>
+            </div>
+            </div>
             </div>
 
             <!-- dynamic comments -->
             <div id="commentsContainer">
               <div class="text-muted text-center py-3" id="commentsPlaceholder">
                 <i class="fas fa-comments fa-2x mb-2 d-block"></i>
-                No comments yet.
+                No comments yet. Be the first to comment!
               </div>
             </div>
           </div>

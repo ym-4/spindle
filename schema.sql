@@ -167,6 +167,7 @@ CREATE TABLE "PostComments" (
   "post_id" INT NOT NULL,
   "parent_comment_id" INT NULL,
   "content" TEXT NOT NULL,
+  "attachment_url" TEXT,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "PostComments_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
