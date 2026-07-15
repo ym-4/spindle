@@ -162,3 +162,75 @@ module.exports.getItemsByTag = async function getItemsByTag(tagName) {
   );
   return rows;
 };
+
+// Recommend up to `limit` other items: prioritizes items sharing tags with
+// the given item (ranked by number of shared tags), then fills any remaining
+// slots with random items so there are always up to `limit` results.
+module.exports.getRecommendedItems = async function getRecommendedItems(itemId, limit = 4) {
+  const tags = await module.exports.getTagsForItem(itemId);
+  const tagIds = tags.map((t) => t.id);
+
+  const results = [];
+  const excludeIds = [Number(itemId)];
+
+  if (tagIds.length > 0) {
+    const { rows } = await pool.query(`
+      SELECT m.*,
+        COALESCE(img.images, '[]') AS images,
+        COALESCE(tg.tags, '[]') AS tags,
+        COUNT(DISTINCT it."tag_id") AS match_count
+      FROM "MarketplaceItems" m
+      JOIN "ItemTags" it ON it."item_id" = m.id AND it."tag_id" = ANY($1::int[])
+      LEFT JOIN (
+        SELECT "item_id",
+          json_agg(json_build_object('id', "id", 'image_url', "image_url") ORDER BY "sort_order") AS images
+        FROM "ListingImages"
+        GROUP BY "item_id"
+      ) img ON img."item_id" = m.id
+      LEFT JOIN (
+        SELECT it2."item_id",
+          json_agg(json_build_object('id', t2."id", 'name', t2."name") ORDER BY t2."name") AS tags
+        FROM "ItemTags" it2
+        JOIN "Tags" t2 ON t2."id" = it2."tag_id"
+        GROUP BY it2."item_id"
+      ) tg ON tg."item_id" = m.id
+      WHERE m.id != $2
+      GROUP BY m.id, img.images, tg.tags
+      ORDER BY match_count DESC, random()
+      LIMIT $3
+    `, [tagIds, itemId, limit]);
+
+    results.push(...rows);
+    excludeIds.push(...rows.map((r) => r.id));
+  }
+
+  if (results.length < limit) {
+    const remaining = limit - results.length;
+    const { rows } = await pool.query(`
+      SELECT m.*,
+        COALESCE(img.images, '[]') AS images,
+        COALESCE(tg.tags, '[]') AS tags
+      FROM "MarketplaceItems" m
+      LEFT JOIN (
+        SELECT "item_id",
+          json_agg(json_build_object('id', "id", 'image_url', "image_url") ORDER BY "sort_order") AS images
+        FROM "ListingImages"
+        GROUP BY "item_id"
+      ) img ON img."item_id" = m.id
+      LEFT JOIN (
+        SELECT it2."item_id",
+          json_agg(json_build_object('id', t2."id", 'name', t2."name") ORDER BY t2."name") AS tags
+        FROM "ItemTags" it2
+        JOIN "Tags" t2 ON t2."id" = it2."tag_id"
+        GROUP BY it2."item_id"
+      ) tg ON tg."item_id" = m.id
+      WHERE m.id != ALL($1::int[])
+      ORDER BY random()
+      LIMIT $2
+    `, [excludeIds, remaining]);
+
+    results.push(...rows);
+  }
+
+  return results;
+};

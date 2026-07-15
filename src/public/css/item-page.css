@@ -264,3 +264,16 @@
   color: var(--sp-border, #e8e8ed);
   margin-bottom: 14px;
 }
+
+.recommended-section {
+  margin-top: 40px;
+  border-top: 1px solid var(--sp-border, #e8e8ed);
+  padding-top: 24px;
+}
+
+.recommended-section h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 16px;
+}

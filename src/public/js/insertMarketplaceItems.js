@@ -309,12 +309,6 @@ async function loadCart() {
       console.error('Failed to load cart:', status, data);
     }
   });
-
-  checkoutButton = document.querySelector('.checkout-btn');
-  checkoutButton.addEventListener('click', () => {
-    clearCart(localStorage.loggedInUserId);
-    location.reload();
-  });
 }
 
 let currentPage = 1;

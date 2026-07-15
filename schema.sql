@@ -342,30 +342,27 @@ CREATE TABLE IF NOT EXISTS "ListingImages" (
 );
 
 CREATE INDEX IF NOT EXISTS idx_listing_images_item_id ON "ListingImages"("item_id");
-
 CREATE TYPE order_status AS ENUM ('pending', 'paid', 'failed');
 
--- CREATE TABLE IF NOT EXISTS "Orders" (
---   "id" SERIAL PRIMARY KEY,
---   "buyer_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
---   "total_amount" NUMERIC(10,2) NOT NULL,
---   "status" order_status NOT NULL DEFAULT 'pending',
---   "payment_ref" TEXT,
---   "card_last4" VARCHAR(4),
---   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
--- );
+CREATE TABLE IF NOT EXISTS "Orders" (
+  "id" SERIAL PRIMARY KEY,
+  "buyer_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "total_amount" NUMERIC(10,2) NOT NULL,
+  "status" order_status NOT NULL DEFAULT 'pending',
+  "payment_ref" TEXT,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- CREATE TABLE IF NOT EXISTS "OrderItems" (
---   "id" SERIAL PRIMARY KEY,
---   "order_id" INT NOT NULL REFERENCES "Orders"("id") ON DELETE CASCADE,
---   "item_id" INT NOT NULL REFERENCES "MarketplaceItems"("id"),
---   "seller_id" INT NOT NULL REFERENCES "Person"("id"),
---   "quantity" INT NOT NULL,
---   "price_at_purchase" NUMERIC(10,2) NOT NULL
--- );
+CREATE TABLE IF NOT EXISTS "OrderItems" (
+  "id" SERIAL PRIMARY KEY,
+  "order_id" INT NOT NULL REFERENCES "Orders"("id") ON DELETE CASCADE,
+  "item_id" INT NOT NULL REFERENCES "MarketplaceItems"("id"),
+  "seller_id" INT NOT NULL REFERENCES "Person"("id"),
+  "quantity" INT NOT NULL,
+  "price_at_purchase" NUMERIC(10,2) NOT NULL
+);
 
--- CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON "OrderItems"("order_id");
--- CREATE INDEX IF NOT EXISTS idx_orders_buyer_id ON "Orders"("buyer_id");
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON "OrderItems"("order_id");
 
 -- -------------------------------------------------------------------------------------
 --                                  Chatroom

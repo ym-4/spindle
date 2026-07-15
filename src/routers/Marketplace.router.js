@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middlewares/upload');
-const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage, setItemTags, getItemsByTag } = require('../models/Marketplace.model');
+const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage, setItemTags, getItemsByTag, getRecommendedItems } = require('../models/Marketplace.model');
 
 // Create a new item
 router.post('/', (req, res, next) => {
@@ -85,6 +85,14 @@ router.delete('/:id', (req, res, next) => {
       if (!item) return res.status(404).json({ error: 'Item not found' });
       res.status(200).json(item);
     })
+    .catch(next);
+});
+
+// Get up to 3 recommended items (tag-matched, falling back to random)
+router.get('/:id/recommended', (req, res, next) => {
+  const limit = Number(req.query.limit) || 4;
+  getRecommendedItems(req.params.id, limit)
+    .then((items) => res.status(200).json(items))
     .catch(next);
 });
 
