@@ -1,16 +1,16 @@
 const express = require('express');
 const { authenticateJWT } = require('../middlewares/auth.middleware');
 
-const multer  = require('multer');
-const path    = require('path');
-const fs      = require('fs');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const commentUploadDir = path.join(__dirname, '../public/uploads/comments');
 if (!fs.existsSync(commentUploadDir)) fs.mkdirSync(commentUploadDir, { recursive: true });
 
 const commentStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, commentUploadDir),
-  filename:    (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
 });
 const commentUpload = multer({ storage: commentStorage, limits: { fileSize: 8 * 1024 * 1024 } });
 
@@ -188,18 +188,18 @@ router.post('/:post_id', authenticateJWT, commentUpload.single('attachment'), (r
     post_id: req.params.post_id,
     content: req.body.content,
     parent_comment_id: req.body.parent_comment_id || null,
-    attachment_url
+    attachment_url,
   };
 
   insertComments(data)
     .then((results) =>
       res.status(201).json({
-        id:                results.id,
-        user_id:           data.user_id,
-        commented_on:      data.post_id,
-        content:           data.content,
+        id: results.id,
+        user_id: data.user_id,
+        commented_on: data.post_id,
+        content: data.content,
         parent_comment_id: data.parent_comment_id,
-        attachment_url:    data.attachment_url
+        attachment_url: data.attachment_url,
       }),
     )
     .catch((error) => {

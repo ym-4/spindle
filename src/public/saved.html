@@ -28,14 +28,21 @@
           <img src="./images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
           <span class="brand-name">spindle</span>
         </a>
+
+        <!--searh bar-->
         <div class="navbar-search">
           <input
             class="form-control"
+            id="searchInput"
             type="search"
-            placeholder="Search posts, groups, items..."
+            placeholder="Search"
             aria-label="Search"
           />
+          <span class="search-placeholder-fake" aria-hidden="true"
+            >Search posts, groups, items...</span
+          >
         </div>
+
         <div class="navbar-right">
           <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
           <a href="profile.html" class="btn-navbar-profile" id="profileButton">
@@ -76,6 +83,7 @@
         </div>
       </main>
 
+      <!-- hot posts -->
       <aside class="right-sidebar">
         <div class="card">
           <div class="card-header"><i class="fas fa-fire text-danger me-2"></i>Hot Posts</div>
@@ -86,6 +94,18 @@
           </div>
         </div>
 
+        <!-- community guidelines -->
+        <div class="card mt-3">
+          <div class="card-header">Community Guidelines</div>
+          <div class="card-body">
+            <p class="small mb-2">✓ Be respectful and kind</p>
+            <p class="small mb-2">✓ No harassment or hate speech</p>
+            <p class="small mb-2">✓ Keep discussions on topic</p>
+            <p class="small mb-0">✓ Report inappropriate content</p>
+          </div>
+        </div>
+
+        <!-- quick links -->
         <div class="card mt-3">
           <div class="card-header">Quick Links</div>
           <div class="list-group list-group-flush">
@@ -136,6 +156,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/quickLinks.js"></script>
     <script src="js/api.js"></script>
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>

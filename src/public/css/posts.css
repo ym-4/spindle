@@ -1113,7 +1113,7 @@ body {
   display: none;
 }
 
-/* ── Tags ────────────────────────────────────────────────── */
+/* Tags  */
 .post-tags {
   display: flex;
   flex-wrap: wrap;
@@ -1386,7 +1386,7 @@ body {
   z-index: 2;
 }
 
-/* ── Category filter pills ───────────────────────────────── */
+/* Category filter pills  */
 .category-pills-wrapper {
   display: flex;
   align-items: center;
@@ -1827,7 +1827,7 @@ body {
   background: #e5e7eb;
 }
 
-/* ── Comments ────────────────────────────────────────────── */
+/* Comments  */
 .comments-section {
   border-top: 1px solid var(--border-color);
   padding-top: 0.75rem;
@@ -1988,7 +1988,7 @@ body {
   font-weight: 900;
 }
 
-/* ── Nested comment replies ──────────────────────────────── */
+/* Nested comment replies  */
 .comment-reply {
   margin-left: 2.5rem;
   padding-left: 0.75rem;
@@ -2051,6 +2051,141 @@ body {
 
 .replies-wrapper {
   margin-bottom: 0.25rem;
+}
+
+/* Search filter bar */
+#searchFilterCard {
+  border: none;
+  background: var(--card-background);
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+#searchFilterCard .card-body {
+  padding: 0.85rem 1.1rem;
+}
+
+.search-filter-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+#searchFilterCard .form-control {
+  border-radius: 999px;
+  border: 1.5px solid var(--border-color);
+  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+  background-color: var(--background-color);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+#searchFilterCard .form-select {
+  border-radius: 999px;
+  border: 1.5px solid var(--border-color);
+  font-size: 0.85rem;
+  padding: 0.4rem 2.2rem 0.4rem 0.9rem;
+  background-position: right 0.85rem center;
+  background-color: var(--background-color);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+#searchFilterCard .form-select:focus,
+#searchFilterCard .form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(224, 32, 32, 0.1);
+  background-color: var(--card-background);
+}
+
+.search-category-btn {
+  border-radius: 999px;
+  border: 1.5px solid var(--border-color);
+  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+.search-category-btn:hover,
+.search-category-btn:focus {
+  border-color: var(--primary-color);
+}
+
+#categoryFilterMenu .dropdown-item {
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+}
+
+#categoryFilterMenu .dropdown-item:hover {
+  background-color: var(--hover-bg);
+}
+
+#clearSearchFiltersBtn {
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+  border: 1.5px solid var(--border-color);
+  color: var(--text-secondary);
+  background: transparent;
+  transition: all 0.15s ease;
+}
+
+#clearSearchFiltersBtn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: #fff2f2;
+}
+
+/* Animated typewriter placeholder */
+.navbar-search {
+  position: relative;
+}
+#searchInput::placeholder {
+  color: transparent;
+}
+.search-placeholder-fake {
+  display: none;
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #7d8590;
+  font-size: 0.95rem;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 0;
+}
+#searchInput:placeholder-shown ~ .search-placeholder-fake {
+  display: inline-block;
+  animation: typingPlaceholder 6s steps(31, end) infinite;
+}
+@keyframes typingPlaceholder {
+  0% {
+    width: 0;
+  }
+  40% {
+    width: 31ch;
+  }
+  65% {
+    width: 31ch;
+  }
+  95% {
+    width: 0;
+  }
+  100% {
+    width: 0;
+  }
 }
 
 /*  responsive  */

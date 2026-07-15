@@ -40,9 +40,12 @@
             class="form-control"
             id="searchInput"
             type="search"
-            placeholder="Search posts, groups, items..."
+            placeholder="Search"
             aria-label="Search"
           />
+          <span class="search-placeholder-fake" aria-hidden="true"
+            >Search posts, groups, items...</span
+          >
         </div>
 
         <div class="navbar-right">
@@ -68,6 +71,9 @@
             <i class="fas fa-arrow-left"></i> Back to Feed
           </a>
         </div>
+
+        <!-- Search results (hidden) -->
+        <div id="searchResultsPanel" style="display: none" class="mb-3"></div>
 
         <!-- Single post by id -->
         <div id="postDetailContainer">
@@ -123,60 +129,69 @@
             </div>
           </div>
           <div class="card-body">
-          
             <!-- Comment input -->
             <div class="comment-input-box mb-3">
-            <div class="d-flex">
-            <div class="post-avatar me-2">U</div>
-            <div class="flex-grow-1">
-            <textarea
-              class="form-control"
-              id="commentInput"
-              rows="2"
-              placeholder="Write a comment..."
-            ></textarea>
+              <div class="d-flex">
+                <div class="post-avatar me-2">U</div>
+                <div class="flex-grow-1">
+                  <textarea
+                    class="form-control"
+                    id="commentInput"
+                    rows="2"
+                    placeholder="Write a comment..."
+                  ></textarea>
 
-            <!-- GIF picker panel, hidden -->
-            <div class="gif-picker-panel" id="commentGifPanel">
-              <div class="gif-search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" id="commentGifSearchInput" placeholder="Search GIFs...">
+                  <!-- GIF picker panel, hidden -->
+                  <div class="gif-picker-panel" id="commentGifPanel">
+                    <div class="gif-search-bar">
+                      <i class="fas fa-search"></i>
+                      <input type="text" id="commentGifSearchInput" placeholder="Search GIFs..." />
+                    </div>
+                    <div class="gif-grid" id="commentGifResults"></div>
+                  </div>
+
+                  <!-- Selected media preview -->
+                  <div id="commentAttachmentPreview" class="mt-2"></div>
+
+                  <div class="mt-2 d-flex align-items-center justify-content-between">
+                    <!-- attachment  -->
+                    <div class="d-flex align-items-center gap-2">
+                      <label
+                        for="commentAttachmentInput"
+                        class="btn btn-light border rounded-circle d-flex justify-content-center align-items-center"
+                        style="width: 36px; height: 36px; cursor: pointer"
+                        title="Attach image"
+                      >
+                        <i class="fas fa-paperclip" style="font-size: 0.85rem"></i>
+                      </label>
+                      <input
+                        type="file"
+                        id="commentAttachmentInput"
+                        accept="image/*,.gif"
+                        style="display: none"
+                      />
+
+                      <button
+                        type="button"
+                        class="btn btn-light border rounded-circle d-flex justify-content-center align-items-center"
+                        id="commentGifToggleBtn"
+                        title="Add GIF"
+                        style="width: 36px; height: 36px"
+                      >
+                        <span
+                          style="font-size: 0.6rem; font-weight: 700; color: var(--text-secondary)"
+                          >GIF</span
+                        >
+                      </button>
+                    </div>
+
+                    <!-- comment button -->
+                    <button class="btn btn-primary btn-sm" id="submitCommentBtn">
+                      <i class="fas fa-paper-plane"></i> Comment
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div class="gif-grid" id="commentGifResults"></div>
-            </div>
-
-            <!-- Selected media preview -->
-            <div id="commentAttachmentPreview" class="mt-2"></div>
-
-            <div class="mt-2 d-flex align-items-center justify-content-between">
-              <!-- attachment  -->
-              <div class="d-flex align-items-center gap-2">
-                <label
-                  for="commentAttachmentInput"
-                  class="btn btn-light border rounded-circle d-flex justify-content-center align-items-center"
-                  style="width:36px; height:36px; cursor:pointer;"
-                  title="Attach image">
-                  <i class="fas fa-paperclip" style="font-size:0.85rem;"></i>
-                </label>
-                <input type="file" id="commentAttachmentInput" accept="image/*,.gif" style="display:none;">
-
-                <button
-                  type="button"
-                  class="btn btn-light border rounded-circle d-flex justify-content-center align-items-center"
-                  id="commentGifToggleBtn"
-                  title="Add GIF"
-                  style="width:36px; height:36px;">
-                  <span style="font-size:0.6rem; font-weight:700; color:var(--text-secondary);">GIF</span>
-                </button>
-              </div>
-
-              <!-- comment button -->
-              <button class="btn btn-primary btn-sm" id="submitCommentBtn">
-                <i class="fas fa-paper-plane"></i> Comment
-              </button>
-            </div>
-            </div>
-            </div>
             </div>
 
             <!-- dynamic comments -->
@@ -201,6 +216,7 @@
           </div>
         </div>
 
+        <!-- community guidelines -->
         <div class="card mt-3">
           <div class="card-header">Community Guidelines</div>
           <div class="card-body">
@@ -276,6 +292,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="js/quickLinks.js"></script>
+
     <script src="/js/queryCmds.js" type="text/javascript"></script>
     <script src="/js/getCurrentURL.js" type="text/javascript"></script>
     <script src="js/api.js"></script>

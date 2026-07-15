@@ -36,8 +36,16 @@ module.exports.getCommentsByUserID = async function getCommentsByUserID(data) {
 
 // Create new Comments
 module.exports.insertComments = async function insertComments(data) {
-  const VALUES = [data.user_id, data.post_id, data.content, data.parent_comment_id || null, data.attachment_url || null];
-  const { rows } = await pool.query('INSERT INTO "PostComments" (user_id, post_id, content, parent_comment_id, attachment_url) VALUES ($1, $2, $3, $4, $5) RETURNING id', VALUES,
+  const VALUES = [
+    data.user_id,
+    data.post_id,
+    data.content,
+    data.parent_comment_id || null,
+    data.attachment_url || null,
+  ];
+  const { rows } = await pool.query(
+    'INSERT INTO "PostComments" (user_id, post_id, content, parent_comment_id, attachment_url) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+    VALUES,
   );
   return rows[0];
 };
@@ -45,7 +53,9 @@ module.exports.insertComments = async function insertComments(data) {
 // update Comments by ID (owner only)
 module.exports.updateCommentsByID = async function updateCommentsByID(data) {
   const VALUES = [data.content, data.attachment_url, data.id, data.user_id];
-  const { rows } = await pool.query('UPDATE "PostComments" SET "content" = $1, "attachment_url" = $2 WHERE "id" = $3 AND "user_id" = $4 RETURNING *', VALUES,
+  const { rows } = await pool.query(
+    'UPDATE "PostComments" SET "content" = $1, "attachment_url" = $2 WHERE "id" = $3 AND "user_id" = $4 RETURNING *',
+    VALUES,
   );
   return rows[0];
 };
