@@ -119,8 +119,7 @@ router.patch('/:messageId', async (req, res, next) => {
     }
     const updated = await editMessage(messageId, req.user.id, body);
     if (!updated) return res.status(404).json({ error: 'Message not found or not editable.' });
-    const peerId =
-      updated.sender_id === req.user.id ? updated.recipient_id : updated.sender_id;
+    const peerId = updated.sender_id === req.user.id ? updated.recipient_id : updated.sender_id;
     try {
       const { sendToUser } = require('../realtime/wsHub');
       const reactions = await getMessageReactions(messageId);
@@ -145,8 +144,7 @@ router.delete('/:messageId', async (req, res, next) => {
     const existing = await getMessageById(messageId);
     const updated = await deleteMessage(messageId, req.user.id);
     if (!updated) return res.status(404).json({ error: 'Message not found.' });
-    const peerId =
-      existing.sender_id === req.user.id ? existing.recipient_id : existing.sender_id;
+    const peerId = existing.sender_id === req.user.id ? existing.recipient_id : existing.sender_id;
     try {
       const { sendToUser } = require('../realtime/wsHub');
       sendToUser(peerId, { type: 'message:update', message: updated });

@@ -25,11 +25,11 @@
 
 ## Test accounts (after seed)
 
-| Role | Username | Password |
-|------|----------|----------|
-| Student | Alice | password123 |
-| Student | Bob | password123 |
-| Admin | Admin | admin123 |
+| Role    | Username | Password    |
+| ------- | -------- | ----------- |
+| Student | Alice    | password123 |
+| Student | Bob      | password123 |
+| Admin   | Admin    | admin123    |
 
 Or use **Register** to create a new account.
 
@@ -38,12 +38,14 @@ Or use **Register** to create a new account.
 ## What to demonstrate
 
 ### 1. Authentication
+
 - **Register** — new user with username, email, password
 - **Log in** — JWT token, session stored securely
 - **Log out** — clears session
 - Protected pages: profile, marketplace, admin require login
 
 ### 2. Profile page (students)
+
 - Stats: posts, comments, friends, groups, marketplace listings
 - **Settings** — name, avatar, bio, phone, campus
 - **Payment details** — billing info for marketplace
@@ -55,10 +57,12 @@ Or use **Register** to create a new account.
 - **Private messages (DMs)** — one-to-one chat; Alice sends, Bob receives
 
 ### 3. Admin dashboard
+
 - Only **admin** role can access `admin.html`
 - Lists all registered users (id, name, email, role)
 
 ### 4. Security
+
 - Profile / marketplace redirect to login if not signed in
 - Admin page blocked for normal students
 - API uses JWT middleware on protected routes
@@ -77,15 +81,15 @@ Or use **Register** to create a new account.
 
 ## Main files (for questions)
 
-| Feature | Files |
-|---------|--------|
-| Home / login UI | `src/public/home.html`, `js/auth.js` |
-| Profile UI | `src/public/profile.html`, `js/profile.js`, `js/profile-sections.js` |
+| Feature          | Files                                                                    |
+| ---------------- | ------------------------------------------------------------------------ |
+| Home / login UI  | `src/public/home.html`, `js/auth.js`                                     |
+| Profile UI       | `src/public/profile.html`, `js/profile.js`, `js/profile-sections.js`     |
 | Private messages | `js/messages.js`, `routers/Message.router.js`, `models/Message.model.js` |
-| Profile API | `routers/Profile.router.js`, `models/Profile.model.js` |
-| Auth API | `routers/Auth.router.js`, `models/Auth.model.js` |
-| Database schema | `schema.sql` |
-| Seed data | `scripts/seed.js` |
+| Profile API      | `routers/Profile.router.js`, `models/Profile.model.js`                   |
+| Auth API         | `routers/Auth.router.js`, `models/Auth.model.js`                         |
+| Database schema  | `schema.sql`                                                             |
+| Seed data        | `scripts/seed.js`                                                        |
 
 ---
 

@@ -34,7 +34,12 @@ async function authenticateJWT(req, res, next) {
     if (userRows.length > 0 && userRows[0].suspended_until) {
       const suspendedUntil = new Date(userRows[0].suspended_until);
       if (suspendedUntil > new Date()) {
-        return next(createError(403, 'Your account has been suspended until ' + suspendedUntil.toLocaleDateString()));
+        return next(
+          createError(
+            403,
+            'Your account has been suspended until ' + suspendedUntil.toLocaleDateString(),
+          ),
+        );
       }
     }
     req.user = {

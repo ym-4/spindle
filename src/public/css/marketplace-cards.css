@@ -29,7 +29,9 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 
 .spindle-card:hover {
@@ -70,11 +72,21 @@
   text-transform: uppercase;
 }
 
-.spindle-badge--new { background: var(--sp-quality-new); }
-.spindle-badge--likenew { background: var(--sp-quality-likenew); }
-.spindle-badge--good { background: var(--sp-quality-good); }
-.spindle-badge--fair { background: var(--sp-quality-fair); }
-.spindle-badge--default { background: var(--sp-quality-default); }
+.spindle-badge--new {
+  background: var(--sp-quality-new);
+}
+.spindle-badge--likenew {
+  background: var(--sp-quality-likenew);
+}
+.spindle-badge--good {
+  background: var(--sp-quality-good);
+}
+.spindle-badge--fair {
+  background: var(--sp-quality-fair);
+}
+.spindle-badge--default {
+  background: var(--sp-quality-default);
+}
 
 .spindle-card-body {
   padding: 10px 12px 4px;

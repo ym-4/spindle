@@ -50,8 +50,7 @@ function showVerifyStep(email, previewCode, step = 'register') {
   const rememberRow = document.getElementById('verifyRememberRow');
 
   if (title) {
-    title.textContent =
-      step === 'login' ? 'Two-step verification' : 'Verify your Gmail';
+    title.textContent = step === 'login' ? 'Two-step verification' : 'Verify your Gmail';
   }
   const safeEmail = String(email || '').replace(/</g, '');
   if (hintEl) {
@@ -119,27 +118,36 @@ async function handleLogin(event) {
     if (err.banned) {
       var until = err.suspended_until ? new Date(err.suspended_until) : null;
       var isPerm = until && until.getFullYear() >= 2999;
-      var durStr = isPerm ? 'permanently' : (until ? 'until ' + until.toLocaleDateString() : '');
-      showMessage(msg, 'Your account has been banned ' + durStr + '. Reason: ' + (err.reason || 'Not specified'), 'error');
+      var durStr = isPerm ? 'permanently' : until ? 'until ' + until.toLocaleDateString() : '';
+      showMessage(
+        msg,
+        'Your account has been banned ' + durStr + '. Reason: ' + (err.reason || 'Not specified'),
+        'error',
+      );
       var loginForm = document.getElementById('loginForm');
       if (loginForm) {
         var existing = loginForm.querySelector('.appeal-section');
         if (!existing) {
           var div = document.createElement('div');
           div.className = 'appeal-section mt-3';
-          div.innerHTML = '<hr><p class="small text-muted">If you believe this was a mistake, submit an appeal:</p><textarea id="appealMessage" class="form-control form-control-sm mb-2" rows="2" placeholder="Write your appeal..."></textarea><button type="button" class="btn btn-outline-warning btn-sm w-100" id="btnSubmitAppeal">Submit Appeal</button><div id="appealResult" class="small mt-1"></div>';
+          div.innerHTML =
+            '<hr><p class="small text-muted">If you believe this was a mistake, submit an appeal:</p><textarea id="appealMessage" class="form-control form-control-sm mb-2" rows="2" placeholder="Write your appeal..."></textarea><button type="button" class="btn btn-outline-warning btn-sm w-100" id="btnSubmitAppeal">Submit Appeal</button><div id="appealResult" class="small mt-1"></div>';
           loginForm.appendChild(div);
           document.getElementById('btnSubmitAppeal').addEventListener('click', async function () {
             var msg = document.getElementById('appealMessage').value.trim();
-            if (!msg) { document.getElementById('appealResult').textContent = 'Please write a message.'; return; }
+            if (!msg) {
+              document.getElementById('appealResult').textContent = 'Please write a message.';
+              return;
+            }
             try {
               var res = await fetch('/auth/appeal', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: err.user_id, message: msg })
+                body: JSON.stringify({ user_id: err.user_id, message: msg }),
               });
               var d = await res.json();
-              document.getElementById('appealResult').textContent = d.message || 'Appeal submitted.';
+              document.getElementById('appealResult').textContent =
+                d.message || 'Appeal submitted.';
               document.getElementById('appealResult').className = 'small text-success mt-1';
               document.getElementById('appealMessage').disabled = true;
               document.getElementById('btnSubmitAppeal').disabled = true;
@@ -260,7 +268,9 @@ function initAuth() {
   }
 
   document.getElementById('btnOpenLogin')?.addEventListener('click', () => openAuthModal('login'));
-  document.getElementById('btnOpenRegister')?.addEventListener('click', () => openAuthModal('register'));
+  document
+    .getElementById('btnOpenRegister')
+    ?.addEventListener('click', () => openAuthModal('register'));
   document.getElementById('authClose')?.addEventListener('click', closeAuthModal);
   document.getElementById('btnLogout')?.addEventListener('click', handleLogout);
   document.getElementById('authOverlay')?.addEventListener('click', (e) => {
@@ -276,4 +286,3 @@ function initAuth() {
 }
 
 document.addEventListener('DOMContentLoaded', initAuth);
-

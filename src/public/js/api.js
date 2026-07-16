@@ -56,9 +56,7 @@ function decodeJwtPayload(token) {
 
 function getStoredUser() {
   try {
-    const raw =
-      localStorage.getItem(USER_KEY) ||
-      sessionStorage.getItem(USER_KEY);
+    const raw = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
     if (raw) return JSON.parse(raw);
     const id = localStorage.getItem(USER_ID_KEY);
     const token = getToken();

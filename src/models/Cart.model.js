@@ -41,16 +41,15 @@ module.exports.updateCartItem = async function updateCartItem(data) {
 module.exports.removeCartItem = async function removeCartItem(id, user_id) {
   const { rows } = await pool.query(
     'DELETE FROM "UserCart" WHERE "item_id" = $1 AND "user_id" = $2 RETURNING *',
-    [id, user_id]
+    [id, user_id],
   );
   return rows[0];
 };
 
 // DELETE ALL items in a user cart
 module.exports.clearCart = async function clearCart(user_id) {
-  const { rows } = await pool.query(
-    'DELETE FROM "UserCart" WHERE "user_id" = $1 RETURNING *',
-    [user_id]
-  );
+  const { rows } = await pool.query('DELETE FROM "UserCart" WHERE "user_id" = $1 RETURNING *', [
+    user_id,
+  ]);
   return rows[0];
 };

@@ -213,7 +213,9 @@ async function loadSessions() {
           .join('');
   list.querySelectorAll('[data-revoke-session]').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      await authFetch(`/profile/settings/sessions/${btn.dataset.revokeSession}`, { method: 'DELETE' });
+      await authFetch(`/profile/settings/sessions/${btn.dataset.revokeSession}`, {
+        method: 'DELETE',
+      });
       loadSessions();
     });
   });

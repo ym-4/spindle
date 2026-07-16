@@ -131,11 +131,7 @@ router.post('/verify-email', async (req, res, next) => {
     const row = await Auth.findByEmail(email.trim().toLowerCase());
     if (!row) return res.status(404).json({ error: 'Account not found.' });
 
-    const payload = await completeLogin(
-      await Auth.getUserProfile(row.id),
-      req,
-      false,
-    );
+    const payload = await completeLogin(await Auth.getUserProfile(row.id), req, false);
     res.status(200).json(payload);
   } catch (err) {
     next(err);
@@ -195,15 +191,19 @@ router.post('/login', async (req, res, next) => {
     } catch {}
     const { rows: banCheck } = await require('../models/db').query(
       `SELECT suspended_until, banned_reason FROM "Person" WHERE id = $1`,
-      [user.id]
+      [user.id],
     );
-    if (banCheck.length > 0 && banCheck[0].suspended_until && new Date(banCheck[0].suspended_until) > new Date()) {
+    if (
+      banCheck.length > 0 &&
+      banCheck[0].suspended_until &&
+      new Date(banCheck[0].suspended_until) > new Date()
+    ) {
       return res.status(403).json({
         banned: true,
         user_id: user.id,
         name: user.display_name || user.name,
         suspended_until: banCheck[0].suspended_until,
-        reason: banCheck[0].banned_reason || 'No reason provided'
+        reason: banCheck[0].banned_reason || 'No reason provided',
       });
     }
 
@@ -302,7 +302,7 @@ router.get('/admin/users', authenticateJWT, requireAdmin, async (req, res, next)
 router.post('/pre-token', (req, res, next) => {
   if (req.body.id == undefined) {
     return res.status(400).json({
-      message: "id is undefined"
+      message: 'id is undefined',
     });
   }
   res.locals.userId = req.body.id;
@@ -316,7 +316,7 @@ router.post('/send-token', (req, res) => {
   res.status(200).json({
     token: res.locals.token,
     userId: res.locals.userId,
-    message: "Token generated"
+    message: 'Token generated',
   });
 });
 
@@ -326,7 +326,7 @@ router.post('/send-token', (req, res) => {
 router.get('/verify-token', (req, res) => {
   res.status(200).json({
     userId: res.locals.userId,
-    message: "Token verified"
+    message: 'Token verified',
   });
 });
 
@@ -336,7 +336,7 @@ router.get('/verify-token', (req, res) => {
 router.post('/pre-compare', (req, res, next) => {
   if (req.body.hash == undefined) {
     return res.status(400).json({
-      message: "hash is undefined"
+      message: 'hash is undefined',
     });
   }
   res.locals.hash = req.body.hash;
@@ -348,7 +348,7 @@ router.post('/pre-compare', (req, res, next) => {
 //////////////////////////////////////////////////////
 router.post('/compare-success', (req, res) => {
   res.status(200).json({
-    message: "Compare successful"
+    message: 'Compare successful',
   });
 });
 
@@ -358,8 +358,8 @@ router.post('/compare-success', (req, res) => {
 router.post('/hash', (req, res) => {
   res.status(200).json({
     hash: res.locals.hash,
-    message: "Hash successful"
-    });
+    message: 'Hash successful',
+  });
 });
 
 // Admin: Stats
@@ -410,7 +410,8 @@ router.post('/admin/ban', authenticateJWT, requireAdmin, async (req, res, next) 
   try {
     const { user_id, duration_hours } = req.body;
     if (!user_id) return res.status(400).json({ error: 'user_id is required.' });
-    if (parseInt(user_id, 10) === req.user.id) return res.status(400).json({ error: 'Cannot ban yourself.' });
+    if (parseInt(user_id, 10) === req.user.id)
+      return res.status(400).json({ error: 'Cannot ban yourself.' });
 
     let until = null;
     if (duration_hours && duration_hours > 0) {
@@ -446,7 +447,8 @@ router.post('/admin/ban-with-reason', authenticateJWT, requireAdmin, async (req,
     const { user_id, duration_hours, reason } = req.body;
     if (!user_id) return res.status(400).json({ error: 'user_id is required.' });
     if (!reason) return res.status(400).json({ error: 'Ban reason is required.' });
-    if (parseInt(user_id, 10) === req.user.id) return res.status(400).json({ error: 'Cannot ban yourself.' });
+    if (parseInt(user_id, 10) === req.user.id)
+      return res.status(400).json({ error: 'Cannot ban yourself.' });
     let until = null;
     if (duration_hours && duration_hours > 0) {
       until = new Date(Date.now() + duration_hours * 3600000).toISOString();
@@ -454,10 +456,18 @@ router.post('/admin/ban-with-reason', authenticateJWT, requireAdmin, async (req,
       until = new Date('2999-12-31').toISOString();
     }
     await Auth.banUserWithReason(user_id, until, reason, req.user.id);
-    await Auth.addAuditLog(req.user.id, 'ban', 'user', user_id, `Banned for ${duration_hours ? duration_hours + ' hours' : 'permanent'}. Reason: ${reason}`);
+    await Auth.addAuditLog(
+      req.user.id,
+      'ban',
+      'user',
+      user_id,
+      `Banned for ${duration_hours ? duration_hours + ' hours' : 'permanent'}. Reason: ${reason}`,
+    );
     const durStr = duration_hours ? `${duration_hours} hours` : 'permanently';
     res.status(200).json({ message: `User suspended ${durStr}.`, suspended_until: until });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Admin: Get banned users list
@@ -465,17 +475,22 @@ router.get('/admin/banned-users', authenticateJWT, requireAdmin, async (req, res
   try {
     const users = await Auth.getBannedUsers();
     res.status(200).json({ users });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Admin: Submit appeal (no auth required - banned user can't log in)
 router.post('/appeal', async (req, res, next) => {
   try {
     const { user_id, message } = req.body;
-    if (!user_id || !message) return res.status(400).json({ error: 'user_id and message required.' });
+    if (!user_id || !message)
+      return res.status(400).json({ error: 'user_id and message required.' });
     const appeal = await Auth.createAppeal(user_id, message);
     res.status(200).json({ message: 'Appeal submitted.', appeal });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Admin: Get pending appeals
@@ -483,7 +498,9 @@ router.get('/admin/appeals', authenticateJWT, requireAdmin, async (req, res, nex
   try {
     const appeals = await Auth.getPendingAppeals();
     res.status(200).json({ appeals });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Admin: Dismiss appeal (mark as done, ban stays)
@@ -491,9 +508,17 @@ router.post('/admin/appeals/:id/dismiss', authenticateJWT, requireAdmin, async (
   try {
     const appealId = parseInt(req.params.id, 10);
     await Auth.resolveAppeal(appealId, 'dismissed', req.user.id);
-    await Auth.addAuditLog(req.user.id, 'dismiss_appeal', 'appeal', appealId, 'Appeal dismissed - ban remains');
+    await Auth.addAuditLog(
+      req.user.id,
+      'dismiss_appeal',
+      'appeal',
+      appealId,
+      'Appeal dismissed - ban remains',
+    );
     res.status(200).json({ message: 'Appeal dismissed.' });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Admin: Appeal approve (approve + unsuspend)
@@ -505,9 +530,17 @@ router.post('/admin/appeals/:id/approve', authenticateJWT, requireAdmin, async (
     if (rows.length === 0) return res.status(404).json({ error: 'Appeal not found.' });
     await Auth.unsuspendUser(rows[0].user_id);
     await Auth.resolveAppeal(appealId, 'approved', req.user.id);
-    await Auth.addAuditLog(req.user.id, 'approve_appeal', 'appeal', appealId, 'Appeal approved - user unsuspended');
+    await Auth.addAuditLog(
+      req.user.id,
+      'approve_appeal',
+      'appeal',
+      appealId,
+      'Appeal approved - user unsuspended',
+    );
     res.status(200).json({ message: 'Appeal approved. User unsuspended.' });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Admin: Get audit log
@@ -515,7 +548,9 @@ router.get('/admin/audit-log', authenticateJWT, requireAdmin, async (req, res, n
   try {
     const log = await Auth.getAuditLog();
     res.status(200).json({ log });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Admin: Dismiss report
@@ -525,7 +560,9 @@ router.post('/admin/reports/:id/dismiss', authenticateJWT, requireAdmin, async (
     await Auth.dismissReport(reportId);
     await Auth.addAuditLog(req.user.id, 'dismiss_report', 'report', reportId, 'Report dismissed');
     res.status(200).json({ message: 'Report dismissed.' });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Admin: Search users
@@ -534,7 +571,9 @@ router.get('/admin/search-users', authenticateJWT, requireAdmin, async (req, res
     const term = req.query.q || '';
     const users = await Auth.searchUsers(term);
     res.status(200).json({ users });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Admin: Trend stats
@@ -542,7 +581,9 @@ router.get('/admin/trend-stats', authenticateJWT, requireAdmin, async (req, res,
   try {
     const trends = await Auth.getTrendStats();
     res.status(200).json(trends);
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Admin: Check ban status (for login page check - no auth)
@@ -555,15 +596,62 @@ router.post('/check-ban', async (req, res, next) => {
     await db.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
     const { rows } = await db.query(
       `SELECT id, display_name, name, suspended_until, banned_reason FROM "Person" WHERE email = $1`,
-      [email]
+      [email],
     );
     if (rows.length === 0) return res.status(200).json({ banned: false });
     const user = rows[0];
     if (user.suspended_until && new Date(user.suspended_until) > new Date()) {
-      return res.status(200).json({ banned: true, user_id: user.id, name: user.display_name || user.name, suspended_until: user.suspended_until, reason: user.banned_reason || 'No reason provided' });
+      return res.status(200).json({
+        banned: true,
+        user_id: user.id,
+        name: user.display_name || user.name,
+        suspended_until: user.suspended_until,
+        reason: user.banned_reason || 'No reason provided',
+      });
     }
     res.status(200).json({ banned: false });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin: Global search
+router.get('/admin/global-search', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const term = req.query.q || '';
+    const results = await Auth.globalSearch(term);
+    res.status(200).json(results);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin: User activity drill-down
+router.get('/admin/users/:id/activity', authenticateJWT, requireAdmin, async (req, res, next) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    const activity = await Auth.getUserActivity(userId);
+    res.status(200).json(activity);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Report a user/profile
+router.post('/report-user', authenticateJWT, async (req, res, next) => {
+  try {
+    const { reported_id, reason, description } = req.body;
+    if (!reported_id || !reason) {
+      return res.status(400).json({ error: 'reported_id and reason are required.' });
+    }
+    if (parseInt(reported_id, 10) === req.user.id) {
+      return res.status(400).json({ error: 'Cannot report yourself.' });
+    }
+    await Auth.reportUser(req.user.id, parseInt(reported_id, 10), reason, description || '');
+    res.status(201).json({ message: 'Report submitted.' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

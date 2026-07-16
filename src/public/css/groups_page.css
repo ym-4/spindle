@@ -29,10 +29,10 @@ main {
   padding: 20px;
   margin-bottom: 40px;
   display: flex;
-	justify-content: space-between;
-	align-items: center;
-	gap: 30px;
-} 
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+}
 
 .header-left {
   display: flex;
@@ -52,7 +52,7 @@ main {
   padding: 14px 20px;
   border: none;
   border-radius: 999px;
-  font-size: 16px; 
+  font-size: 16px;
 }
 
 .section-header {
@@ -73,14 +73,14 @@ main {
 }
 
 #content-area {
-    flex: 1;
-    padding: 0 2rem;
+  flex: 1;
+  padding: 0 2rem;
 }
 
 #add-btn {
-  bottom: 30px; 
-  right: 30px; 
-  width: 60px; 
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
   height: 60px;
 }
 
@@ -119,15 +119,13 @@ main {
   color: rgb(10, 149, 241);
 }
 
-
 /* ----------------------------------------------------------------------
                             Card
  ---------------------------------------------------------------------- */
 
 .groups-grid {
   display: grid;
-  grid-template-columns:
-    repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 24px;
 }
 
@@ -139,19 +137,18 @@ main {
 }
 
 .group-card {
-	background: white;
+  background: white;
 
-	border-radius: 2px;
-	border-style: solid;
-	border-color: black;
-	border-width: 2px;
-	
-	padding: 20px;
-	box-shadow: 5px 5px;
+  border-radius: 2px;
+  border-style: solid;
+  border-color: black;
+  border-width: 2px;
+
+  padding: 20px;
+  box-shadow: 5px 5px;
 
   transition: 0.2s ease;
 }
-
 
 .group-card:hover {
   transform: translateY(-4px);
@@ -160,7 +157,6 @@ main {
 .group-top {
   margin-bottom: 14px;
 }
-
 
 .group-top {
   margin-bottom: 14px;
@@ -176,7 +172,7 @@ main {
 
 .group-card h3 {
   margin-bottom: 10px;
-}	
+}
 
 .group-card p {
   color: #666;

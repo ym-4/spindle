@@ -1,5 +1,18 @@
 {
   "liveServer.settings.root": "/src/public",
   "liveServer.settings.port": 5500,
-  "liveServer.settings.CustomBrowser": "chrome"
+  "liveServer.settings.CustomBrowser": "chrome",
+
+  // Automatically runs prettier and eslint on save
+  "editor.formatOnSave": true,
+
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  "eslint.validate": ["javascript"],
+
+  "prettier.requireConfig": true
 }

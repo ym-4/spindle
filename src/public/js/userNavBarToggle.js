@@ -26,10 +26,12 @@
     if (typeof clearAuth === 'function') {
       clearAuth();
     } else {
-      ['token', 'pineappleToken', 'loggedInUserId', 'pineappleUser', 'displayName'].forEach((key) => {
-        localStorage.removeItem(key);
-        sessionStorage.removeItem(key);
-      });
+      ['token', 'pineappleToken', 'loggedInUserId', 'pineappleUser', 'displayName'].forEach(
+        (key) => {
+          localStorage.removeItem(key);
+          sessionStorage.removeItem(key);
+        },
+      );
     }
     window.location.href = 'home.html';
   }

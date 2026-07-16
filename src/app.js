@@ -6,8 +6,6 @@ const createError = require('http-errors');
 const path = require('path');
 require('dotenv').config();
 
-
-
 // Import route handlers
 const personRouter = require('./routers/Person.router');
 const authRouter = require('./routers/Auth.router');
@@ -25,6 +23,7 @@ const marketplaceRouter = require('./routers/Marketplace.router');
 const cartRouter = require('./routers/Cart.router');
 const tagsRouter = require('./routers/Tags.router');
 const paymentsRouter = require('./routers/Payments.router');
+const giphyRouter = require('./routers/Giphy.router');
 const blockRouter = require('./routers/BlockedUsers.router');
 
 const app = express();
@@ -33,8 +32,7 @@ app.use(cors()); // Might remove later
 // Allow Live Server / local dev frontends to call the API on another port
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  const isLocalDev =
-    origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  const isLocalDev = origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
   if (isLocalDev) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -47,7 +45,7 @@ app.use((req, res, next) => {
 });
 
 // Parse incoming JSON request bodies (e.g. from POST/PUT requests)
-app.use(express.json({limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files (HTML, CSS, JS, images) from the 'public' folder.
@@ -78,13 +76,13 @@ app.use('/payments', paymentsRouter);
 app.use('/block', blockRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/giphy', giphyRouter);
 
 // 404 handler — if no route above matched the request,
 // create a 404 error and pass it to the error handler below.
 app.use((req, res, next) => {
   next(createError(404, `Unknown resource ${req.method} ${req.originalUrl}`));
 });
-
 
 // Global error handler — catches all errors thrown or passed via next(err).
 // Sends a consistent JSON response instead of Express's default HTML error page.
