@@ -569,11 +569,32 @@
 
                       <div class="d-flex align-items-center">
                         <div class="d-flex gap-1">
+                          <!-- Graph button -->
                           <button class="btn btn-light">
                             <i class="bi bi-diagram-3"></i>
                           </button>
 
-                          <button class="btn btn-light"><i class="bi bi-plus-lg"></i></button>
+                          <div class="dropdown">
+                            <button class="btn btn-light" data-bs-toggle="dropdown">
+                              <i class="bi bi-plus-lg"></i>
+                            </button>
+
+                            <ul class="dropdown-menu">
+                              <li>
+                                <a class="dropdown-item" id="createWikiPageBtn">
+                                  <i class="bi bi-file-earmark-text me-2"></i>
+                                  New Note
+                                </a>
+                              </li>
+
+                              <li>
+                                <a class="dropdown-item" id="createWhiteboardBtn">
+                                  <i class="bi bi-easel2 me-2"></i>
+                                  New Whiteboard
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -620,6 +641,26 @@
                           <a class="wiki-file">
                             <i class="bi bi-file-earmark-text"></i>
                             Sorting
+                          </a>
+                        </div>
+                      </div>
+
+                      <div class="folder">
+                        <div class="folder-header">
+                          <i class="bi bi-chevron-down"></i>
+                          <i class="bi bi-folder-fill text-warning"></i>
+                          Whiteboards
+                        </div>
+
+                        <div class="folder-items" id="whiteboardList">
+                          <a class="wiki-file whiteboard-item">
+                            <i class="bi bi-easel2"></i>
+                            Revision Mindmap
+                          </a>
+
+                          <a class="wiki-file whiteboard-item">
+                            <i class="bi bi-easel2"></i>
+                            Assignment Planning
                           </a>
                         </div>
                       </div>

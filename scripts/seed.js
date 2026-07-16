@@ -1048,6 +1048,44 @@ const subtasks = [
   },
 ];
 
+const whiteboards = [
+  {
+    groupName: 'SOC Study Buddies',
+    creatorEmail: 'alice@example.com',
+    title: 'Sprint Planning',
+    mode: 'whiteboard',
+    drawing_data: {},
+  },
+  {
+    groupName: 'SOC Study Buddies',
+    creatorEmail: 'alice@example.com',
+    title: 'CS1010 Mind Map',
+    mode: 'pixel',
+    drawing_data: {},
+  },
+  {
+    groupName: 'SOC Database Club',
+    creatorEmail: 'carol@example.com',
+    title: 'ER Diagram',
+    mode: 'whiteboard',
+    drawing_data: {},
+  },
+  {
+    groupName: 'MAD Project Team',
+    creatorEmail: 'frank@example.com',
+    title: 'UI Wireframe',
+    mode: 'pixel',
+    drawing_data: {},
+  },
+  {
+    groupName: 'EEE Circuit Masters',
+    creatorEmail: 'grace@example.com',
+    title: 'Circuit Revision',
+    mode: 'whiteboard',
+    drawing_data: {},
+  },
+];
+
 async function seed() {
   console.log('Seeding data...');
 
@@ -1378,6 +1416,27 @@ async function seed() {
   console.log(`Inserted ${groupAnnouncements.length} group announcements.`);
 
   console.log(`Inserted ${groupDiscussions.length} group discussions.`);
+
+  for (const board of whiteboards) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      board.creatorEmail,
+    ]);
+
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [board.groupName]);
+
+    if (!userRes.rows.length || !groupRes.rows.length) continue;
+
+    await pool.query(
+      `
+  INSERT INTO "WhiteboardDrawings"
+  ("user_id", "group_id", "title", "mode", "drawing_data")
+  VALUES ($1, $2, $3, $4, $5)
+  `,
+      [userRes.rows[0].id, groupRes.rows[0].id, board.title, board.mode, JSON.stringify({})],
+    );
+  }
+
+  console.log(`Inserted ${whiteboards.length} whiteboards.`);
 
   console.log('Seed completed successfully.');
   console.log(

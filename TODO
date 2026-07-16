@@ -1,28 +1,34 @@
 1. Group Files
 
-Backend
+Backend (done)
+
 - Create routes and model (GET, POST, DELETE)
 - Store file in a folder
 
 Frontend
-- Display folders and Files
-- Link to Backend
-- Modal for adding a file
-- Let user download the files
-- Let user delete the files
-- Let user add new file
+
+- Display folders and Files (done)
+- Link to Backend (done)
+- Modal for adding a file (done)
+- Let user download the files (done)
+- Let user delete the files (done)
+- Let user add new file (done)
+- Let user delete folder
 
 2. Group Notes
 
 Database
+
 - Make table for notes and notes link
 - Make sample seed data
 
 Backend
+
 - Create routes and model (GET, POST, PUT, DELETE)
-(Make sure to store folder path of notes)
+  (Make sure to store folder path of notes)
 
 Frontend
+
 - Display notes
 - Store notes as html (add the html tags manually through made text editor)
 - Make text editor function

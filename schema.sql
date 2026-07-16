@@ -335,7 +335,7 @@ CREATE TABLE "GroupTasks" (
     REFERENCES "Person"("id") ON DELETE CASCADE,
 
   FOREIGN KEY ("assignee_id")
-    REFERENCES "Person"("id") ON DELETE SET NULL
+    REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 CREATE TABLE "GroupTaskItems" (
@@ -350,9 +350,36 @@ CREATE TABLE "GroupTaskItems" (
     REFERENCES "GroupTasks"("id") ON DELETE CASCADE,
 
   FOREIGN KEY ("completed_by")
-    REFERENCES "Person"("id") ON DELETE SET NULL
+    REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
+CREATE TYPE modes AS ENUM (
+  'whiteboard',
+  'pixel'
+);
+
+CREATE TABLE "WhiteboardDrawings" (
+    "id" SERIAL PRIMARY KEY,
+    "user_id" INT NOT NULL,
+    "group_id" INT, 
+    "title" VARCHAR(100) NOT NULL,
+    "mode" modes NOT NULL,
+    "drawing_data" JSONB NOT NULL,
+    "image" TEXT,
+    "created_at" TIMESTAMP DEFAULT NOW(),
+    "updated_at" TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY ("user_id")
+      REFERENCES "Person"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("group_id")
+      REFERENCES "Groups"("id") ON DELETE CASCADE
+);
+
+-- Updates the whiteboard timestamp for updated_at
+CREATE TRIGGER update_whiteboard_timestamp
+BEFORE UPDATE
+ON "WhiteboardDrawings"
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
 
 ---------------------------------------------------------------------------------------
 --                                  USER

@@ -27,6 +27,7 @@ const giphyRouter = require('./routers/Giphy.router');
 const blockRouter = require('./routers/BlockedUsers.router');
 const tasksRouter = require('./routers/Tasks.router');
 const groupFilesRouter = require('./routers/GroupFiles.router');
+const whiteboardRouter = require('./routers/Whiteboard.router');
 
 const app = express();
 app.use(cors()); // Might remove later
@@ -78,6 +79,7 @@ app.use('/payments', paymentsRouter);
 app.use('/block', blockRouter);
 app.use('/groupTasks', tasksRouter);
 app.use('/groupFiles', groupFilesRouter);
+app.use('/whiteboards', whiteboardRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use('/giphy', giphyRouter);
