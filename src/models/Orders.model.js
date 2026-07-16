@@ -8,7 +8,7 @@ async function createOrder(buyerId, totalAmount, paymentRef, items) {
     const { rows } = await client.query(
       `INSERT INTO "Orders" ("buyer_id", "total_amount", "status", "payment_ref")
        VALUES ($1, $2, 'paid', $3) RETURNING *`,
-      [buyerId, totalAmount, paymentRef]
+      [buyerId, totalAmount, paymentRef],
     );
     const order = rows[0];
 
@@ -16,7 +16,7 @@ async function createOrder(buyerId, totalAmount, paymentRef, items) {
       await client.query(
         `INSERT INTO "OrderItems" ("order_id", "item_id", "seller_id", "quantity", "price_at_purchase")
          VALUES ($1, $2, $3, $4, $5)`,
-        [order.id, item.item_id, item.seller_id, item.quantity, item.price]
+        [order.id, item.item_id, item.seller_id, item.quantity, item.price],
       );
     }
 
