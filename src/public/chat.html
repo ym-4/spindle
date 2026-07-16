@@ -4,13 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chats — Spindle</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="css/posts.css" />
     <link rel="stylesheet" href="css/wa.css" />
     <link rel="stylesheet" href="css/chat-spindle.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap"
+      rel="stylesheet"
+    />
 
     <script src="js/api.js"></script>
   </head>
@@ -58,12 +67,22 @@
               <div class="wa-chat-header">
                 <div id="chatHeaderAvatar" class="wa-avatar"></div>
                 <div class="wa-chat-header__name"><strong id="chatHeaderName"></strong></div>
-                <button type="button" class="wa-icon-btn" id="btnVoiceCall" title="Voice call">📞</button>
-                <button type="button" class="wa-icon-btn" id="btnVideoCall" title="Video call">📹</button>
+                <button type="button" class="wa-icon-btn" id="btnVoiceCall" title="Voice call">
+                  📞
+                </button>
+                <button type="button" class="wa-icon-btn" id="btnVideoCall" title="Video call">
+                  📹
+                </button>
               </div>
               <div id="chatMessages" class="wa-messages"></div>
               <form id="chatForm" class="wa-compose">
-                <input type="text" id="chatInput" placeholder="Type a message" maxlength="2000" autocomplete="off" />
+                <input
+                  type="text"
+                  id="chatInput"
+                  placeholder="Type a message"
+                  maxlength="2000"
+                  autocomplete="off"
+                />
                 <button type="submit" class="wa-btn">Send</button>
               </form>
             </div>
@@ -81,19 +100,37 @@
           <video id="remoteVideo" autoplay playsinline class="wa-call-remote"></video>
         </div>
         <div id="callIncomingActions" class="wa-call-actions hidden">
-          <button type="button" class="wa-call-btn wa-call-btn--decline" id="btnDeclineCall" title="Decline">✕</button>
-          <button type="button" class="wa-call-btn wa-call-btn--accept" id="btnAcceptCall" title="Accept">📞</button>
+          <button
+            type="button"
+            class="wa-call-btn wa-call-btn--decline"
+            id="btnDeclineCall"
+            title="Decline"
+          >
+            ✕
+          </button>
+          <button
+            type="button"
+            class="wa-call-btn wa-call-btn--accept"
+            id="btnAcceptCall"
+            title="Accept"
+          >
+            📞
+          </button>
         </div>
         <div id="callActiveControls" class="wa-call-controls hidden">
           <button type="button" class="wa-call-ctrl" id="btnMute" title="Mute">🎤</button>
           <button type="button" class="wa-call-ctrl" id="btnToggleVideo" title="Camera">📹</button>
-          <button type="button" class="wa-call-ctrl wa-call-ctrl--end" id="btnEndCall" title="End">📵</button>
+          <button type="button" class="wa-call-ctrl wa-call-ctrl--end" id="btnEndCall" title="End">
+            📵
+          </button>
         </div>
         <div id="callEndedActions" class="wa-call-ended hidden">
           <button type="button" class="wa-btn wa-btn--ghost" id="btnCallDismiss">Dismiss</button>
           <button type="button" class="wa-btn" id="btnCallBack">Call back</button>
         </div>
-        <button type="button" class="wa-btn wa-btn--ghost hidden" id="btnCancelRinging">Cancel</button>
+        <button type="button" class="wa-btn wa-btn--ghost hidden" id="btnCancelRinging">
+          Cancel
+        </button>
       </div>
     </div>
 

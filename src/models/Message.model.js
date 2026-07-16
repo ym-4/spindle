@@ -70,10 +70,9 @@ module.exports.totalUnreadCount = async function totalUnreadCount(userId) {
 };
 
 module.exports.findPersonById = async function findPersonById(userId) {
-  const { rows } = await pool.query(
-    `SELECT id, name, avatar, role FROM "Person" WHERE id = $1`,
-    [userId],
-  );
+  const { rows } = await pool.query(`SELECT id, name, avatar, role FROM "Person" WHERE id = $1`, [
+    userId,
+  ]);
   return rows[0] ?? null;
 };
 

@@ -1,33 +1,33 @@
 .admin-section {
-    display: none;
+  display: none;
 }
 
 .admin-section:first-of-type {
-    display: block;
+  display: block;
 }
 
 #adminNav {
-    background: #fff;
-    border-radius: 16px;
-    padding: 10px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 10px;
 }
 
 #adminNav .list-group-item {
-    border: none;
-    border-radius: 12px;
-    margin-bottom: 6px;
-    transition: all 0.2s ease;
-    font-weight: 500;
+  border: none;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 #adminNav .list-group-item:hover {
-    background: #f4f6f9;
-    transform: translateX(4px);
+  background: #f4f6f9;
+  transform: translateX(4px);
 }
 
 #adminNav .list-group-item.active {
-    background: #198754;
-    color: white;
+  background: #198754;
+  color: white;
 }
 
 /*---------------------------------------*/
@@ -35,40 +35,40 @@
 /*---------------------------------------*/
 
 #group-details .card-header {
-    background-color: #ef4444;
-    color: white;
+  background-color: #ef4444;
+  color: white;
 }
 
 #members .card-header {
-    background-color: #ffaf25;
-    color: white;
+  background-color: #ffaf25;
+  color: white;
 }
 
 #join-requests .card-header {
-    background-color: #22c55e;
-    color: white;
+  background-color: #22c55e;
+  color: white;
 }
 
 #channels .card-header {
-    background-color: #3694dc;
-    color: white;
+  background-color: #3694dc;
+  color: white;
 }
 
 #announcements .card-header {
-    background-color: #a06ac6;
-    color: white;
+  background-color: #a06ac6;
+  color: white;
 }
 
 #currentAnnouncements .card-header {
-    background-color: #a06ac6;
-    color: white;
+  background-color: #a06ac6;
+  color: white;
 }
 
 #post-annoucement-button {
-    background-color: #8f75a1;
-    color: white;
+  background-color: #8f75a1;
+  color: white;
 }
 
 #post-annoucement-button:hover {
-    background-color: #7f549e;
+  background-color: #7f549e;
 }

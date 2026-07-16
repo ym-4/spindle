@@ -1,8 +1,8 @@
 /* Brutalist / 3D auth modal — overrides auth.css for the auth modal panel */
 :root {
   --brutal-primary: #000000;
-  --brutal-secondary: #FFFFFF;
-  --brutal-accent: #FF5E5B;
+  --brutal-secondary: #ffffff;
+  --brutal-accent: #ff5e5b;
   --brutal-shadow: 8px 8px 0px #000000;
 }
 
@@ -154,7 +154,7 @@
 
 .auth-divider::before,
 .auth-divider::after {
-  content: "";
+  content: '';
   flex: 1;
   border-bottom: 2px solid var(--brutal-primary);
   margin: 0 10px;
@@ -257,8 +257,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .home-tagline {
@@ -269,11 +274,11 @@
   letter-spacing: -1px;
 }
 
-[data-theme="dark"] .home-tagline {
+[data-theme='dark'] .home-tagline {
   color: #fff;
 }
 
-[data-theme="light"] .home-tagline {
+[data-theme='light'] .home-tagline {
   color: #000;
 }
 
@@ -302,15 +307,17 @@
   border: 2px solid var(--wa-border, #2a3942);
   border-radius: 12px;
   text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
-[data-theme="dark"] .home-feature-card {
+[data-theme='dark'] .home-feature-card {
   background: var(--wa-panel, #111b21);
   color: var(--wa-text, #e9edef);
 }
 
-[data-theme="light"] .home-feature-card {
+[data-theme='light'] .home-feature-card {
   background: #fff;
   color: #1c1c1c;
   border-color: #e4e6eb;
@@ -318,7 +325,7 @@
 
 .home-feature-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .home-feature-card i {

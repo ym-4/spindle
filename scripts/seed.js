@@ -12,7 +12,7 @@ const hashedDefaultPassword = hashPassword(DEFAULT_PASSWORD);
 const hashedAdminPassword = hashPassword(ADMIN_PASSWORD);
 
 const persons = [
-  { email: 'alice@example.com', name: 'Alice'},
+  { email: 'alice@example.com', name: 'Alice' },
   { email: 'bob@example.com', name: 'Bob' },
   { email: 'carol@example.com', name: 'Carol' },
   { email: 'dave@example.com', name: 'Dave' },
@@ -627,54 +627,188 @@ module.exports = marketplaceItems;
 module.exports = marketplaceItems;
 
 // Seed data for groups
-// Example Groups 
+// Example Groups
 const groups = [
+  // ===== SOC (5 groups) =====
   {
     name: 'SOC Study Buddies',
     creatorEmail: 'alice@example.com',
-    description: 'A group for SOC students to revise and share notes.',
+    description: 'General CS study group.',
     school: 'SOC',
     module: 'CS1010',
     public: true,
   },
   {
-    name: 'MAD Project Team',
+    name: 'SOC Algorithms',
     creatorEmail: 'bob@example.com',
-    description: 'Mobile App Development project collaboration group.',
+    description: 'Algorithms and data structures.',
+    school: 'SOC',
+    module: 'CS2040',
+    public: true,
+  },
+  {
+    name: 'SOC Database Club',
+    creatorEmail: 'carol@example.com',
+    description: 'Database systems discussions.',
+    school: 'SOC',
+    module: 'CS2102',
+    public: false,
+  },
+  {
+    name: 'SOC Software Engineering',
+    creatorEmail: 'dave@example.com',
+    description: 'Software engineering project help.',
+    school: 'SOC',
+    module: 'CS2103',
+    public: false,
+  },
+  {
+    name: 'SOC AI Learners',
+    creatorEmail: 'eve@example.com',
+    description: 'Artificial Intelligence study group.',
+    school: 'SOC',
+    module: 'CS3243',
+    public: true,
+  },
+
+  // ===== Other Schools =====
+  {
+    name: 'MAD Project Team',
+    creatorEmail: 'frank@example.com',
+    description: 'Mobile app development.',
     school: 'MAD',
     module: 'CP2106',
+    public: true,
+  },
+  {
+    name: 'SMA Dream Team',
+    creatorEmail: 'beni@example.com',
+    description: 'Marine Ships.',
+    school: 'SMA',
+    module: 'SM1029',
     public: false,
   },
   {
     name: 'EEE Circuit Masters',
-    creatorEmail: 'carol@example.com',
-    description: 'Discuss circuits, labs, and exam prep for EEE modules.',
+    creatorEmail: 'grace@example.com',
+    description: 'Circuits and electronics.',
     school: 'EEE',
     module: 'EE2020',
     public: true,
+  },
+  {
+    name: 'Business Case Club',
+    creatorEmail: 'heidi@example.com',
+    description: 'Business presentations and case studies.',
+    school: 'SB',
+    module: 'BM1010',
+    public: false,
+  },
+  {
+    name: 'Design Studio',
+    creatorEmail: 'ivan@example.com',
+    description: 'Design critiques and portfolio reviews.',
+    school: 'MAD',
+    module: 'DX1001',
+    public: true,
+  },
+  {
+    name: 'Engineering Mechanics',
+    creatorEmail: 'judy@example.com',
+    description: 'Mechanical engineering study group.',
+    school: 'MAE',
+    module: 'ME2001',
+    public: true,
+  },
+  {
+    name: 'Applied Science Hub',
+    creatorEmail: 'mallory@example.com',
+    description: 'Applied science discussions.',
+    school: 'CLS',
+    module: 'CH101',
+    public: false,
   },
 ];
 
 // Example GroupMembers
 const groupMembers = [
-  // SOC group
+  // ===== SOC Study Buddies =====
   { groupName: 'SOC Study Buddies', userEmail: 'alice@example.com', role: 'admin' },
   { groupName: 'SOC Study Buddies', userEmail: 'bob@example.com', role: 'user' },
   { groupName: 'SOC Study Buddies', userEmail: 'carol@example.com', role: 'user' },
-  { groupName: 'SOC Study Buddies', userEmail: 'beni@example.com', role: 'admin' },
-  { groupName: 'SOC Study Buddies', userEmail: 'emataso@example.com', role: 'user' },
-  { groupName: 'SOC Study Buddies', userEmail: 'hinano@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'dave@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'eve@example.com', role: 'user' },
+  { groupName: 'SOC Study Buddies', userEmail: 'beni@example.com', role: 'user' },
 
+  // ===== SOC Algorithms =====
+  { groupName: 'SOC Algorithms', userEmail: 'bob@example.com', role: 'admin' },
+  { groupName: 'SOC Algorithms', userEmail: 'alice@example.com', role: 'user' },
+  { groupName: 'SOC Algorithms', userEmail: 'frank@example.com', role: 'user' },
+  { groupName: 'SOC Algorithms', userEmail: 'grace@example.com', role: 'user' },
+  { groupName: 'SOC Algorithms', userEmail: 'heidi@example.com', role: 'user' },
+  { groupName: 'SOC Algorithms', userEmail: 'ivan@example.com', role: 'user' },
 
-  // MAD group
-  { groupName: 'MAD Project Team', userEmail: 'bob@example.com', role: 'admin' },
-  { groupName: 'MAD Project Team', userEmail: 'dave@example.com', role: 'user' },
-  { groupName: 'MAD Project Team', userEmail: 'eve@example.com', role: 'user' },
+  // ===== SOC Database Club =====
+  { groupName: 'SOC Database Club', userEmail: 'carol@example.com', role: 'admin' },
+  { groupName: 'SOC Database Club', userEmail: 'judy@example.com', role: 'user' },
+  { groupName: 'SOC Database Club', userEmail: 'leo@example.com', role: 'user' },
+  { groupName: 'SOC Database Club', userEmail: 'oscar@example.com', role: 'user' },
+  { groupName: 'SOC Database Club', userEmail: 'peggy@example.com', role: 'user' },
+  { groupName: 'SOC Database Club', userEmail: 'trent@example.com', role: 'user' },
 
-  // EEE group
-  { groupName: 'EEE Circuit Masters', userEmail: 'carol@example.com', role: 'admin' },
+  // ===== SOC Software Engineering =====
+  { groupName: 'SOC Software Engineering', userEmail: 'dave@example.com', role: 'admin' },
+  { groupName: 'SOC Software Engineering', userEmail: 'victor@example.com', role: 'user' },
+  { groupName: 'SOC Software Engineering', userEmail: 'walter@example.com', role: 'user' },
+  { groupName: 'SOC Software Engineering', userEmail: 'xavier@example.com', role: 'user' },
+  { groupName: 'SOC Software Engineering', userEmail: 'yvonne@example.com', role: 'user' },
+  { groupName: 'SOC Software Engineering', userEmail: 'zara@example.com', role: 'user' },
+
+  // ===== SOC AI Learners =====
+  { groupName: 'SOC AI Learners', userEmail: 'eve@example.com', role: 'admin' },
+  { groupName: 'SOC AI Learners', userEmail: 'alice@example.com', role: 'user' },
+  { groupName: 'SOC AI Learners', userEmail: 'beni@example.com', role: 'user' },
+  { groupName: 'SOC AI Learners', userEmail: 'emataso@example.com', role: 'user' },
+  { groupName: 'SOC AI Learners', userEmail: 'hinano@example.com', role: 'user' },
+  { groupName: 'SOC AI Learners', userEmail: 'leo@example.com', role: 'user' },
+
+  // ===== MAD =====
+  { groupName: 'MAD Project Team', userEmail: 'frank@example.com', role: 'admin' },
+  { groupName: 'MAD Project Team', userEmail: 'grace@example.com', role: 'user' },
+  { groupName: 'MAD Project Team', userEmail: 'heidi@example.com', role: 'user' },
+  { groupName: 'MAD Project Team', userEmail: 'ivan@example.com', role: 'user' },
+  { groupName: 'MAD Project Team', userEmail: 'judy@example.com', role: 'user' },
+
+  // ===== EEE =====
+  { groupName: 'EEE Circuit Masters', userEmail: 'grace@example.com', role: 'admin' },
   { groupName: 'EEE Circuit Masters', userEmail: 'frank@example.com', role: 'user' },
-  { groupName: 'EEE Circuit Masters', userEmail: 'grace@example.com', role: 'user' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'mallory@example.com', role: 'user' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'oscar@example.com', role: 'user' },
+  { groupName: 'EEE Circuit Masters', userEmail: 'peggy@example.com', role: 'user' },
+
+  // ===== SB =====
+  { groupName: 'Business Case Club', userEmail: 'heidi@example.com', role: 'admin' },
+  { groupName: 'Business Case Club', userEmail: 'trent@example.com', role: 'user' },
+  { groupName: 'Business Case Club', userEmail: 'victor@example.com', role: 'user' },
+  { groupName: 'Business Case Club', userEmail: 'walter@example.com', role: 'user' },
+
+  // ===== DMAD =====
+  { groupName: 'Design Studio', userEmail: 'ivan@example.com', role: 'admin' },
+  { groupName: 'Design Studio', userEmail: 'xavier@example.com', role: 'user' },
+  { groupName: 'Design Studio', userEmail: 'yvonne@example.com', role: 'user' },
+  { groupName: 'Design Studio', userEmail: 'zara@example.com', role: 'user' },
+
+  // ===== MAE =====
+  { groupName: 'Engineering Mechanics', userEmail: 'judy@example.com', role: 'admin' },
+  { groupName: 'Engineering Mechanics', userEmail: 'alice@example.com', role: 'user' },
+  { groupName: 'Engineering Mechanics', userEmail: 'bob@example.com', role: 'user' },
+  { groupName: 'Engineering Mechanics', userEmail: 'carol@example.com', role: 'user' },
+
+  // ===== SAS =====
+  { groupName: 'Applied Science Hub', userEmail: 'mallory@example.com', role: 'admin' },
+  { groupName: 'Applied Science Hub', userEmail: 'leo@example.com', role: 'user' },
+  { groupName: 'Applied Science Hub', userEmail: 'beni@example.com', role: 'user' },
+  { groupName: 'Applied Science Hub', userEmail: 'emataso@example.com', role: 'user' },
 ];
 
 // Example Group Discussions
@@ -728,7 +862,7 @@ const groupDiscussions = [
 
   {
     groupName: 'SOC Study Buddies',
-    userEmail: 'alice@example.com', 
+    userEmail: 'alice@example.com',
     channel_name: 'general',
     message: 'Yeah, I just submitted it 👍',
   },
@@ -777,37 +911,31 @@ const groupDiscussions = [
 // Example Group Announcements
 const groupAnnouncements = [
   {
-    announcementId: 1,
     groupName: 'SOC Study Buddies',
     userEmail: 'alice@example.com',
     text: '📢 Welcome to SOC Study Buddies! Please introduce yourself in the general channel.',
   },
   {
-    announcementId: 2,
     groupName: 'SOC Study Buddies',
     userEmail: 'beni@example.com',
     text: 'Reminder: CS1010 assignment is due this Friday at 11:59 PM.',
   },
   {
-    announcementId: 3,
     groupName: 'MAD Project Team',
     userEmail: 'bob@example.com',
     text: 'Sprint 2 starts tomorrow. Please update your assigned tasks.',
   },
   {
-    announcementId: 4,
     groupName: 'MAD Project Team',
     userEmail: 'bob@example.com',
     text: 'Team meeting this Thursday at 3:00 PM in Classroom T203.',
   },
   {
-    announcementId: 5,
     groupName: 'EEE Circuit Masters',
     userEmail: 'carol@example.com',
     text: 'Lab report submission deadline has been extended to Wednesday.',
   },
   {
-    announcementId: 6,
     groupName: 'EEE Circuit Masters',
     userEmail: 'carol@example.com',
     text: 'Exam revision session will be held this Saturday at 10 AM.',
@@ -821,12 +949,12 @@ async function seed() {
   for (const person of persons) {
     const hashedPassword = await bcrypt.hash(
       person.hashed_password?.toString() || 'password123',
-      10
+      10,
     );
 
     await pool.query(
       `INSERT INTO "Person" ("email", "name", "hashed_password") VALUES ($1, $2, $3) ON CONFLICT ("email") DO NOTHING`,
-      [person.email, person.name, hashedPassword]
+      [person.email, person.name, hashedPassword],
     );
   }
   console.log(`Inserted ${persons.length} persons.`);
@@ -961,7 +1089,7 @@ async function seed() {
     }
   }
   console.log(`Inserted ${savedPosts.length} saved posts.`);
-  
+
   // // Insert groups
   // for (const group of groups) {
   //   const creatorRes = await pool.query(
@@ -1022,116 +1150,118 @@ async function seed() {
   }
   console.log(`Inserted ${marketplaceItems.length} marketplace items.`);
 
-
   // Insert groups
   for (const group of groups) {
-    const userRes = await pool.query(
-      `SELECT id FROM "Person" WHERE email = $1`,
-      [group.creatorEmail]
-    );
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      group.creatorEmail,
+    ]);
 
-    if (userRes.rows.length > 0) {
-      await pool.query(
-        `INSERT INTO "Groups" ("name", "creator_id", "description", "school", "module")
-         VALUES ($1, $2, $3, $4, $5)`,
-        [group.name, userRes.rows[0].id, group.description, group.school, group.module],
-      );
-    }
+    if (userRes.rows.length === 0) continue;
+
+    await pool.query(
+      `INSERT INTO "Groups"
+      ("name", "creator_id", "description", "school", "module", "public")
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT ("name") DO NOTHING`,
+      [group.name, userRes.rows[0].id, group.description, group.school, group.module, group.public],
+    );
   }
 
   console.log(`Inserted ${groups.length} groups.`);
-
   // Insert group members
   for (const member of groupMembers) {
-    const userRes = await pool.query(
-      `SELECT id FROM "Person" WHERE email = $1`,
-      [member.userEmail]
-    );
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      member.userEmail,
+    ]);
 
-    const groupRes = await pool.query(
-      `SELECT id FROM "Groups" WHERE name = $1`,
-      [member.groupName]
-    );
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [
+      member.groupName,
+    ]);
 
     if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
       await pool.query(
         `INSERT INTO "GroupMembers" ("group_id", "user_id", "role")
         VALUES ($1, $2, $3)
         ON CONFLICT DO NOTHING`,
-        [groupRes.rows[0].id, userRes.rows[0].id, member.role]
+        [groupRes.rows[0].id, userRes.rows[0].id, member.role],
       );
     }
   }
 
   console.log(`Inserted ${groupMembers.length} group members.`);
 
+  // Insert default "general" message for every group
+  for (const group of groups) {
+    const creatorRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      group.creatorEmail,
+    ]);
+
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [group.name]);
+
+    if (creatorRes.rows.length === 0 || groupRes.rows.length === 0) continue;
+
+    await pool.query(
+      `INSERT INTO "GroupDiscussions"
+      ("group_id", "user_id", "channel_name", "message")
+     VALUES ($1, $2, 'general', 'Welcome to the group!')
+     ON CONFLICT DO NOTHING`,
+      [groupRes.rows[0].id, creatorRes.rows[0].id],
+    );
+  }
+
+  console.log('Created default general discussion for every group.');
+
   // Insert group discussions
   for (const discussion of groupDiscussions) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      discussion.userEmail,
+    ]);
 
-    const userRes = await pool.query(
-      `SELECT id FROM "Person" WHERE email = $1`,
-      [discussion.userEmail]
-    );
-
-    const groupRes = await pool.query(
-      `SELECT id FROM "Groups" WHERE name = $1`,
-      [discussion.groupName]
-    );
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [
+      discussion.groupName,
+    ]);
 
     if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
-
       await pool.query(
         `INSERT INTO "GroupDiscussions"
         ("group_id", "user_id", "channel_name", "message")
         VALUES ($1, $2, $3, $4)
         ON CONFLICT DO NOTHING`,
-        [
-          groupRes.rows[0].id,
-          userRes.rows[0].id,
-          discussion.channel_name,
-          discussion.message
-        ]
+        [groupRes.rows[0].id, userRes.rows[0].id, discussion.channel_name, discussion.message],
       );
-
     }
   }
 
   // Insert group announcements
   for (const announcement of groupAnnouncements) {
-    const userRes = await pool.query(
-      `SELECT id FROM "Person" WHERE email = $1`,
-      [announcement.userEmail]
-    );
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      announcement.userEmail,
+    ]);
 
-    const groupRes = await pool.query(
-      `SELECT id FROM "Groups" WHERE name = $1`,
-      [announcement.groupName]
-    );
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [
+      announcement.groupName,
+    ]);
 
     if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
       await pool.query(
         `INSERT INTO "GroupAnnouncements"
-        ("announcement_id", "user_id", "group_id", "text")
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT ("announcement_id") DO NOTHING`,
-        [
-          announcement.announcementId,
-          userRes.rows[0].id,
-          groupRes.rows[0].id,
-          announcement.text,
-        ]
+        ("user_id", "group_id", "text")
+        VALUES ($1, $2, $3)
+        ON CONFLICT DO NOTHING`,
+        [userRes.rows[0].id, groupRes.rows[0].id, announcement.text],
       );
     }
   }
 
-console.log(`Inserted ${groupAnnouncements.length} group announcements.`);
+  console.log(`Inserted ${groupAnnouncements.length} group announcements.`);
 
   console.log(`Inserted ${groupDiscussions.length} group discussions.`);
 
   console.log('Seed completed successfully.');
-  console.log(`Login: Alice/Bob password "${DEFAULT_PASSWORD}", Admin password "${ADMIN_PASSWORD}"`);
+  console.log(
+    `Login: Alice/Bob password "${DEFAULT_PASSWORD}", Admin password "${ADMIN_PASSWORD}"`,
+  );
 }
-
 
 seed()
   .then(() => pool.end())

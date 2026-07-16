@@ -20,12 +20,11 @@
 
   window.renderSpindleSidebar = function renderSpindleSidebar(activePage) {
     const page = activePage || document.body.dataset.page || '';
-    
+
     return (
       LINKS.map((l) => item(l, page)).join('') +
       '<div class="sidebar-divider"></div>' +
       LINKS2.map((l) => item(l, page)).join('') +
-      
       `<div class="sidebar-divider" id="yourGroupsDivider" style="display:none;"></div>
       <div id="yourGroupsSection" style="display:none;">
         <h6 class="px-3 mt-3 mb-2 text-muted" style="font-size:0.85rem;font-weight:600;">YOUR GROUPS</h6>
@@ -44,49 +43,65 @@
     const container = document.getElementById('yourGroupsContainer');
     if (!container) return;
 
-    const base = (typeof currentUrl !== 'undefined' && currentUrl) ? currentUrl :
-                 (typeof getApiBase === 'function' && getApiBase()) || window.location.origin || '';
+    const base =
+      typeof currentUrl !== 'undefined' && currentUrl
+        ? currentUrl
+        : (typeof getApiBase === 'function' && getApiBase()) || window.location.origin || '';
 
     fetch(base + '/groups/joined_groups', {
-      headers: { Authorization: 'Bearer ' + token }
+      headers: { Authorization: 'Bearer ' + token },
     })
-    .then(r => { if (!r.ok) throw new Error('Failed'); return r.json(); })
-    .then(data => {
-      container.innerHTML = '';
-      const groups = Array.isArray(data) ? data : (data.groups || []);
-      if (!groups.length) {
-        const empty = document.createElement('a');
-        empty.href = 'groups.html';
-        empty.className = 'sidebar-item d-flex align-items-center text-decoration-none';
-        empty.style.cssText = 'border:1.5px dashed #ccc;border-radius:10px;margin:0.25rem 0.5rem;color:#666;transition:border-color 0.2s,color 0.2s;';
-        empty.innerHTML = '<i class="fas fa-plus-circle me-2" style="font-size:1.2rem;color:#1877f2;"></i><span style="font-size:0.9rem;font-weight:600;">Join study groups</span>';
-        empty.addEventListener('mouseenter', () => { empty.style.borderColor = '#1877f2'; empty.style.color = '#1877f2'; });
-        empty.addEventListener('mouseleave', () => { empty.style.borderColor = '#ccc'; empty.style.color = '#666'; });
-        container.appendChild(empty);
-        return;
-      }
-      groups.forEach(function(g) {
-        const item = document.createElement('a');
-        item.href = 'groups_feed.html';
-        item.className = 'sidebar-item';
-        item.innerHTML = '<i class="fas fa-circle" style="font-size:0.5rem;color:#42b72a;"></i><span>' + (g.name || g.group_name || 'Group') + '</span>';
-        item.addEventListener('click', function(e) {
-          e.preventDefault();
-          localStorage.setItem('groupId', g.id || g.group_id);
-          window.location.href = 'groups_feed.html';
+      .then((r) => {
+        if (!r.ok) throw new Error('Failed');
+        return r.json();
+      })
+      .then((data) => {
+        container.innerHTML = '';
+        const groups = Array.isArray(data) ? data : data.groups || [];
+        if (!groups.length) {
+          const empty = document.createElement('a');
+          empty.href = 'groups.html';
+          empty.className = 'sidebar-item d-flex align-items-center text-decoration-none';
+          empty.style.cssText =
+            'border:1.5px dashed #ccc;border-radius:10px;margin:0.25rem 0.5rem;color:#666;transition:border-color 0.2s,color 0.2s;';
+          empty.innerHTML =
+            '<i class="fas fa-plus-circle me-2" style="font-size:1.2rem;color:#1877f2;"></i><span style="font-size:0.9rem;font-weight:600;">Join study groups</span>';
+          empty.addEventListener('mouseenter', () => {
+            empty.style.borderColor = '#1877f2';
+            empty.style.color = '#1877f2';
+          });
+          empty.addEventListener('mouseleave', () => {
+            empty.style.borderColor = '#ccc';
+            empty.style.color = '#666';
+          });
+          container.appendChild(empty);
+          return;
+        }
+        groups.forEach(function (g) {
+          const item = document.createElement('a');
+          item.href = 'groups_feed.html';
+          item.className = 'sidebar-item';
+          item.innerHTML =
+            '<i class="fas fa-circle" style="font-size:0.5rem;color:#42b72a;"></i><span>' +
+            (g.name || g.group_name || 'Group') +
+            '</span>';
+          item.addEventListener('click', function (e) {
+            e.preventDefault();
+            localStorage.setItem('groupId', g.id || g.group_id);
+            window.location.href = 'groups_feed.html';
+          });
+          container.appendChild(item);
         });
-        container.appendChild(item);
+      })
+      .catch(function () {
+        /* silently ignore */
       });
-    })
-    .catch(function() {
-      /* silently ignore */
-    });
   };
 
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     const aside = document.querySelector('aside.sidebar');
     if (!aside || aside.dataset.spindleKeep) return;
-    
+
     aside.innerHTML = renderSpindleSidebar(document.body.dataset.page);
     loadYourGroups();
   });

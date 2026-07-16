@@ -349,9 +349,7 @@ describe('GET /auth/me', () => {
   test('should return profile with stats when JWT is valid', async () => {
     const { token } = await registerAndVerify('profileuser', 'profile@example.com');
 
-    const res = await request(app)
-      .get('/auth/me')
-      .set('Authorization', `Bearer ${token}`);
+    const res = await request(app).get('/auth/me').set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.name).toBe('profileuser');
@@ -403,9 +401,7 @@ describe('GET /auth/admin/users', () => {
   test('should return 403 for regular users', async () => {
     const { token } = await registerAndVerify('regularuser', 'regular@example.com');
 
-    const res = await request(app)
-      .get('/auth/admin/users')
-      .set('Authorization', `Bearer ${token}`);
+    const res = await request(app).get('/auth/admin/users').set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(403);
     expect(res.body.error).toMatch(/admin/i);

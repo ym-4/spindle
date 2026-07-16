@@ -10,16 +10,15 @@ function savedApiBase() {
   }
   return window.location.origin || '';
 }
-let savedRows = []; 
+let savedRows = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-  const token = typeof getToken === 'function' ? getToken() : localStorage.getItem('token');
-  let userId = localStorage.getItem('loggedInUserId');
-  if (!userId && typeof getStoredUser === 'function') {
-    userId = getStoredUser()?.id;
-  }
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
 
+  loadYourGroups();
   loadHotPosts();
+  setupSavedTabs();
 
   if (!token || !userId) {
     showLoginPrompt();
@@ -29,31 +28,43 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSavedPosts(userId, token);
 });
 
-// Confirmation modal 
+// Confirmation modal
 function showConfirm(title, message, onConfirm) {
-  const overlay   = document.getElementById('confirmOverlay');
-  const titleEl   = document.getElementById('confirmTitle');
-  const msgEl     = document.getElementById('confirmMessage');
-  const okBtn     = document.getElementById('confirmOkBtn');
+  const overlay = document.getElementById('confirmOverlay');
+  const titleEl = document.getElementById('confirmTitle');
+  const msgEl = document.getElementById('confirmMessage');
+  const okBtn = document.getElementById('confirmOkBtn');
   const cancelBtn = document.getElementById('confirmCancelBtn');
 
   titleEl.textContent = title;
-  msgEl.textContent   = message;
+  msgEl.textContent = message;
   overlay.classList.remove('d-none');
   document.body.style.overflow = 'hidden';
 
-  const newOk     = okBtn.cloneNode(true);
+  const newOk = okBtn.cloneNode(true);
   const newCancel = cancelBtn.cloneNode(true);
   okBtn.replaceWith(newOk);
   cancelBtn.replaceWith(newCancel);
 
-  function close() { overlay.classList.add('d-none'); document.body.style.overflow = ''; }
-  newOk.addEventListener('click', () => { close(); onConfirm(); });
+  function close() {
+    overlay.classList.add('d-none');
+    document.body.style.overflow = '';
+  }
+  newOk.addEventListener('click', () => {
+    close();
+    onConfirm();
+  });
   newCancel.addEventListener('click', close);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); }, { once: true });
+  overlay.addEventListener(
+    'click',
+    (e) => {
+      if (e.target === overlay) close();
+    },
+    { once: true },
+  );
 }
 
-//  Load saved posts 
+//  Load saved posts
 function loadSavedPosts(userId, token) {
   const container = document.getElementById('savedContainer');
   container.innerHTML = `
@@ -70,24 +81,36 @@ function loadSavedPosts(userId, token) {
 
     savedRows = data;
 
-    fetchMethod(`${savedApiBase()}/posts`, (pStatus, posts) => {
-      if (pStatus !== 200) { showError(); return; }
+    fetchMethod(
+      `${savedApiBase()}/posts`,
+      (pStatus, posts) => {
+        if (pStatus !== 200) {
+          showError();
+          return;
+        }
 
-      const savedPostIdSet = new Set(data.map(r => parseInt(r.post_id)));
-      const savedPosts = posts.filter(p => savedPostIdSet.has(parseInt(p.id)));
+        const savedPostIdSet = new Set(data.map((r) => parseInt(r.post_id)));
+        const savedPosts = posts.filter((p) => savedPostIdSet.has(parseInt(p.id)));
 
-      if (savedPosts.length === 0) { showEmpty(); return; }
+        if (savedPosts.length === 0) {
+          showEmpty();
+          return;
+        }
 
-      container.innerHTML = '';
-      savedPosts.forEach(post => {
-        const saveRow = savedRows.find(r => parseInt(r.post_id) === parseInt(post.id));
-        container.appendChild(buildSavedPostCard(post, saveRow));
-      });
-    }, 'GET', null, token);
+        container.innerHTML = '';
+        savedPosts.forEach((post) => {
+          const saveRow = savedRows.find((r) => parseInt(r.post_id) === parseInt(post.id));
+          container.appendChild(buildSavedPostCard(post, saveRow));
+        });
+      },
+      'GET',
+      null,
+      token,
+    );
   });
 }
 
-//  Build saved post card 
+//  Build saved post card
 function buildSavedPostCard(post, saveRow) {
   const { timeStr, wasEdited } = formatTimestamp(post.created_at, post.updated_at);
 
@@ -126,7 +149,9 @@ function buildSavedPostCard(post, saveRow) {
 
     <span class="post-category ${getCategoryClass(post.category)}">${getCategoryLabel(post.category)}</span>
     <div class="post-content">${escapeHtml(post.content)}</div>
-    ${post.attachment_url ? `
+    ${
+      post.attachment_url
+        ? `
       <div class="post-attachment mt-2">
         ${
           post.attachment_url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
@@ -139,7 +164,9 @@ function buildSavedPostCard(post, saveRow) {
             `
         }
       </div>
-    ` : ''}
+    `
+        : ''
+    }
 
     <div class="post-actions">
         <button class="post-action-btn like-btn" data-post-id="${post.id}">
@@ -167,7 +194,7 @@ function buildSavedPostCard(post, saveRow) {
     window.location.href = `posts.html?id=${post.id}`;
   });
 
-  const likeBtn    = card.querySelector('.like-btn');
+  const likeBtn = card.querySelector('.like-btn');
   const dislikeBtn = card.querySelector('.dislike-btn');
 
   initReactionButtons(post.id, likeBtn, dislikeBtn);
@@ -179,7 +206,10 @@ function buildSavedPostCard(post, saveRow) {
   card.querySelector('.report-post-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     const token = localStorage.getItem('token');
-    if (!token) { showLoginPrompt(); return; }
+    if (!token) {
+      showLoginPrompt();
+      return;
+    }
     openReportModal(post.id);
   });
 
@@ -192,34 +222,181 @@ function buildSavedPostCard(post, saveRow) {
   // unsave
   card.querySelector('.unsave-btn').addEventListener('click', (e) => {
     e.stopPropagation();
-    showConfirm(
-      'Unsave post?',
-      'This post will be removed from your saved posts.',
-      () => unsavePost(saveRow.id, card)
+    showConfirm('Unsave post?', 'This post will be removed from your saved posts.', () =>
+      unsavePost(saveRow.id, card),
     );
   });
 
   return card;
 }
 
-//  DELETE /posts/saved/:id 
+//  DELETE /posts/saved/:id
 function unsavePost(saveRowId, cardEl) {
   const token = localStorage.getItem('token');
 
-  fetchMethod(`${savedApiBase()}/posts/saved/${saveRowId}`, (status) => {
-    if (status === 200) {
-      cardEl.style.transition = 'opacity 0.2s';
-      cardEl.style.opacity = '0';
-      setTimeout(() => {
-        cardEl.remove();
-        if (document.querySelectorAll('#savedContainer .post-card').length === 0) {
-          showEmpty();
-        }
-      }, 200);
-    } else {
-      alert('Failed to unsave post. Please try again.');
+  fetchMethod(
+    `${savedApiBase()}/posts/saved/${saveRowId}`,
+    (status) => {
+      if (status === 200) {
+        cardEl.style.transition = 'opacity 0.2s';
+        cardEl.style.opacity = '0';
+        setTimeout(() => {
+          cardEl.remove();
+          if (document.querySelectorAll('#savedContainer .post-card').length === 0) {
+            showEmpty();
+          }
+        }, 200);
+      } else {
+        alert('Failed to unsave post. Please try again.');
+      }
+    },
+    'DELETE',
+    null,
+    token,
+  );
+}
+
+function setupSavedTabs() {
+  const postsTab = document.getElementById('savedPostsTab');
+  const commentsTab = document.getElementById('savedCommentsTab');
+  const postsPanel = document.getElementById('savedPostsPanel');
+  const commentsPanel = document.getElementById('savedCommentsPanel');
+
+  postsTab.addEventListener('click', (e) => {
+    e.preventDefault();
+    postsTab.classList.add('active');
+    commentsTab.classList.remove('active');
+    postsPanel.style.display = 'block';
+    commentsPanel.style.display = 'none';
+  });
+
+  commentsTab.addEventListener('click', (e) => {
+    e.preventDefault();
+    commentsTab.classList.add('active');
+    postsTab.classList.remove('active');
+    commentsPanel.style.display = 'block';
+    postsPanel.style.display = 'none';
+
+    if (!commentsPanel.dataset.loaded) {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('loggedInUserId');
+      loadSavedComments(userId, token);
+      commentsPanel.dataset.loaded = 'true';
     }
-  }, 'DELETE', null, token);
+  });
+}
+
+function loadSavedComments(userId, token) {
+  const container = document.getElementById('savedCommentsContainer');
+  container.innerHTML = `
+    <div class="post-card text-center py-4 text-muted">
+      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+      Loading saved comments...
+    </div>`;
+
+  fetchMethod(
+    `${savedApiBase()}/comments/saved/${userId}`,
+    (status, data) => {
+      container.innerHTML = '';
+
+      if (status !== 200 || !Array.isArray(data) || data.length === 0) {
+        container.innerHTML = `
+        <div class="post-card text-center py-4 text-muted">
+          <i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>
+          No saved comments yet.
+        </div>`;
+        return;
+      }
+
+      data.forEach((item) => container.appendChild(buildSavedCommentCard(item, token)));
+    },
+    'GET',
+    null,
+    token,
+  );
+}
+
+function buildSavedCommentCard(item, token) {
+  const el = document.createElement('div');
+  el.className = 'post-card';
+
+  const { timeStr } = formatTimestamp(item.created_at, null);
+  const initial = item.author_name ? item.author_name.charAt(0).toUpperCase() : 'U';
+
+  el.innerHTML = `
+    <div class="post-header">
+      <div class="post-avatar">${initial}</div>
+      <div class="post-author">
+        <div class="post-author-name">${escapeHtml(item.author_name || 'User')}</div>
+        <div class="post-timestamp">${timeStr}</div>
+      </div>
+      <div class="dropdown">
+        <button class="btn btn-sm post-menu-btn" data-bs-toggle="dropdown">
+          <i class="fas fa-ellipsis-h"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li>
+            <button class="dropdown-item text-danger unsave-comment-btn"
+              data-save-id="${item.save_id}">
+              <i class="fas fa-bookmark me-2"></i>Unsave
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="text-muted small mb-2">
+      Commented on post: <strong>${escapeHtml(item.post_title)}</strong>
+    </div>
+
+    <div class="post-content"
+      style="background:var(--hover-bg); border-radius:8px; padding:0.75rem; font-size:0.95rem;">
+      ${escapeHtml(item.content)}
+    </div>
+  `;
+
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('.dropdown')) return;
+    window.location.href = `posts.html?id=${item.post_id}`;
+  });
+
+  el.querySelector('.post-menu-btn').addEventListener('click', (e) => e.stopPropagation());
+
+  // Unsave
+  el.querySelector('.unsave-comment-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const saveId = e.currentTarget.dataset.saveId;
+
+    fetchMethod(
+      `${savedApiBase()}/comments/saved/${saveId}`,
+      (status) => {
+        if (status === 200) {
+          el.style.transition = 'opacity 0.2s';
+          el.style.opacity = '0';
+          setTimeout(() => {
+            el.remove();
+            const remaining = document.querySelectorAll(
+              '#savedCommentsContainer .post-card',
+            ).length;
+            if (remaining === 0) {
+              document.getElementById('savedCommentsContainer').innerHTML = `
+              <div class="post-card text-center py-4 text-muted">
+                <i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>
+                No saved comments yet.
+              </div>`;
+            }
+          }, 200);
+        } else {
+          alert('Failed to unsave comment.');
+        }
+      },
+      'DELETE',
+      null,
+      token,
+    );
+  });
+
+  return el;
 }
 
 function showEmpty() {
@@ -264,17 +441,25 @@ function formatTimestamp(createdAt, updatedAt) {
   if (diffMins < 1) timeStr = 'Just now';
   else if (diffMins < 60) timeStr = `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
   else if (diffHours < 24) timeStr = `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-  else if (diffDays === 1) timeStr = `Yesterday at ${created.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  else if (diffDays === 1)
+    timeStr = `Yesterday at ${created.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   else if (diffDays < 7) timeStr = `${diffDays} days ago`;
-  else timeStr = created.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+  else
+    timeStr = created.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
 
   const wasEditedResult = wasEdited;
   return { timeStr, wasEdited: wasEditedResult };
 }
 
-function getCategoryLabel(c) { return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[c] || c; }
+function getCategoryLabel(c) {
+  return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[c] || c;
+}
 
-function getCategoryClass(c)  { return { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[c] || ''; }
+function getCategoryClass(c) {
+  return (
+    { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[c] || ''
+  );
+}
 
 function getAvatarInitial(post) {
   if (post.category === 'confession') return 'A';
@@ -289,10 +474,15 @@ function getAuthorName(post) {
 
 function escapeHtml(str) {
   if (!str) return '';
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
-// Your Groups 
+// Your Groups
 function loadYourGroups() {
   const token = typeof getToken === 'function' ? getToken() : localStorage.getItem('token');
   const section = document.getElementById('yourGroupsSection');
@@ -307,14 +497,20 @@ function loadYourGroups() {
   if (section) section.style.setProperty('display', 'block', 'important');
   if (divider) divider.style.setProperty('display', 'block', 'important');
 
-  fetchMethod(`${savedApiBase()}/groups/joined_groups`, (status, data) => {
-    if (status === 401) {
-      console.warn("Unauthorized access to joined groups from saved page.");
-      return;
-    }
-    if (status !== 200) return;
-    renderYourGroups(data || []);
-  }, 'GET', null, token);
+  fetchMethod(
+    `${savedApiBase()}/groups/joined_groups`,
+    (status, data) => {
+      if (status === 401) {
+        console.warn('Unauthorized access to joined groups from saved page.');
+        return;
+      }
+      if (status !== 200) return;
+      renderYourGroups(data || []);
+    },
+    'GET',
+    null,
+    token,
+  );
 }
 
 function renderYourGroups(groups) {
@@ -325,7 +521,7 @@ function renderYourGroups(groups) {
 
   if (!groups.length) {
     const emptyState = document.createElement('a');
-    emptyState.href      = 'groups.html';
+    emptyState.href = 'groups.html';
     emptyState.className = 'sidebar-item d-flex align-items-center text-decoration-none';
     emptyState.style.cssText = `
       border: 1.5px dashed var(--border-color);
@@ -340,19 +536,19 @@ function renderYourGroups(groups) {
     `;
     emptyState.addEventListener('mouseenter', () => {
       emptyState.style.borderColor = 'var(--primary-color)';
-      emptyState.style.color       = 'var(--primary-color)';
+      emptyState.style.color = 'var(--primary-color)';
     });
     emptyState.addEventListener('mouseleave', () => {
       emptyState.style.borderColor = 'var(--border-color)';
-      emptyState.style.color       = 'var(--text-secondary)';
+      emptyState.style.color = 'var(--text-secondary)';
     });
     container.appendChild(emptyState);
     return;
   }
 
-  groups.forEach(group => {
+  groups.forEach((group) => {
     const item = document.createElement('a');
-    item.href      = `groups.html?id=${group.id}`;
+    item.href = `groups.html?id=${group.id}`;
     item.className = 'sidebar-item';
     item.innerHTML = `
       <i class="fas fa-circle" style="font-size:0.5rem; color:#1877f2;"></i>
@@ -362,7 +558,7 @@ function renderYourGroups(groups) {
   });
 
   const seeAll = document.createElement('a');
-  seeAll.href      = 'groups.html';
+  seeAll.href = 'groups.html';
   seeAll.className = 'sidebar-item';
   seeAll.innerHTML = `<i class="fas fa-plus-circle"></i><span>See all groups</span>`;
   container.appendChild(seeAll);
@@ -384,14 +580,14 @@ function loadHotPosts() {
 
     const top3 = data
       .slice()
-      .sort((a, b) => (b.like_count - a.like_count) || (b.comment_count - a.comment_count))
+      .sort((a, b) => b.like_count - a.like_count || b.comment_count - a.comment_count)
       .slice(0, 3);
 
     container.innerHTML = '';
 
     top3.forEach((post, index) => {
       const item = document.createElement('a');
-      item.href      = `posts.html?id=${post.id}`;
+      item.href = `posts.html?id=${post.id}`;
       item.className = 'list-group-item list-group-item-action py-2';
       item.innerHTML = `
         <div class="text-muted mb-1" style="font-size:0.75rem;">Trending #${index + 1}</div>
@@ -471,12 +667,12 @@ function openReportModal(postId) {
   if (existing) existing.remove();
 
   const reasons = [
-    { icon: 'fas fa-ban',                  label: 'Spam or misleading' },
+    { icon: 'fas fa-ban', label: 'Spam or misleading' },
     { icon: 'fas fa-exclamation-triangle', label: 'Harassment or bullying' },
-    { icon: 'fas fa-heart-broken',         label: 'Harmful or dangerous content' },
-    { icon: 'fas fa-user-slash',           label: 'Hate speech or discrimination' },
-    { icon: 'fas fa-copyright',            label: 'Intellectual property violation' },
-    { icon: 'fas fa-flag',                 label: 'Other' },
+    { icon: 'fas fa-heart-broken', label: 'Harmful or dangerous content' },
+    { icon: 'fas fa-user-slash', label: 'Hate speech or discrimination' },
+    { icon: 'fas fa-copyright', label: 'Intellectual property violation' },
+    { icon: 'fas fa-flag', label: 'Other' },
   ];
 
   const overlay = document.createElement('div');
@@ -488,11 +684,15 @@ function openReportModal(postId) {
       <h5>Report post</h5>
       <p class="report-modal-sub">Why are you reporting this post?</p>
       <div id="reportReasonsContainer">
-        ${reasons.map(r => `
+        ${reasons
+          .map(
+            (r) => `
           <button class="report-reason-btn" data-reason="${r.label}">
             <i class="${r.icon}"></i> ${r.label}
           </button>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </div>
       <div id="reportThanks" style="display:none; text-align:center; padding:1rem 0;"></div>
       <div class="report-modal-actions">
@@ -504,42 +704,49 @@ function openReportModal(postId) {
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
 
-  overlay.querySelectorAll('.report-reason-btn').forEach(btn => {
+  overlay.querySelectorAll('.report-reason-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const token   = localStorage.getItem('token');
+      const token = localStorage.getItem('token');
       const user_id = localStorage.getItem('loggedInUserId');
 
-      fetchMethod(`${API_BASE}/posts/${postId}/report`, (status) => {
-        const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
-        const thanksEl         = overlay.querySelector('#reportThanks');
-        const cancelBtn        = overlay.querySelector('#reportCancelBtn');
+      fetchMethod(
+        `${API_BASE}/posts/${postId}/report`,
+        (status) => {
+          const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
+          const thanksEl = overlay.querySelector('#reportThanks');
+          const cancelBtn = overlay.querySelector('#reportCancelBtn');
 
-        reasonsContainer.style.display = 'none';
-        cancelBtn.textContent = 'Close';
+          reasonsContainer.style.display = 'none';
+          cancelBtn.textContent = 'Close';
 
-        if (status === 409) {
-          thanksEl.innerHTML = `
+          if (status === 409) {
+            thanksEl.innerHTML = `
             <i class="fas fa-info-circle fa-2x mb-2 d-block" style="color:var(--primary-color);"></i>
             <div class="fw-bold">Already reported</div>
             <div class="text-muted small mt-1">You've already submitted a report for this post.</div>
           `;
-        } else {
-          thanksEl.innerHTML = `
+          } else {
+            thanksEl.innerHTML = `
             <i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i>
             <div class="fw-bold">Thanks for your report</div>
             <div class="text-muted small mt-1">We'll review this post and take action if needed.</div>
           `;
-        }
+          }
 
-        thanksEl.style.display = 'block';
-        setTimeout(() => closeReportModal(), 2500);
-
-      }, 'POST', { user_id, reason: btn.dataset.reason }, token);
+          thanksEl.style.display = 'block';
+          setTimeout(() => closeReportModal(), 2500);
+        },
+        'POST',
+        { user_id, reason: btn.dataset.reason },
+        token,
+      );
     });
   });
 
   overlay.querySelector('#reportCancelBtn').addEventListener('click', closeReportModal);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeReportModal(); });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeReportModal();
+  });
 }
 
 function closeReportModal() {
@@ -553,16 +760,14 @@ function closeReportModal() {
 // =========================
 // Quick Links
 // =========================
-const helpCenterLink = document.getElementById("helpCenterLink");
-const privacyLink = document.getElementById("privacyLink");
-const guidelinesLink = document.getElementById("guidelinesLink");
+const helpCenterLink = document.getElementById('helpCenterLink');
+const privacyLink = document.getElementById('privacyLink');
+const guidelinesLink = document.getElementById('guidelinesLink');
 
-const infoModal = new bootstrap.Modal(
-  document.getElementById("infoModal")
-);
+const infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
 
-const modalTitle = document.getElementById("infoModalTitle");
-const modalBody = document.getElementById("infoModalBody");
+const modalTitle = document.getElementById('infoModalTitle');
+const modalBody = document.getElementById('infoModalBody');
 
 function openInfoModal(title, content) {
   modalTitle.textContent = title;
@@ -570,11 +775,11 @@ function openInfoModal(title, content) {
   infoModal.show();
 }
 
-helpCenterLink?.addEventListener("click", (e) => {
+helpCenterLink?.addEventListener('click', (e) => {
   e.preventDefault();
 
   openInfoModal(
-    "Help Center",
+    'Help Center',
     `
     <h6>Frequently Asked Questions</h6>
     <p><strong>How do I create a post?</strong><br>
@@ -620,15 +825,15 @@ helpCenterLink?.addEventListener("click", (e) => {
     Need further assistance? Contact the Spindle Support Team at <a href="mailto:support@spindleapp.com">support@spindleapp.com</a>.
     </p>
 
-    `
+    `,
   );
 });
 
-privacyLink?.addEventListener("click", (e) => {
+privacyLink?.addEventListener('click', (e) => {
   e.preventDefault();
 
   openInfoModal(
-    "Privacy Policy",
+    'Privacy Policy',
     `
     <p>
       Spindle values your trust and is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our services.
@@ -671,15 +876,15 @@ privacyLink?.addEventListener("click", (e) => {
     <p class="text-muted mb-0">
       Last updated: May 2026
     </p>
-    `
+    `,
   );
 });
 
-guidelinesLink?.addEventListener("click", (e) => {
+guidelinesLink?.addEventListener('click', (e) => {
   e.preventDefault();
 
   openInfoModal(
-    "Community Guidelines",
+    'Community Guidelines',
     `
     <p>
       Spindle is committed to maintaining a safe, respectful, and productive environment for all users. By participating in the platform, you agree to follow these guidelines to help us keep Spindle welcoming and useful for everyone.
@@ -715,6 +920,6 @@ guidelinesLink?.addEventListener("click", (e) => {
     <p class="text-muted mb-0">
       Last updated: May 2026
     </p>
-    `
+    `,
   );
 });
