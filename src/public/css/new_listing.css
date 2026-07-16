@@ -257,8 +257,101 @@ textarea.form-control {
 
 /* Success toast */
 .toast-container {
-  position: fixed;
-  top: 1.25rem;
-  right: 1.25rem;
-  z-index: 9999;
+position: fixed;
+top: 1.25rem;
+right: 1.25rem;
+z-index: 9999;
+}
+
+.tag-tooltip-icon {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-left: 0.35rem;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.tag-tooltip-icon:hover {
+  color: #0d6efd;
+}
+
+.tag-oval-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.tag-oval {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #e7f1ff;
+  border: 1px solid #b6d4fe;
+  color: #0d6efd;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.tag-oval-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.85rem;
+  width: 80px;
+  color: #212529;
+}
+
+.tag-oval-text {
+  font-weight: 500;
+}
+
+.tag-oval-remove {
+  background: none;
+  border: none;
+  color: #6c757d;
+  padding: 0;
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tag-oval-remove:hover {
+  color: #dc3545;
+}
+
+.tag-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px dashed #adb5bd;
+  background: transparent;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tag-add-btn:hover {
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+#image-preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.image-preview-thumb img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
 }

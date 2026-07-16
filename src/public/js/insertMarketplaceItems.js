@@ -13,14 +13,14 @@ function qualityBadgeClass(rawQuality) {
   const q = String(rawQuality || '')
     .trim()
     .toLowerCase();
-  if (q === 'new') return 'new';
+  if (q === 'new' || q === 'brand new' || q === 'brandnew') return 'new';
   if (q === 'like new' || q === 'likenew') return 'likenew';
   if (q === 'good') return 'good';
   if (q === 'fair') return 'fair';
   return 'default';
 }
 
-function addListing(seller_id, id, name, description, price, quality, meetup) {
+function addListing(seller_id, id, name, description, price, quality, meetup, images, tags) {
   const container = document.getElementById('listings-container');
 
   const card = document.createElement('div');
@@ -34,16 +34,21 @@ function addListing(seller_id, id, name, description, price, quality, meetup) {
   const meetupMarkup = meetup
     ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(meetup)}</p>`
     : '';
+  const thumbnailSrc = images && images.length > 0 ? images[0].image_url : '../marketplace-uploads/1.png';
+  const tagsMarkup = tags && tags.length > 0
+    ? `<div class="spindle-card-tags">${tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
+    : '';
 
   card.innerHTML = `
     <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(id)}">
       <div class="spindle-card-media">
-        <img src="https://placehold.co/450x450" alt="${escapeHtml(name)}" loading="lazy" />
+        <img src="${escapeHtml(thumbnailSrc)}" alt="">
         ${badgeMarkup}
       </div>
       <div class="spindle-card-body">
         <h3 class="spindle-card-title">${escapeHtml(name)}</h3>
         <p class="spindle-card-price">$${Number(price).toFixed(2)}</p>
+        ${tagsMarkup}
         ${meetupMarkup}
       </div>
     </a>
@@ -82,7 +87,7 @@ function addListing(seller_id, id, name, description, price, quality, meetup) {
 const container = document.getElementById('listings-container');
 const emptyState = document.getElementById('no-listings-state');
 
-const LISTINGS_PER_PAGE = 20;
+const LISTINGS_PER_PAGE = 10;
 
 async function loadListings() {
   // Update Page Navigation Bar
@@ -127,6 +132,8 @@ async function loadListings() {
             data[i].price,
             data[i].quality,
             data[i].meetup,
+            data[i].images,
+            data[i].tags,
           );
         }
       }
@@ -138,21 +145,56 @@ async function loadListings() {
 
 // Fetch users Listings
 async function loadUserListings() {
+  // Update Page Navigation Bar
+  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
+    const userListings = data.filter((item) => item.seller_id == localStorage.loggedInUserId);
+    let totalListings = userListings.length;
+    let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
+
+    const controls = document.getElementById('pagination-controls');
+    const nextItem = document.getElementById('next-page-item');
+
+    // Clear old page-number buttons first
+    controls.querySelectorAll('.page-num').forEach((el) => el.remove());
+
+    for (let i = 1; i <= totalPages; i++) {
+      const li = document.createElement('li');
+      li.className = `page-item page-num ${i === currentPage ? 'active' : ''}`;
+      li.innerHTML = `<button class="page-link">${i}</button>`;
+      li.querySelector('button').addEventListener('click', () => {
+        currentPage = i;
+        container.innerHTML = '';
+        loadUserListings();
+      });
+      nextItem.before(li);
+    }
+  });
+
+  // Fetch and Load Listings
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
     if (status === 200) {
-      data.forEach((item) => {
-        if (item.seller_id == localStorage.loggedInUserId) {
+      const userListings = data.filter((item) => item.seller_id == localStorage.loggedInUserId);
+
+      if (userListings.length == 0) {
+        emptyState.classList.remove('d-none');
+      } else {
+        emptyState.classList.add('d-none');
+
+        for (let i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
+          if (!userListings[i]) continue;
           addListing(
-            item.seller_id,
-            item.id,
-            item.name,
-            item.description,
-            item.price,
-            item.quality,
-            item.meetup,
+            userListings[i].seller_id,
+            userListings[i].id,
+            userListings[i].name,
+            userListings[i].description,
+            userListings[i].price,
+            userListings[i].quality,
+            userListings[i].meetup,
+            userListings[i].images,
+            userListings[i].tags,
           );
         }
-      });
+      }
     } else {
       console.error('Failed to load listings:', status, data);
     }
@@ -267,34 +309,43 @@ async function loadCart() {
       console.error('Failed to load cart:', status, data);
     }
   });
-
-  checkoutButton = document.querySelector('.checkout-btn');
-  checkoutButton.addEventListener('click', () => {
-    clearCart(localStorage.loggedInUserId);
-    location.reload();
-  });
 }
 
 let currentPage = 1;
 
-document.getElementById('prev-page-btn').addEventListener('click', () => {
-  if (currentPage > 1) {
-    currentPage--;
-    container.innerHTML = '';
-    loadListings();
-  }
-});
-document.getElementById('next-page-btn').addEventListener('click', () => {
-  currentPage++;
-  container.innerHTML = '';
-  loadListings();
-});
-
 // Insert the correct items based on the name of the document ;-D
 if (document.title == 'Marketplace') {
+
+  document.getElementById('prev-page-btn').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      container.innerHTML = '';
+      loadListings();
+    }
+  });
+  document.getElementById('next-page-btn').addEventListener('click', () => {
+    currentPage++;
+    container.innerHTML = '';
+    loadListings();
+  });
+
   loadListings();
 } else if (document.title == 'Cart') {
   loadCart();
 } else if (document.title == 'Marketplace - Your Listings') {
+
+  document.getElementById('prev-page-btn').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      container.innerHTML = '';
+      loadListings();
+    }
+  });
+  document.getElementById('next-page-btn').addEventListener('click', () => {
+    currentPage++;
+    container.innerHTML = '';
+    loadListings();
+  });
+
   loadUserListings();
 }

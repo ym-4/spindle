@@ -90,7 +90,24 @@
   font-size: 2rem;
   font-weight: 700;
   color: var(--sp-accent, #ee4d2d);
+  margin: 0 0 12px;
+}
+
+.item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin: 0 0 20px;
+}
+
+.item-tag-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sp-muted, #6b7280);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  padding: 3px 10px;
 }
 
 /* Signature element: a torn meet-up "ticket" — the one thing that makes
@@ -256,4 +273,17 @@
   font-size: 2.6rem;
   color: var(--sp-border, var(--border));
   margin-bottom: 14px;
+}
+
+.recommended-section {
+  margin-top: 40px;
+  border-top: 1px solid var(--sp-border, #e8e8ed);
+  padding-top: 24px;
+}
+
+.recommended-section h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 16px;
 }

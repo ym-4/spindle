@@ -74,3 +74,50 @@
   margin-bottom: 0.5rem;
   color: var(--text);
 }
+
+#marketplace-header {
+  background-image: url('../images/Marketplace_Background.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#cart-header {
+  background-image: url('../images/Cart_Background.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#my-listings-header {
+  background-image: url('../images/My_listings_Background.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#create-listing-header {
+  background-image: url('../images/New_listing_Background.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.btn-back-listing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #495057;
+  font-weight: 500;
+  font-size: 1.1rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-back-listing:hover {
+  background-color: #f1f3f5;
+  color: #212529;
+}
+
+.btn-back-listing i {
+  font-size: 0.85rem;
+}
