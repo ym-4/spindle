@@ -331,7 +331,7 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
   const attachmentUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
   const data = {
-    user_id: req.body.user_id,
+    user_id: Number(req.body.user_id),
     title: req.body.title,
     category: req.body.category,
     content: req.body.content || '',

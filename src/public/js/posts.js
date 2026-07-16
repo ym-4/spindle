@@ -40,30 +40,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let attempts = 0;
     const scrollInterval = setInterval(() => {
       const commentEl = document.querySelector(`[data-comment-id="${targetCommentId}"]`);
+
       if (commentEl) {
         clearInterval(scrollInterval);
 
-        // comment reply hidden, open first
+        // open comment reply
         const repliesWrapper = commentEl.closest('.replies-wrapper');
         if (repliesWrapper && repliesWrapper.style.display === 'none') {
-          const toggleBtn = repliesWrapper.previousElementSibling;
-          if (toggleBtn && toggleBtn.classList.contains('show-replies-btn')) {
-            toggleBtn.click();
-          }
+          const group = repliesWrapper.parentElement;
+          const toggleBtn = group?.querySelector('.show-replies-btn');
+          if (toggleBtn) toggleBtn.click();
         }
 
         setTimeout(() => {
           commentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          // Highlight briefly
-          commentEl.style.transition = 'background-color 0.3s';
+          commentEl.style.transition = 'background-color 0.4s ease';
           commentEl.style.backgroundColor = '#fffbcc';
           setTimeout(() => {
             commentEl.style.backgroundColor = '';
-          }, 1000);
-        }, 300);
+          }, 2000);
+        }, 150);
       }
-      if (++attempts > 30) clearInterval(scrollInterval);
-    }, 10);
+
+      if (++attempts > 200) clearInterval(scrollInterval);
+    }, 50);
   }
 
   const commentInput = document.getElementById('commentInput');
@@ -394,9 +394,17 @@ function loadPostTagsOnPostPage(postId) {
     const container = document.getElementById(`postTags-${postId}`);
     if (!container || status !== 200 || !Array.isArray(tags) || !tags.length) return;
 
-    container.innerHTML = tags
-      .map((tag) => `<span class="post-tag">#${escapeHtml(tag.name)}</span>`)
-      .join('');
+    container.innerHTML = '';
+    tags.forEach((tag) => {
+      const span = document.createElement('span');
+      span.className = 'post-tag';
+      span.textContent = `#${tag.name}`;
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `search.html?q=${encodeURIComponent('#' + tag.name)}&type=tag`;
+      });
+      container.appendChild(span);
+    });
   });
 }
 
@@ -2495,13 +2503,18 @@ function setupSearch() {
   const input = document.getElementById('searchInput');
   if (!input) return;
 
-  // redirect to search.html
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       const query = input.value.trim();
       if (!query) return;
-      window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+
+      // query with # > tag search
+      const isTagSearch = query.startsWith('#');
+      const params = new URLSearchParams({ q: query });
+      if (isTagSearch) params.set('type', 'tag');
+
+      window.location.href = `search.html?${params.toString()}`;
     }
   });
 }

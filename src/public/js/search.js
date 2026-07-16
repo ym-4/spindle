@@ -36,6 +36,14 @@ document.addEventListener('DOMContentLoaded', () => {
   input?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      const newQuery = input.value.trim();
+      if (!newQuery) return;
+      // new # query
+      const newIsTag = newQuery.startsWith('#');
+      const p = new URLSearchParams(window.location.search);
+      p.set('q', newQuery);
+      newIsTag ? p.set('type', 'tag') : p.delete('type');
+      window.history.replaceState({}, '', `?${p.toString()}`);
       runSearch();
     }
   });
@@ -142,6 +150,7 @@ function getUrlParams() {
   const categoryParam = p.get('category') || '';
   return {
     q: p.get('q') || '',
+    type: p.get('type') || '',
     categories: categoryParam ? categoryParam.split(',').filter(Boolean) : [],
     sort: p.get('sort') || 'newest',
     date_from: p.get('date_from') || '',
@@ -152,6 +161,7 @@ function getUrlParams() {
 function pushSearchUrl(params) {
   const p = new URLSearchParams();
   if (params.q) p.set('q', params.q);
+  if (params.type) p.set('type', params.type);
   if (params.categories && params.categories.length) p.set('category', params.categories.join(','));
   if (params.sort) p.set('sort', params.sort);
   if (params.date_from) p.set('date_from', params.date_from);
@@ -160,30 +170,43 @@ function pushSearchUrl(params) {
 }
 
 function runSearch() {
-  const q = document.getElementById('searchInput')?.value.trim() || getUrlParams().q;
-  const categories = Array.from(document.querySelectorAll('.search-category-checkbox:checked')).map(
-    (cb) => cb.value,
-  );
+  const params = getUrlParams();
+  const q = document.getElementById('searchInput')?.value.trim() || params.q;
+  const isTagSearch = q.startsWith('#') || params.type === 'tag';
+  const categories = isTagSearch
+    ? [] // filters don't apply to tag searches
+    : Array.from(document.querySelectorAll('.search-category-checkbox:checked')).map(
+        (cb) => cb.value,
+      );
   const sort = document.getElementById('searchSort')?.value || 'newest';
   const dateFrom = document.getElementById('searchDateFrom')?.value || '';
   const dateTo = document.getElementById('searchDateTo')?.value || '';
+  const type = isTagSearch ? 'tag' : '';
 
-  pushSearchUrl({ q, categories, sort, date_from: dateFrom, date_to: dateTo });
+  pushSearchUrl({ q, type, categories, sort, date_from: dateFrom, date_to: dateTo });
+
+  // Hide filters for tag searching
+  const filterCard = document.getElementById('searchFilterCard');
+  if (filterCard) filterCard.style.display = isTagSearch ? 'none' : 'block';
 
   const panel = document.getElementById('searchResultsPanel');
   panel.innerHTML = `
     <div class="post-card text-center py-4 text-muted">
       <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-      Searching for "<strong>${escapeHtml(q)}</strong>"…
+      ${
+        isTagSearch
+          ? `Searching for posts tagged <strong>${escapeHtml(q)}</strong>…`
+          : `Searching for "<strong>${escapeHtml(q)}</strong>"…`
+      }
     </div>`;
 
-  const params = new URLSearchParams({ q });
-  if (categories.length) params.append('category', categories.join(','));
-  if (sort) params.append('sort', sort);
-  if (dateFrom) params.append('date_from', dateFrom);
-  if (dateTo) params.append('date_to', dateTo);
+  const apiParams = new URLSearchParams({ q });
+  if (!isTagSearch && categories.length) apiParams.append('category', categories.join(','));
+  if (!isTagSearch && sort) apiParams.append('sort', sort);
+  if (!isTagSearch && dateFrom) apiParams.append('date_from', dateFrom);
+  if (!isTagSearch && dateTo) apiParams.append('date_to', dateTo);
 
-  fetchMethod(`${feedApiBase()}/search?${params.toString()}`, (status, data) => {
+  fetchMethod(`${feedApiBase()}/search?${apiParams.toString()}`, (status, data) => {
     if (status !== 200) {
       panel.innerHTML = `
         <div class="post-card text-center py-4 text-danger">
@@ -192,34 +215,61 @@ function runSearch() {
         </div>`;
       return;
     }
-    renderResults(data, q);
+    renderResults(data, q, isTagSearch);
   });
 }
 
-function renderResults(results, query) {
+function renderResults(results, query, isTagSearch = false) {
   const panel = document.getElementById('searchResultsPanel');
   panel.innerHTML = '';
+
+  // Check if any filters are active
+  const hasCategories =
+    Array.from(document.querySelectorAll('.search-category-checkbox:checked')).length > 0;
+  const hasDateFrom = !!document.getElementById('searchDateFrom')?.value;
+  const hasDateTo = !!document.getElementById('searchDateTo')?.value;
+  const isFiltered = isTagSearch || hasCategories || hasDateFrom || hasDateTo;
 
   const header = document.createElement('div');
   header.className = 'text-muted mb-2 px-1';
   header.style.fontSize = '0.9rem';
-  header.innerHTML = `<i class="fas fa-search me-1"></i> ${results.length} result${results.length !== 1 ? 's' : ''} for "<strong>${escapeHtml(query)}</strong>"`;
+
+  const displayedCount = isFiltered
+    ? results.filter((r) => r.result_type === 'post' || r.result_type === 'comment').length
+    : results.length;
+
+  if (isTagSearch) {
+    const tagName = query.startsWith('#') ? query : `#${query}`;
+    header.innerHTML = `<i class="fas fa-hashtag me-1"></i> ${displayedCount} post${displayedCount !== 1 ? 's' : ''} tagged <strong>${escapeHtml(tagName)}</strong>`;
+  } else {
+    header.innerHTML = `<i class="fas fa-search me-1"></i> ${displayedCount} result${displayedCount !== 1 ? 's' : ''} for "<strong>${escapeHtml(query)}</strong>"`;
+  }
   panel.appendChild(header);
 
-  if (!results.length) {
+  if (!displayedCount) {
+    const emptyMsg = isTagSearch
+      ? `No posts found with tag <strong>${escapeHtml(query)}</strong>`
+      : `No results found for "<strong>${escapeHtml(query)}</strong>"`;
     panel.innerHTML += `
       <div class="post-card text-center py-4 text-muted">
-        <i class="fas fa-search fa-2x mb-2 d-block"></i>
-        No results found for "<strong>${escapeHtml(query)}</strong>"
+        <i class="${isTagSearch ? 'fas fa-hashtag' : 'fas fa-search'} fa-2x mb-2 d-block"></i>
+        ${emptyMsg}
       </div>`;
     return;
   }
 
   results.forEach((result) => {
-    if (result.result_type === 'post') panel.appendChild(buildPostResult(result));
-    else if (result.result_type === 'comment') panel.appendChild(buildCommentResult(result));
-    else if (result.result_type === 'group') panel.appendChild(buildGroupResult(result));
-    else if (result.result_type === 'user') panel.appendChild(buildUserResult(result));
+    if (result.result_type === 'post') {
+      panel.appendChild(buildPostResult(result));
+    } else if (result.result_type === 'comment') {
+      panel.appendChild(buildCommentResult(result));
+    } else if (!isFiltered && result.result_type === 'group') {
+      // Only show groups when no filters are active
+      panel.appendChild(buildGroupResult(result));
+    } else if (!isFiltered && result.result_type === 'user') {
+      // Only show users when no filters are active
+      panel.appendChild(buildUserResult(result));
+    }
   });
 }
 

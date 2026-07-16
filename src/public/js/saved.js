@@ -822,13 +822,18 @@ function setupSearch() {
   const input = document.getElementById('searchInput');
   if (!input) return;
 
-  // redirect to search.html
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       const query = input.value.trim();
       if (!query) return;
-      window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+
+      // query with # > tag search
+      const isTagSearch = query.startsWith('#');
+      const params = new URLSearchParams({ q: query });
+      if (isTagSearch) params.set('type', 'tag');
+
+      window.location.href = `search.html?${params.toString()}`;
     }
   });
 }

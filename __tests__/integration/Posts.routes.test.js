@@ -467,3 +467,480 @@ describe('DELETE /posts/:id', () => {
     expect(res.body.error).toMatch(/post not found/i);
   });
 });
+
+// ─────────────────────────────────────────────────────────
+// GET /posts/:id/poll
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/:id/poll', () => {
+  // Valid partition: poll exists and returns question with options
+  test('should return 200 and the poll with its options', async () => {
+    const user = await registerAndVerify('PollOwner', 'pollowner@example.com');
+
+    const { rows: postRows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Poll Post', 'general', 'Content')
+      RETURNING id`,
+      [user.user.id],
+    );
+
+    const postId = postRows[0].id;
+
+    const { rows: pollRows } = await pool.query(
+      `INSERT INTO "PostPolls"
+      (post_id, question)
+      VALUES ($1, 'Favourite language?')
+      RETURNING id`,
+      [postId],
+    );
+
+    const pollId = pollRows[0].id;
+
+    await pool.query(
+      `INSERT INTO "PollOptions"
+      (poll_id, option_text)
+      VALUES
+      ($1,'JavaScript'),
+      ($1,'Python')`,
+      [pollId],
+    );
+
+    const res = await request(app).get(`/posts/${postId}/poll`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.question).toBe('Favourite language?');
+    expect(res.body.options).toHaveLength(2);
+  });
+
+  // Boundary: post has no poll
+  test('should return 404 when the post has no poll', async () => {
+    const user = await registerAndVerify('NoPollUser', 'nopoll@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id,title,category,content)
+      VALUES($1,'Normal Post','general','Content')
+      RETURNING id`,
+      [user.user.id],
+    );
+
+    const res = await request(app).get(`/posts/${rows[0].id}/poll`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toMatch(/no poll/i);
+  });
+
+  // Boundary: post id does not exist
+  test('should return 404 for a non-existent post', async () => {
+    const res = await request(app).get('/posts/999999/poll');
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toMatch(/no poll/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// POST /posts/:id/poll
+// ─────────────────────────────────────────────────────────
+describe('POST /posts/:id/poll', () => {
+  // Valid partition: create a poll with two options
+  test('should return 201 and create a poll', async () => {
+    const user = await registerAndVerify('CreatePollUser', 'createpoll@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Poll Post', 'general', 'Content')
+      RETURNING id`,
+      [user.user.id],
+    );
+
+    const postId = rows[0].id;
+
+    const res = await request(app)
+      .post(`/posts/${postId}/poll`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        question: 'Favourite programming language?',
+        options: ['JavaScript', 'Python'],
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('id');
+    expect(res.body.question).toBe('Favourite programming language?');
+    expect(res.body.options).toHaveLength(2);
+  });
+
+  // Valid partition: verify poll in the database
+  test('created poll should persist', async () => {
+    const user = await registerAndVerify('PersistPollUser', 'persistpoll@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Poll Post', 'general', 'Content')
+      RETURNING id`,
+      [user.user.id],
+    );
+
+    const postId = rows[0].id;
+
+    await request(app)
+      .post(`/posts/${postId}/poll`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        question: 'Favourite IDE?',
+        options: ['VS Code', 'WebStorm'],
+      });
+
+    const res = await request(app).get(`/posts/${postId}/poll`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.question).toBe('Favourite IDE?');
+    expect(res.body.options).toHaveLength(2);
+  });
+
+  // Invalid partition: fewer than two options
+  test('should return 400 when fewer than two options are provided', async () => {
+    const user = await registerAndVerify('InvalidPollUser', 'invalidpoll@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Poll Post', 'general', 'Content')
+      RETURNING id`,
+      [user.user.id],
+    );
+
+    const postId = rows[0].id;
+
+    const res = await request(app)
+      .post(`/posts/${postId}/poll`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        question: 'Invalid poll',
+        options: ['Only one'],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/at least 2 options/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// POST /posts/:id/poll/vote
+// ─────────────────────────────────────────────────────────
+describe('POST /posts/:id/poll/vote', () => {
+  // Valid partition: user votes successfully
+  test('should return 201 and create a vote', async () => {
+    const user = await registerAndVerify('VoteUser', 'voteuser@example.com');
+
+    const { rows: postRows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Poll Post', 'general', 'Content')
+      RETURNING id`,
+      [user.user.id],
+    );
+
+    const postId = postRows[0].id;
+
+    const { rows: pollRows } = await pool.query(
+      `INSERT INTO "PostPolls"
+      (post_id, question)
+      VALUES ($1, 'Favourite language?')
+      RETURNING id`,
+      [postId],
+    );
+
+    const pollId = pollRows[0].id;
+
+    const { rows: optionRows } = await pool.query(
+      `INSERT INTO "PollOptions"
+      (poll_id, option_text)
+      VALUES ($1, 'JavaScript')
+      RETURNING id`,
+      [pollId],
+    );
+
+    const optionId = optionRows[0].id;
+
+    const res = await request(app)
+      .post(`/posts/${postId}/poll/vote`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        poll_id: pollId,
+        option_id: optionId,
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.vote).toHaveProperty('id');
+    expect(res.body.vote.poll_id).toBe(pollId);
+    expect(res.body.vote.option_id).toBe(optionId);
+    expect(res.body.poll.options[0].vote_count).toBe(1);
+  });
+
+  // Invalid partition: duplicate vote
+  test('should return 409 when the user has already voted', async () => {
+    const user = await registerAndVerify('DuplicateVoteUser', 'duplicatevote@example.com');
+
+    const { rows: postRows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Poll Post', 'general', 'Content')
+      RETURNING id`,
+      [user.user.id],
+    );
+
+    const postId = postRows[0].id;
+
+    const { rows: pollRows } = await pool.query(
+      `INSERT INTO "PostPolls"
+      (post_id, question)
+      VALUES ($1, 'Favourite IDE?')
+      RETURNING id`,
+      [postId],
+    );
+
+    const pollId = pollRows[0].id;
+
+    const { rows: optionRows } = await pool.query(
+      `INSERT INTO "PollOptions"
+      (poll_id, option_text)
+      VALUES ($1, 'VS Code')
+      RETURNING id`,
+      [pollId],
+    );
+
+    const optionId = optionRows[0].id;
+
+    await request(app)
+      .post(`/posts/${postId}/poll/vote`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        poll_id: pollId,
+        option_id: optionId,
+      });
+
+    const res = await request(app)
+      .post(`/posts/${postId}/poll/vote`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        poll_id: pollId,
+        option_id: optionId,
+      });
+
+    expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/already voted/i);
+  });
+
+  // Invalid partition: missing required fields
+  test('should return 400 when poll_id or option_id is missing', async () => {
+    const user = await registerAndVerify('MissingVoteUser', 'missingvote@example.com');
+
+    const res = await request(app)
+      .post('/posts/1/poll/vote')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/required/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// Saved Posts
+// ─────────────────────────────────────────────────────────
+describe('Saved Posts', () => {
+  test('should allow a user to save a post', async () => {
+    const owner = await registerAndVerify('SaveOwner', 'saveowner@example.com');
+    const user = await registerAndVerify('SaveUser', 'saveuser@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts" (user_id, title, category, content)
+       VALUES ($1,'Save Me','general','Content')
+       RETURNING id`,
+      [owner.user.id],
+    );
+
+    const postId = rows[0].id;
+
+    const res = await request(app)
+      .post(`/posts/${postId}/save`)
+      .set('Authorization', `Bearer ${user.token}`);
+
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('id');
+  });
+
+  test('should return all saved posts for the logged in user', async () => {
+    const owner = await registerAndVerify('ListOwner', 'listowner@example.com');
+    const user = await registerAndVerify('ListUser', 'listuser@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts" (user_id,title,category,content)
+       VALUES ($1,'Saved Post','general','Hello')
+       RETURNING id`,
+      [owner.user.id],
+    );
+
+    await request(app)
+      .post(`/posts/${rows[0].id}/save`)
+      .set('Authorization', `Bearer ${user.token}`);
+
+    const res = await request(app).get('/posts/saved').set('Authorization', `Bearer ${user.token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBe(1);
+    expect(res.body[0].post_id).toBe(rows[0].id);
+  });
+
+  test('should allow a user to unsave a post', async () => {
+    const owner = await registerAndVerify('DeleteOwner', 'deleteowner@example.com');
+    const user = await registerAndVerify('DeleteUser', 'deleteuser@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts"(user_id,title,category,content)
+       VALUES($1,'Delete Me','general','Hello')
+       RETURNING id`,
+      [owner.user.id],
+    );
+
+    await request(app)
+      .post(`/posts/${rows[0].id}/save`)
+      .set('Authorization', `Bearer ${user.token}`);
+
+    const saved = await request(app)
+      .get('/posts/saved')
+      .set('Authorization', `Bearer ${user.token}`);
+
+    const saveId = saved.body[0].id;
+
+    const res = await request(app)
+      .delete(`/posts/saved/${saveId}`)
+      .set('Authorization', `Bearer ${user.token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(saveId);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// Post Reactions
+// ─────────────────────────────────────────────────────────
+describe('Post Reactions', () => {
+  test('should allow a user to like a post', async () => {
+    const owner = await registerAndVerify('LikeOwner', 'likeowner@example.com');
+    const user = await registerAndVerify('LikeUser', 'likeuser@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts" (user_id, title, category, content)
+       VALUES ($1, 'React Post', 'general', 'Content')
+       RETURNING id`,
+      [owner.user.id],
+    );
+
+    const postId = rows[0].id;
+
+    const res = await request(app)
+      .post(`/posts/${postId}/reaction`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ reaction_type: 'like' });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('id');
+  });
+
+  test('should return the logged in user reactions', async () => {
+    const owner = await registerAndVerify('ReactionOwner', 'reactionowner@example.com');
+    const user = await registerAndVerify('ReactionUser', 'reactionuser@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts" (user_id, title, category, content)
+       VALUES ($1, 'Reaction Test', 'general', 'Content')
+       RETURNING id`,
+      [owner.user.id],
+    );
+
+    const postId = rows[0].id;
+
+    await request(app)
+      .post(`/posts/${postId}/reaction`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ reaction_type: 'like' });
+
+    const res = await request(app)
+      .get('/posts/reactions')
+      .set('Authorization', `Bearer ${user.token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBe(1);
+    expect(res.body[0].post_id).toBe(postId);
+    expect(res.body[0].reaction_type).toBe('like');
+  });
+
+  test('should allow a user to change a like into a dislike', async () => {
+    const owner = await registerAndVerify('UpdateOwner', 'updateowner@example.com');
+    const user = await registerAndVerify('UpdateUser', 'updateuser@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts" (user_id, title, category, content)
+       VALUES ($1, 'Update Reaction', 'general', 'Content')
+       RETURNING id`,
+      [owner.user.id],
+    );
+
+    const postId = rows[0].id;
+
+    await request(app)
+      .post(`/posts/${postId}/reaction`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ reaction_type: 'like' });
+
+    const reactions = await request(app)
+      .get('/posts/reactions')
+      .set('Authorization', `Bearer ${user.token}`);
+
+    const reactionId = reactions.body[0].id;
+
+    const res = await request(app)
+      .put(`/posts/reaction/${reactionId}`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ reaction_type: 'dislike' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.reaction_type).toBe('dislike');
+  });
+
+  test('should allow a user to remove a reaction', async () => {
+    const owner = await registerAndVerify('DeleteReactionOwner', 'deletereactionowner@example.com');
+    const user = await registerAndVerify('DeleteReactionUser', 'deletereactionuser@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts" (user_id, title, category, content)
+       VALUES ($1, 'Delete Reaction', 'general', 'Content')
+       RETURNING id`,
+      [owner.user.id],
+    );
+
+    const postId = rows[0].id;
+
+    await request(app)
+      .post(`/posts/${postId}/reaction`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ reaction_type: 'like' });
+
+    const reactions = await request(app)
+      .get('/posts/reactions')
+      .set('Authorization', `Bearer ${user.token}`);
+
+    const reactionId = reactions.body[0].id;
+
+    const res = await request(app)
+      .delete(`/posts/reaction/${reactionId}`)
+      .set('Authorization', `Bearer ${user.token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(reactionId);
+  });
+});
