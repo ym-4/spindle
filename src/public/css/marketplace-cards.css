@@ -125,6 +125,24 @@
   margin-right: 4px;
 }
 
+.spindle-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 6px;
+}
+
+.spindle-tag-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
 .spindle-card-footer {
   display: flex;
   align-items: center;

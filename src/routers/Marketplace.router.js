@@ -1,12 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const {
-  createItem,
-  getAllItems,
-  updateItem,
-  deleteItem,
-  getAllItemsById,
-} = require('../models/Marketplace.model');
+const upload = require('../middlewares/upload');
+const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage, setItemTags, getItemsByTag, getRecommendedItems } = require('../models/Marketplace.model');
 
 // Create a new item
 router.post('/', (req, res, next) => {
@@ -19,6 +14,23 @@ router.post('/', (req, res, next) => {
 // Retrieve all items
 router.get('/', (req, res, next) => {
   getAllItems()
+    .then((items) => res.status(200).json(items))
+    .catch(next);
+});
+
+// Set the tags on an item (replaces any existing tags for the item)
+router.put('/:id/tags', (req, res, next) => {
+  const { tags } = req.body; // expects array of strings
+  if (!Array.isArray(tags)) return res.status(400).json({ error: 'tags must be an array' });
+
+  setItemTags(req.params.id, tags)
+    .then((attached) => res.status(200).json({ tags: attached }))
+    .catch(next);
+});
+
+// Retrieve items filtered by tag name
+router.get('/by-tag/:tagName', (req, res, next) => {
+  getItemsByTag(req.params.tagName)
     .then((items) => res.status(200).json(items))
     .catch(next);
 });
@@ -42,6 +54,29 @@ router.put('/:id', (req, res, next) => {
     .catch(next);
 });
 
+// Upload images for an item (field name must be "images", max 6 files)
+router.post('/:id/images', upload.array('images', 6), (req, res, next) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: 'No images uploaded' });
+  }
+
+  const imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
+
+  addImagesToItem(req.params.id, imagePaths)
+    .then((images) => res.status(201).json({ images }))
+    .catch(next);
+});
+
+// Delete a single image from an item
+router.delete('/:id/images/:imageId', (req, res, next) => {
+  deleteItemImage(req.params.imageId, req.params.id)
+    .then((image) => {
+      if (!image) return res.status(404).json({ error: 'Image not found' });
+      res.status(200).json(image);
+    })
+    .catch(next);
+});
+
 // Delete an item
 router.delete('/:id', (req, res, next) => {
   const id = Number(req.params.id);
@@ -50,6 +85,14 @@ router.delete('/:id', (req, res, next) => {
       if (!item) return res.status(404).json({ error: 'Item not found' });
       res.status(200).json(item);
     })
+    .catch(next);
+});
+
+// Get up to 3 recommended items (tag-matched, falling back to random)
+router.get('/:id/recommended', (req, res, next) => {
+  const limit = Number(req.query.limit) || 4;
+  getRecommendedItems(req.params.id, limit)
+    .then((items) => res.status(200).json(items))
     .catch(next);
 });
 

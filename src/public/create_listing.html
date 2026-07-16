@@ -48,163 +48,255 @@
       </div>
     </nav>
 
-    <!-- Header -->
-    <header class="bg-dark py-5">
-      <div class="container px-4 px-lg-5 my-5">
-        <div class="text-center text-white">
-          <h1 class="display-4 fw-bolder">New Listing</h1>
-          <p class="lead fw-normal text-white-50 mb-0">List an item for the SP Marketplace</p>
+    <div class="page-layout d-flex">
+      <!-- Left Sidebar -->
+      <aside class="sidebar">
+        <a href="index.html" class="sidebar-item">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="groups.html" class="sidebar-item">
+          <i class="fas fa-users"></i>
+          <span>Study Groups</span>
+        </a>
+        <a href="marketplace.html" class="sidebar-item active">
+          <i class="fas fa-store"></i>
+          <span>Marketplace</span>
+        </a>
+        <a href="profile.html" class="sidebar-item">
+          <i class="fas fa-user"></i>
+          <span>Profile</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-item">
+          <i class="fas fa-bookmark"></i>
+          <span>Saved Posts</span>
         </div>
-      </div>
-    </header>
+        <div class="sidebar-item">
+          <i class="fas fa-clock"></i>
+          <span>Recent</span>
+        </div>
+        <div class="sidebar-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </div>
 
-    <!-- Form Section -->
-    <section class="py-5">
-      <div class="create-listing-wrapper">
-        <div class="create-listing-card">
-          <h2>Listing Details</h2>
-          <p class="subtitle">
-            Fill in the details below. Fields marked <span style="color: #e53e3e">*</span> are
-            required.
-          </p>
+        <div class="sidebar-divider"></div>
 
-          <form id="createListingForm" novalidate>
-            <!-- Title -->
-            <div class="mb-3">
-              <label for="listingTitle" class="form-label"
-                >Title <span style="color: #e53e3e">*</span></label
-              >
-              <input
-                type="text"
-                class="form-control"
-                id="listingTitle"
-                placeholder="e.g. Sony Headphones"
-                maxlength="100"
-                required
-              />
-              <div class="char-counter"><span id="titleCount">0</span> / 100</div>
-              <div class="invalid-feedback">Please provide a listing title.</div>
+        <h6 class="px-3 mt-3 mb-2 text-muted" style="font-size: 0.85rem; font-weight: 600">
+          YOUR GROUPS
+        </h6>
+        <div class="sidebar-item">
+          <i class="fas fa-circle" style="font-size: 0.5rem; color: #42b72a"></i>
+          <span>CS101 Study Group</span>
+        </div>
+        <div class="sidebar-item">
+          <i class="fas fa-circle" style="font-size: 0.5rem; color: #1877f2"></i>
+          <span>Math Assignment Help</span>
+        </div>
+        <div class="sidebar-item">
+          <i class="fas fa-plus-circle"></i>
+          <span>See all groups</span>
+        </div>
+      </aside>
+
+      <div class="page-content flex-grow-1">
+        <!-- Header -->
+        <header class="bg-dark py-5" id="create-listing-header">
+          <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+              <h1 class="display-4 fw-bolder">New Listing</h1>
+              <p class="lead fw-normal text-white-50 mb-0">List an item for the SP Marketplace</p>
             </div>
+          </div>
+        </header>
 
-            <!-- Description -->
-            <div class="mb-3">
-              <label for="listingDescription" class="form-label"
-                >Description <span style="color: #e53e3e">*</span></label
-              >
-              <textarea
-                class="form-control"
-                id="listingDescription"
-                placeholder="Describe your item..."
-                maxlength="1000"
-                required
-              ></textarea>
-              <div class="char-counter"><span id="descCount">0</span> / 1000</div>
-              <div class="invalid-feedback">Please add a description.</div>
-            </div>
+        <!-- Back Button -->
+        <div class="container-fluid px-4 pt-3">
+          <button
+            type="button"
+            class="btn-back-listing"
+            onclick="
+              window.history.length > 1
+                ? window.history.back()
+                : (window.location.href = 'marketplace.html')
+            "
+          >
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+        </div>
 
-            <hr class="section-divider" />
+        <!-- Form Section -->
+        <section class="py-5">
+          <div class="create-listing-wrapper">
+            <div class="create-listing-card">
+              <h2>Listing Details</h2>
+              <p class="subtitle">
+                Fill in the details below. Fields marked <span style="color: #e53e3e">*</span> are
+                required.
+              </p>
 
-            <!-- Price & Category (side by side on md+) -->
-            <div class="row g-3 mb-3">
-              <div class="col-md-6">
-                <label for="listingPrice" class="form-label"
-                  >Price <span style="color: #e53e3e">*</span></label
-                >
-                <div class="input-group">
-                  <span class="input-group-text">$</span>
+              <form id="createListingForm" novalidate>
+                <!-- Title -->
+                <div class="mb-3">
+                  <label for="listingTitle" class="form-label"
+                    >Title <span style="color: #e53e3e">*</span></label
+                  >
                   <input
-                    type="number"
+                    type="text"
                     class="form-control"
-                    id="listingPrice"
-                    placeholder="0.00"
-                    min="0"
-                    step="0.01"
+                    id="listingTitle"
+                    placeholder="e.g. Sony Headphones"
+                    maxlength="100"
                     required
                   />
+                  <div class="char-counter"><span id="titleCount">0</span> / 100</div>
+                  <div class="invalid-feedback">Please provide a listing title.</div>
                 </div>
-                <div class="invalid-feedback">Please enter a valid price.</div>
-              </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                  <label for="listingDescription" class="form-label"
+                    >Description <span style="color: #e53e3e">*</span></label
+                  >
+                  <textarea
+                    class="form-control"
+                    id="listingDescription"
+                    placeholder="Describe your item..."
+                    maxlength="1000"
+                    required
+                  ></textarea>
+                  <div class="char-counter"><span id="descCount">0</span> / 1000</div>
+                  <div class="invalid-feedback">Please add a description.</div>
+                </div>
+
+                <hr class="section-divider" />
+
+                <!-- Price & Category (side by side on md+) -->
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label for="listingPrice" class="form-label"
+                      >Price <span style="color: #e53e3e">*</span></label
+                    >
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="listingPrice"
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                        required
+                      />
+                    </div>
+                    <div class="invalid-feedback">Please enter a valid price.</div>
+                  </div>
+                </div>
+
+                <!-- Condition -->
+                <div class="mb-3">
+                  <label class="form-label d-block"
+                    >Condition <span style="color: #e53e3e">*</span></label
+                  >
+                  <div class="condition-options" id="conditionOptions">
+                    <input type="radio" name="condition" id="cond-new" value="new" required />
+                    <label for="cond-new">Brand New</label>
+
+                    <input type="radio" name="condition" id="cond-like-new" value="like_new" />
+                    <label for="cond-like-new">Like New</label>
+
+                    <input type="radio" name="condition" id="cond-good" value="good" />
+                    <label for="cond-good">Good</label>
+
+                    <input type="radio" name="condition" id="cond-fair" value="fair" />
+                    <label for="cond-fair">Fair</label>
+
+                    <input type="radio" name="condition" id="cond-poor" value="poor" />
+                    <label for="cond-poor">For Parts / Poor</label>
+                  </div>
+                  <div
+                    class="invalid-feedback d-block"
+                    id="conditionError"
+                    style="display: none !important; font-size: 0.875em; color: #dc3545"
+                  ></div>
+                </div>
+
+                <hr class="section-divider" />
+
+                <!-- Images -->
+                <div class="mb-4">
+                  <label class="form-label">Photos</label>
+                  <div
+                    class="upload-zone"
+                    id="uploadZone"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Upload listing images"
+                  >
+                    <input
+                      type="file"
+                      id="listingImages"
+                      accept="image/*"
+                      multiple
+                      aria-hidden="true"
+                    />
+                    <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <p><strong>Click to upload</strong> or drag &amp; drop</p>
+                    <p>PNG, JPG, WEBP up to 10 MB each · Max 6 photos</p>
+                  </div>
+                  <div id="image-preview-container"></div>
+                </div>
+
+                <!-- Location (optional) -->
+                <div class="mb-4">
+                  <label for="listingLocation" class="form-label"
+                    >Meet-up Location <span class="text-muted fw-normal">(optional)</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="listingLocation"
+                    placeholder="e.g. Dover MRT, FC6, etc."
+                    maxlength="120"
+                  />
+                </div>
+
+                <!-- Tag input -->
+                <div class="mb-3">
+                  <label class="form-label">
+                    Tags
+                    <i
+                      class="fas fa-info-circle tag-tooltip-icon"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="right"
+                      data-bs-html="true"
+                      title="Click the <b>+</b> to add a tag oval, then type inside it.<br>Press Enter or click away to confirm.<br>Up to 5 tags per listing."
+                    ></i>
+                  </label>
+
+                  <div class="tag-oval-container" id="tagOvalContainer">
+                    <button type="button" class="tag-add-btn" id="tagAddBtn" aria-label="Add tag">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                  <button type="submit" class="btn-create-listing">
+                    <i class="fas fa-tag me-2"></i>Publish Listing
+                  </button>
+                  <a href="marketplace.html" class="btn-cancel-listing">Cancel</a>
+                </div>
+              </form>
             </div>
-
-            <!-- Condition -->
-            <div class="mb-3">
-              <label class="form-label d-block"
-                >Condition <span style="color: #e53e3e">*</span></label
-              >
-              <div class="condition-options" id="conditionOptions">
-                <input type="radio" name="condition" id="cond-new" value="new" required />
-                <label for="cond-new">Brand New</label>
-
-                <input type="radio" name="condition" id="cond-like-new" value="like_new" />
-                <label for="cond-like-new">Like New</label>
-
-                <input type="radio" name="condition" id="cond-good" value="good" />
-                <label for="cond-good">Good</label>
-
-                <input type="radio" name="condition" id="cond-fair" value="fair" />
-                <label for="cond-fair">Fair</label>
-
-                <input type="radio" name="condition" id="cond-poor" value="poor" />
-                <label for="cond-poor">For Parts / Poor</label>
-              </div>
-              <div
-                class="invalid-feedback d-block"
-                id="conditionError"
-                style="display: none !important; font-size: 0.875em; color: #dc3545"
-              ></div>
-            </div>
-
-            <hr class="section-divider" />
-
-            <!-- Images -->
-            <div class="mb-4">
-              <label class="form-label">Photos</label>
-              <div
-                class="upload-zone"
-                id="uploadZone"
-                role="button"
-                tabindex="0"
-                aria-label="Upload listing images"
-              >
-                <input
-                  type="file"
-                  id="listingImages"
-                  accept="image/*"
-                  multiple
-                  aria-hidden="true"
-                />
-                <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                <p><strong>Click to upload</strong> or drag &amp; drop</p>
-                <p>PNG, JPG, WEBP up to 10 MB each · Max 6 photos</p>
-              </div>
-              <div id="image-preview-container"></div>
-            </div>
-
-            <!-- Location (optional) -->
-            <div class="mb-4">
-              <label for="listingLocation" class="form-label"
-                >Meet-up Location <span class="text-muted fw-normal">(optional)</span></label
-              >
-              <input
-                type="text"
-                class="form-control"
-                id="listingLocation"
-                placeholder="e.g. Dover MRT, FC6, etc."
-                maxlength="120"
-              />
-            </div>
-
-            <!-- Action buttons -->
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-              <button type="submit" class="btn-create-listing">
-                <i class="fas fa-tag me-2"></i>Publish Listing
-              </button>
-              <a href="marketplace.html" class="btn-cancel-listing">Cancel</a>
-            </div>
-          </form>
-        </div>
+          </div>
+        </section>
       </div>
-    </section>
+    </div>
 
     <!-- Success Toast -->
     <div class="toast-container">
@@ -227,6 +319,38 @@
           ></button>
         </div>
       </div>
+
+      <!-- Max Tags Modal -->
+      <div
+        class="modal fade"
+        id="maxTagsModal"
+        tabindex="-1"
+        aria-labelledby="maxTagsModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header border-0">
+              <h5 class="modal-title d-flex align-items-center gap-2" id="maxTagsModalLabel">
+                <i class="fas fa-exclamation-circle text-danger"></i> Tag Limit Reached
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              You can only add up to <strong>5 tags</strong> per listing. Remove an existing tag
+              before adding a new one.
+            </div>
+            <div class="modal-footer border-0">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script
@@ -238,6 +362,10 @@
     <script src="js/getCurrentURL.js" type="text/javascript"></script>
     <script src="js/userNavBarToggle.js" type="text/javascript"></script>
     <script src="js/new-listing.js" type="text/javascript"></script>
+
+    <script src="js/wa-nav.js"></script>
+    <script src="js/socket-client.js"></script>
+    <script src="js/spindle-sidebar.js"></script>
 
     <script>
       document.addEventListener('DOMContentLoaded', () => {

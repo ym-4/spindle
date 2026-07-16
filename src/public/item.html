@@ -94,6 +94,22 @@
       </aside>
 
       <main id="content-area">
+        
+        <!-- Back Button -->
+        <div class="container-fluid px-4 pt-3">
+          <button
+            type="button"
+            class="btn-back-listing"
+            onclick="
+              window.history.length > 1
+                ? window.history.back()
+                : (window.location.href = 'marketplace.html')
+            "
+          >
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+        </div>
+
         <div class="item-page">
           <div class="item-breadcrumb">
             <a href="marketplace.html">Marketplace</a> / <span id="breadcrumbTitle">Item</span>
@@ -110,6 +126,7 @@
                 <span id="itemQuality" class="quality-pill d-none"></span>
                 <h1 id="itemTitle">Loading item&hellip;</h1>
                 <p id="itemPrice" class="item-price">$0.00</p>
+                <div id="itemTags" class="item-tags"></div>
 
                 <div class="meetup-ticket">
                   <div class="meetup-icon">
@@ -148,9 +165,16 @@
               </div>
             </div>
 
+            <!-- Description -->
             <div class="item-description-section">
               <h2>Description</h2>
               <p id="itemDescription"></p>
+            </div>
+
+            <!-- Recommended Items -->
+            <div id="recommended-section" class="recommended-section d-none">
+              <h2>Recommended Items</h2>
+              <div id="recommended-container" class="listings-grid"></div>
             </div>
           </div>
 
