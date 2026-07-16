@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="css/posts.css" />
     <link rel="stylesheet" href="css/temp.css" />
     <link rel="stylesheet" href="css/marketplace.css" />
+    <link rel="stylesheet" href="css/marketplace-cards.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
     <link rel="stylesheet" href="css/profile-page.css" />
 
@@ -74,7 +75,7 @@
 
       <main id="content-area">
         <!-- Header-->
-        <header class="bg-dark py-5">
+        <header class="bg-dark py-5" id="my-listings-header">
           <div class="container px-4 px-lg-5 my-5">
             <div class="text-center text-white">
               <h1 class="display-4 fw-bolder">Your Listings</h1>
@@ -118,13 +119,28 @@
             <!-- Listing Container -->
             <div id="no-listings-state" class="no-listings-state d-none">
               <i class="fas fa-box-open no-listings-icon"></i>
-              <h4>You don't have that listed right now</h4>
-              <p class="text-muted">You can add it right away!</p>
+              <h4>You have nothing listed at the moment.</h4>
+              <p class="text-muted">But that can change!</p>
               <a href="create_listing.html" class="btn btn-outline-dark">
                 <i class="fas fa-plus-circle"></i> Add a Listing
               </a>
             </div>
             <div id="listings-container" class="listings-grid"></div>
+            <!-- Pagination -->
+            <nav id="pagination-nav" aria-label="Marketplace pagination" class="mt-4">
+              <ul class="pagination justify-content-center" id="pagination-controls">
+                <li class="page-item" id="prev-page-item">
+                  <button class="page-link" id="prev-page-btn" aria-label="Previous">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                </li>
+                <li class="page-item" id="next-page-item">
+                  <button class="page-link" id="next-page-btn" aria-label="Next">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
           </div>
         </section>
       </main>
