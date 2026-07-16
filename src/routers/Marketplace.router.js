@@ -1,7 +1,21 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const multer = require('multer');
 const upload = require('../middlewares/upload');
 const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage, setItemTags, getItemsByTag, getRecommendedItems } = require('../models/Marketplace.model');
+
+// Local storage config, scoped to marketplace image uploads only
+const listingImageStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '../public/uploads/marketplace-uploads')); // change this path
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  },
+});
+
+const listingUpload = multer({ storage: listingImageStorage });
 
 // Create a new item
 router.post('/', (req, res, next) => {
@@ -55,12 +69,12 @@ router.put('/:id', (req, res, next) => {
 });
 
 // Upload images for an item (field name must be "images", max 6 files)
-router.post('/:id/images', upload.array('images', 6), (req, res, next) => {
+router.post('/:id/images', listingUpload.array('images', 6), (req, res, next) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ error: 'No images uploaded' });
   }
 
-  const imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
+  const imagePaths = req.files.map((file) => `/uploads/marketplace-uploads/${file.filename}`);
 
   addImagesToItem(req.params.id, imagePaths)
     .then((images) => res.status(201).json({ images }))

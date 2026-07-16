@@ -34,7 +34,7 @@ function addListing(seller_id, id, name, description, price, quality, meetup, im
   const meetupMarkup = meetup
     ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(meetup)}</p>`
     : '';
-  const thumbnailSrc = images && images.length > 0 ? images[0].image_url : '../marketplace-uploads/1.png';
+  const thumbnailSrc = images && images.length > 0 ? images[0].image_url : '../uploads/marketplace-uploads/1.png';
   const tagsMarkup = tags && tags.length > 0
     ? `<div class="spindle-card-tags">${tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
     : '';
