@@ -38,18 +38,14 @@
         </a>
 
         <!-- Searchbar-->
-        <div class="navbar-search">
-          <input
-            class="form-control"
-            id="searchInput"
-            type="search"
-            placeholder="Search"
-            aria-label="Search"
-          />
+        <div class="navbar-search position-relative">
+        <input class="form-control" id="searchInput" type="search"
+          placeholder="Search" aria-label="Search"
+          autocomplete="off">
           <span class="search-placeholder-fake" aria-hidden="true"
-            >Search posts, groups, items...</span
-          >
-        </div>
+            >Search posts, groups, items...</span>
+        <div id="searchDropdown" class="search-dropdown" style="display:none;"></div>
+      </div>
 
         <div class="navbar-right">
           <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
@@ -145,6 +141,7 @@
       </main>
 
       <!-- Right sidebar -->
+       <!-- hot posts -->
       <aside class="right-sidebar">
         <div class="card">
           <div class="card-header"><i class="fas fa-fire text-danger me-2"></i>Hot Posts</div>
@@ -153,6 +150,12 @@
               <div class="spinner-border spinner-border-sm" role="status"></div>
             </div>
           </div>
+        </div>
+
+        <!-- recently viewed -->
+        <div class="card mt-3" id="recentlyViewedCard" style="display:none;">
+          <div class="card-header"><i class="fas fa-history text-secondary me-2"></i>Recently Viewed</div>
+          <div class="list-group list-group-flush" id="recentlyViewedContainer"></div>
         </div>
 
         <!-- suggested groups-->
@@ -483,6 +486,7 @@
     <script src="js/spindle-page.js"></script>
 
     <script src="js/reactions.js"></script>
+    <script src="/js/search.js"></script>
     <script src="js/indexFeed.js"></script>
 
     <script>

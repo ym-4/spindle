@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadHotPosts();
   setupSavedTabs();
   setupSearch();
+  if (typeof setupSearchDropdown === 'function') setupSearchDropdown();
 
   if (!token || !userId) {
     showLoginPrompt();

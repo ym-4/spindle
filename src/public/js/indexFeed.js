@@ -43,6 +43,7 @@ function initFeedPage() {
 
   loadUserReactions();
   loadSuggestedGroups();
+  loadRecentlyViewedWidget();
 
   loadSavedIds().then(() => {
     loadPosts();
@@ -55,6 +56,7 @@ function initFeedPage() {
     setupCreatePost();
 
     setupSearch();
+    if (typeof setupSearchDropdown === 'function') setupSearchDropdown();
     setupAuthPopup();
     protectCreatePostUI();
 
@@ -511,11 +513,13 @@ function buildPostCard(post) {
 
   card.addEventListener('click', (e) => {
     if (e.target.closest('.post-actions') || e.target.closest('.dropdown')) return;
+    recordRecentlyViewed(post);
     window.location.href = `posts.html?id=${post.id}`;
   });
 
   card.querySelector('.comment-btn').addEventListener('click', (e) => {
     e.stopPropagation();
+    recordRecentlyViewed(post);
     window.location.href = `posts.html?id=${post.id}`;
   });
 
@@ -1559,6 +1563,9 @@ function renderYourGroups(groups) {
   container.appendChild(seeAll);
 }
 
+// =========================
+// right sidebar
+// =========================
 function renderTop3(posts) {
   const container = document.getElementById('top5Container');
   if (!container) return;
@@ -1586,6 +1593,37 @@ function renderTop3(posts) {
     item.className = 'list-group-item list-group-item-action py-2';
     item.innerHTML = `
       <div class="text-muted mb-1" style="font-size:0.75rem;">Trending #${index + 1}</div>
+      <div class="fw-bold" style="font-size:0.9rem;">${escapeHtml(post.title)}</div>`;
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      recordRecentlyViewed(post);
+      window.location.href = `posts.html?id=${post.id}`;
+    });
+    container.appendChild(item);
+  });
+}
+
+function loadRecentlyViewedWidget() {
+  const card = document.getElementById('recentlyViewedCard');
+  const container = document.getElementById('recentlyViewedContainer');
+  if (!card || !container) return;
+
+  const recent = getRecentlyViewed(3);
+
+  if (!recent.length) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+  container.innerHTML = '';
+
+  recent.forEach((post) => {
+    const item = document.createElement('a');
+    item.href = '#';
+    item.className = 'list-group-item list-group-item-action py-2';
+    item.innerHTML = `
+      <div class="text-muted mb-1" style="font-size:0.75rem;">${getCategoryLabel ? getCategoryLabel(post.category) : (post.category || '')}</div>
       <div class="fw-bold" style="font-size:0.9rem;">${escapeHtml(post.title)}</div>`;
     item.addEventListener('click', (e) => {
       e.preventDefault();

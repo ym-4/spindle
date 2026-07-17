@@ -30,18 +30,14 @@
         </a>
 
         <!--searh bar-->
-        <div class="navbar-search">
-          <input
-            class="form-control"
-            id="searchInput"
-            type="search"
-            placeholder="Search"
-            aria-label="Search"
-          />
+        <div class="navbar-search position-relative">
+        <input class="form-control" id="searchInput" type="search"
+          placeholder="Search" aria-label="Search"
+          autocomplete="off">
           <span class="search-placeholder-fake" aria-hidden="true"
-            >Search posts, groups, items...</span
-          >
-        </div>
+            >Search posts, groups, items...</span>
+        <div id="searchDropdown" class="search-dropdown" style="display:none;"></div>
+      </div>
 
         <div class="navbar-right">
           <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
@@ -166,6 +162,7 @@
     <script src="js/spindle-page.js"></script>
     <script src="js/userNavBarToggle.js"></script>
     <script src="js/reactions.js"></script>
+    <script src="/js/search.js"></script>
     <script src="js/saved.js"></script>
   </body>
 </html>

@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadYourGroups();
   setupCommentSortUI();
   setupSearch();
+  if (typeof setupSearchDropdown === 'function') setupSearchDropdown();
 
   const params = new URLSearchParams(window.location.search);
   const postId = params.get('id');

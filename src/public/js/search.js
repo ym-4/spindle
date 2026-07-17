@@ -5,73 +5,102 @@ function feedApiBase() {
   return window.location.origin || '';
 }
 
+// Recent searches (localStorage)
+const RECENT_KEY = (() => {
+  try {
+    const u = JSON.parse(localStorage.getItem('pineappleUser'));
+    return u?.id ? `spindleRecentSearches_${u.id}` : 'spindleRecentSearches_guest';
+  } catch { return 'spindleRecentSearches_guest'; }
+})();
+const MAX_RECENT = 8;
+
+function getRecentSearches() {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveRecentSearch(query) {
+  if (!query || !query.trim()) return;
+  const q = query.trim();
+  let recent = getRecentSearches().filter(r => r !== q);
+  recent.unshift(q);
+  if (recent.length > MAX_RECENT) recent = recent.slice(0, MAX_RECENT);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+}
+
+function removeRecentSearch(query) {
+  const recent = getRecentSearches().filter(r => r !== query);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+}
+
 // Setup on page load
 document.addEventListener('DOMContentLoaded', () => {
-  loadHotPosts();
+    loadHotPosts();
+    setupSearchDropdown();
 
-  const params = getUrlParams();
+    const params = getUrlParams();
 
-  // Pre-fill search input and filters from URL
-  const input = document.getElementById('searchInput');
-  if (input && params.q) input.value = params.q;
+    const input = document.getElementById('searchInput');
+    if (input && params.q) input.value = params.q;
 
-  const categoryCheckboxes = document.querySelectorAll('.search-category-checkbox');
-  const sortEl = document.getElementById('searchSort');
-  const fromEl = document.getElementById('searchDateFrom');
-  const toEl = document.getElementById('searchDateTo');
+    const categoryCheckboxes = document.querySelectorAll('.search-category-checkbox');
+    const sortEl = document.getElementById('searchSort');
+    const fromEl = document.getElementById('searchDateFrom');
+    const toEl = document.getElementById('searchDateTo');
 
-  categoryCheckboxes.forEach((cb) => {
-    if (params.categories.includes(cb.value)) cb.checked = true;
-  });
-  updateCategoryFilterLabel();
-
-  if (sortEl && params.sort) sortEl.value = params.sort;
-  if (fromEl && params.date_from) fromEl.value = params.date_from;
-  if (toEl && params.date_to) toEl.value = params.date_to;
-
-  // Run search immediately
-  if (params.q) runSearch();
-
-  // Search input
-  input?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const newQuery = input.value.trim();
-      if (!newQuery) return;
-      // new # query
-      const newIsTag = newQuery.startsWith('#');
-      const p = new URLSearchParams(window.location.search);
-      p.set('q', newQuery);
-      newIsTag ? p.set('type', 'tag') : p.delete('type');
-      window.history.replaceState({}, '', `?${p.toString()}`);
-      runSearch();
-    }
-  });
-
-  // Category checkboxes rerun on change
-  categoryCheckboxes.forEach((cb) => {
-    cb.addEventListener('change', () => {
-      updateCategoryFilterLabel();
-      runSearch();
-    });
-  });
-
-  // Other filter controls rerun on change
-  ['searchSort', 'searchDateFrom', 'searchDateTo'].forEach((id) => {
-    document.getElementById(id)?.addEventListener('change', runSearch);
-  });
-
-  // Clear filters
-  document.getElementById('clearSearchFiltersBtn')?.addEventListener('click', () => {
     categoryCheckboxes.forEach((cb) => {
-      cb.checked = false;
+    if (params.categories.includes(cb.value)) cb.checked = true;
+    });
+    updateCategoryFilterLabel();
+
+    if (sortEl && params.sort) sortEl.value = params.sort;
+    if (fromEl && params.date_from) fromEl.value = params.date_from;
+    if (toEl && params.date_to) toEl.value = params.date_to;
+
+    // Run search immediately
+    if (params.q) runSearch();
+
+    // Search input
+    if (window.location.pathname.endsWith('search.html')) {
+      input?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const newQuery = input.value.trim();
+          if (!newQuery) return;
+          const newIsTag = newQuery.startsWith('#');
+          const p = new URLSearchParams(window.location.search);
+          p.set('q', newQuery);
+          newIsTag ? p.set('type', 'tag') : p.delete('type');
+          window.history.replaceState({}, '', `?${p.toString()}`);
+          runSearch();
+        }
+      });
+    }
+
+    // Category checkboxes rerun on change
+    categoryCheckboxes.forEach((cb) => {
+    cb.addEventListener('change', () => {
+        updateCategoryFilterLabel();
+        runSearch();
+    });
+    });
+
+    // Other filter controls rerun on change
+    ['searchSort', 'searchDateFrom', 'searchDateTo'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('change', runSearch);
+    });
+
+    // Clear filters
+    document.getElementById('clearSearchFiltersBtn')?.addEventListener('click', () => {
+    categoryCheckboxes.forEach((cb) => {
+        cb.checked = false;
     });
     updateCategoryFilterLabel();
     if (sortEl) sortEl.value = 'newest';
     if (fromEl) fromEl.value = '';
     if (toEl) toEl.value = '';
     runSearch();
-  });
+    });
 });
 
 function updateCategoryFilterLabel() {
@@ -184,6 +213,7 @@ function runSearch() {
   const type = isTagSearch ? 'tag' : '';
 
   pushSearchUrl({ q, type, categories, sort, date_from: dateFrom, date_to: dateTo });
+  saveRecentSearch(q);
 
   // Hide filters for tag searching
   const filterCard = document.getElementById('searchFilterCard');
@@ -367,6 +397,196 @@ function buildUserResult(user) {
   return el;
 }
 
+function setupSearchDropdown() {
+  const input    = document.getElementById('searchInput');
+  const dropdown = document.getElementById('searchDropdown');
+  if (!input || !dropdown) return;
+
+  let debounce;
+
+  function showDropdown() {
+    dropdown.style.display = 'block';
+    input.closest('.navbar-search')?.classList.add('open');
+  }
+
+  function hideDropdown() {
+    dropdown.style.display = 'none';
+    dropdown.innerHTML = '';
+    input.closest('.navbar-search')?.classList.remove('open');
+  }
+
+  function renderRecentSearches() {
+    const recent = getRecentSearches();
+    dropdown.innerHTML = '';
+    if (!recent.length) { hideDropdown(); return; }
+
+    const section = document.createElement('div');
+    section.className = 'search-dropdown-section';
+
+    const label = document.createElement('div');
+    label.className = 'search-dropdown-label';
+    label.textContent = 'Recent searches';
+    section.appendChild(label);
+
+    recent.forEach(q => {
+      const item = document.createElement('button');
+      item.className = 'search-dropdown-item';
+      item.innerHTML = `
+        <i class="fas fa-clock"></i>
+        <span class="flex-grow-1">${escapeHtml(q)}</span>
+        <button class="remove-recent" title="Remove" data-q="${escapeHtml(q)}">
+          <i class="fas fa-times"></i>
+        </button>`;
+
+      // Click item text > search
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-recent')) return;
+        doSearch(q);
+      });
+
+      // Remove button
+      item.querySelector('.remove-recent').addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeRecentSearch(q);
+        renderRecentSearches();
+        if (!getRecentSearches().length) hideDropdown();
+      });
+
+      section.appendChild(item);
+    });
+
+    dropdown.appendChild(section);
+    showDropdown();
+  }
+
+  function doSearch(query) {
+    saveRecentSearch(query);
+    hideDropdown();
+    if (window.location.pathname.endsWith('search.html')) {
+      input.value = query;
+      const isTag = query.startsWith('#');
+      const p = new URLSearchParams(window.location.search);
+      p.set('q', query);
+      isTag ? p.set('type', 'tag') : p.delete('type');
+      window.history.replaceState({}, '', `?${p.toString()}`);
+      runSearch();
+    } else {
+      const isTag = query.startsWith('#');
+      const p = new URLSearchParams({ q: query });
+      if (isTag) p.set('type', 'tag');
+      window.location.href = `search.html?${p.toString()}`;
+    }
+  }
+
+  function renderSuggestions(query) {
+    const cleanQuery = query.replace(/^#/, '');
+
+    fetchMethod(
+      `${feedApiBase()}/posts/tags/search?q=${encodeURIComponent(cleanQuery)}`,
+      (status, tags) => {
+        dropdown.innerHTML = '';
+        const section = document.createElement('div');
+        section.className = 'search-dropdown-section';
+
+        // typed query 
+        const searchLabel = document.createElement('div');
+        searchLabel.className = 'search-dropdown-label';
+        section.appendChild(searchLabel);
+
+        appendSuggItem(section, 'fa-search', query, null, () => doSearch(query));
+
+        // Matching tags 
+        if (status === 200 && Array.isArray(tags) && tags.length) {
+          const divider = document.createElement('div');
+          divider.className = 'search-dropdown-divider';
+          section.appendChild(divider);
+
+          const tagLabel = document.createElement('div');
+          tagLabel.className = 'search-dropdown-label';
+          tagLabel.textContent = 'Tags';
+          section.appendChild(tagLabel);
+
+          tags.slice(0, 5).forEach(tag => {
+            appendSuggItem(
+              section,
+              'fa-hashtag',
+              `#${tag.name}`,
+              `${tag.usage_count} post${tag.usage_count !== 1 ? 's' : ''}`,
+              () => doSearch(`#${tag.name}`)
+            );
+          });
+        }
+
+        // Matching recent searches 
+        const recentMatches = getRecentSearches()
+          .filter(r => r.toLowerCase().includes(cleanQuery.toLowerCase()) && r !== query)
+          .slice(0, 3);
+
+        if (recentMatches.length) {
+          const divider2 = document.createElement('div');
+          divider2.className = 'search-dropdown-divider';
+          section.appendChild(divider2);
+
+          const recentLabel = document.createElement('div');
+          recentLabel.className = 'search-dropdown-label';
+          recentLabel.textContent = 'Recent';
+          section.appendChild(recentLabel);
+
+          recentMatches.forEach(r => {
+            appendSuggItem(section, 'fa-clock', r, null, () => doSearch(r));
+          });
+        }
+
+        dropdown.appendChild(section);
+        showDropdown();
+      }
+    );
+  }
+
+  function appendSuggItem(parent, icon, label, meta, onClick) {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'search-dropdown-item';
+    item.innerHTML = `
+      <i class="fas ${icon}"></i>
+      <span class="flex-grow-1">${escapeHtml(label)}</span>
+      ${meta ? `<span class="text-muted ms-auto" style="font-size:0.75rem;">${escapeHtml(meta)}</span>` : ''}`;
+    item.addEventListener('click', onClick);
+    parent.appendChild(item);
+  }
+
+  // Focus > show recent searches
+  input.addEventListener('focus', () => {
+    const query = input.value.trim();
+    if (!query) renderRecentSearches();
+    else renderSuggestions(query);
+  });
+
+  // Typing > show suggestions
+  input.addEventListener('input', () => {
+    const query = input.value.trim();
+    clearTimeout(debounce);
+    if (!query) { renderRecentSearches(); return; }
+    debounce = setTimeout(() => renderSuggestions(query), 250);
+  });
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!input.closest('.navbar-search').contains(e.target)) {
+      hideDropdown();
+    }
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { hideDropdown(); return; }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const query = input.value.trim();
+      if (query) doSearch(query);
+    }
+  });
+}
+
 // Hot Posts
 function loadHotPosts() {
   fetchMethod(`${API_BASE}/posts`, (status, data) => {
@@ -399,4 +619,48 @@ function loadHotPosts() {
       container.appendChild(item);
     });
   });
+}
+
+
+// Recently viewed posts (localStorage)
+const RECENTLY_VIEWED_LIMIT = 10; 
+
+function recentlyViewedKey() {
+  const userId = localStorage.getItem('loggedInUserId');
+  return userId ? `recentlyViewedPosts_${userId}` : null;
+}
+
+function recordRecentlyViewed(post) {
+  const key = recentlyViewedKey();
+  if (!key || !post?.id) return; // not logged in, or no recents
+
+  let list = [];
+  try {
+    list = JSON.parse(localStorage.getItem(key)) || [];
+  } catch (e) {
+    list = [];
+  }
+
+  list = list.filter((p) => parseInt(p.id) !== parseInt(post.id));
+  list.unshift({
+    id: post.id,
+    title: post.title || 'Untitled post',
+    category: post.category || null,
+    viewed_at: Date.now(),
+  });
+
+  list = list.slice(0, RECENTLY_VIEWED_LIMIT);
+  localStorage.setItem(key, JSON.stringify(list));
+}
+
+function getRecentlyViewed(limit = 3) {
+  const key = recentlyViewedKey();
+  if (!key) return [];
+
+  try {
+    const list = JSON.parse(localStorage.getItem(key)) || [];
+    return list.slice(0, limit);
+  } catch (e) {
+    return [];
+  }
 }

@@ -76,7 +76,15 @@ body {
 
 .navbar .navbar-search .form-control:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(224, 32, 32, 0.2);
+  box-shadow: 0 0 0 4px rgba(224, 32, 32, 0.4);
+}
+
+.navbar-search.open .form-control {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  box-shadow:
+    0 0 0 2px rgba(224,32,32,.15);
+  background: white;
 }
 
 .navbar-right {
@@ -2144,6 +2152,90 @@ body {
   border-color: var(--primary-color);
   color: var(--primary-color);
   background: #fff2f2;
+}
+
+/* Search suggestions/recent searches  */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% - 1px); 
+  left: 0;
+  width: 100%;
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 0 0 3px rgba(224, 32, 32, 0.2);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 18px 18px;
+  overflow: hidden;
+  z-index: 1200;
+}
+
+.search-dropdown-section {
+  padding: 0.4rem 0;
+}
+
+.search-dropdown-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 0.3rem 1rem 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.search-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  transition: background 0.12s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.search-dropdown-item {
+  padding: .75rem 1rem;
+  transition: .15s;
+}
+
+.search-dropdown-item:hover {
+  background: #f8f9fb;
+}
+
+.search-dropdown-item i {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.search-dropdown-item .remove-recent {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.search-dropdown-item .remove-recent:hover {
+  color: var(--danger-color);
+  background: var(--hover-bg);
+}
+
+.search-dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.25rem 0;
 }
 
 /* Animated typewriter placeholder */
