@@ -143,6 +143,118 @@
   white-space: nowrap;
 }
 
+/* Filter dropdown — replaces the old inline filter panel. Trigger button +
+   Bootstrap dropdown-menu containing price inputs and tag chips stacked vertically. */
+.spindle-filter-dropdown {
+  display: inline-block;
+}
+
+.spindle-filter-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spindle-filter-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  background: var(--sp-accent);
+  border-radius: 999px;
+}
+
+.spindle-filter-count-badge.d-none {
+  display: none;
+}
+
+.spindle-filter-menu {
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  padding: 16px;
+  border: 1px solid var(--sp-border);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(20, 33, 61, 0.14);
+}
+
+.spindle-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spindle-filter-group + .spindle-filter-group {
+  margin-top: 16px;
+}
+
+.spindle-filter-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--sp-muted);
+}
+
+.spindle-filter-price-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spindle-filter-price-inputs input {
+  width: 0;
+  flex: 1 1 auto;
+}
+
+.spindle-filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.spindle-filter-tags:empty::after {
+  content: 'No tags yet';
+  font-size: 0.78rem;
+  color: var(--sp-muted);
+  font-style: italic;
+}
+
+.spindle-filter-chip {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--sp-border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.spindle-filter-chip:hover {
+  border-color: var(--sp-accent);
+  color: var(--sp-accent);
+}
+
+.spindle-filter-chip.active {
+  background: var(--sp-accent);
+  border-color: var(--sp-accent);
+  color: #fff;
+}
+
+.spindle-filter-clear-btn {
+  width: 100%;
+  margin-top: 16px;
+}
+
 .spindle-card-footer {
   display: flex;
   align-items: center;
@@ -198,4 +310,103 @@
 
 .spindle-add-btn:hover {
   background: var(--sp-accent-dark);
+}
+
+/* Search bar + filter dropdown, side by side */
+.spindle-search-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.spindle-search-bar {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: 999px;
+  padding: 0 16px;
+  min-width: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.spindle-search-bar:focus-within {
+  border-color: var(--sp-accent);
+  box-shadow: 0 0 0 3px rgba(238, 77, 45, 0.12);
+}
+
+.spindle-search-icon {
+  color: var(--sp-muted);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.spindle-search-bar:focus-within .spindle-search-icon {
+  color: var(--sp-accent);
+}
+
+.spindle-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 10px 0;
+  font-size: 0.92rem;
+  color: var(--sp-text);
+}
+
+.spindle-search-input::placeholder {
+  color: var(--sp-muted);
+}
+
+.spindle-search-clear {
+  border: none;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--sp-muted);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.spindle-search-clear:hover {
+  background: var(--sp-accent);
+  color: #fff;
+}
+
+.spindle-search-clear.d-none {
+  display: none;
+}
+
+/* Make the Filters button match the search bar's height/roundness */
+.spindle-filter-dropdown {
+  flex-shrink: 0;
+}
+
+.spindle-filter-toggle-btn {
+  height: 100%;
+  border-radius: 999px;
+  padding: 0 18px;
+}
+
+@media (max-width: 576px) {
+  .spindle-search-row {
+    flex-wrap: wrap;
+  }
+  .spindle-filter-dropdown {
+    width: 100%;
+  }
+  .spindle-filter-toggle-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

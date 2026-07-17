@@ -89,10 +89,19 @@ const emptyState = document.getElementById('no-listings-state');
 
 const LISTINGS_PER_PAGE = 10;
 
+// Applies the shared SpindleFilters state (search text, price range, tags) if
+// present. Falls back to returning everything unfiltered if filters.js hasn't
+// loaded on this page, so this stays safe to call from anywhere.
+function applySpindleFilters(data) {
+  if (typeof SpindleFilters === 'undefined') return data;
+  return data.filter((item) => SpindleFilters.matches(item));
+}
+
 async function loadListings() {
   // Update Page Navigation Bar
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
-    let totalListings = data.length;
+    const filtered = applySpindleFilters(data);
+    let totalListings = filtered.length;
     let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
 
     const controls = document.getElementById('pagination-controls');
@@ -117,23 +126,25 @@ async function loadListings() {
   // Fetch and Load Listings
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
     if (status === 200) {
-      if (data.length == 0 || !data) {
+      const filtered = applySpindleFilters(data);
+
+      if (filtered.length == 0 || !filtered) {
         emptyState.classList.remove('d-none');
       } else {
         emptyState.classList.add('d-none');
 
         for (i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
-          if (!data[i]) continue;
+          if (!filtered[i]) continue;
           addListing(
-            data[i].seller_id,
-            data[i].id,
-            data[i].name,
-            data[i].description,
-            data[i].price,
-            data[i].quality,
-            data[i].meetup,
-            data[i].images,
-            data[i].tags,
+            filtered[i].seller_id,
+            filtered[i].id,
+            filtered[i].name,
+            filtered[i].description,
+            filtered[i].price,
+            filtered[i].quality,
+            filtered[i].meetup,
+            filtered[i].images,
+            filtered[i].tags,
           );
         }
       }
@@ -147,7 +158,9 @@ async function loadListings() {
 async function loadUserListings() {
   // Update Page Navigation Bar
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
-    const userListings = data.filter((item) => item.seller_id == localStorage.loggedInUserId);
+    const userListings = applySpindleFilters(
+      data.filter((item) => item.seller_id == localStorage.loggedInUserId),
+    );
     let totalListings = userListings.length;
     let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
 
@@ -173,7 +186,9 @@ async function loadUserListings() {
   // Fetch and Load Listings
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
     if (status === 200) {
-      const userListings = data.filter((item) => item.seller_id == localStorage.loggedInUserId);
+      const userListings = applySpindleFilters(
+        data.filter((item) => item.seller_id == localStorage.loggedInUserId),
+      );
 
       if (userListings.length == 0) {
         emptyState.classList.remove('d-none');
