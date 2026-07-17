@@ -21,11 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     injectNotificationsOnly('spindleNotifSlot');
   }
 
-  // Apply saved theme site-wide (excluding groups pages)
-  if (!file.startsWith('groups')) {
+  // Skip theme on auth pages (home/login/register) — they have their own design
+  var isAuth = file === 'home.html' || file === 'login.html' || file === 'register.html';
+  if (!isAuth) {
     var savedTheme = localStorage.getItem('spindle-theme');
-    if (savedTheme) {
-      document.documentElement.dataset.theme = savedTheme;
-    }
+    document.documentElement.dataset.theme = savedTheme || 'light';
   }
 });

@@ -375,6 +375,65 @@
             </div>
           </div>
 
+          <!-- Notifications -->
+          <div class="set-accordion-item">
+            <button class="set-accordion-header" aria-expanded="false" data-target="notifBody">
+              <span class="set-icon" style="background: #e8f5e9; color: #2e7d32"
+                ><i class="fas fa-bell"></i
+              ></span>
+              <span
+                ><strong>Notifications</strong><br /><small class="text-muted"
+                  >What triggers alerts</small
+                ></span
+              >
+              <i class="fas fa-chevron-down set-chevron"></i>
+            </button>
+            <div class="set-accordion-body" id="notifBody">
+              <div class="settings-pane-card">
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="ntfEmail" checked />
+                  <label class="form-check-label" for="ntfEmail">Email notifications</label>
+                </div>
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="ntfProduct" checked />
+                  <label class="form-check-label" for="ntfProduct">Product updates</label>
+                </div>
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="ntfSecurity" checked />
+                  <label class="form-check-label" for="ntfSecurity">Security alerts</label>
+                </div>
+                <label class="mt-2">Digest frequency</label>
+                <select id="ntfFrequency" class="form-select">
+                  <option value="instant">Instant</option>
+                  <option value="daily">Daily digest</option>
+                  <option value="weekly">Weekly digest</option>
+                </select>
+                <button type="button" class="btn btn-primary mt-3" id="btnSaveNotifications">Save</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blocked users -->
+          <div class="set-accordion-item">
+            <button class="set-accordion-header" aria-expanded="false" data-target="blockBody">
+              <span class="set-icon" style="background: #fef3cd; color: #856404"
+                ><i class="fas fa-ban"></i
+              ></span>
+              <span
+                ><strong>Blocked users</strong><br /><small class="text-muted"
+                  >Manage blocked people</small
+                ></span
+              >
+              <i class="fas fa-chevron-down set-chevron"></i>
+            </button>
+            <div class="set-accordion-body" id="blockBody">
+              <div class="settings-pane-card">
+                <ul id="blockedUsersList" class="list-group list-group-flush"></ul>
+                <p id="blockedUsersEmpty" class="small text-muted mt-2">No blocked users.</p>
+              </div>
+            </div>
+          </div>
+
           <!-- Account actions -->
           <div class="set-accordion-item">
             <button class="set-accordion-header" aria-expanded="false" data-target="dangerBody">

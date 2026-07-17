@@ -24,6 +24,17 @@
   --wa-bubble-out: #d9fdd3;
 }
 
+[data-theme='futuristic'] {
+  --wa-bg: #0a0e17;
+  --wa-panel: #111827;
+  --wa-panel2: #1a2332;
+  --wa-border: #1e293b;
+  --wa-text: #e0f2fe;
+  --wa-muted: #64748b;
+  --wa-bubble-in: #1a2332;
+  --wa-bubble-out: #0d3b4f;
+}
+
 body.wa-body {
   margin: 0;
   background: var(--wa-bg);

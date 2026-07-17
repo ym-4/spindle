@@ -340,36 +340,36 @@ body {
 /*category pill styling*/
 .category-confession {
   background: var(--pill-confession);
-  color: #c0392b;
+  color: var(--pill-confession-text);
 }
 .category-qna {
   background: var(--pill-qna);
-  color: #1a5fb4;
+  color: var(--pill-qna-text);
 }
 .category-general {
   background: var(--pill-general);
-  color: #444;
+  color: var(--pill-general-text);
 }
 .category-events {
   background: var(--pill-events);
-  color: #7d5a00;
+  color: var(--pill-events-text);
 }
 .category-news {
   background: var(--pill-news);
-  color: #0a6e8a;
+  color: var(--pill-news-text);
 }
 .category-internship {
   background: var(--pill-internship);
-  color: #1a6e3c;
+  color: var(--pill-internship-text);
 }
 .category-cca {
   background: var(--pill-cca);
-  color: #8e1a4a;
+  color: var(--pill-cca-text);
 }
 /* acad school categories */
 .category-SOC {
   background: var(--pill-SOC);
-  color: #4a2db5;
+  color: var(--pill-SOC-text);
 }
 .category-ABE {
   background: linear-gradient(135deg, #ffecd6, #ffd9b3);
@@ -399,9 +399,6 @@ body {
   background: linear-gradient(135deg, #fff0d6, #ffe0b3);
   color: #7a4000;
 }
-.category-confession {
-  background-color: var(--bg-hover);
-  color: var(--accent);
 }
 .category-qna {
   background-color: var(--bg-hover);
@@ -1021,8 +1018,8 @@ body {
     justify-content:center;
     border:none;
     border-radius: 45%;
-    background:linear-gradient(135deg,#676767,#1d1d1d);
-    color:var(--text-inverse);
+    background:var(--btn-secondary-bg);
+    color:var(--btn-secondary-text);
     font-size:1.1rem;
     cursor:pointer;
 }

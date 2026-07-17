@@ -36,7 +36,7 @@
   cursor: pointer;
 
   font-size: 0.875rem;
-}#spindleNotifSlot .wa-notif-drop-item.unread,.spindle-notif-slot .wa-notif-drop-item.unread {  background: #fff5f5;}#spindleNotifSlot .wa-notif-drop-item:hover,
+}#spindleNotifSlot .wa-notif-drop-item.unread,.spindle-notif-slot .wa-notif-drop-item.unread {  background: color-mix(in srgb, var(--accent) 8%, var(--bg-elevated));}#spindleNotifSlot .wa-notif-drop-item:hover,
 .spindle-notif-slot .wa-notif-drop-item:hover {
   background: var(--bg-hover);
 }#spindleNotifSlot .wa-notif-empty,.spindle-notif-slot .wa-notif-empty {  padding: 1.5rem;  text-align: center;    color: var(--text-secondary);

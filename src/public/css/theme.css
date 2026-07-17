@@ -57,6 +57,14 @@
   --pill-internship: linear-gradient(135deg, #d6f5e3, #b3eacc);
   --pill-cca: linear-gradient(135deg, #fde8f0, #f9c6dc);
   --pill-SOC: linear-gradient(135deg, #e0d6ff, #c9b8ff);
+  --pill-confession-text: #c0392b;
+  --pill-qna-text: #1a5fb4;
+  --pill-general-text: #444;
+  --pill-events-text: #7d5a00;
+  --pill-news-text: #0a6e8a;
+  --pill-internship-text: #1a6e3c;
+  --pill-cca-text: #8e1a4a;
+  --pill-SOC-text: #4a2db5;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
@@ -125,6 +133,13 @@
   --marketplace-card-bg: #ffffff;
   --marketplace-tag-bg: #f0f2f5;
   --marketplace-tag-text: #65676b;
+
+  /* Aliases for posts.css pills */
+  --card-background: var(--card-bg);
+  --border-color: var(--border);
+  --primary-color: var(--accent);
+  --text-primary: var(--text);
+  --hover-bg: var(--bg-hover);
 }
 
 [data-theme="dark"] {
@@ -172,6 +187,14 @@
   --pill-internship: linear-gradient(135deg, #0a3a1a, #104a22);
   --pill-cca: linear-gradient(135deg, #4a1a2a, #5c223a);
   --pill-SOC: linear-gradient(135deg, #2a1a4a, #3a225c);
+  --pill-confession-text: #ffb3b3;
+  --pill-qna-text: #8ab8ff;
+  --pill-general-text: #b0b3b8;
+  --pill-events-text: #ffd966;
+  --pill-news-text: #66d4ff;
+  --pill-internship-text: #66e6a0;
+  --pill-cca-text: #ff99c2;
+  --pill-SOC-text: #b399ff;
 
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
   --shadow-md: 0 2px 8px rgba(0,0,0,0.4);
@@ -227,6 +250,13 @@
   --marketplace-card-bg: #242526;
   --marketplace-tag-bg: #3a3b3c;
   --marketplace-tag-text: #b0b3b8;
+
+  /* Aliases for posts.css pills */
+  --card-background: var(--card-bg);
+  --border-color: var(--border);
+  --primary-color: var(--accent);
+  --text-primary: var(--text);
+  --hover-bg: var(--bg-hover);
 }
 
 [data-theme="futuristic"] {
@@ -274,6 +304,14 @@
   --pill-internship: linear-gradient(135deg, #0a3a1a, #104a22);
   --pill-cca: linear-gradient(135deg, #3a1a2a, #4a223a);
   --pill-SOC: linear-gradient(135deg, #2a1a4a, #3a225c);
+  --pill-confession-text: #ff9999;
+  --pill-qna-text: #66b8ff;
+  --pill-general-text: #94a3b8;
+  --pill-events-text: #facc15;
+  --pill-news-text: #38bdf8;
+  --pill-internship-text: #4ade80;
+  --pill-cca-text: #f472b6;
+  --pill-SOC-text: #a78bfa;
 
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
   --shadow-md: 0 2px 8px rgba(0,0,0,0.5);
@@ -329,6 +367,13 @@
   --marketplace-card-bg: #111827;
   --marketplace-tag-bg: #1a2332;
   --marketplace-tag-text: #94a3b8;
+
+  /* Aliases for posts.css pills */
+  --card-background: var(--card-bg);
+  --border-color: var(--border);
+  --primary-color: var(--accent);
+  --text-primary: var(--text);
+  --hover-bg: var(--bg-hover);
 }
 
 /* ── Bootstrap overrides ─────────────────────── */
@@ -384,6 +429,10 @@
   background-color: var(--bg-hover) !important;
 }
 
+.form-label {
+  color: var(--text) !important;
+}
+
 .form-control, .form-select {
   background-color: var(--input-bg) !important;
   border-color: var(--input-border) !important;
@@ -392,7 +441,7 @@
 .form-control:focus, .form-select:focus {
   background-color: var(--input-bg) !important;
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 0.2rem rgba(224,32,32,0.15) !important;
+   box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--accent) 25%, transparent) !important;
 }
 .form-control::placeholder, .form-select::placeholder {
   color: var(--input-placeholder) !important;
@@ -453,6 +502,121 @@
   border-top-color: var(--border) !important;
 }
 
+.sidebar {
+  background-color: var(--sidebar-bg) !important;
+}
+
+.sidebar-item {
+  color: var(--text) !important;
+}
+.sidebar-item:hover {
+  background-color: var(--bg-hover) !important;
+}
+.sidebar-item.active {
+  background-color: var(--bg-active) !important;
+  color: var(--accent) !important;
+}
+
+.navbar {
+  background-color: var(--navbar-bg) !important;
+  border-bottom: 1px solid var(--navbar-border) !important;
+}
+
+.badge {
+  background-color: var(--badge-bg) !important;
+  color: var(--badge-text) !important;
+}
+
+.btn-outline-primary {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+.btn-outline-primary:hover {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent-text) !important;
+}
+
+.btn-outline-danger {
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
+}
+.btn-outline-danger:hover {
+  background-color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  color: var(--text-inverse) !important;
+}
+
+.btn-outline-success {
+  border-color: var(--success) !important;
+  color: var(--success) !important;
+}
+.btn-outline-success:hover {
+  background-color: var(--success) !important;
+  border-color: var(--success) !important;
+  color: var(--text-inverse) !important;
+}
+
+.btn-outline-dark {
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+.btn-outline-dark:hover {
+  background-color: var(--bg-hover) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+.btn-danger {
+  background-color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  color: var(--text-inverse) !important;
+}
+.btn-danger:hover {
+  background-color: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+}
+
+.btn-dark {
+  background-color: var(--navbar-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+.btn-dark:hover {
+  background-color: var(--bg-hover) !important;
+  border-color: var(--border) !important;
+}
+
+html .bg-dark {
+  background-color: var(--navbar-bg) !important;
+}
+
+html .text-white {
+  color: var(--text) !important;
+}
+
+html .text-white-50 {
+  color: var(--text-secondary) !important;
+}
+
+html .text-muted {
+  color: var(--text-muted) !important;
+}
+html .text-secondary {
+  color: var(--text-secondary) !important;
+}
+html .border, html .border-top, html .border-bottom, html .border-start, html .border-end {
+  border-color: var(--border) !important;
+}
+
+html .bg-white {
+  background-color: var(--bg-elevated) !important;
+}
+
+html .text-dark {
+  color: var(--text) !important;
+}
+
 .list-group-item {
   background-color: var(--list-bg) !important;
   border-color: var(--list-border) !important;
@@ -472,16 +636,6 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):not(.list-group-item):not(.sideba
 }
 a:hover {
   color: var(--accent);
-}
-
-.text-muted {
-  color: var(--text-muted) !important;
-}
-.text-secondary {
-  color: var(--text-secondary) !important;
-}
-.border, .border-top, .border-bottom, .border-start, .border-end {
-  border-color: var(--border) !important;
 }
 
 /* Wa-specific overrides */

@@ -3,6 +3,12 @@ function applyTheme(theme) {
   localStorage.setItem('spindle-theme', theme || 'light');
 }
 
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str || ''));
+  return div.innerHTML;
+}
+
 function showToast(msg, isError) {
   var toast = document.getElementById('settingsToast');
   var body = document.getElementById('settingsToastBody');
@@ -84,6 +90,15 @@ async function loadSettings() {
         s.card_last4;
     }
     applyTheme(s.theme);
+
+    var ntfEmail = document.getElementById('ntfEmail');
+    if (ntfEmail) ntfEmail.checked = s.notify_email !== false;
+    var ntfProduct = document.getElementById('ntfProduct');
+    if (ntfProduct) ntfProduct.checked = s.notify_product !== false;
+    var ntfSecurity = document.getElementById('ntfSecurity');
+    if (ntfSecurity) ntfSecurity.checked = s.notify_security !== false;
+    var ntfFreq = document.getElementById('ntfFrequency');
+    if (ntfFreq) ntfFreq.value = s.notify_frequency || 'instant';
 
     if (s.last_display_name_change) {
       var daysSince = (Date.now() - new Date(s.last_display_name_change).getTime()) / 86400000;
@@ -305,6 +320,38 @@ function bindSettings() {
     }
   });
 
+  // Notifications save
+  var ntfBtn = document.getElementById('btnSaveNotifications');
+  if (ntfBtn) {
+    ntfBtn.addEventListener('click', async function () {
+      try {
+        await authFetch('/profile/settings/notifications', {
+          method: 'PUT',
+          body: JSON.stringify({
+            notify_email: document.getElementById('ntfEmail').checked,
+            notify_product: document.getElementById('ntfProduct').checked,
+            notify_security: document.getElementById('ntfSecurity').checked,
+            notify_frequency: document.getElementById('ntfFrequency').value,
+          }),
+        });
+        showToast('Notification settings saved');
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+  }
+
+  // Blocked users — load when section header is clicked
+  var blockHeader = document.querySelector('[data-target="blockBody"]');
+  if (blockHeader) {
+    blockHeader.addEventListener('click', function () {
+      if (!this._loaded) {
+        this._loaded = true;
+        loadBlockedUsers();
+      }
+    });
+  }
+
   // Danger modal
   var dangerAction = null;
   function showDangerModal(opts) {
@@ -382,6 +429,44 @@ function bindSettings() {
       showToast(err.message, true);
     }
   });
+}
+
+async function loadBlockedUsers() {
+  var list = document.getElementById('blockedUsersList');
+  if (!list) return;
+  try {
+    var users = await authFetch('/block/list');
+    if (users.length === 0) {
+      list.innerHTML = '';
+      document.getElementById('blockedUsersEmpty').style.display = 'block';
+      return;
+    }
+    document.getElementById('blockedUsersEmpty').style.display = 'none';
+    list.innerHTML = users
+      .map(function (u) {
+        return (
+          '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+          '<span><strong>' + escapeHtml(u.name) + '</strong><br /><small class="text-muted">' +
+          escapeHtml(u.email) + '</small></span>' +
+          '<button type="button" class="btn btn-outline-secondary btn-sm unblock-btn" data-id="' +
+          u.blocked_id + '">Unblock</button></li>'
+        );
+      })
+      .join('');
+    list.querySelectorAll('.unblock-btn').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        try {
+          await authFetch('/block/' + btn.dataset.id, { method: 'DELETE' });
+          showToast('Unblocked');
+          loadBlockedUsers();
+        } catch (err) {
+          showToast(err.message, true);
+        }
+      });
+    });
+  } catch (e) {
+    showToast(e.message, true);
+  }
 }
 
 function handleLogout() {
