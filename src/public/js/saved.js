@@ -786,7 +786,7 @@ function renderYourGroups(groups) {
 
 // Hot Posts
 function loadHotPosts() {
-  fetchMethod(`${API_BASE}/posts`, (status, data) => {
+  fetchMethod(`${savedApiBase()}/posts`, (status, data) => {
     const container = document.getElementById('top5Container');
     if (!container) return;
 
@@ -951,7 +951,7 @@ function openReportModal(postId) {
       const user_id = localStorage.getItem('loggedInUserId');
 
       fetchMethod(
-        `${API_BASE}/posts/${postId}/report`,
+        `${savedApiBase()}/posts/${postId}/report`,
         (status) => {
           const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
           const thanksEl = overlay.querySelector('#reportThanks');

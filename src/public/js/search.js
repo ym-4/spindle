@@ -10,97 +10,102 @@ const RECENT_KEY = (() => {
   try {
     const u = JSON.parse(localStorage.getItem('pineappleUser'));
     return u?.id ? `spindleRecentSearches_${u.id}` : 'spindleRecentSearches_guest';
-  } catch { return 'spindleRecentSearches_guest'; }
+  } catch {
+    return 'spindleRecentSearches_guest';
+  }
 })();
 const MAX_RECENT = 8;
 
 function getRecentSearches() {
-  try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; }
-  catch { return []; }
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+  } catch {
+    return [];
+  }
 }
 
 function saveRecentSearch(query) {
   if (!query || !query.trim()) return;
   const q = query.trim();
-  let recent = getRecentSearches().filter(r => r !== q);
+  let recent = getRecentSearches().filter((r) => r !== q);
   recent.unshift(q);
   if (recent.length > MAX_RECENT) recent = recent.slice(0, MAX_RECENT);
   localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
 }
 
 function removeRecentSearch(query) {
-  const recent = getRecentSearches().filter(r => r !== query);
+  const recent = getRecentSearches().filter((r) => r !== query);
   localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
 }
 
 // Setup on page load
 document.addEventListener('DOMContentLoaded', () => {
-    loadHotPosts();
-    setupSearchDropdown();
+  loadHotPosts();
+  setupSearchDropdown();
 
-    const params = getUrlParams();
+  const params = getUrlParams();
 
-    const input = document.getElementById('searchInput');
-    if (input && params.q) input.value = params.q;
+  const input = document.getElementById('searchInput');
+  if (input && params.q) input.value = params.q;
 
-    const categoryCheckboxes = document.querySelectorAll('.search-category-checkbox');
-    const sortEl = document.getElementById('searchSort');
-    const fromEl = document.getElementById('searchDateFrom');
-    const toEl = document.getElementById('searchDateTo');
+  const categoryCheckboxes = document.querySelectorAll('.search-category-checkbox');
+  const sortEl = document.getElementById('searchSort');
+  const fromEl = document.getElementById('searchDateFrom');
+  const toEl = document.getElementById('searchDateTo');
 
-    categoryCheckboxes.forEach((cb) => {
+  categoryCheckboxes.forEach((cb) => {
     if (params.categories.includes(cb.value)) cb.checked = true;
-    });
-    updateCategoryFilterLabel();
+  });
+  updateCategoryFilterLabel();
 
-    if (sortEl && params.sort) sortEl.value = params.sort;
-    if (fromEl && params.date_from) fromEl.value = params.date_from;
-    if (toEl && params.date_to) toEl.value = params.date_to;
+  if (sortEl && params.sort) sortEl.value = params.sort;
+  if (fromEl && params.date_from) fromEl.value = params.date_from;
+  if (toEl && params.date_to) toEl.value = params.date_to;
 
-    // Run search immediately
-    if (params.q) runSearch();
+  // Run search immediately
+  if (params.q) runSearch();
 
-    // Search input
-    if (window.location.pathname.endsWith('search.html')) {
-      input?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          const newQuery = input.value.trim();
-          if (!newQuery) return;
-          const newIsTag = newQuery.startsWith('#');
-          const p = new URLSearchParams(window.location.search);
-          p.set('q', newQuery);
-          newIsTag ? p.set('type', 'tag') : p.delete('type');
-          window.history.replaceState({}, '', `?${p.toString()}`);
-          runSearch();
-        }
-      });
-    }
-
-    // Category checkboxes rerun on change
-    categoryCheckboxes.forEach((cb) => {
-    cb.addEventListener('change', () => {
-        updateCategoryFilterLabel();
+  // Search input
+  if (window.location.pathname.endsWith('search.html')) {
+    input?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const newQuery = input.value.trim();
+        if (!newQuery) return;
+        const newIsTag = newQuery.startsWith('#');
+        const p = new URLSearchParams(window.location.search);
+        p.set('q', newQuery);
+        newIsTag ? p.set('type', 'tag') : p.delete('type');
+        window.history.replaceState({}, '', `?${p.toString()}`);
         runSearch();
+      }
     });
-    });
+  }
 
-    // Other filter controls rerun on change
-    ['searchSort', 'searchDateFrom', 'searchDateTo'].forEach((id) => {
+  // Category checkboxes rerun on change
+  categoryCheckboxes.forEach((cb) => {
+    cb.addEventListener('change', () => {
+      updateCategoryFilterLabel();
+      runSearch();
+    });
+  });
+
+  // Other filter controls rerun on change
+  ['searchSort', 'searchDateFrom', 'searchDateTo'].forEach((id) => {
     document.getElementById(id)?.addEventListener('change', runSearch);
-    });
+  });
 
-    // Clear filters
-    document.getElementById('clearSearchFiltersBtn')?.addEventListener('click', () => {
+  // Clear filters
+  document.getElementById('clearSearchFiltersBtn')?.addEventListener('click', () => {
     categoryCheckboxes.forEach((cb) => {
-        cb.checked = false;
+      cb.checked = false;
     });
     updateCategoryFilterLabel();
     if (sortEl) sortEl.value = 'newest';
     if (fromEl) fromEl.value = '';
     if (toEl) toEl.value = '';
     runSearch();
-    });
+  });
 });
 
 function updateCategoryFilterLabel() {
@@ -398,7 +403,7 @@ function buildUserResult(user) {
 }
 
 function setupSearchDropdown() {
-  const input    = document.getElementById('searchInput');
+  const input = document.getElementById('searchInput');
   const dropdown = document.getElementById('searchDropdown');
   if (!input || !dropdown) return;
 
@@ -418,7 +423,10 @@ function setupSearchDropdown() {
   function renderRecentSearches() {
     const recent = getRecentSearches();
     dropdown.innerHTML = '';
-    if (!recent.length) { hideDropdown(); return; }
+    if (!recent.length) {
+      hideDropdown();
+      return;
+    }
 
     const section = document.createElement('div');
     section.className = 'search-dropdown-section';
@@ -428,7 +436,7 @@ function setupSearchDropdown() {
     label.textContent = 'Recent searches';
     section.appendChild(label);
 
-    recent.forEach(q => {
+    recent.forEach((q) => {
       const item = document.createElement('button');
       item.className = 'search-dropdown-item';
       item.innerHTML = `
@@ -488,14 +496,14 @@ function setupSearchDropdown() {
         const section = document.createElement('div');
         section.className = 'search-dropdown-section';
 
-        // typed query 
+        // typed query
         const searchLabel = document.createElement('div');
         searchLabel.className = 'search-dropdown-label';
         section.appendChild(searchLabel);
 
         appendSuggItem(section, 'fa-search', query, null, () => doSearch(query));
 
-        // Matching tags 
+        // Matching tags
         if (status === 200 && Array.isArray(tags) && tags.length) {
           const divider = document.createElement('div');
           divider.className = 'search-dropdown-divider';
@@ -506,20 +514,20 @@ function setupSearchDropdown() {
           tagLabel.textContent = 'Tags';
           section.appendChild(tagLabel);
 
-          tags.slice(0, 5).forEach(tag => {
+          tags.slice(0, 5).forEach((tag) => {
             appendSuggItem(
               section,
               'fa-hashtag',
               `#${tag.name}`,
               `${tag.usage_count} post${tag.usage_count !== 1 ? 's' : ''}`,
-              () => doSearch(`#${tag.name}`)
+              () => doSearch(`#${tag.name}`),
             );
           });
         }
 
-        // Matching recent searches 
+        // Matching recent searches
         const recentMatches = getRecentSearches()
-          .filter(r => r.toLowerCase().includes(cleanQuery.toLowerCase()) && r !== query)
+          .filter((r) => r.toLowerCase().includes(cleanQuery.toLowerCase()) && r !== query)
           .slice(0, 3);
 
         if (recentMatches.length) {
@@ -532,14 +540,14 @@ function setupSearchDropdown() {
           recentLabel.textContent = 'Recent';
           section.appendChild(recentLabel);
 
-          recentMatches.forEach(r => {
+          recentMatches.forEach((r) => {
             appendSuggItem(section, 'fa-clock', r, null, () => doSearch(r));
           });
         }
 
         dropdown.appendChild(section);
         showDropdown();
-      }
+      },
     );
   }
 
@@ -566,7 +574,10 @@ function setupSearchDropdown() {
   input.addEventListener('input', () => {
     const query = input.value.trim();
     clearTimeout(debounce);
-    if (!query) { renderRecentSearches(); return; }
+    if (!query) {
+      renderRecentSearches();
+      return;
+    }
     debounce = setTimeout(() => renderSuggestions(query), 250);
   });
 
@@ -578,7 +589,10 @@ function setupSearchDropdown() {
   });
 
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { hideDropdown(); return; }
+    if (e.key === 'Escape') {
+      hideDropdown();
+      return;
+    }
     if (e.key === 'Enter') {
       e.preventDefault();
       const query = input.value.trim();
@@ -589,7 +603,7 @@ function setupSearchDropdown() {
 
 // Hot Posts
 function loadHotPosts() {
-  fetchMethod(`${API_BASE}/posts`, (status, data) => {
+  fetchMethod(`${feedApiBase()}/posts`, (status, data) => {
     const container = document.getElementById('top5Container');
     if (!container) return;
 
@@ -621,9 +635,8 @@ function loadHotPosts() {
   });
 }
 
-
 // Recently viewed posts (localStorage)
-const RECENTLY_VIEWED_LIMIT = 10; 
+const RECENTLY_VIEWED_LIMIT = 10;
 
 function recentlyViewedKey() {
   const userId = localStorage.getItem('loggedInUserId');

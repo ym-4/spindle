@@ -1149,7 +1149,7 @@ function setupCreatePost() {
       formData.append('gif_url', selectedGiphyUrl);
     }
 
-    fetch(`${API_BASE}/posts`, {
+    fetch(`${feedApiBase()}/posts`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -1623,7 +1623,7 @@ function loadRecentlyViewedWidget() {
     item.href = '#';
     item.className = 'list-group-item list-group-item-action py-2';
     item.innerHTML = `
-      <div class="text-muted mb-1" style="font-size:0.75rem;">${getCategoryLabel ? getCategoryLabel(post.category) : (post.category || '')}</div>
+      <div class="text-muted mb-1" style="font-size:0.75rem;">${getCategoryLabel ? getCategoryLabel(post.category) : post.category || ''}</div>
       <div class="fw-bold" style="font-size:0.9rem;">${escapeHtml(post.title)}</div>`;
     item.addEventListener('click', (e) => {
       e.preventDefault();

@@ -72,12 +72,17 @@ module.exports.findByName = async function findByName(name) {
   return rows[0] ?? null;
 };
 
-module.exports.findByEmail = async function findByEmail(email) {
+module.exports.findByEmail = async function (email) {
   const { rows } = await pool.query(
-    `SELECT id FROM "Person" WHERE email = $1 AND deleted_at IS NULL`,
+    `
+        SELECT *
+        FROM "Person"
+        WHERE email=$1
+        AND deleted_at IS NULL
+    `,
     [email],
   );
-  return rows[0] ?? null;
+  return rows[0] || null;
 };
 
 module.exports.createUser = async function createUser({

@@ -12,6 +12,7 @@ const hashedDefaultPassword = hashPassword(DEFAULT_PASSWORD);
 const hashedAdminPassword = hashPassword(ADMIN_PASSWORD);
 
 const persons = [
+  { email: 'pandabot@spindle.internal', name: 'PandaBot' },
   { email: 'alice@example.com', name: 'Alice' },
   { email: 'bob@example.com', name: 'Bob' },
   { email: 'carol@example.com', name: 'Carol' },
@@ -917,10 +918,16 @@ async function seed() {
   );
   await pool.query(
     `UPDATE "Person" SET hashed_password = $1, email_verified = TRUE, role = 'user'
-     WHERE email != 'admin@campushub.sp'`,
+     WHERE email != 'admin@campushub.sp' AND email != 'pandabot@spindle.internal'`,
     [hashedDefaultPassword],
   );
   console.log('Set passwords (password123) and verified emails for all users.');
+
+  await pool.query(
+    `UPDATE "Person" SET display_name = 'PandaBot 🐼', bio = 'bot'
+     WHERE email = 'pandabot@spindle.internal'`,
+  );
+  console.log('⍝ʕ´•ᴥ•`ʔ⍝  ~  PandaBot seeded.');
 
   const aliceRes = await pool.query(`SELECT id FROM "Person" WHERE email = 'alice@example.com'`);
   const bobRes = await pool.query(`SELECT id FROM "Person" WHERE email = 'bob@example.com'`);

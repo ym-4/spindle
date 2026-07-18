@@ -1,5 +1,12 @@
 const express = require('express');
 const { authenticateJWT } = require('../middlewares/auth.middleware');
+const {
+  generatePandabotReply,
+  getPandabotUserId,
+  PANDABOT_EMAIL,
+} = require('../services/pandabot');
+const { getPostByID } = require('../models/Posts.model');
+const { getPersonByID } = require('../models/Person.model');
 
 const multer = require('multer');
 const path = require('path');
@@ -49,7 +56,7 @@ router.get('/saved/:user_id', authenticateJWT, (req, res, next) => {
 });
 
 // Save a comment
-router.post('/saved', authenticateJWT, (req, res, next) => {
+router.post('/saved', authenticateJWT, (req, res) => {
   if (!req.body?.comment_id) {
     return res.status(400).json({ message: 'Error: comment_id is undefined' });
   }
@@ -73,7 +80,7 @@ router.post('/saved', authenticateJWT, (req, res, next) => {
 });
 
 // Unsave a comment
-router.delete('/saved/:id', (req, res, next) => {
+router.delete('/saved/:id', (req, res) => {
   const data = { id: req.params.id };
   deleteSavedCommentByID(data)
     .then((results) => {
@@ -100,7 +107,7 @@ router.get('/reaction/:user_id', authenticateJWT, (req, res, next) => {
 });
 
 // Insert comment reaction
-router.post('/like', authenticateJWT, (req, res, next) => {
+router.post('/like', authenticateJWT, (req, res) => {
   if (!req.body?.comment_id) {
     return res.status(400).json({ message: 'Error: comment_id is undefined' });
   }
@@ -125,7 +132,7 @@ router.post('/like', authenticateJWT, (req, res, next) => {
 });
 
 // Update comment reaction
-router.put('/reaction/:id', (req, res, next) => {
+router.put('/reaction/:id', (req, res) => {
   const data = {
     id: req.params.id,
     user_id: req.body.user_id,
@@ -143,7 +150,7 @@ router.put('/reaction/:id', (req, res, next) => {
 });
 
 // Delete comment reaction
-router.delete('/reaction/:id', (req, res, next) => {
+router.delete('/reaction/:id', (req, res) => {
   const data = {
     id: req.params.id,
     user_id: req.body.user_id,
@@ -171,7 +178,7 @@ router.get('/:post_id', (req, res, next) => {
 });
 
 // Creates new comment under a post (post_id)
-router.post('/:post_id', authenticateJWT, commentUpload.single('attachment'), (req, res, next) => {
+router.post('/:post_id', authenticateJWT, commentUpload.single('attachment'), (req, res) => {
   if (!req.params.post_id || !req.body.content) {
     return res.status(400).json({ message: 'Error: post_id or content is undefined' });
   }
@@ -192,7 +199,7 @@ router.post('/:post_id', authenticateJWT, commentUpload.single('attachment'), (r
   };
 
   insertComments(data)
-    .then((results) =>
+    .then(async (results) => {
       res.status(201).json({
         id: results.id,
         user_id: data.user_id,
@@ -200,16 +207,43 @@ router.post('/:post_id', authenticateJWT, commentUpload.single('attachment'), (r
         content: data.content,
         parent_comment_id: data.parent_comment_id,
         attachment_url: data.attachment_url,
-      }),
-    )
+      });
+
+      // Check if comment mentions @pandabot
+      const mentionsPandabot = /@pandabot/i.test(data.content);
+      if (!mentionsPandabot) return;
+
+      // Fetch post content for context
+      const post = await getPostByID({ id: data.post_id });
+      if (!post) return;
+
+      // find parent comment's name to @mention
+      const commenterRows = await getPersonByID({ id: data.user_id });
+      const commenterName = commenterRows?.[0]?.name || 'there';
+
+      // Generate bot reply
+      const botReply = await generatePandabotReply(post.content || post.title || '', data.content);
+      const botReplyWithMention = `@${commenterName} ${botReply}`;
+
+      // Insert bot reply
+      const botUserId = await getPandabotUserId();
+      const botReplyParentId = data.parent_comment_id || results.id;
+      await insertComments({
+        user_id: botUserId,
+        post_id: data.post_id,
+        content: botReplyWithMention,
+        parent_comment_id: botReplyParentId,
+        attachment_url: null,
+      });
+    })
     .catch((error) => {
       console.error('Error insertComments: ' + error);
-      res.status(500).json(error);
+      if (!res.headersSent) res.status(500).json(error);
     });
 });
 
 // Update Comments (owner only)
-router.put('/:id', authenticateJWT, commentUpload.single('attachment'), (req, res, next) => {
+router.put('/:id', authenticateJWT, commentUpload.single('attachment'), (req, res) => {
   let attachment_url = req.body.attachment_url || null;
 
   if (req.file) {
@@ -241,7 +275,7 @@ router.put('/:id', authenticateJWT, commentUpload.single('attachment'), (req, re
 });
 
 // delete Comments (owner or post owner)
-router.delete('/:id', authenticateJWT, (req, res, next) => {
+router.delete('/:id', authenticateJWT, (req, res) => {
   const data = {
     id: req.params.id,
     user_id: req.user.id,

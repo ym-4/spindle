@@ -29,57 +29,70 @@ afterAll(async () => {
 });
 
 // ── Helper ───────────────────────────────────────────────
-async function seedPersons() {
-  await pool.query(
-    `INSERT INTO "Person" ("email","name") VALUES
-      ('alice@example.com','Alice'),
-      ('bob@example.com','Bob')`,
-  );
-}
 
-async function seedSomethings() {
-  await pool.query(`INSERT INTO "Something" ("name") VALUES ('Seed 1'),('Seed 2')`);
+async function register(name, email, password = 'secret') {
+  return request(app).post('/auth/register').send({
+    name,
+    email,
+    password,
+  });
 }
 
 async function registerAndVerify(name, email, password = 'secret') {
   const reg = await request(app).post('/auth/register').send({ name, email, password });
+
   const verify = await request(app).post('/auth/verify-email').send({
     email,
     code: reg.body.previewCode,
   });
-  return { user: verify.body.user, token: verify.body.token };
+
+  return {
+    id: verify.body.user.id,
+    user: verify.body.user,
+    token: verify.body.token,
+  };
 }
 
-async function loginAndVerify(username, password, rememberMe = false) {
-  const login = await request(app).post('/auth/login').send({ username, password });
-  if (login.body.needs2FA) {
+async function login(username, password) {
+  const res = await request(app).post('/auth/login').send({
+    username,
+    password,
+  });
+
+  if (res.body.needs2FA) {
     const verify = await request(app).post('/auth/verify-login').send({
-      email: login.body.email,
-      code: login.body.previewCode,
-      remember_me: rememberMe,
+      email: res.body.email,
+      code: res.body.previewCode,
     });
-    return {
-      user: verify.body.user,
-      token: verify.body.token,
-      remember_token: verify.body.remember_token,
-    };
+
+    return verify;
   }
-  return { user: login.body.user, token: login.body.token };
+
+  return res;
 }
 
-async function makeFriends(alice, bob) {
-  await request(app)
-    .post('/friends/request')
-    .set('Authorization', `Bearer ${alice.token}`)
-    .send({ receiver_id: bob.user.id });
-  const reqs = await request(app)
-    .get('/friends/requests?tab=received')
-    .set('Authorization', `Bearer ${bob.token}`);
-  const requestId = reqs.body.requests[0].request_id;
-  await request(app)
-    .post('/friends/accept')
-    .set('Authorization', `Bearer ${bob.token}`)
-    .send({ request_id: requestId });
+async function createAdmin() {
+  await pool.query(
+    `
+      INSERT INTO "Person"
+      (
+        email,
+        name,
+        hashed_password,
+        role,
+        email_verified
+      )
+      VALUES
+      (
+        'admin@test.com',
+        'admin',
+        $1,
+        'admin',
+        TRUE
+      )
+    `,
+    [hashPassword('adminpass')],
+  );
 }
 
 // ─────────────────────────────────────────────────────────
@@ -104,7 +117,7 @@ describe('GET /posts', () => {
       VALUES
       ($1,'First Post','general','Hello World'),
       ($1,'Second Post','qna','Need help')`,
-      [user.user.id],
+      [user.id],
     );
 
     const res = await request(app).get('/posts');
@@ -134,7 +147,7 @@ describe('GET /posts/tag/:category', () => {
        ($1, 'General Post', 'general', 'General content'),
        ($1, 'Question', 'qna', 'Question content'),
        ($1, 'Another General', 'general', 'More content')`,
-      [user.user.id],
+      [user.id],
     );
 
     const res = await request(app).get('/posts/tag/general');
@@ -185,7 +198,7 @@ describe('GET /posts/:id', () => {
       (user_id, title, category, content)
       VALUES ($1, 'My Post', 'general', 'Hello World')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const postId = rows[0].id;
@@ -236,7 +249,7 @@ describe('GET /posts/related/:category/:id', () => {
       ($1, 'Related Two', 'general', 'Related 2'),
       ($1, 'Different Category', 'qna', 'Not related')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const currentPostId = rows[0].id;
@@ -342,7 +355,7 @@ describe('PUT /posts/:id', () => {
       (user_id, title, category, content)
       VALUES ($1, 'Old Title', 'general', 'Old content')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const postId = rows[0].id;
@@ -369,7 +382,7 @@ describe('PUT /posts/:id', () => {
       (user_id, title, category, content)
       VALUES ($1, 'Before', 'general', 'Old content')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const postId = rows[0].id;
@@ -414,7 +427,7 @@ describe('DELETE /posts/:id', () => {
       (user_id, title, category, content)
       VALUES ($1, 'Delete Me', 'general', 'Content')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const postId = rows[0].id;
@@ -442,7 +455,7 @@ describe('DELETE /posts/:id', () => {
       (user_id, title, category, content)
       VALUES ($1, 'Protected Post', 'general', 'Content')
       RETURNING id`,
-      [owner.user.id],
+      [owner.id],
     );
 
     const postId = rows[0].id;
@@ -481,7 +494,7 @@ describe('GET /posts/:id/poll', () => {
       (user_id, title, category, content)
       VALUES ($1, 'Poll Post', 'general', 'Content')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const postId = postRows[0].id;
@@ -521,7 +534,7 @@ describe('GET /posts/:id/poll', () => {
       (user_id,title,category,content)
       VALUES($1,'Normal Post','general','Content')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const res = await request(app).get(`/posts/${rows[0].id}/poll`);
@@ -552,7 +565,7 @@ describe('POST /posts/:id/poll', () => {
       (user_id, title, category, content)
       VALUES ($1, 'Poll Post', 'general', 'Content')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const postId = rows[0].id;
@@ -580,7 +593,7 @@ describe('POST /posts/:id/poll', () => {
       (user_id, title, category, content)
       VALUES ($1, 'Poll Post', 'general', 'Content')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const postId = rows[0].id;
@@ -609,7 +622,7 @@ describe('POST /posts/:id/poll', () => {
       (user_id, title, category, content)
       VALUES ($1, 'Poll Post', 'general', 'Content')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const postId = rows[0].id;
@@ -640,7 +653,7 @@ describe('POST /posts/:id/poll/vote', () => {
       (user_id, title, category, content)
       VALUES ($1, 'Poll Post', 'general', 'Content')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const postId = postRows[0].id;

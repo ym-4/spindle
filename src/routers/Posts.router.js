@@ -316,7 +316,7 @@ router.get('/:id', (req, res, next) => {
 });
 
 // Creates new post
-router.post('/', upload.single('attachment'), (req, res, next) => {
+router.post('/', upload.single('attachment'), (req, res) => {
   if (
     req.body == undefined ||
     req.body.user_id == undefined ||
@@ -375,7 +375,7 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
 });
 
 // Update post (owner only)
-router.put('/:id', upload.single('attachment'), (req, res, next) => {
+router.put('/:id', upload.single('attachment'), (req, res) => {
   let attachmentUrl = req.body.attachment_url || null;
   let gifUrl = req.body.gif_url || null;
 
@@ -448,7 +448,7 @@ router.put('/:id', upload.single('attachment'), (req, res, next) => {
 });
 
 // delete post (owner only)
-router.delete('/:id', authenticateJWT, (req, res, next) => {
+router.delete('/:id', authenticateJWT, (req, res) => {
   const postId = req.params.id;
   // Check if user is admin or post owner
   getPostByID({ id: postId })
@@ -476,7 +476,7 @@ router.delete('/:id', authenticateJWT, (req, res, next) => {
 //==================== post interactions (saves, likes, etc) ============================
 //saves
 // adds new save to saved posts
-router.post('/saved', authenticateJWT, (req, res, next) => {
+router.post('/saved', authenticateJWT, (req, res) => {
   if (!req.body?.post_id) {
     return res.status(400).json({ message: 'Error: post_id is undefined' });
   }
@@ -501,7 +501,7 @@ router.post('/saved', authenticateJWT, (req, res, next) => {
 });
 
 // remove a save
-router.delete('/saved/:id', (req, res, next) => {
+router.delete('/saved/:id', (req, res) => {
   const data = {
     id: req.params.id,
   };
@@ -520,7 +520,7 @@ router.delete('/saved/:id', (req, res, next) => {
 
 // likes n dislikes
 // creates like for a post
-router.post('/like', authenticateJWT, (req, res, next) => {
+router.post('/like', authenticateJWT, (req, res) => {
   if (!req.body?.post_id) {
     return res.status(400).json({ message: 'Error: post_id is undefined' });
   }
@@ -547,7 +547,7 @@ router.post('/like', authenticateJWT, (req, res, next) => {
 });
 
 // Update reaction type
-router.put('/reaction/:id', (req, res, next) => {
+router.put('/reaction/:id', (req, res) => {
   const data = {
     id: req.params.id,
     user_id: req.body.user_id,
@@ -568,7 +568,7 @@ router.put('/reaction/:id', (req, res, next) => {
 });
 
 // remove a like or dislike
-router.delete('/reaction/:id', (req, res, next) => {
+router.delete('/reaction/:id', (req, res) => {
   const data = {
     id: req.params.id,
     user_id: req.body.user_id,
@@ -600,7 +600,7 @@ router.post('/:id/pin', authenticateJWT, async (req, res, next) => {
 });
 
 // Report a post
-router.post('/:id/report', (req, res, next) => {
+router.post('/:id/report', (req, res) => {
   if (!req.body.user_id || !req.body.reason) {
     return res.status(400).json({ message: 'user_id and reason not found.' });
   }
