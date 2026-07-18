@@ -99,13 +99,7 @@ describe('Tasks.model - getTasksByGroupID', () => {
 
   // Boundary: group_id < 0 (below accepted range)
   test('should return no tasks from the database', async () => {
-    const fakeTasks = [
-      {
-        task_id: 1,
-        title: 'Task 1',
-        group_id: 5,
-      },
-    ];
+    const fakeTasks = [];
 
     pool.query.mockResolvedValue({
       rows: [],
@@ -208,10 +202,7 @@ describe('Tasks.model - getTasksByUserAndGroupID', () => {
 
   // Boundary: user_id < 0 (below accepted range)
   test('should return no tasks from the database', async () => {
-    const fakeTasks = [
-      { task_id: 1, group_id: 5, assignee_id: 2 },
-      { task_id: 2, group_id: 5, assignee_id: 2 },
-    ];
+    const fakeTasks = [];
 
     pool.query.mockResolvedValue({
       rows: [],
@@ -233,10 +224,7 @@ describe('Tasks.model - getTasksByUserAndGroupID', () => {
 
   // Boundary: group_id < 0 (below accepted range)
   test('should return no tasks from the database', async () => {
-    const fakeTasks = [
-      { task_id: 1, group_id: 5, assignee_id: 2 },
-      { task_id: 2, group_id: 5, assignee_id: 2 },
-    ];
+    const fakeTasks = [];
 
     pool.query.mockResolvedValue({
       rows: [],

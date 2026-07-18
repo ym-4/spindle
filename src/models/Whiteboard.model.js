@@ -80,7 +80,7 @@ module.exports.updateWhiteboardsName = async function updateWhiteboardsName(data
 
 // Delete whiteboard
 module.exports.deleteWhiteboards = async function deleteWhiteboards(data) {
-  const VALUES = [data.group_id, data.user_id];
+  const VALUES = [data.id, data.user_id];
   const { rows } = await pool.query(
     'DELETE FROM "WhiteboardDrawings" WHERE id = $1 AND user_id = $2 RETURNING *',
     VALUES,
