@@ -255,12 +255,37 @@
   margin-top: 16px;
 }
 
+.spindle-sold-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 33, 61, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .spindle-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   padding: 8px 12px 12px;
+}
+
+.spindle-card-footer--owner {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.spindle-owner-btn {
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  white-space: nowrap;
 }
 
 .spindle-qty {

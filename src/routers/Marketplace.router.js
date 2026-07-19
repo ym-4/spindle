@@ -3,7 +3,7 @@ const router = express.Router();
 const path = require('path');
 const multer = require('multer');
 const upload = require('../middlewares/upload');
-const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage, setItemTags, getItemsByTag, getRecommendedItems } = require('../models/Marketplace.model');
+const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage, setItemTags, getItemsByTag, getRecommendedItems, setItemStatus, setCoverImage } = require('../models/Marketplace.model');
 
 // Local storage config, scoped to marketplace image uploads only
 const listingImageStorage = multer.diskStorage({
@@ -87,6 +87,27 @@ router.delete('/:id/images/:imageId', (req, res, next) => {
     .then((image) => {
       if (!image) return res.status(404).json({ error: 'Image not found' });
       res.status(200).json(image);
+    })
+    .catch(next);
+});
+
+// Mark a listing as sold or put it back to active ("relist"). Body: { status: 'active' | 'sold' }
+router.patch('/:id/status', (req, res, next) => {
+  const { status } = req.body;
+  setItemStatus(req.params.id, status)
+    .then((item) => {
+      if (!item) return res.status(404).json({ error: 'Item not found' });
+      res.status(200).json(item);
+    })
+    .catch(next);
+});
+
+// Set which image is used as the listing's cover/thumbnail
+router.put('/:id/images/:imageId/cover', (req, res, next) => {
+  setCoverImage(req.params.id, req.params.imageId)
+    .then((result) => {
+      if (!result) return res.status(404).json({ error: 'Image not found on this item' });
+      res.status(200).json(result);
     })
     .catch(next);
 });

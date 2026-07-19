@@ -20,7 +20,11 @@ function qualityBadgeClass(rawQuality) {
   return 'default';
 }
 
-function addListing(seller_id, id, name, description, price, quality, meetup, images, tags) {
+// mode: 'browse' (marketplace grid — qty + Add to Cart) or 'owner' (my
+// listings — Edit / Mark as Sold / Delete). Kept as one function since the
+// media/body markup (image, badge, title, price, tags, meetup) is identical
+// either way; only the footer and the sold-overlay differ.
+function addListing({ seller_id, id, name, description, price, quality, meetup, images, tags, status, mode = 'browse' }) {
   const container = document.getElementById('listings-container');
 
   const card = document.createElement('div');
@@ -28,9 +32,12 @@ function addListing(seller_id, id, name, description, price, quality, meetup, im
   card.dataset.sellerId = seller_id;
   card.dataset.id = id;
 
+  const isSold = (status || 'active') === 'sold';
+
   const badgeMarkup = quality
     ? `<span class="spindle-badge spindle-badge--${qualityBadgeClass(quality)}">${escapeHtml(quality)}</span>`
     : '';
+  const soldOverlayMarkup = isSold ? `<div class="spindle-sold-overlay">Sold</div>` : '';
   const meetupMarkup = meetup
     ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(meetup)}</p>`
     : '';
@@ -39,19 +46,22 @@ function addListing(seller_id, id, name, description, price, quality, meetup, im
     ? `<div class="spindle-card-tags">${tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
     : '';
 
-  card.innerHTML = `
-    <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(id)}">
-      <div class="spindle-card-media">
-        <img src="${escapeHtml(thumbnailSrc)}" alt="">
-        ${badgeMarkup}
-      </div>
-      <div class="spindle-card-body">
-        <h3 class="spindle-card-title">${escapeHtml(name)}</h3>
-        <p class="spindle-card-price">$${Number(price).toFixed(2)}</p>
-        ${tagsMarkup}
-        ${meetupMarkup}
-      </div>
-    </a>
+  const footerMarkup =
+    mode === 'owner'
+      ? `
+    <div class="spindle-card-footer spindle-card-footer--owner">
+      <a href="create_listing.html?id=${encodeURIComponent(id)}" class="btn btn-sm btn-outline-secondary spindle-owner-btn">
+        <i class="fas fa-pen"></i> Edit
+      </a>
+      <button type="button" class="btn btn-sm btn-outline-dark spindle-owner-btn spindle-status-btn">
+        <i class="fas fa-tag"></i> ${isSold ? 'Relist' : 'Mark as Sold'}
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-danger spindle-owner-btn spindle-delete-btn">
+        <i class="fas fa-trash"></i> Delete
+      </button>
+    </div>
+  `
+      : `
     <div class="spindle-card-footer">
       <div class="spindle-qty">
         <button type="button" class="spindle-qty-btn" data-step="-1" aria-label="Decrease quantity">−</button>
@@ -64,20 +74,72 @@ function addListing(seller_id, id, name, description, price, quality, meetup, im
     </div>
   `;
 
-  const qtyInput = card.querySelector('.qty-input');
+  card.innerHTML = `
+    <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(id)}">
+      <div class="spindle-card-media">
+        <img src="${escapeHtml(thumbnailSrc)}" alt="">
+        ${badgeMarkup}
+        ${soldOverlayMarkup}
+      </div>
+      <div class="spindle-card-body">
+        <h3 class="spindle-card-title">${escapeHtml(name)}</h3>
+        <p class="spindle-card-price">$${Number(price).toFixed(2)}</p>
+        ${tagsMarkup}
+        ${meetupMarkup}
+      </div>
+    </a>
+    ${footerMarkup}
+  `;
 
-  card.querySelectorAll('.spindle-qty-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const step = Number(btn.dataset.step);
-      const next = Number(qtyInput.value) + step;
-      qtyInput.value = Math.min(99, Math.max(1, next));
+  if (mode === 'owner') {
+    card.querySelector('.spindle-status-btn').addEventListener('click', () => {
+      const nextStatus = isSold ? 'active' : 'sold';
+      if (nextStatus === 'sold' && !confirm(`Mark "${name}" as sold? It'll be hidden from the marketplace.`)) return;
+
+      fetch(`http://localhost:3000/marketplace/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus }),
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            console.error('Status update failed', await res.text());
+            return;
+          }
+          container.innerHTML = '';
+          loadUserListings();
+        })
+        .catch((err) => console.error('Status update error:', err));
     });
-  });
 
-  card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
-    const amount = qtyInput.value;
-    addToCart(seller_id, id, localStorage.loggedInUserId, amount);
-  });
+    card.querySelector('.spindle-delete-btn').addEventListener('click', () => {
+      if (!confirm(`Delete "${name}"? This can't be undone.`)) return;
+      fetch(`http://localhost:3000/marketplace/${id}`, { method: 'DELETE' })
+        .then(async (res) => {
+          if (!res.ok) {
+            console.error('Delete failed', await res.text());
+            return;
+          }
+          card.remove();
+        })
+        .catch((err) => console.error('Delete error:', err));
+    });
+  } else {
+    const qtyInput = card.querySelector('.qty-input');
+
+    card.querySelectorAll('.spindle-qty-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const step = Number(btn.dataset.step);
+        const next = Number(qtyInput.value) + step;
+        qtyInput.value = Math.min(99, Math.max(1, next));
+      });
+    });
+
+    card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
+      const amount = qtyInput.value;
+      addToCart(seller_id, id, localStorage.loggedInUserId, amount);
+    });
+  }
 
   container.appendChild(card);
 }
@@ -97,10 +159,17 @@ function applySpindleFilters(data) {
   return data.filter((item) => SpindleFilters.matches(item));
 }
 
+// The public marketplace never shows sold items — that's a fixed business
+// rule, not something the shopper can toggle, so it's applied here directly
+// rather than through SpindleFilters (which only holds user-chosen filters).
+function hideSoldItems(data) {
+  return data.filter((item) => (item.status || 'active') !== 'sold');
+}
+
 async function loadListings() {
   // Update Page Navigation Bar
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
-    const filtered = applySpindleFilters(data);
+    const filtered = applySpindleFilters(hideSoldItems(data));
     let totalListings = filtered.length;
     let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
 
@@ -126,7 +195,7 @@ async function loadListings() {
   // Fetch and Load Listings
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
     if (status === 200) {
-      const filtered = applySpindleFilters(data);
+      const filtered = applySpindleFilters(hideSoldItems(data));
 
       if (filtered.length == 0 || !filtered) {
         emptyState.classList.remove('d-none');
@@ -135,17 +204,7 @@ async function loadListings() {
 
         for (i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
           if (!filtered[i]) continue;
-          addListing(
-            filtered[i].seller_id,
-            filtered[i].id,
-            filtered[i].name,
-            filtered[i].description,
-            filtered[i].price,
-            filtered[i].quality,
-            filtered[i].meetup,
-            filtered[i].images,
-            filtered[i].tags,
-          );
+          addListing({ ...filtered[i], mode: 'browse' });
         }
       }
     } else {
@@ -197,17 +256,7 @@ async function loadUserListings() {
 
         for (let i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
           if (!userListings[i]) continue;
-          addListing(
-            userListings[i].seller_id,
-            userListings[i].id,
-            userListings[i].name,
-            userListings[i].description,
-            userListings[i].price,
-            userListings[i].quality,
-            userListings[i].meetup,
-            userListings[i].images,
-            userListings[i].tags,
-          );
+          addListing({ ...userListings[i], mode: 'owner' });
         }
       }
     } else {

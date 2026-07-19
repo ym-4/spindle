@@ -7,6 +7,7 @@ const SpindleFilters = {
   minPrice: null,
   maxPrice: null,
   tags: new Set(), // lowercased tag names
+  status: 'all', // 'all' | 'active' | 'sold' — only used on my_listings.html
 
   // Returns true if a marketplace item satisfies every active filter (AND across
   // categories, OR within the tags category — matching any one selected tag counts).
@@ -20,7 +21,10 @@ const SpindleFilters = {
     const itemTagNames = (item.tags || []).map((t) => t.name.toLowerCase());
     const matchesTags = this.tags.size === 0 || [...this.tags].some((tag) => itemTagNames.includes(tag));
 
-    return matchesSearch && matchesMin && matchesMax && matchesTags;
+    const itemStatus = item.status || 'active';
+    const matchesStatus = this.status === 'all' || itemStatus === this.status;
+
+    return matchesSearch && matchesMin && matchesMax && matchesTags && matchesStatus;
   },
 
   reset() {
@@ -28,6 +32,7 @@ const SpindleFilters = {
     this.minPrice = null;
     this.maxPrice = null;
     this.tags.clear();
+    this.status = 'all';
   },
 };
 
@@ -57,6 +62,7 @@ function updateFilterCountBadge() {
   if (SpindleFilters.minPrice != null) count++;
   if (SpindleFilters.maxPrice != null) count++;
   count += SpindleFilters.tags.size;
+  if (SpindleFilters.status !== 'all') count++;
 
   if (count > 0) {
     badge.textContent = String(count);
@@ -108,9 +114,17 @@ function initMarketplaceFilters() {
   const minPriceInput = document.getElementById('filter-min-price');
   const maxPriceInput = document.getElementById('filter-max-price');
   const clearBtn = document.getElementById('filter-clear-btn');
+  const statusSelect = document.getElementById('filter-status-select'); // only present on my_listings.html
 
   // Filter panel isn't on every page (e.g. cart.html) — bail out quietly if absent.
   if (!minPriceInput || !maxPriceInput || !clearBtn) return;
+
+  if (statusSelect) {
+    statusSelect.addEventListener('change', () => {
+      SpindleFilters.status = statusSelect.value;
+      refreshFilteredListings();
+    });
+  }
 
   const onPriceChange = debounce(() => {
     const min = minPriceInput.value.trim();
@@ -136,6 +150,8 @@ function initMarketplaceFilters() {
 
     const searchBar = document.getElementById('marketplaceSearch');
     if (searchBar) searchBar.value = '';
+
+    if (statusSelect) statusSelect.value = 'all';
 
     refreshFilteredListings();
 

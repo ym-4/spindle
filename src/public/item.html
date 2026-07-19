@@ -119,7 +119,16 @@
           <div id="itemLoaded" class="d-none">
             <div class="item-layout">
               <div class="item-media">
-                <img id="itemImage" src="https://placehold.co/600x500" alt="" />
+                <div id="itemImageCarousel" class="carousel slide" data-bs-ride="false">
+                  <div id="itemCarouselIndicators" class="carousel-indicators"></div>
+                  <div id="itemCarouselInner" class="carousel-inner"></div>
+                  <button class="carousel-control-prev d-none" type="button" data-bs-target="#itemImageCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  </button>
+                  <button class="carousel-control-next d-none" type="button" data-bs-target="#itemImageCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  </button>
+                </div>
               </div>
 
               <div class="item-details">
@@ -144,6 +153,9 @@
                     <p class="seller-name" id="itemSeller">Student seller</p>
                     <p class="seller-tag">Listed on Spindle</p>
                   </div>
+                  <button type="button" id="chatSellerBtn" class="btn-chat-seller">
+                    <i class="fas fa-comment-dots"></i> Chat
+                  </button>
                 </div>
 
                 <div class="item-purchase-row">

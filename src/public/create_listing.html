@@ -107,8 +107,8 @@
         <header class="bg-dark py-5" id="create-listing-header">
           <div class="container px-4 px-lg-5 my-5">
             <div class="text-center text-white">
-              <h1 class="display-4 fw-bolder">New Listing</h1>
-              <p class="lead fw-normal text-white-50 mb-0">List an item for the SP Marketplace</p>
+              <h1 class="display-4 fw-bolder" id="pageHeaderTitle">New Listing</h1>
+              <p class="lead fw-normal text-white-50 mb-0" id="pageHeaderSubtitle">List an item for the SP Marketplace</p>
             </div>
           </div>
         </header>
@@ -132,7 +132,7 @@
         <section class="py-5">
           <div class="create-listing-wrapper">
             <div class="create-listing-card">
-              <h2>Listing Details</h2>
+              <h2 id="formHeading">Listing Details</h2>
               <p class="subtitle">
                 Fill in the details below. Fields marked <span style="color: #e53e3e">*</span> are
                 required.
@@ -286,8 +286,8 @@
 
                 <!-- Action buttons -->
                 <div class="d-flex align-items-center gap-3 flex-wrap">
-                  <button type="submit" class="btn-create-listing">
-                    <i class="fas fa-tag me-2"></i>Publish Listing
+                  <button type="submit" class="btn-create-listing" id="submitListingBtn">
+                    <i class="fas fa-tag me-2"></i><span id="submitListingBtnText">Publish Listing</span>
                   </button>
                   <a href="marketplace.html" class="btn-cancel-listing">Cancel</a>
                 </div>
