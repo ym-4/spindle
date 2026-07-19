@@ -300,6 +300,15 @@ async function loadNotifDropdown() {
           window.location.href = `chat.html?user=${btn.dataset.ref}`;
         } else if (btn.dataset.type === 'friend_request') {
           window.location.href = 'friends.html';
+        } else if (
+          (btn.dataset.type === 'mention' ||
+            btn.dataset.type === 'comment' ||
+            btn.dataset.type === 'pandabot' ||
+            btn.dataset.type === 'comment_reaction' ||
+            btn.dataset.type === 'post_reaction') &&
+          btn.dataset.ref
+        ) {
+          window.location.href = `posts.html?id=${btn.dataset.ref}`;
         } else {
           loadNotifDropdown();
         }

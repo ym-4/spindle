@@ -1,4 +1,23 @@
 const request = require('supertest');
+
+let mockUserId = 1;
+
+jest.mock('../../src/middlewares/auth.middleware', () => ({
+  authenticateJWT: (req, res, next) => {
+    req.user = {
+      id: mockUserId,
+      name: 'Test User',
+      email: 'test@test.com',
+      role: 'user',
+    };
+    next();
+  },
+
+  requireAdmin: (req, res, next) => {
+    next();
+  },
+}));
+
 const app = require('../../src/app');
 const pool = require('../../src/models/db');
 
@@ -14,6 +33,7 @@ beforeEach(async () => {
   await pool.query('DELETE FROM "PostReactions"');
   await pool.query('DELETE FROM "SavedPosts"');
   await pool.query('DELETE FROM "Posts"');
+  await pool.query('DELETE FROM "UserSessions"');
   await pool.query('DELETE FROM "Person"');
 });
 
@@ -24,75 +44,41 @@ afterAll(async () => {
   await pool.query('DELETE FROM "PostReactions"');
   await pool.query('DELETE FROM "SavedPosts"');
   await pool.query('DELETE FROM "Posts"');
+  await pool.query('DELETE FROM "UserSessions"');
   await pool.query('DELETE FROM "Person"');
   await pool.end();
 });
 
 // ── Helper ───────────────────────────────────────────────
+async function createTestUser(name = 'Test User', email = 'test@test.com') {
+  const { rows } = await pool.query(
+    `
+    INSERT INTO "Person"
+    (
+      name,
+      email,
+      hashed_password,
+      role,
+      email_verified
+    )
+    VALUES
+    (
+      $1,
+      $2,
+      'fakehash',
+      'user',
+      TRUE
+    )
+    RETURNING id
+    `,
+    [name, email],
+  );
 
-async function register(name, email, password = 'secret') {
-  return request(app).post('/auth/register').send({
-    name,
-    email,
-    password,
-  });
-}
-
-async function registerAndVerify(name, email, password = 'secret') {
-  const reg = await request(app).post('/auth/register').send({ name, email, password });
-
-  const verify = await request(app).post('/auth/verify-email').send({
-    email,
-    code: reg.body.previewCode,
-  });
+  mockUserId = rows[0].id;
 
   return {
-    id: verify.body.user.id,
-    user: verify.body.user,
-    token: verify.body.token,
+    id: mockUserId,
   };
-}
-
-async function login(username, password) {
-  const res = await request(app).post('/auth/login').send({
-    username,
-    password,
-  });
-
-  if (res.body.needs2FA) {
-    const verify = await request(app).post('/auth/verify-login').send({
-      email: res.body.email,
-      code: res.body.previewCode,
-    });
-
-    return verify;
-  }
-
-  return res;
-}
-
-async function createAdmin() {
-  await pool.query(
-    `
-      INSERT INTO "Person"
-      (
-        email,
-        name,
-        hashed_password,
-        role,
-        email_verified
-      )
-      VALUES
-      (
-        'admin@test.com',
-        'admin',
-        $1,
-        'admin',
-        TRUE
-      )
-    `,
-    [hashPassword('adminpass')],
-  );
 }
 
 // ─────────────────────────────────────────────────────────
@@ -109,7 +95,7 @@ describe('GET /posts', () => {
 
   // Valid partition: existing posts are returned
   test('should return 200 and all posts', async () => {
-    const user = await registerAndVerify('PostAuthor', 'postauthor@example.com');
+    const user = await createTestUser('PostAuthor', 'postauthor@example.com');
 
     await pool.query(
       `INSERT INTO "Posts"
@@ -139,7 +125,7 @@ describe('GET /posts', () => {
 describe('GET /posts/tag/:category', () => {
   // Valid partition: returns only posts belonging to the category
   test('should return 200 and an empty array when the category has no posts', async () => {
-    const user = await registerAndVerify('CategoryUser', 'category@example.com');
+    const user = await createTestUser('CategoryUser', 'category@example.com');
 
     await pool.query(
       `INSERT INTO "Posts" (user_id, title, category, content)
@@ -162,12 +148,12 @@ describe('GET /posts/tag/:category', () => {
 
   // Boundary: no posts exist for the category
   test('should return 200 and an empty array when no posts match the category', async () => {
-    const user = await registerAndVerify('EmptyCategoryUser', 'emptycategory@example.com');
+    const user = await createTestUser('EmptyCategoryUser', 'emptycategory@example.com');
 
     await pool.query(
       `INSERT INTO "Posts" (user_id, title, category, content)
        VALUES ($1, 'General Post', 'general', 'Content')`,
-      [user.user.id],
+      [user.id],
     );
 
     const res = await request(app).get('/posts/tag/events');
@@ -191,7 +177,7 @@ describe('GET /posts/tag/:category', () => {
 describe('GET /posts/:id', () => {
   // Valid partition: existing post id returns the correct post
   test('should return 200 and the requested post', async () => {
-    const user = await registerAndVerify('SinglePostUser', 'singlepost@example.com');
+    const user = await createTestUser('SinglePostUser', 'singlepost@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -210,7 +196,7 @@ describe('GET /posts/:id', () => {
     expect(res.body.title).toBe('My Post');
     expect(res.body.category).toBe('general');
     expect(res.body.content).toBe('Hello World');
-    expect(res.body.user_id).toBe(user.user.id);
+    expect(res.body.user_id).toBe(user.id);
   });
 
   // Boundary: non-existent id
@@ -238,7 +224,7 @@ describe('GET /posts/:id', () => {
 describe('GET /posts/related/:category/:id', () => {
   // Valid partition: returns related posts from the same category
   test('should return related posts from the same category', async () => {
-    const user = await registerAndVerify('RelatedUser', 'related@example.com');
+    const user = await createTestUser('RelatedUser', 'related@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -266,14 +252,14 @@ describe('GET /posts/related/:category/:id', () => {
 
   // Boundary: no related posts exist
   test('should return an empty array when no related posts exist', async () => {
-    const user = await registerAndVerify('LonelyUser', 'lonely@example.com');
+    const user = await createTestUser('LonelyUser', 'lonely@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
       (user_id, title, category, content)
       VALUES ($1, 'Only General Post', 'general', 'Content')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const postId = rows[0].id;
@@ -299,11 +285,11 @@ describe('GET /posts/related/:category/:id', () => {
 describe('POST /posts', () => {
   // Valid partition: create a new post successfully
   test('should return 201 and create a new post', async () => {
-    const user = await registerAndVerify('CreatePostUser', 'createpost@example.com');
+    const user = await createTestUser('CreatePostUser', 'createpost@example.com');
 
     const res = await request(app)
       .post('/posts')
-      .field('user_id', user.user.id)
+      .field('user_id', user.id)
       .field('title', 'My First Post')
       .field('category', 'general')
       .field('content', 'Hello everyone!');
@@ -313,16 +299,16 @@ describe('POST /posts', () => {
     expect(res.body.title).toBe('My First Post');
     expect(res.body.category).toBe('general');
     expect(res.body.content).toBe('Hello everyone!');
-    expect(res.body.user_id).toBe(user.user.id);
+    expect(res.body.user_id).toBe(user.id);
   });
 
   // Valid partition: verify created post in the database
   test('created post should be persisted', async () => {
-    const user = await registerAndVerify('PersistUser', 'persist@example.com');
+    const user = await createTestUser('PersistUser', 'persist@example.com');
 
     await request(app)
       .post('/posts')
-      .field('user_id', user.user.id)
+      .field('user_id', user.id)
       .field('title', 'Persistent Post')
       .field('category', 'general')
       .field('content', 'Persistence test');
@@ -348,7 +334,7 @@ describe('POST /posts', () => {
 describe('PUT /posts/:id', () => {
   // Valid partition: update an existing post
   test('should return 200 and update the post', async () => {
-    const user = await registerAndVerify('UpdateUser', 'update@example.com');
+    const user = await createTestUser('UpdateUser', 'update@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -375,7 +361,7 @@ describe('PUT /posts/:id', () => {
 
   // Valid partition: verify updated values
   test('updated post should persist in the database', async () => {
-    const user = await registerAndVerify('PersistUpdateUser', 'persistupdate@example.com');
+    const user = await createTestUser('PersistUpdateUser', 'persistupdate@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -420,7 +406,7 @@ describe('PUT /posts/:id', () => {
 describe('DELETE /posts/:id', () => {
   // Valid partition: owner deletes their own post
   test('should return 200 and delete the post', async () => {
-    const user = await registerAndVerify('DeleteOwner', 'deleteowner@example.com');
+    const user = await createTestUser('DeleteOwner', 'deleteowner@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -432,9 +418,7 @@ describe('DELETE /posts/:id', () => {
 
     const postId = rows[0].id;
 
-    const res = await request(app)
-      .delete(`/posts/${postId}`)
-      .set('Authorization', `Bearer ${user.token}`);
+    const res = await request(app).delete(`/posts/${postId}`);
 
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(postId);
@@ -446,9 +430,9 @@ describe('DELETE /posts/:id', () => {
 
   // Invalid partition: authenticated user is not the owner
   test("should return 403 when deleting another user's post", async () => {
-    const owner = await registerAndVerify('PostOwner', 'owner@example.com');
+    const owner = await createTestUser('PostOwner', 'owner@example.com');
 
-    const stranger = await registerAndVerify('OtherUser', 'other@example.com');
+    const stranger = await createTestUser('OtherUser', 'other@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -460,9 +444,7 @@ describe('DELETE /posts/:id', () => {
 
     const postId = rows[0].id;
 
-    const res = await request(app)
-      .delete(`/posts/${postId}`)
-      .set('Authorization', `Bearer ${stranger.token}`);
+    const res = await request(app).delete(`/posts/${postId}`);
 
     expect(res.status).toBe(403);
     expect(res.body.error).toMatch(/not authorized/i);
@@ -470,24 +452,23 @@ describe('DELETE /posts/:id', () => {
 
   // Boundary: non-existent id
   test('should return 404 when deleting a non-existent post', async () => {
-    const user = await registerAndVerify('GhostDelete', 'ghostdelete@example.com');
+    const user = await createTestUser('GhostDelete', 'ghostdelete@example.com');
 
-    const res = await request(app)
-      .delete('/posts/999999')
-      .set('Authorization', `Bearer ${user.token}`);
+    const res = await request(app).delete('/posts/999999');
 
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/post not found/i);
   });
 });
 
+// ==================== Poll Posts ========================
 // ─────────────────────────────────────────────────────────
 // GET /posts/:id/poll
 // ─────────────────────────────────────────────────────────
 describe('GET /posts/:id/poll', () => {
   // Valid partition: poll exists and returns question with options
   test('should return 200 and the poll with its options', async () => {
-    const user = await registerAndVerify('PollOwner', 'pollowner@example.com');
+    const user = await createTestUser('PollOwner', 'pollowner@example.com');
 
     const { rows: postRows } = await pool.query(
       `INSERT INTO "Posts"
@@ -527,7 +508,7 @@ describe('GET /posts/:id/poll', () => {
 
   // Boundary: post has no poll
   test('should return 404 when the post has no poll', async () => {
-    const user = await registerAndVerify('NoPollUser', 'nopoll@example.com');
+    const user = await createTestUser('NoPollUser', 'nopoll@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -558,7 +539,7 @@ describe('GET /posts/:id/poll', () => {
 describe('POST /posts/:id/poll', () => {
   // Valid partition: create a poll with two options
   test('should return 201 and create a poll', async () => {
-    const user = await registerAndVerify('CreatePollUser', 'createpoll@example.com');
+    const user = await createTestUser('CreatePollUser', 'createpoll@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -572,7 +553,6 @@ describe('POST /posts/:id/poll', () => {
 
     const res = await request(app)
       .post(`/posts/${postId}/poll`)
-      .set('Authorization', `Bearer ${user.token}`)
       .send({
         question: 'Favourite programming language?',
         options: ['JavaScript', 'Python'],
@@ -586,7 +566,7 @@ describe('POST /posts/:id/poll', () => {
 
   // Valid partition: verify poll in the database
   test('created poll should persist', async () => {
-    const user = await registerAndVerify('PersistPollUser', 'persistpoll@example.com');
+    const user = await createTestUser('PersistPollUser', 'persistpoll@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -600,7 +580,6 @@ describe('POST /posts/:id/poll', () => {
 
     await request(app)
       .post(`/posts/${postId}/poll`)
-      .set('Authorization', `Bearer ${user.token}`)
       .send({
         question: 'Favourite IDE?',
         options: ['VS Code', 'WebStorm'],
@@ -615,7 +594,7 @@ describe('POST /posts/:id/poll', () => {
 
   // Invalid partition: fewer than two options
   test('should return 400 when fewer than two options are provided', async () => {
-    const user = await registerAndVerify('InvalidPollUser', 'invalidpoll@example.com');
+    const user = await createTestUser('InvalidPollUser', 'invalidpoll@example.com');
 
     const { rows } = await pool.query(
       `INSERT INTO "Posts"
@@ -629,7 +608,6 @@ describe('POST /posts/:id/poll', () => {
 
     const res = await request(app)
       .post(`/posts/${postId}/poll`)
-      .set('Authorization', `Bearer ${user.token}`)
       .send({
         question: 'Invalid poll',
         options: ['Only one'],
@@ -646,7 +624,7 @@ describe('POST /posts/:id/poll', () => {
 describe('POST /posts/:id/poll/vote', () => {
   // Valid partition: user votes successfully
   test('should return 201 and create a vote', async () => {
-    const user = await registerAndVerify('VoteUser', 'voteuser@example.com');
+    const user = await createTestUser('VoteUser', 'voteuser@example.com');
 
     const { rows: postRows } = await pool.query(
       `INSERT INTO "Posts"
@@ -678,13 +656,10 @@ describe('POST /posts/:id/poll/vote', () => {
 
     const optionId = optionRows[0].id;
 
-    const res = await request(app)
-      .post(`/posts/${postId}/poll/vote`)
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({
-        poll_id: pollId,
-        option_id: optionId,
-      });
+    const res = await request(app).post(`/posts/${postId}/poll/vote`).send({
+      poll_id: pollId,
+      option_id: optionId,
+    });
 
     expect(res.status).toBe(201);
     expect(res.body.vote).toHaveProperty('id');
@@ -695,14 +670,14 @@ describe('POST /posts/:id/poll/vote', () => {
 
   // Invalid partition: duplicate vote
   test('should return 409 when the user has already voted', async () => {
-    const user = await registerAndVerify('DuplicateVoteUser', 'duplicatevote@example.com');
+    const user = await createTestUser('DuplicateVoteUser', 'duplicatevote@example.com');
 
     const { rows: postRows } = await pool.query(
       `INSERT INTO "Posts"
       (user_id, title, category, content)
       VALUES ($1, 'Poll Post', 'general', 'Content')
       RETURNING id`,
-      [user.user.id],
+      [user.id],
     );
 
     const postId = postRows[0].id;
@@ -727,21 +702,15 @@ describe('POST /posts/:id/poll/vote', () => {
 
     const optionId = optionRows[0].id;
 
-    await request(app)
-      .post(`/posts/${postId}/poll/vote`)
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({
-        poll_id: pollId,
-        option_id: optionId,
-      });
+    await request(app).post(`/posts/${postId}/poll/vote`).send({
+      poll_id: pollId,
+      option_id: optionId,
+    });
 
-    const res = await request(app)
-      .post(`/posts/${postId}/poll/vote`)
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({
-        poll_id: pollId,
-        option_id: optionId,
-      });
+    const res = await request(app).post(`/posts/${postId}/poll/vote`).send({
+      poll_id: pollId,
+      option_id: optionId,
+    });
 
     expect(res.status).toBe(409);
     expect(res.body.message).toMatch(/already voted/i);
@@ -749,211 +718,355 @@ describe('POST /posts/:id/poll/vote', () => {
 
   // Invalid partition: missing required fields
   test('should return 400 when poll_id or option_id is missing', async () => {
-    const user = await registerAndVerify('MissingVoteUser', 'missingvote@example.com');
+    const user = await createTestUser('MissingVoteUser', 'missingvote@example.com');
 
-    const res = await request(app)
-      .post('/posts/1/poll/vote')
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({});
+    const res = await request(app).post('/posts/1/poll/vote').send({});
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/required/i);
   });
 });
 
+// ==================== Saved Posts ========================
 // ─────────────────────────────────────────────────────────
-// Saved Posts
+// GET /posts/saved/:user_id
 // ─────────────────────────────────────────────────────────
-describe('Saved Posts', () => {
-  test('should allow a user to save a post', async () => {
-    const owner = await registerAndVerify('SaveOwner', 'saveowner@example.com');
-    const user = await registerAndVerify('SaveUser', 'saveuser@example.com');
+describe('GET /posts/saved/:user_id', () => {
+  // Valid partition: returns the posts a user has saved
+  test('should return 200 and the saved posts for the user', async () => {
+    const author = await createTestUser('SavedAuthor', 'savedauthor@example.com');
 
-    const { rows } = await pool.query(
-      `INSERT INTO "Posts" (user_id, title, category, content)
-       VALUES ($1,'Save Me','general','Content')
-       RETURNING id`,
-      [owner.user.id],
+    const { rows: postRows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES
+      ($1, 'Saved Post One', 'general', 'Content 1'),
+      ($1, 'Saved Post Two', 'qna', 'Content 2')
+      RETURNING id`,
+      [author.id],
     );
 
-    const postId = rows[0].id;
+    const saver = await createTestUser('Saver', 'saver@example.com');
 
-    const res = await request(app)
-      .post(`/posts/${postId}/save`)
-      .set('Authorization', `Bearer ${user.token}`);
+    await pool.query(`INSERT INTO "SavedPosts" (user_id, post_id) VALUES ($1, $2)`, [
+      saver.id,
+      postRows[0].id,
+    ]);
 
-    expect(res.status).toBe(201);
-    expect(res.body).toHaveProperty('id');
-  });
-
-  test('should return all saved posts for the logged in user', async () => {
-    const owner = await registerAndVerify('ListOwner', 'listowner@example.com');
-    const user = await registerAndVerify('ListUser', 'listuser@example.com');
-
-    const { rows } = await pool.query(
-      `INSERT INTO "Posts" (user_id,title,category,content)
-       VALUES ($1,'Saved Post','general','Hello')
-       RETURNING id`,
-      [owner.user.id],
-    );
-
-    await request(app)
-      .post(`/posts/${rows[0].id}/save`)
-      .set('Authorization', `Bearer ${user.token}`);
-
-    const res = await request(app).get('/posts/saved').set('Authorization', `Bearer ${user.token}`);
+    const res = await request(app).get(`/posts/saved/${saver.id}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.length).toBe(1);
-    expect(res.body[0].post_id).toBe(rows[0].id);
+    expect(res.body).toHaveLength(1);
   });
 
-  test('should allow a user to unsave a post', async () => {
-    const owner = await registerAndVerify('DeleteOwner', 'deleteowner@example.com');
-    const user = await registerAndVerify('DeleteUser', 'deleteuser@example.com');
+  // Boundary: user has not saved anything
+  test('should return 200 and an empty array when the user has no saved posts', async () => {
+    const user = await createTestUser('NoSavesUser', 'nosaves@example.com');
 
-    const { rows } = await pool.query(
-      `INSERT INTO "Posts"(user_id,title,category,content)
-       VALUES($1,'Delete Me','general','Hello')
-       RETURNING id`,
-      [owner.user.id],
-    );
-
-    await request(app)
-      .post(`/posts/${rows[0].id}/save`)
-      .set('Authorization', `Bearer ${user.token}`);
-
-    const saved = await request(app)
-      .get('/posts/saved')
-      .set('Authorization', `Bearer ${user.token}`);
-
-    const saveId = saved.body[0].id;
-
-    const res = await request(app)
-      .delete(`/posts/saved/${saveId}`)
-      .set('Authorization', `Bearer ${user.token}`);
+    const res = await request(app).get(`/posts/saved/${user.id}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.id).toBe(saveId);
+    expect(res.body).toEqual([]);
   });
 });
 
 // ─────────────────────────────────────────────────────────
-// Post Reactions
+// POST /posts/saved
 // ─────────────────────────────────────────────────────────
-describe('Post Reactions', () => {
-  test('should allow a user to like a post', async () => {
-    const owner = await registerAndVerify('LikeOwner', 'likeowner@example.com');
-    const user = await registerAndVerify('LikeUser', 'likeuser@example.com');
+describe('POST /posts/saved', () => {
+  // Valid partition: authenticated user saves a post
+  test('should return 201 and save the post for the authenticated user', async () => {
+    const author = await createTestUser('SaveAuthor', 'saveauthor@example.com');
 
     const { rows } = await pool.query(
-      `INSERT INTO "Posts" (user_id, title, category, content)
-       VALUES ($1, 'React Post', 'general', 'Content')
-       RETURNING id`,
-      [owner.user.id],
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Save Me', 'general', 'Content')
+      RETURNING id`,
+      [author.id],
     );
 
     const postId = rows[0].id;
-
-    const res = await request(app)
-      .post(`/posts/${postId}/reaction`)
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({ reaction_type: 'like' });
+    const saver = await createTestUser('SaverUser', 'saveruser@example.com');
+    const res = await request(app).post('/posts/saved').send({ post_id: postId });
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('id');
+    expect(res.body.post_id).toBe(postId);
+    expect(res.body.user_id).toBe(saver.id);
   });
 
-  test('should return the logged in user reactions', async () => {
-    const owner = await registerAndVerify('ReactionOwner', 'reactionowner@example.com');
-    const user = await registerAndVerify('ReactionUser', 'reactionuser@example.com');
+  // Invalid partition: post_id missing from body
+  test('should return 400 when post_id is missing', async () => {
+    await createTestUser('NoPostIdUser', 'nopostid@example.com');
+
+    const res = await request(app).post('/posts/saved').send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/post_id/i);
+  });
+
+  // Boundary: saving the same post twice
+  test('should not allow the same user to save the same post twice', async () => {
+    const author = await createTestUser('DupAuthor', 'dupauthor@example.com');
 
     const { rows } = await pool.query(
-      `INSERT INTO "Posts" (user_id, title, category, content)
-       VALUES ($1, 'Reaction Test', 'general', 'Content')
-       RETURNING id`,
-      [owner.user.id],
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Duplicate Save', 'general', 'Content')
+      RETURNING id`,
+      [author.id],
     );
 
     const postId = rows[0].id;
 
-    await request(app)
-      .post(`/posts/${postId}/reaction`)
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({ reaction_type: 'like' });
+    await createTestUser('DupSaver', 'dupsaver@example.com');
 
-    const res = await request(app)
-      .get('/posts/reactions')
-      .set('Authorization', `Bearer ${user.token}`);
+    await request(app).post('/posts/saved').send({ post_id: postId });
+    const res = await request(app).post('/posts/saved').send({ post_id: postId });
+    expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/already saved/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// DELETE /posts/saved/:id
+// ─────────────────────────────────────────────────────────
+describe('DELETE /posts/saved/:id', () => {
+  // Valid partition: deletes an existing saved post record
+  test('should return 200 and delete the saved post', async () => {
+    const author = await createTestUser('DeleteSaveAuthor', 'deletesaveauthor@example.com');
+
+    const { rows: postRows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Post', 'general', 'Content')
+      RETURNING id`,
+      [author.id],
+    );
+
+    const saver = await createTestUser('DeleteSaver', 'deletesaver@example.com');
+
+    const { rows: saveRows } = await pool.query(
+      `INSERT INTO "SavedPosts" (user_id, post_id)
+      VALUES ($1, $2)
+      RETURNING id`,
+      [saver.id, postRows[0].id],
+    );
+
+    const saveId = saveRows[0].id;
+    const res = await request(app).delete(`/posts/saved/${saveId}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.length).toBe(1);
-    expect(res.body[0].post_id).toBe(postId);
+    expect(res.body.id).toBe(saveId);
+
+    const check = await pool.query('SELECT * FROM "SavedPosts" WHERE id = $1', [saveId]);
+    expect(check.rows).toHaveLength(0);
+  });
+
+  // Boundary: non-existent save id
+  test('should return 404 when the saved post does not exist', async () => {
+    const res = await request(app).delete('/posts/saved/999999');
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/save not found/i);
+  });
+});
+
+// ================== Posts Reactions ======================
+// ─────────────────────────────────────────────────────────
+// GET /posts/reaction/:user_id
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/reaction/:user_id', () => {
+  // Valid partition: returns the reactions belonging to a user
+  test('should return 200 and the reactions for the user', async () => {
+    const author = await createTestUser('ReactAuthor', 'reactauthor@example.com');
+
+    const { rows: postRows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Reactable Post', 'general', 'Content')
+      RETURNING id`,
+      [author.id],
+    );
+
+    const reactor = await createTestUser('Reactor', 'reactor@example.com');
+
+    await pool.query(
+      `INSERT INTO "PostReactions" (post_id, user_id, reaction_type)
+      VALUES ($1, $2, 'like')`,
+      [postRows[0].id, reactor.id],
+    );
+
+    const res = await request(app).get(`/posts/reaction/${reactor.id}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
     expect(res.body[0].reaction_type).toBe('like');
   });
 
-  test('should allow a user to change a like into a dislike', async () => {
-    const owner = await registerAndVerify('UpdateOwner', 'updateowner@example.com');
-    const user = await registerAndVerify('UpdateUser', 'updateuser@example.com');
+  // Boundary: user has not reacted to anything
+  test('should return 200 and an empty array when the user has no reactions', async () => {
+    const user = await createTestUser('NoReactionsUser', 'noreactions@example.com');
+
+    const res = await request(app).get(`/posts/reaction/${user.id}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// POST /posts/like
+// ─────────────────────────────────────────────────────────
+describe('POST /posts/like', () => {
+  // Valid partition: authenticated user likes a post
+  test('should return 201 and create a like', async () => {
+    const author = await createTestUser('LikeAuthor', 'likeauthor@example.com');
 
     const { rows } = await pool.query(
-      `INSERT INTO "Posts" (user_id, title, category, content)
-       VALUES ($1, 'Update Reaction', 'general', 'Content')
-       RETURNING id`,
-      [owner.user.id],
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Likeable Post', 'general', 'Content')
+      RETURNING id`,
+      [author.id],
     );
 
     const postId = rows[0].id;
-
-    await request(app)
-      .post(`/posts/${postId}/reaction`)
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({ reaction_type: 'like' });
-
-    const reactions = await request(app)
-      .get('/posts/reactions')
-      .set('Authorization', `Bearer ${user.token}`);
-
-    const reactionId = reactions.body[0].id;
+    const liker = await createTestUser('Liker', 'liker@example.com');
 
     const res = await request(app)
-      .put(`/posts/reaction/${reactionId}`)
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({ reaction_type: 'dislike' });
+      .post('/posts/like')
+      .send({ post_id: postId, reaction_type: 'like' });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('id');
+    expect(res.body.post_id).toBe(postId);
+    expect(res.body.user_id).toBe(liker.id);
+    expect(res.body.reaction_type).toBe('like');
+  });
+
+  // Invalid partition: post_id missing from body
+  test('should return 400 when post_id is missing', async () => {
+    await createTestUser('NoPostIdLiker', 'nopostidliker@example.com');
+
+    const res = await request(app).post('/posts/like').send({ reaction_type: 'like' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/post_id/i);
+  });
+
+  // Boundary: reacting to the same post twice
+  test('should not allow the same user to react to the same post twice', async () => {
+    const author = await createTestUser('DupReactAuthor', 'dupreactauthor@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Duplicate Reaction Post', 'general', 'Content')
+      RETURNING id`,
+      [author.id],
+    );
+
+    const postId = rows[0].id;
+    await createTestUser('DupReactor', 'dupreactor@example.com');
+
+    await request(app).post('/posts/like').send({ post_id: postId, reaction_type: 'like' });
+    const res = await request(app)
+      .post('/posts/like')
+      .send({ post_id: postId, reaction_type: 'dislike' });
+    expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/already reacted/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// PUT /posts/reaction/:id
+// ─────────────────────────────────────────────────────────
+describe('PUT /posts/reaction/:id', () => {
+  // Valid partition: changes an existing reaction from like to dislike
+  test('should return 200 and update the reaction type', async () => {
+    const author = await createTestUser('UpdateReactionAuthor', 'updatereactionauthor@example.com');
+
+    const { rows: postRows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Post', 'general', 'Content')
+      RETURNING id`,
+      [author.id],
+    );
+
+    const reactor = await createTestUser('UpdateReactor', 'updatereactor@example.com');
+
+    const { rows: reactionRows } = await pool.query(
+      `INSERT INTO "PostReactions" (post_id, user_id, reaction_type)
+      VALUES ($1, $2, 'like')
+      RETURNING id`,
+      [postRows[0].id, reactor.id],
+    );
+
+    const res = await request(app)
+      .put(`/posts/reaction/${reactionRows[0].id}`)
+      .send({ user_id: reactor.id, reaction_type: 'dislike' });
 
     expect(res.status).toBe(200);
     expect(res.body.reaction_type).toBe('dislike');
   });
 
-  test('should allow a user to remove a reaction', async () => {
-    const owner = await registerAndVerify('DeleteReactionOwner', 'deletereactionowner@example.com');
-    const user = await registerAndVerify('DeleteReactionUser', 'deletereactionuser@example.com');
+  // Boundary: non-existent reaction id
+  test('should return 404 when the reaction does not exist', async () => {
+    const res = await request(app)
+      .put('/posts/reaction/999999')
+      .send({ user_id: 1, reaction_type: 'dislike' });
 
-    const { rows } = await pool.query(
-      `INSERT INTO "Posts" (user_id, title, category, content)
-       VALUES ($1, 'Delete Reaction', 'general', 'Content')
-       RETURNING id`,
-      [owner.user.id],
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/reaction not found/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// DELETE /posts/reaction/:id
+// ─────────────────────────────────────────────────────────
+describe('DELETE /posts/reaction/:id', () => {
+  // Valid partition: deletes an existing reaction
+  test('should return 200 and delete the reaction', async () => {
+    const author = await createTestUser('DeleteReactionAuthor', 'deletereactionauthor@example.com');
+
+    const { rows: postRows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Post', 'general', 'Content')
+      RETURNING id`,
+      [author.id],
     );
 
-    const postId = rows[0].id;
+    const reactor = await createTestUser('DeleteReactor', 'deletereactor@example.com');
 
-    await request(app)
-      .post(`/posts/${postId}/reaction`)
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({ reaction_type: 'like' });
+    const { rows: reactionRows } = await pool.query(
+      `INSERT INTO "PostReactions" (post_id, user_id, reaction_type)
+      VALUES ($1, $2, 'like')
+      RETURNING id`,
+      [postRows[0].id, reactor.id],
+    );
 
-    const reactions = await request(app)
-      .get('/posts/reactions')
-      .set('Authorization', `Bearer ${user.token}`);
-
-    const reactionId = reactions.body[0].id;
+    const reactionId = reactionRows[0].id;
 
     const res = await request(app)
       .delete(`/posts/reaction/${reactionId}`)
-      .set('Authorization', `Bearer ${user.token}`);
+      .send({ user_id: reactor.id });
 
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(reactionId);
+
+    const check = await pool.query('SELECT * FROM "PostReactions" WHERE id = $1', [reactionId]);
+    expect(check.rows).toHaveLength(0);
+  });
+
+  // Boundary: non-existent reaction id
+  test('should return 404 when the reaction does not exist', async () => {
+    const res = await request(app).delete('/posts/reaction/999999').send({ user_id: 1 });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/reaction not found/i);
   });
 });

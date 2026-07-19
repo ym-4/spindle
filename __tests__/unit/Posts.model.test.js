@@ -540,7 +540,7 @@ describe('Posts.model - insertPoll', () => {
     });
 
     expect(pool.query).toHaveBeenCalledWith(
-      'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id',
+      'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id, post_id, question',
       [5, 'What is your favourite programming language?'],
     );
     expect(result).toEqual(fakePoll);
@@ -557,7 +557,7 @@ describe('Posts.model - insertPoll', () => {
     });
 
     expect(pool.query).toHaveBeenCalledWith(
-      'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id',
+      'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id, post_id, question',
       [1, ''],
     );
     expect(result).toEqual(fakePoll);

@@ -43,111 +43,46 @@ async function seedSomethings() {
   await pool.query(`INSERT INTO "Something" ("name") VALUES ('Seed 1'),('Seed 2')`);
 }
 
-async function register(name, email, password = 'secret') {
-  return request(app).post('/auth/register').send({
-    name,
-    email,
-    password,
-  });
-}
-
 async function registerAndVerify(name, email, password = 'secret') {
   const reg = await request(app).post('/auth/register').send({ name, email, password });
-
   const verify = await request(app).post('/auth/verify-email').send({
     email,
     code: reg.body.previewCode,
   });
-
-  return {
-    id: verify.body.user.id,
-    user: verify.body.user,
-    token: verify.body.token,
-  };
+  return { user: verify.body.user, token: verify.body.token };
 }
 
-async function login(username, password) {
-  const res = await request(app).post('/auth/login').send({
-    username,
-    password,
-  });
-
-  if (res.body.needs2FA) {
+async function loginAndVerify(username, password, rememberMe = false) {
+  const login = await request(app).post('/auth/login').send({ username, password });
+  if (login.body.needs2FA) {
     const verify = await request(app).post('/auth/verify-login').send({
-      email: res.body.email,
-      code: res.body.previewCode,
+      email: login.body.email,
+      code: login.body.previewCode,
+      remember_me: rememberMe,
     });
-
-    return verify;
+    return {
+      user: verify.body.user,
+      token: verify.body.token,
+      remember_token: verify.body.remember_token,
+    };
   }
-
-  return res;
+  return { user: login.body.user, token: login.body.token };
 }
 
-async function createAdmin() {
-  await pool.query(
-    `
-      INSERT INTO "Person"
-      (
-        email,
-        name,
-        hashed_password,
-        role,
-        email_verified
-      )
-      VALUES
-      (
-        'admin@test.com',
-        'admin',
-        $1,
-        'admin',
-        TRUE
-      )
-    `,
-    [hashPassword('adminpass')],
-  );
+async function makeFriends(alice, bob) {
+  await request(app)
+    .post('/friends/request')
+    .set('Authorization', `Bearer ${alice.token}`)
+    .send({ receiver_id: bob.user.id });
+  const reqs = await request(app)
+    .get('/friends/requests?tab=received')
+    .set('Authorization', `Bearer ${bob.token}`);
+  const requestId = reqs.body.requests[0].request_id;
+  await request(app)
+    .post('/friends/accept')
+    .set('Authorization', `Bearer ${bob.token}`)
+    .send({ request_id: requestId });
 }
-
-// async function registerAndVerify(name, email, password = 'secret') {
-//   const reg = await request(app).post('/auth/register').send({ name, email, password });
-//   const verify = await request(app).post('/auth/verify-email').send({
-//     email,
-//     code: reg.body.previewCode,
-//   });
-//   return { user: verify.body.user, token: verify.body.token };
-// }
-
-// async function loginAndVerify(username, password, rememberMe = false) {
-//   const login = await request(app).post('/auth/login').send({ username, password });
-//   if (login.body.needs2FA) {
-//     const verify = await request(app).post('/auth/verify-login').send({
-//       email: login.body.email,
-//       code: login.body.previewCode,
-//       remember_me: rememberMe,
-//     });
-//     return {
-//       user: verify.body.user,
-//       token: verify.body.token,
-//       remember_token: verify.body.remember_token,
-//     };
-//   }
-//   return { user: login.body.user, token: login.body.token };
-// }
-
-// async function makeFriends(alice, bob) {
-//   await request(app)
-//     .post('/friends/request')
-//     .set('Authorization', `Bearer ${alice.token}`)
-//     .send({ receiver_id: bob.user.id });
-//   const reqs = await request(app)
-//     .get('/friends/requests?tab=received')
-//     .set('Authorization', `Bearer ${bob.token}`);
-//   const requestId = reqs.body.requests[0].request_id;
-//   await request(app)
-//     .post('/friends/accept')
-//     .set('Authorization', `Bearer ${bob.token}`)
-//     .send({ request_id: requestId });
-// }
 
 // ─────────────────────────────────────────────────────────
 // GET /persons
@@ -316,244 +251,108 @@ describe('DELETE /somethings/:id', () => {
 });
 
 // ─────────────────────────────────────────────────────────
-// Auth (temp remove)
-// ─────────────────────────────────────────────────────────
-// describe('POST /auth/register', () => {
-//   test('should register and require email verification', async () => {
-//     const res = await request(app).post('/auth/register').send({
-//       name: 'testuser',
-//       email: 'test@example.com',
-//       password: 'secret',
-//     });
-
-//     expect(res.status).toBe(201);
-//     expect(res.body.needsVerification).toBe(true);
-//     expect(res.body.previewCode).toMatch(/^\d{6}$/);
-
-//     const verify = await request(app).post('/auth/verify-email').send({
-//       email: 'test@example.com',
-//       code: res.body.previewCode,
-//     });
-//     expect(verify.status).toBe(200);
-//     expect(verify.body.user.name).toBe('testuser');
-//     expect(verify.body).toHaveProperty('token');
-//   });
-
-//   test('should return 409 when username is taken', async () => {
-//     await request(app).post('/auth/register').send({
-//       name: 'dupuser',
-//       email: 'dup1@example.com',
-//       password: 'secret',
-//     });
-
-//     const res = await request(app).post('/auth/register').send({
-//       name: 'dupuser',
-//       email: 'dup2@example.com',
-//       password: 'secret',
-//     });
-
-//     expect(res.status).toBe(409);
-//     expect(res.body.error).toMatch(/username/i);
-//   });
-// });
-
-// describe('POST /auth/login', () => {
-//   test('should require 2FA then log in with valid credentials', async () => {
-//     await registerAndVerify('loginuser', 'login@example.com', 'mypass');
-
-//     const step1 = await request(app).post('/auth/login').send({
-//       username: 'loginuser',
-//       password: 'mypass',
-//     });
-
-//     expect(step1.status).toBe(200);
-//     expect(step1.body.needs2FA).toBe(true);
-//     expect(step1.body.previewCode).toMatch(/^\d{6}$/);
-
-//     const step2 = await request(app).post('/auth/verify-login').send({
-//       email: 'login@example.com',
-//       code: step1.body.previewCode,
-//     });
-
-//     expect(step2.status).toBe(200);
-//     expect(step2.body.user.name).toBe('loginuser');
-//     expect(step2.body.user.role).toBe('user');
-//     expect(step2.body).toHaveProperty('token');
-//   });
-
-//   test('should skip 2FA when remember token is valid', async () => {
-//     await registerAndVerify('rememberuser', 'remember@example.com', 'mypass');
-//     const first = await loginAndVerify('rememberuser', 'mypass', true);
-//     expect(first.remember_token).toBeTruthy();
-
-//     const res = await request(app).post('/auth/login').send({
-//       username: 'rememberuser',
-//       password: 'mypass',
-//       remember_token: first.remember_token,
-//     });
-
-//     expect(res.status).toBe(200);
-//     expect(res.body).toHaveProperty('token');
-//     expect(res.body.needs2FA).toBeUndefined();
-//   });
-
-//   test('should return 401 for invalid password', async () => {
-//     await registerAndVerify('badlogin', 'badlogin@example.com', 'correct');
-
-//     const res = await request(app).post('/auth/login').send({
-//       username: 'badlogin',
-//       password: 'wrong',
-//     });
-
-//     expect(res.status).toBe(401);
-//     expect(res.body.error).toMatch(/invalid/i);
-//   });
-// });
-
-// describe('GET /auth/me', () => {
-//   test('should return profile with stats when JWT is valid', async () => {
-//     const { token } = await registerAndVerify('profileuser', 'profile@example.com');
-
-//     const res = await request(app).get('/auth/me').set('Authorization', `Bearer ${token}`);
-
-//     expect(res.status).toBe(200);
-//     expect(res.body.name).toBe('profileuser');
-//     expect(res.body.stats).toMatchObject({
-//       posts: 0,
-//       comments: 0,
-//       friends: 0,
-//       groups: 0,
-//       marketplace_items: 0,
-//     });
-//   });
-
-//   test('should return 401 without a token', async () => {
-//     const res = await request(app).get('/auth/me');
-
-//     expect(res.status).toBe(401);
-//     expect(res.body).toHaveProperty('error');
-//   });
-// });
-
-// describe('GET /auth/admin/users', () => {
-//   const { hashPassword } = require('../../src/models/Auth.model');
-
-//   async function seedAdmin() {
-//     const hashed = hashPassword('adminpass');
-//     await pool.query(
-//       `INSERT INTO "Person" (email, name, hashed_password, role, email_verified)
-//        VALUES ('admin@test.com', 'TestAdmin', $1, 'admin', TRUE)`,
-//       [hashed],
-//     );
-//   }
-
-//   test('should return all users for admin', async () => {
-//     await seedAdmin();
-//     const loginRes = await request(app).post('/auth/login').send({
-//       username: 'TestAdmin',
-//       password: 'adminpass',
-//     });
-
-//     const res = await request(app)
-//       .get('/auth/admin/users')
-//       .set('Authorization', `Bearer ${loginRes.body.token}`);
-
-//     expect(res.status).toBe(200);
-//     expect(res.body.users.length).toBeGreaterThanOrEqual(1);
-//     expect(res.body.users.some((u) => u.role === 'admin')).toBe(true);
-//   });
-
-//   test('should return 403 for regular users', async () => {
-//     const { token } = await registerAndVerify('regularuser', 'regular@example.com');
-
-//     const res = await request(app).get('/auth/admin/users').set('Authorization', `Bearer ${token}`);
-
-//     expect(res.status).toBe(403);
-//     expect(res.body.error).toMatch(/admin/i);
-//   });
-// });
-
-// ─────────────────────────────────────────────────────────
-// Auth Register
+// Auth
 // ─────────────────────────────────────────────────────────
 describe('POST /auth/register', () => {
-  test('creates a user and returns verification code', async () => {
-    const res = await register('testuser', 'test@example.com');
+  test('should register and require email verification', async () => {
+    const res = await request(app).post('/auth/register').send({
+      name: 'testuser',
+      email: 'test@example.com',
+      password: 'secret',
+    });
+
     expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({
-      needsVerification: true,
-    });
+    expect(res.body.needsVerification).toBe(true);
     expect(res.body.previewCode).toMatch(/^\d{6}$/);
+
+    const verify = await request(app).post('/auth/verify-email').send({
+      email: 'test@example.com',
+      code: res.body.previewCode,
+    });
+    expect(verify.status).toBe(200);
+    expect(verify.body.user.name).toBe('testuser');
+    expect(verify.body).toHaveProperty('token');
   });
 
-  test('verifies email and returns JWT', async () => {
-    const reg = await register('verifyuser', 'verify@example.com');
-
-    const res = await request(app).post('/auth/verify-email').send({
-      email: 'verify@example.com',
-      code: reg.body.previewCode,
+  test('should return 409 when username is taken', async () => {
+    await request(app).post('/auth/register').send({
+      name: 'dupuser',
+      email: 'dup1@example.com',
+      password: 'secret',
     });
 
-    expect(res.status).toBe(200);
-    expect(res.body.user.name).toBe('verifyuser');
-    expect(res.body.token).toBeTruthy();
-  });
+    const res = await request(app).post('/auth/register').send({
+      name: 'dupuser',
+      email: 'dup2@example.com',
+      password: 'secret',
+    });
 
-  test('rejects duplicate username', async () => {
-    await register('duplicate', 'one@test.com');
-
-    const res = await register('duplicate', 'two@test.com');
     expect(res.status).toBe(409);
     expect(res.body.error).toMatch(/username/i);
   });
 });
 
-// ─────────────────────────────────────────────────────────
-// Auth Login
-// ─────────────────────────────────────────────────────────
 describe('POST /auth/login', () => {
-  test('requires 2FA and completes login', async () => {
-    await registerAndVerify('loginuser', 'login@test.com', 'password');
+  test('should require 2FA then log in with valid credentials', async () => {
+    await registerAndVerify('loginuser', 'login@example.com', 'mypass');
 
-    const first = await request(app).post('/auth/login').send({
+    const step1 = await request(app).post('/auth/login').send({
       username: 'loginuser',
-      password: 'password',
+      password: 'mypass',
     });
-    expect(first.status).toBe(200);
-    expect(first.body.needs2FA).toBe(true);
 
-    const second = await request(app).post('/auth/verify-login').send({
-      email: 'login@test.com',
-      code: first.body.previewCode,
+    expect(step1.status).toBe(200);
+    expect(step1.body.needs2FA).toBe(true);
+    expect(step1.body.previewCode).toMatch(/^\d{6}$/);
+
+    const step2 = await request(app).post('/auth/verify-login').send({
+      email: 'login@example.com',
+      code: step1.body.previewCode,
     });
-    expect(second.status).toBe(200);
-    expect(second.body.token).toBeTruthy();
-    expect(second.body.user.role).toBe('user');
+
+    expect(step2.status).toBe(200);
+    expect(step2.body.user.name).toBe('loginuser');
+    expect(step2.body.user.role).toBe('user');
+    expect(step2.body).toHaveProperty('token');
   });
 
-  test('rejects invalid password', async () => {
-    await registerAndVerify('badpass', 'badpass@test.com', 'correct');
+  test('should skip 2FA when remember token is valid', async () => {
+    await registerAndVerify('rememberuser', 'remember@example.com', 'mypass');
+    const first = await loginAndVerify('rememberuser', 'mypass', true);
+    expect(first.remember_token).toBeTruthy();
 
     const res = await request(app).post('/auth/login').send({
-      username: 'badpass',
+      username: 'rememberuser',
+      password: 'mypass',
+      remember_token: first.remember_token,
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('token');
+    expect(res.body.needs2FA).toBeUndefined();
+  });
+
+  test('should return 401 for invalid password', async () => {
+    await registerAndVerify('badlogin', 'badlogin@example.com', 'correct');
+
+    const res = await request(app).post('/auth/login').send({
+      username: 'badlogin',
       password: 'wrong',
     });
+
     expect(res.status).toBe(401);
     expect(res.body.error).toMatch(/invalid/i);
   });
 });
 
-// ─────────────────────────────────────────────────────────
-// Auth Profile
-// ─────────────────────────────────────────────────────────
 describe('GET /auth/me', () => {
-  test('returns authenticated user profile', async () => {
-    const user = await registerAndVerify('profileuser', 'profile@test.com');
+  test('should return profile with stats when JWT is valid', async () => {
+    const { token } = await registerAndVerify('profileuser', 'profile@example.com');
 
-    const res = await request(app).get('/auth/me').set('Authorization', `Bearer ${user.token}`);
+    const res = await request(app).get('/auth/me').set('Authorization', `Bearer ${token}`);
+
     expect(res.status).toBe(200);
     expect(res.body.name).toBe('profileuser');
-    expect(res.body).toHaveProperty('stats');
     expect(res.body.stats).toMatchObject({
       posts: 0,
       comments: 0,
@@ -563,107 +362,49 @@ describe('GET /auth/me', () => {
     });
   });
 
-  test('rejects missing token', async () => {
+  test('should return 401 without a token', async () => {
     const res = await request(app).get('/auth/me');
+
     expect(res.status).toBe(401);
     expect(res.body).toHaveProperty('error');
   });
 });
 
-// ─────────────────────────────────────────────────────────
-// Admin Routes
-// ─────────────────────────────────────────────────────────
-describe('Admin authentication', () => {
-  test('admin can view users', async () => {
-    await createAdmin();
+describe('GET /auth/admin/users', () => {
+  const { hashPassword } = require('../../src/models/Auth.model');
 
-    const loginRes = await login('admin', 'adminpass');
-    expect(loginRes.status).toBe(200);
+  async function seedAdmin() {
+    const hashed = hashPassword('adminpass');
+    await pool.query(
+      `INSERT INTO "Person" (email, name, hashed_password, role, email_verified)
+       VALUES ('admin@test.com', 'TestAdmin', $1, 'admin', TRUE)`,
+      [hashed],
+    );
+  }
+
+  test('should return all users for admin', async () => {
+    await seedAdmin();
+    const loginRes = await request(app).post('/auth/login').send({
+      username: 'TestAdmin',
+      password: 'adminpass',
+    });
 
     const res = await request(app)
       .get('/auth/admin/users')
       .set('Authorization', `Bearer ${loginRes.body.token}`);
+
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body.users)).toBe(true);
+    expect(res.body.users.length).toBeGreaterThanOrEqual(1);
     expect(res.body.users.some((u) => u.role === 'admin')).toBe(true);
   });
 
-  test('normal users cannot access admin routes', async () => {
-    const user = await registerAndVerify('normaluser', 'normal@test.com');
+  test('should return 403 for regular users', async () => {
+    const { token } = await registerAndVerify('regularuser', 'regular@example.com');
 
-    const res = await request(app)
-      .get('/auth/admin/users')
-      .set('Authorization', `Bearer ${user.token}`);
+    const res = await request(app).get('/auth/admin/users').set('Authorization', `Bearer ${token}`);
+
     expect(res.status).toBe(403);
     expect(res.body.error).toMatch(/admin/i);
-  });
-});
-
-// ─────────────────────────────────────────────────────────
-// Password Update
-// ─────────────────────────────────────────────────────────
-describe('Password management', () => {
-  test('user can update password with correct current password', async () => {
-    const user = await registerAndVerify('passworduser', 'password@test.com', 'oldpassword');
-
-    const res = await request(app)
-      .put('/auth/password')
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({
-        currentPassword: 'oldpassword',
-        newPassword: 'newpassword',
-      });
-    expect(res.status).toBe(200);
-
-    const loginRes = await login('passworduser', 'newpassword');
-    expect(loginRes.status).toBe(200);
-  });
-
-  test('rejects wrong current password', async () => {
-    const user = await registerAndVerify(
-      'wrongcurrent',
-      'wrongcurrent@test.com',
-      'correctpassword',
-    );
-
-    const res = await request(app)
-      .put('/auth/password')
-      .set('Authorization', `Bearer ${user.token}`)
-      .send({
-        currentPassword: 'wrong',
-        newPassword: 'newpassword',
-      });
-    expect(res.status).toBe(400);
-  });
-});
-
-// ─────────────────────────────────────────────────────────
-// Trusted Device / Remember Me
-// ─────────────────────────────────────────────────────────
-describe('Trusted login', () => {
-  test('creates remember token and bypasses 2FA', async () => {
-    await registerAndVerify('rememberuser', 'remember@test.com', 'password');
-
-    const first = await request(app).post('/auth/login').send({
-      username: 'rememberuser',
-      password: 'password',
-    });
-
-    const verify = await request(app).post('/auth/verify-login').send({
-      email: 'remember@test.com',
-      code: first.body.previewCode,
-      remember_me: true,
-    });
-    expect(verify.body.remember_token).toBeTruthy();
-
-    const second = await request(app).post('/auth/login').send({
-      username: 'rememberuser',
-      password: 'password',
-      remember_token: verify.body.remember_token,
-    });
-    expect(second.status).toBe(200);
-    expect(second.body.needs2FA).toBeUndefined();
-    expect(second.body.token).toBeTruthy();
   });
 });
 

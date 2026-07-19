@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticateJWT } = require('../middlewares/auth.middleware');
+
 const {
   generatePandabotReply,
   getPandabotUserId,
@@ -7,7 +8,10 @@ const {
 } = require('../services/pandabot');
 const { getPostByID } = require('../models/Posts.model');
 const { getPersonByID } = require('../models/Person.model');
+const Notification = require('../models/Notification.model');
+const pool = require('../models/db');
 
+// attachment support
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -74,7 +78,10 @@ router.post('/saved', authenticateJWT, (req, res) => {
       }),
     )
     .catch((error) => {
-      console.error('Error insertSaved: ' + error);
+      if (error.code === '23505') {
+        return res.status(409).json({ message: 'You have already saved this post.' });
+      }
+      console.error('Error insertSavedComment: ' + error);
       res.status(500).json(error);
     });
 });
@@ -111,21 +118,59 @@ router.post('/like', authenticateJWT, (req, res) => {
   if (!req.body?.comment_id) {
     return res.status(400).json({ message: 'Error: comment_id is undefined' });
   }
+
   const data = {
     comment_id: req.body.comment_id,
     user_id: req.user.id,
     reaction_type: req.body.reaction_type,
   };
+
   insertCommentLike(data)
-    .then((results) =>
+    .then(async (results) => {
       res.status(201).json({
         id: results.id,
         comment_id: data.comment_id,
         user_id: data.user_id,
         reaction_type: data.reaction_type,
-      }),
-    )
+      });
+
+      // Notify comment owner
+      try {
+        const { rows: commentRows } = await pool.query(
+          `SELECT pc.user_id, pc.content, pc.post_id
+           FROM "PostComments" pc
+           WHERE pc.id = $1`,
+          [data.comment_id],
+        );
+
+        const comment = commentRows[0];
+        if (!comment) return;
+
+        // Don't notify if user reacted to their own comment
+        if (parseInt(comment.user_id) === parseInt(data.user_id)) return;
+
+        const { rows: reactorRows } = await pool.query(
+          `SELECT display_name, name FROM "Person" WHERE id = $1`,
+          [data.user_id],
+        );
+
+        const reactorName = reactorRows[0]?.display_name || reactorRows[0]?.name || 'Someone';
+        const emoji = data.reaction_type === 'like' ? '👍' : '👎';
+
+        await Notification.create(parseInt(comment.user_id), {
+          type: 'comment_reaction',
+          title: `${reactorName} reacted ${emoji} to your comment`,
+          body: comment.content?.slice(0, 120) || '',
+          ref_id: comment.post_id,
+        });
+      } catch (e) {
+        console.warn('Comment reaction notify error:', e.message);
+      }
+    })
     .catch((error) => {
+      if (error.code === '23505') {
+        return res.status(409).json({ message: 'You have already reacted to this post.' });
+      }
       console.error('Error insertCommentLike: ' + error);
       res.status(500).json(error);
     });
@@ -177,6 +222,41 @@ router.get('/:post_id', (req, res, next) => {
     .catch(next);
 });
 
+// notifications for @mentions
+async function notifyMentionedUsers(content, senderUserId, postId, commentId) {
+  const mentions = [...content.matchAll(/@([a-zA-Z0-9_]+)/g)]
+    .map((m) => m[1].toLowerCase())
+    .filter((name) => name !== 'pandabot');
+
+  if (!mentions.length) return;
+
+  // Look up each mentioned username
+  const { rows: mentionedUsers } = await pool.query(
+    `SELECT id, name, display_name FROM "Person"
+     WHERE LOWER(name) = ANY($1) AND id != $2`,
+    [mentions, senderUserId],
+  );
+
+  // Get the sender's display name
+  const { rows: senderRows } = await pool.query(
+    `SELECT display_name, name FROM "Person" WHERE id = $1`,
+    [senderUserId],
+  );
+  const senderName = senderRows[0]?.display_name || senderRows[0]?.name || 'Someone';
+
+  // Notify each mentioned user
+  await Promise.all(
+    mentionedUsers.map((user) =>
+      Notification.create(user.id, {
+        type: 'mention',
+        title: `${senderName} mentioned you in a comment: `,
+        body: content.slice(0, 120),
+        ref_id: postId,
+      }),
+    ),
+  );
+}
+
 // Creates new comment under a post (post_id)
 router.post('/:post_id', authenticateJWT, commentUpload.single('attachment'), (req, res) => {
   if (!req.params.post_id || !req.body.content) {
@@ -184,8 +264,6 @@ router.post('/:post_id', authenticateJWT, commentUpload.single('attachment'), (r
   }
 
   let attachment_url = req.body.attachment_url || null;
-
-  // file uploaded
   if (req.file) {
     attachment_url = `/uploads/comments/${req.file.filename}`;
   }
@@ -209,31 +287,64 @@ router.post('/:post_id', authenticateJWT, commentUpload.single('attachment'), (r
         attachment_url: data.attachment_url,
       });
 
-      // Check if comment mentions @pandabot
+      const post = await getPostByID({ id: data.post_id });
+
+      // Notify @mentioned
+      try {
+        await notifyMentionedUsers(data.content, data.user_id, data.post_id, results.id);
+      } catch (e) {
+        console.warn('Mention notify error:', e.message);
+      }
+
+      // Notify post owner
+      try {
+        if (post && parseInt(post.user_id) !== parseInt(data.user_id)) {
+          const { rows: ownerNotifRows } = await pool.query(
+            `SELECT display_name, name FROM "Person" WHERE id = $1`,
+            [data.user_id],
+          );
+          const commenterName =
+            ownerNotifRows[0]?.display_name || ownerNotifRows[0]?.name || 'Someone';
+          await Notification.create(parseInt(post.user_id), {
+            type: 'comment',
+            title: `${commenterName} commented on your post: `,
+            body: data.content.slice(0, 120),
+            ref_id: data.post_id,
+          });
+        }
+      } catch (e) {
+        console.warn('Post owner notify error:', e.message);
+      }
+
+      // PandaBot
       const mentionsPandabot = /@pandabot/i.test(data.content);
       if (!mentionsPandabot) return;
-
-      // Fetch post content for context
-      const post = await getPostByID({ id: data.post_id });
       if (!post) return;
 
-      // find parent comment's name to @mention
+      // Get commenter's name
       const commenterRows = await getPersonByID({ id: data.user_id });
       const commenterName = commenterRows?.[0]?.name || 'there';
 
-      // Generate bot reply
+      // insert pandabot reply
       const botReply = await generatePandabotReply(post.content || post.title || '', data.content);
       const botReplyWithMention = `@${commenterName} ${botReply}`;
-
-      // Insert bot reply
       const botUserId = await getPandabotUserId();
       const botReplyParentId = data.parent_comment_id || results.id;
+
       await insertComments({
         user_id: botUserId,
         post_id: data.post_id,
         content: botReplyWithMention,
         parent_comment_id: botReplyParentId,
         attachment_url: null,
+      });
+
+      // Notify user of bot reply
+      await Notification.create(parseInt(data.user_id), {
+        type: 'pandabot',
+        title: 'PandaBot 🐼 replied to your comment: ',
+        body: botReply.slice(0, 120),
+        ref_id: data.post_id,
       });
     })
     .catch((error) => {

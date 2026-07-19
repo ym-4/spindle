@@ -295,7 +295,7 @@ module.exports.deletePostByID = async function deletePostByID(data) {
 module.exports.insertPoll = async function insertPoll(data) {
   const VALUES = [data.post_id, data.question];
   const { rows } = await pool.query(
-    'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id',
+    'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id, post_id, question',
     VALUES,
   );
   return rows[0];

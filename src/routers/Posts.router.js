@@ -3,6 +3,9 @@ const upload = require('../middlewares/upload');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
 
+const Notification = require('../models/Notification.model');
+const pool = require('../models/db');
+
 const fs = require('fs');
 const path = require('path');
 
@@ -41,6 +44,40 @@ const {
 } = require('../models/Posts.model');
 
 const router = express.Router();
+
+// notifications
+async function notifyPostMentions(content, senderUserId, postId) {
+  const mentions = [...(content || '').matchAll(/@([a-zA-Z0-9_]+)/g)].map((m) =>
+    m[1].toLowerCase(),
+  );
+
+  if (!mentions.length) return;
+
+  const { rows: mentionedUsers } = await pool.query(
+    `SELECT id FROM "Person"
+     WHERE LOWER(name) = ANY($1) AND id != $2`,
+    [mentions, senderUserId],
+  );
+
+  if (!mentionedUsers.length) return;
+
+  const { rows: senderRows } = await pool.query(
+    `SELECT display_name, name FROM "Person" WHERE id = $1`,
+    [senderUserId],
+  );
+  const senderName = senderRows[0]?.display_name || senderRows[0]?.name || 'Someone';
+
+  await Promise.all(
+    mentionedUsers.map((user) =>
+      Notification.create(user.id, {
+        type: 'mention',
+        title: `${senderName} tagged you in a post: `,
+        body: (content || '').slice(0, 120),
+        ref_id: postId,
+      }),
+    ),
+  );
+}
 
 // Get all post
 router.get('/', (req, res, next) => {
@@ -295,7 +332,7 @@ router.put('/:id/tags', authenticateJWT, async (req, res, next) => {
   }
 });
 
-//================================================
+//========================= basic posts ==============================
 
 // Get post by ID
 router.get('/:id', (req, res, next) => {
@@ -367,6 +404,19 @@ router.post('/', upload.single('attachment'), (req, res) => {
         attachment_url: data.attachment_url,
         gif_url: data.gif_url,
       });
+
+      // Notify @mentioned users (skip if anonymous)
+      if (!data.is_anonymous) {
+        try {
+          await notifyPostMentions(
+            `${data.title || ''} ${data.content || ''}`,
+            data.user_id,
+            results.id,
+          );
+        } catch (e) {
+          console.warn('Post mention notify error:', e.message);
+        }
+      }
     })
     .catch((error) => {
       console.error('Error insertPost:', error);
@@ -495,6 +545,9 @@ router.post('/saved', authenticateJWT, (req, res) => {
       }),
     )
     .catch((error) => {
+      if (error.code === '23505') {
+        return res.status(409).json({ message: 'You have already saved this post.' });
+      }
       console.error('Error insertSaved: ' + error);
       res.status(500).json(error);
     });
@@ -518,9 +571,9 @@ router.delete('/saved/:id', (req, res) => {
     });
 });
 
-// likes n dislikes
+// ===================== likes n dislikes =======================
 // creates like for a post
-router.post('/like', authenticateJWT, (req, res) => {
+router.post('/like', authenticateJWT, (req, res, next) => {
   if (!req.body?.post_id) {
     return res.status(400).json({ message: 'Error: post_id is undefined' });
   }
@@ -530,17 +583,42 @@ router.post('/like', authenticateJWT, (req, res) => {
     reaction_type: req.body.reaction_type,
   };
 
-  // likes a post_id
   insertLike(data)
-    .then((results) =>
+    .then(async (results) => {
       res.status(201).json({
         id: results.id,
         post_id: data.post_id,
         user_id: data.user_id,
         reaction_type: data.reaction_type,
-      }),
-    )
+      });
+
+      // Notify post owner
+      try {
+        const post = await getPostByID({ id: data.post_id });
+        if (!post) return;
+        if (parseInt(post.user_id) === parseInt(data.user_id)) return;
+
+        const { rows: reactorRows } = await pool.query(
+          `SELECT display_name, name FROM "Person" WHERE id = $1`,
+          [data.user_id],
+        );
+        const reactorName = reactorRows[0]?.display_name || reactorRows[0]?.name || 'Someone';
+        const emoji = data.reaction_type === 'like' ? '👍' : '👎';
+
+        await Notification.create(parseInt(post.user_id), {
+          type: 'post_reaction',
+          title: `${reactorName} reacted ${emoji} to your post`,
+          body: (post.title || '').slice(0, 120),
+          ref_id: data.post_id,
+        });
+      } catch (e) {
+        console.warn('Post like notify error:', e.message);
+      }
+    })
     .catch((error) => {
+      if (error.code === '23505') {
+        return res.status(409).json({ message: 'You have already reacted to this post.' });
+      }
       console.error('Error insertLike: ' + error);
       res.status(500).json(error);
     });
