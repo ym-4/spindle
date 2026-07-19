@@ -588,6 +588,13 @@
                               </li>
 
                               <li>
+                                <a class="dropdown-item" id="createWikiFolderBtn">
+                                  <i class="bi bi-folder-plus me-2"></i>
+                                  New Folder
+                                </a>
+                              </li>
+
+                              <li>
                                 <a class="dropdown-item" id="createWhiteboardBtn">
                                   <i class="bi bi-easel2 me-2"></i>
                                   New Whiteboard
@@ -599,7 +606,7 @@
                       </div>
                     </div>
 
-                    <div class="card-body p-2">
+                    <div class="card-body p-2" id="folderStructure">
                       <div class="folder">
                         <div class="folder-header">
                           <i class="bi bi-chevron-down"></i>
@@ -684,9 +691,11 @@
                   <div class="card shadow-sm border-0 rounded-4">
                     <div class="card-header bg-white d-flex justify-content-between">
                       <div>
-                        <h5 class="mb-0">Week 8 Revision</h5>
+                        <h5 class="mb-0" id="noteTitle">Week 8 Revision</h5>
 
-                        <small class="text-muted"> Last edited 2 hours ago </small>
+                        <small class="text-muted" id="noteLastEdited">
+                          Last edited 2 hours ago
+                        </small>
                       </div>
 
                       <div>
@@ -698,7 +707,7 @@
                       </div>
                     </div>
 
-                    <div class="card-body">
+                    <div class="card-body" id="noteContent">
                       <h3>Binary Search Trees</h3>
 
                       <p>
@@ -1563,6 +1572,7 @@
     <script src="js/groupsFeed.js" defer></script>
     <script src="js/groupsTasks.js" defer></script>
     <script src="js/groupsFiles.js" defer></script>
+    <script src="js/groupsNotes.js" defer></script>
     <script src="js/spindle-sidebar.js" defer></script>
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>

@@ -1086,6 +1086,192 @@ const whiteboards = [
   },
 ];
 
+// Example note folders
+const noteFolders = [
+  {
+    groupName: 'SOC Study Buddies',
+    name: 'CS1010',
+    color: '#4F46E5',
+  },
+  {
+    groupName: 'SOC Study Buddies',
+    name: 'Exam Revision',
+    color: '#16A34A',
+  },
+  {
+    groupName: 'SOC Database Club',
+    name: 'CS2102',
+    color: '#DC2626',
+  },
+  {
+    groupName: 'MAD Project Team',
+    name: 'Project Notes',
+    color: '#EA580C',
+  },
+  {
+    groupName: 'EEE Circuit Masters',
+    name: 'Labs',
+    color: '#0891B2',
+  },
+];
+
+// Example notes
+const notes = [
+  {
+    groupName: 'SOC Study Buddies',
+    folder: 'CS1010',
+    creatorEmail: 'alice@example.com',
+    title: 'Programming Basics',
+    content: `
+<h1>Programming Basics</h1>
+
+<p>This note introduces variables, loops and functions.</p>
+
+<p>Continue with [[Recursion]] afterwards.</p>
+`,
+  },
+
+  {
+    groupName: 'SOC Study Buddies',
+    folder: 'CS1010',
+    creatorEmail: 'alice@example.com',
+    title: 'Recursion',
+    content: `
+<h1>Recursion</h1>
+
+<p>A function calling itself.</p>
+
+<p>Prerequisite: [[Programming Basics]]</p>
+
+<p>Next: [[Binary Trees]]</p>
+`,
+  },
+
+  {
+    groupName: 'SOC Study Buddies',
+    folder: 'CS1010',
+    creatorEmail: 'bob@example.com',
+    title: 'Binary Trees',
+    content: `
+<h1>Binary Trees</h1>
+
+<p>Tree traversal algorithms.</p>
+
+<p>Review [[Recursion]] first.</p>
+`,
+  },
+
+  {
+    groupName: 'SOC Study Buddies',
+    folder: 'Exam Revision',
+    creatorEmail: 'carol@example.com',
+    title: 'Final Exam Checklist',
+    content: `
+<ul>
+<li>[[Programming Basics]]</li>
+<li>[[Recursion]]</li>
+<li>[[Binary Trees]]</li>
+</ul>
+`,
+  },
+
+  {
+    groupName: 'SOC Database Club',
+    folder: 'CS2102',
+    creatorEmail: 'carol@example.com',
+    title: 'Normalization',
+    content: `
+<p>Understand 1NF, 2NF and 3NF.</p>
+
+<p>Read [[ER Diagram]] afterwards.</p>
+`,
+  },
+
+  {
+    groupName: 'SOC Database Club',
+    folder: 'CS2102',
+    creatorEmail: 'carol@example.com',
+    title: 'ER Diagram',
+    content: `
+<p>Entity Relationship Diagrams.</p>
+
+<p>Uses concepts from [[Normalization]].</p>
+`,
+  },
+
+  {
+    groupName: 'MAD Project Team',
+    folder: 'Project Notes',
+    creatorEmail: 'frank@example.com',
+    title: 'Frontend Architecture',
+    content: `
+<p>React + Express architecture.</p>
+
+<p>See [[API Endpoints]].</p>
+`,
+  },
+
+  {
+    groupName: 'MAD Project Team',
+    folder: 'Project Notes',
+    creatorEmail: 'grace@example.com',
+    title: 'API Endpoints',
+    content: `
+<p>REST endpoints used by the frontend.</p>
+
+<p>Back to [[Frontend Architecture]].</p>
+`,
+  },
+];
+
+// Example note links
+const noteLinks = [
+  {
+    from: 'Programming Basics',
+    to: 'Recursion',
+  },
+  {
+    from: 'Recursion',
+    to: 'Programming Basics',
+  },
+  {
+    from: 'Recursion',
+    to: 'Binary Trees',
+  },
+  {
+    from: 'Binary Trees',
+    to: 'Recursion',
+  },
+  {
+    from: 'Final Exam Checklist',
+    to: 'Programming Basics',
+  },
+  {
+    from: 'Final Exam Checklist',
+    to: 'Recursion',
+  },
+  {
+    from: 'Final Exam Checklist',
+    to: 'Binary Trees',
+  },
+  {
+    from: 'Normalization',
+    to: 'ER Diagram',
+  },
+  {
+    from: 'ER Diagram',
+    to: 'Normalization',
+  },
+  {
+    from: 'Frontend Architecture',
+    to: 'API Endpoints',
+  },
+  {
+    from: 'API Endpoints',
+    to: 'Frontend Architecture',
+  },
+];
+
 async function seed() {
   console.log('Seeding data...');
 
@@ -1417,6 +1603,9 @@ async function seed() {
 
   console.log(`Inserted ${groupDiscussions.length} group discussions.`);
 
+  // -----------------------------------------------------------------------------
+  // Insert Whiteboards
+  // -----------------------------------------------------------------------------
   for (const board of whiteboards) {
     const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
       board.creatorEmail,
@@ -1437,6 +1626,98 @@ async function seed() {
   }
 
   console.log(`Inserted ${whiteboards.length} whiteboards.`);
+
+  // -----------------------------------------------------------------------------
+  // Insert Note Folders
+  // -----------------------------------------------------------------------------
+
+  for (const folder of noteFolders) {
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [
+      folder.groupName,
+    ]);
+
+    if (!groupRes.rows.length) continue;
+
+    await pool.query(
+      `
+    INSERT INTO "NoteFolders"
+      ("group_id", "name", "color")
+    VALUES ($1, $2, $3)
+    ON CONFLICT ("group_id","name") DO NOTHING
+    `,
+      [groupRes.rows[0].id, folder.name, folder.color],
+    );
+  }
+
+  console.log(`Inserted ${noteFolders.length} note folders.`);
+
+  // -----------------------------------------------------------------------------
+  // Insert Notes
+  // -----------------------------------------------------------------------------
+
+  for (const note of notes) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      note.creatorEmail,
+    ]);
+
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [note.groupName]);
+
+    if (!userRes.rows.length || !groupRes.rows.length) continue;
+
+    const folderRes = await pool.query(
+      `
+    SELECT id
+    FROM "NoteFolders"
+    WHERE group_id = $1
+      AND name = $2
+    `,
+      [groupRes.rows[0].id, note.folder],
+    );
+
+    if (!folderRes.rows.length) continue;
+
+    await pool.query(
+      `
+    INSERT INTO "Notes"
+    (
+      "folder_id",
+      "group_id",
+      "user_id",
+      "title",
+      "content"
+    )
+    VALUES ($1,$2,$3,$4,$5)
+    ON CONFLICT DO NOTHING
+    `,
+      [folderRes.rows[0].id, groupRes.rows[0].id, userRes.rows[0].id, note.title, note.content],
+    );
+  }
+
+  console.log(`Inserted ${notes.length} notes.`);
+
+  // -----------------------------------------------------------------------------
+  // Insert Note Links
+  // -----------------------------------------------------------------------------
+
+  for (const link of noteLinks) {
+    const sourceRes = await pool.query(`SELECT id FROM "Notes" WHERE title = $1`, [link.from]);
+
+    const targetRes = await pool.query(`SELECT id FROM "Notes" WHERE title = $1`, [link.to]);
+
+    if (!sourceRes.rows.length || !targetRes.rows.length) continue;
+
+    await pool.query(
+      `
+    INSERT INTO "NoteLinks"
+    ("source_note_id","target_note_id")
+    VALUES ($1,$2)
+    ON CONFLICT DO NOTHING
+    `,
+      [sourceRes.rows[0].id, targetRes.rows[0].id],
+    );
+  }
+
+  console.log(`Inserted ${noteLinks.length} note links.`);
 
   console.log('Seed completed successfully.');
   console.log(

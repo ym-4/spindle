@@ -381,7 +381,62 @@ ON "WhiteboardDrawings"
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
----------------------------------------------------------------------------------------
+CREATE TABLE "NoteFolders" (
+  "id" SERIAL PRIMARY KEY,
+  "group_id" INT,
+  "name" TEXT NOT NULL,
+  "color" VARCHAR(20) DEFAULT '#ffffff',
+  "icon" VARCHAR(50) DEFAULT 'folder',
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY ("group_id")
+    REFERENCES "Groups"("id") ON DELETE CASCADE,
+  UNIQUE ("group_id", "name")
+);
+
+CREATE TABLE "Notes" (
+  "id" SERIAL PRIMARY KEY,
+  "user_id" INT NOT NULL,
+  "group_id" INT,
+  "folder_id" INT,
+  "title" TEXT NOT NULL,
+  "content" TEXT NOT NULL DEFAULT '',
+  "template" TEXT DEFAULT NULL,
+  "is_pinned" BOOLEAN DEFAULT FALSE,
+  "is_archived" BOOLEAN DEFAULT FALSE,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY ("user_id")
+    REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("group_id")
+    REFERENCES "Groups"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("folder_id")
+    REFERENCES "NoteFolders"("id") ON DELETE SET NULL,
+  UNIQUE ("group_id", "name")
+);
+
+-- Updates notes updated at
+CREATE TRIGGER update_notes_updated_at
+BEFORE UPDATE
+ON "Notes"
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE "NoteLinks" (
+  "source_note_id" INT NOT NULL,
+  "target_note_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY ("source_note_id", "target_note_id"),
+  FOREIGN KEY ("source_note_id")
+    REFERENCES "Notes"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("target_note_id")
+    REFERENCES "Notes"("id") ON DELETE CASCADE, 
+  UNIQUE ("source_note_id", "target_note_id")
+);
+
+----------------------------------------------------------------------------------------
 --                                  USER
 -- -------------------------------------------------------------------------------------
 

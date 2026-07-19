@@ -469,7 +469,7 @@ async function deleteGroupMembership() {
   });
 }
 
-// Remoeve member
+// Remove member
 async function deleteGroupMember(removedUsedId) {
   return new Promise((resolve, reject) => {
     const url = `http://localhost:3000/groups/kick/${groupId}/${removedUsedId}`;
