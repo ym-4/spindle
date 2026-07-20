@@ -1,3 +1,5 @@
+/* global token, fetchMethod, userId, groupId */
+
 // Token, userId and groupId is global in other js file
 let groupFiles = [];
 let currentFolder = 'none';

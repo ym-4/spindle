@@ -532,7 +532,7 @@ main {
 }
 
 /* ── Dark / Futuristic theme overrides ──────────────────────────── */
-[data-theme="dark"] main,
+/* [data-theme="dark"] main,
 [data-theme="futuristic"] main {
   background-color: var(--bg);
 }
@@ -667,7 +667,7 @@ main {
 [data-theme="dark"] .members-offcanvas .offcanvas-header,
 [data-theme="futuristic"] .members-offcanvas .offcanvas-header {
   border-bottom: 1px solid var(--border);
-}
+} */
 
 /* -------------------------------------------------------------- */
 /*                           GLOW CARD                            */
@@ -939,6 +939,20 @@ main {
   font-weight: 600;
 }
 
+#noteEditor {
+  height: 500px;
+}
+
+#noteEditorContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+#noteEditor {
+  height: 500px;
+  overflow-y: auto;
+}
+
 /* -------------------------------------------------------------- */
 /*                           TASKS TAB                            */
 /* -------------------------------------------------------------- */
@@ -1172,4 +1186,9 @@ main {
 
 .edit-task-btn:hover {
   background: #f1f3f5;
+}
+
+#leaveButton {
+  background-color: red !important;
+  border-color: red !important;
 }

@@ -1,3 +1,5 @@
+/* global fetchMethod, currentUrl */
+
 xdocument.addEventListener('DOMContentLoaded', function () {
   let currentLoginName = '';
 

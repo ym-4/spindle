@@ -1,3 +1,5 @@
+/* global authFetch */
+
 let currentUserId = null;
 let selectedContactId = null;
 let selectedContactName = '';

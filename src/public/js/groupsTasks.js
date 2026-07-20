@@ -1,3 +1,4 @@
+/* global token, fetchMethod, userWhiteboards, groupId, userId, fetchAllUsers, fetchGroupMembers, members, editAssigneeBtn, bootstrap, displayToast, Sortable*/
 // Token, userId and groupId is global in other js file
 let tasks = [];
 let taskItems = [];

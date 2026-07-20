@@ -321,7 +321,7 @@ router.post('/folders/:group_id', authenticateJWT, (req, res, next) => {
       } else {
         insertNoteFolder(data)
           .then((results) => {
-            (results) => res.status(201).json(results);
+            res.status(201).json(results);
           })
           .catch(next);
       }

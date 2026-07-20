@@ -74,7 +74,7 @@
 }
 
 /* ── Dark / Futuristic theme overrides ──────────────────────────── */
-[data-theme="dark"] #adminNav,
+/* [data-theme="dark"] #adminNav,
 [data-theme="futuristic"] #adminNav {
   background: var(--card-bg);
 }
@@ -82,4 +82,4 @@
 [data-theme="dark"] #adminNav .list-group-item:hover,
 [data-theme="futuristic"] #adminNav .list-group-item:hover {
   background: var(--bg-hover);
-}
+} */

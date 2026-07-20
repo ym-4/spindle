@@ -1,3 +1,5 @@
+/* global fetchMethod, DOMPurify, currentUrl, getApiBase, getToken, loadUserReactions, getStoredUser, initReactionButtons, setupReactionEvents, API_BASE, validatePostForm, bootstrap */
+
 //  Spindle — Home Page
 
 function feedApiBase() {

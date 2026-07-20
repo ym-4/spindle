@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="css/theme.css" />
+    <!-- Affecting my css (looks funny) -->
+    <!-- <link rel="stylesheet" href="css/theme.css" /> -->
 
     <!-- CSS Files -->
     <link rel="stylesheet" href="css/posts.css" />
@@ -11,6 +12,9 @@
     <link rel="stylesheet" href="css/groups_feed.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
     <link rel="stylesheet" href="css/profile-page.css" />
+
+    <link rel="stylesheet" href="css/navbarFix.css" />
+
     <!-- Dragging -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
     <!-- Bootstrap CSS -->
@@ -27,6 +31,11 @@
       integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
       crossorigin="anonymous"
     ></script>
+
+    <!-- Quill -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
 
     <!-- Font Awesome -->
     <link
@@ -64,7 +73,7 @@
         <div class="navbar-right">
           <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
           <a href="profile.html" class="btn-navbar-profile" id="profileButton">
-            <i class="fas fa-user-circle"></i> Profile
+            <i class="fas fa-user-circle" id="profileBtn1"></i> Profile
           </a>
           <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
         </div>
@@ -571,7 +580,7 @@
                       <div class="d-flex align-items-center">
                         <div class="d-flex gap-1">
                           <!-- Graph button -->
-                          <button class="btn btn-light">
+                          <button class="btn btn-light" id="graphViewBtn">
                             <i class="bi bi-diagram-3"></i>
                           </button>
 
@@ -582,14 +591,14 @@
 
                             <ul class="dropdown-menu">
                               <li>
-                                <a class="dropdown-item" id="createWikiPageBtn">
+                                <a class="dropdown-item" id="createNoteBtn">
                                   <i class="bi bi-file-earmark-text me-2"></i>
                                   New Note
                                 </a>
                               </li>
 
                               <li>
-                                <a class="dropdown-item" id="createWikiFolderBtn">
+                                <a class="dropdown-item" id="createNoteFolderBtn">
                                   <i class="bi bi-folder-plus me-2"></i>
                                   New Folder
                                 </a>
@@ -607,6 +616,7 @@
                       </div>
                     </div>
 
+                    <!-- Folder structure -->
                     <div class="card-body p-2" id="folderStructure">
                       <div class="folder">
                         <div class="folder-header">
@@ -693,6 +703,7 @@
                     <div class="card-header bg-white d-flex justify-content-between">
                       <div>
                         <h5 class="mb-0" id="noteTitle">Week 8 Revision</h5>
+                        <input id="noteTitleInput" class="form-control d-none" type="text" />
 
                         <small class="text-muted" id="noteLastEdited">
                           Last edited 2 hours ago
@@ -700,11 +711,11 @@
                       </div>
 
                       <div>
-                        <button class="btn btn-outline-secondary">
+                        <button class="btn btn-outline-secondary" id="editNoteBtn">
                           <i class="bi bi-pencil"></i>
                         </button>
 
-                        <button class="btn btn-primary">Save</button>
+                        <button class="btn btn-success" id="saveNoteBtn">Save</button>
                       </div>
                     </div>
 
@@ -730,9 +741,14 @@
                         ⭐ Remember: Worst case becomes O(n) if the tree is unbalanced.
                       </div>
                     </div>
+
+                    <div id="noteEditorContainer">
+                      <div id="noteEditor"></div>
+                    </div>
                   </div>
                 </div>
 
+                <!-- Editor -->
                 <div class="col-lg-3">
                   <div class="card shadow-sm border-0 rounded-4">
                     <div class="card-header bg-white fw-bold">
@@ -752,10 +768,10 @@
                         </button>
 
                         <ul class="dropdown-menu w-100">
-                          <li><a class="dropdown-item" href="#">Normal</a></li>
-                          <li><a class="dropdown-item" href="#">Heading 1</a></li>
-                          <li><a class="dropdown-item" href="#">Heading 2</a></li>
-                          <li><a class="dropdown-item" href="#">Heading 3</a></li>
+                          <li><a class="dropdown-item" href="#" id="normalText">Normal</a></li>
+                          <li><a class="dropdown-item" href="#" id="heading1">Heading 1</a></li>
+                          <li><a class="dropdown-item" href="#" id="heading2">Heading 2</a></li>
+                          <li><a class="dropdown-item" href="#" id="heading3">Heading 3</a></li>
                         </ul>
                       </div>
 
@@ -772,14 +788,14 @@
                         </button>
 
                         <ul class="dropdown-menu w-100 shadow-sm">
-                          <li><a class="dropdown-item" href="#">12</a></li>
-                          <li><a class="dropdown-item" href="#">14</a></li>
-                          <li><a class="dropdown-item active" href="#">16</a></li>
-                          <li><a class="dropdown-item" href="#">18</a></li>
-                          <li><a class="dropdown-item" href="#">20</a></li>
-                          <li><a class="dropdown-item" href="#">24</a></li>
-                          <li><a class="dropdown-item" href="#">28</a></li>
-                          <li><a class="dropdown-item" href="#">32</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize12">12</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize14">14</a></li>
+                          <li><a class="dropdown-item active" href="#" id="fontSize16">16</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize18">18</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize20">20</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize24">24</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize28">28</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize32">32</a></li>
                         </ul>
                       </div>
 
@@ -787,11 +803,15 @@
                       <label class="form-label small fw-semibold">Formatting</label>
 
                       <div class="btn-group w-100 mb-3">
-                        <button class="btn btn-outline-secondary"><b>B</b></button>
-                        <button class="btn btn-outline-secondary"><i>I</i></button>
-                        <button class="btn btn-outline-secondary"><u>U</u></button>
-                        <button class="btn btn-outline-secondary"><s>S</s></button>
-                        <button class="btn btn-outline-secondary">
+                        <button class="btn btn-outline-secondary" id="boldBtn"><b>B</b></button>
+                        <button class="btn btn-outline-secondary" id="italicBtn"><i>I</i></button>
+                        <button class="btn btn-outline-secondary" id="underlineBtn">
+                          <u>U</u>
+                        </button>
+                        <button class="btn btn-outline-secondary" id="strikethroughBtn">
+                          <s>S</s>
+                        </button>
+                        <button class="btn btn-outline-secondary" id="highlighterBtn">
                           <i class="bi bi-highlighter"></i>
                         </button>
                       </div>
@@ -810,22 +830,22 @@
 
                         <ul class="dropdown-menu w-100 shadow-sm">
                           <li>
-                            <a class="dropdown-item" href="#"
+                            <a class="dropdown-item" href="#" id="noneList"
                               ><i class="bi bi-x-lg me-2"></i>None</a
                             >
                           </li>
                           <li>
-                            <a class="dropdown-item" href="#"
+                            <a class="dropdown-item" href="#" id="bulletList"
                               ><i class="bi bi-list-ul me-2"></i>Bullet List</a
                             >
                           </li>
                           <li>
-                            <a class="dropdown-item" href="#"
+                            <a class="dropdown-item" href="#" id="numberList"
                               ><i class="bi bi-list-ol me-2"></i>Numbered List</a
                             >
                           </li>
                           <li>
-                            <a class="dropdown-item" href="#"
+                            <a class="dropdown-item" href="#" id="checkList"
                               ><i class="bi bi-check2-square me-2"></i>Checklist</a
                             >
                           </li>
@@ -846,22 +866,22 @@
 
                         <ul class="dropdown-menu w-100 shadow-sm">
                           <li>
-                            <a class="dropdown-item" href="#"
+                            <a class="dropdown-item" href="#" id="insertImage"
                               ><i class="bi bi-image me-2"></i>Image</a
                             >
                           </li>
                           <li>
-                            <a class="dropdown-item" href="#"
+                            <a class="dropdown-item" href="#" id="tableBtn"
                               ><i class="bi bi-table me-2"></i>Table</a
                             >
                           </li>
                           <li>
-                            <a class="dropdown-item" href="#"
+                            <a class="dropdown-item" href="#" id="insertLink"
                               ><i class="bi bi-link-45deg me-2"></i>Link</a
                             >
                           </li>
                           <li>
-                            <a class="dropdown-item" href="#"
+                            <a class="dropdown-item" href="#" id="lineBtn"
                               ><i class="bi bi-dash-lg me-2"></i>Horizontal Line</a
                             >
                           </li>
@@ -872,16 +892,23 @@
                       <label class="form-label small fw-semibold">Alignment</label>
 
                       <div class="btn-group w-100">
-                        <button class="btn btn-outline-secondary">
+                        <!-- Left align -->
+                        <button class="btn btn-outline-secondary" id="leftAlignBtn">
                           <i class="bi bi-text-left"></i>
                         </button>
-                        <button class="btn btn-outline-secondary">
+
+                        <!-- Center align -->
+                        <button class="btn btn-outline-secondary" id="centerAlignBtn">
                           <i class="bi bi-text-center"></i>
                         </button>
-                        <button class="btn btn-outline-secondary">
+
+                        <!-- Right align -->
+                        <button class="btn btn-outline-secondary" id="rightAlignBtn">
                           <i class="bi bi-text-right"></i>
                         </button>
-                        <button class="btn btn-outline-secondary">
+
+                        <!-- Justify -->
+                        <button class="btn btn-outline-secondary" id="justifyAlignBtn">
                           <i class="bi bi-justify"></i>
                         </button>
                       </div>
@@ -1533,6 +1560,74 @@
             <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
 
             <button class="btn btn-primary" id="createFolderBtn">Create Folder</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Note Folder modal -->
+    <div class="modal fade" id="newNoteFolderModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-folder-plus me-2"></i>
+              Create Note Folder
+            </h5>
+
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <label class="form-label">Folder Name</label>
+
+            <input
+              type="text"
+              id="noteFolderNameInput"
+              class="form-control"
+              placeholder="e.g. Lecture Notes"
+              maxlength="40"
+            />
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-primary" id="newNoteFolderBtn">Create Folder</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Note modal -->
+    <div class="modal fade" id="newNoteModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-file-earmark-text me-2"></i>
+              Create Note
+            </h5>
+
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <label class="form-label">Note Name</label>
+
+            <input
+              type="text"
+              id="noteNameInput"
+              class="form-control"
+              placeholder="e.g. CICD Note 1"
+              maxlength="40"
+            />
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-primary" id="newNoteBtn">Create Note</button>
           </div>
         </div>
       </div>

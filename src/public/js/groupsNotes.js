@@ -1,33 +1,321 @@
+/* global token, fetchMethod, groupId, displayToast, bootstrap */
+
 // Token, userId and groupId is global in other js file
 // Global variables
 let groupNotes = [];
 let groupFolders = [];
 let noteLinks = [];
 let folderStates = {};
+let quill;
 
 let currNoteId = null;
+
+const newNoteFolderModal = new bootstrap.Modal(document.getElementById('newNoteFolderModal'));
+const newNoteModal = new bootstrap.Modal(document.getElementById('newNoteModal'));
 
 window.addEventListener('DOMContentLoaded', async () => {
   // Fetch data
   await fetchNoteData();
 
-  // Display data
+  // Setup quill
+  quill = new Quill('#noteEditor', {
+    theme: 'snow',
+    placeholder: 'Write your note...',
+    modules: {
+      toolbar: false,
+    },
+  });
+
+  // Display folder structure
   displayFolderStructure();
 
+  // Display note
   if (groupNotes.length > 0) {
     displayNote(groupNotes[0].id);
   }
 
+  // Hide editor
+  displayNoteEditor(false);
+
   // Attach listeners
+  addListeners();
+  addEditorListeners();
 });
 
 // -------------------------------------------------------------------------------------
 //                           Event Listener Functions
 // -------------------------------------------------------------------------------------
 
+function addListeners() {
+  // For save and edit note
+  document.getElementById('saveNoteBtn').addEventListener('click', handleSaveNote);
+  document.getElementById('editNoteBtn').addEventListener('click', handleEditNote);
+
+  // For create new note / folder / whiteboard
+  document.getElementById('createNoteBtn').addEventListener('click', () => {
+    // Show modal to create note
+    document.getElementById('noteNameInput').value = '';
+    newNoteModal.show();
+  });
+  document.getElementById('newNoteBtn').addEventListener('click', handleNewNote);
+
+  document.getElementById('createNoteFolderBtn').addEventListener('click', () => {
+    // Shows modal to create new note folder
+    document.getElementById('noteFolderNameInput').value = '';
+    newNoteFolderModal.show();
+  });
+
+  document.getElementById('newNoteFolderBtn').addEventListener('click', handleNewNoteFolder);
+
+  document.getElementById('createWhiteboardBtn').addEventListener('click', handleNewWhiteboard);
+
+  // For graph view
+  document.getElementById('graphViewBtn').addEventListener('click', displayLinks);
+}
+
+// BUGS: Not implemented: Highlighter, checkboxes, insert functions
+// Not working: Font size
+// Using headings make scroll move up
+// Cannot see save button
+// Can change note will editing a note??
+function addEditorListeners() {
+  // Bold
+  document.getElementById('boldBtn').addEventListener('click', () => {
+    const current = quill.getFormat();
+    quill.format('bold', !current.bold);
+  });
+
+  // Italic
+  document.getElementById('italicBtn').addEventListener('click', () => {
+    const current = quill.getFormat();
+    quill.format('italic', !current.italic);
+  });
+
+  // Underline
+  document.getElementById('underlineBtn').addEventListener('click', () => {
+    const current = quill.getFormat();
+    quill.format('underline', !current.underline);
+  });
+
+  // Strike
+  document.getElementById('strikethroughBtn').addEventListener('click', () => {
+    const current = quill.getFormat();
+    quill.format('strike', !current.strike);
+  });
+
+  // Highlighter
+  document.getElementById('highlighterBtn').onclick = () => {
+    const current = quill.getFormat();
+
+    if (current.background === 'yellow') {
+      quill.format('background', false);
+    } else {
+      quill.format('background', 'yellow');
+    }
+  };
+
+  // Text headings
+  document.getElementById('heading1').addEventListener('click', (e) => {
+    e.preventDefault();
+    quill.format('header', 1);
+  });
+
+  document.getElementById('heading2').addEventListener('click', (e) => {
+    e.preventDefault();
+    quill.format('header', 2);
+  });
+
+  document.getElementById('heading3').addEventListener('click', (e) => {
+    e.preventDefault();
+    quill.format('header', 3);
+  });
+
+  document.getElementById('normalText').addEventListener('click', (e) => {
+    e.preventDefault();
+    quill.format('header', false);
+  });
+
+  // Lists
+  document.getElementById('bulletList').onclick = () => quill.format('list', 'bullet');
+
+  document.getElementById('numberList').onclick = () => quill.format('list', 'ordered');
+
+  // DOESN'T WORK
+  document.getElementById('checkList').onclick = () => quill.format('list', 'check');
+
+  document.getElementById('noneList').onclick = () => quill.format('list', false);
+
+  // Alignment
+  document.getElementById('leftAlignBtn').onclick = () => quill.format('align', '');
+
+  document.getElementById('centerAlignBtn').onclick = () => quill.format('align', 'center');
+
+  document.getElementById('rightAlignBtn').onclick = () => quill.format('align', 'right');
+
+  document.getElementById('justifyAlignBtn').onclick = () => quill.format('align', 'justify');
+
+  // Font size
+  const Size = Quill.import('attributors/style/size');
+
+  Size.whitelist = ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'];
+
+  Quill.register(Size, true);
+
+  quill = new Quill('#noteEditor', {
+    theme: 'snow',
+    modules: {
+      toolbar: false,
+    },
+  });
+
+  document.getElementById('fontSize12').onclick = () => quill.format('size', '12px');
+  document.getElementById('fontSize14').onclick = () => quill.format('size', '14px');
+  document.getElementById('fontSize16').onclick = () => quill.format('size', '16px');
+  document.getElementById('fontSize18').onclick = () => quill.format('size', '18px');
+  document.getElementById('fontSize20').onclick = () => quill.format('size', '20px');
+  document.getElementById('fontSize24').onclick = () => quill.format('size', '24px');
+  document.getElementById('fontSize28').onclick = () => quill.format('size', '28px');
+  document.getElementById('fontSize32').onclick = () => quill.format('size', '32px');
+
+  // Inserts
+
+  // Link
+  document.getElementById('insertLink').onclick = () => {
+    const url = prompt('Enter URL');
+
+    if (!url) return;
+
+    const range = quill.getSelection();
+
+    if (range) {
+      quill.format('link', url);
+    }
+  };
+
+  // Image
+  document.getElementById('insertImage').onclick = () => {
+    const url = prompt('Image URL');
+
+    if (!url) return;
+
+    const range = quill.getSelection(true);
+
+    quill.insertEmbed(range.index, 'image', url);
+  };
+}
+
+// -------------------------------------------------------------------------------------
+//                              Handler Functions
+// -------------------------------------------------------------------------------------
+
+// -----------------------
+// Create new something
+// -----------------------
+async function handleNewNoteFolder() {
+  console.log('new folder');
+  let folderName = document.getElementById('noteFolderNameInput').value;
+
+  // Hide the modal
+  newNoteFolderModal.hide();
+
+  try {
+    // Create folder
+    const response = await createNoteFolder(folderName);
+
+    // Refresh data
+    await fetchNoteData();
+    displayFolderStructure();
+
+    displayToast('success', 'Folder was created!');
+  } catch (err) {
+    displayToast('error', 'Folder with the same name already exists');
+  }
+}
+
+async function handleNewNote() {
+  console.log('new note');
+  let noteName = document.getElementById('noteNameInput').value;
+
+  // Hide the modal
+  newNoteModal.hide();
+
+  try {
+    // Create note
+    const response = await createNote(noteName);
+
+    // Refresh data
+    await fetchNoteData();
+    // Calls display folder structure
+    displayNote(response[0].id);
+
+    displayToast('success', 'Note was created!');
+  } catch (err) {
+    displayToast('error', 'Note with the same name already exists');
+  }
+}
+
+// NOT DONE
+// Use whiteboard.js file
+function handleNewWhiteboard() {
+  console.log('new whiteboard');
+}
+
+// -----------------------
+// Edit something
+// -----------------------
+
+function handleEditNote() {
+  const note = groupNotes.find((n) => n.id === currNoteId);
+
+  if (!note) return;
+
+  document.getElementById('noteTitleInput').value = note.title;
+  quill.root.innerHTML = note.content || '';
+
+  displayNoteEditor(true);
+}
+
+// NOT DONE
+function handleEditWhiteboard() {}
+
+// -----------------------
+// Save something
+// -----------------------
+async function handleSaveNote() {
+  const title = document.getElementById('noteTitleInput').value;
+  const content = quill.root.innerHTML;
+
+  try {
+    // Update note title
+    await updateNote({
+      id: currNoteId,
+      title: title,
+    });
+
+    // Update note content
+    await updateNoteContent({
+      id: currNoteId,
+      content: content,
+    });
+
+    // Refresh data
+    await fetchNoteData();
+
+    // Display again
+    displayNote(currNoteId);
+
+    // Hide editor
+    displayNoteEditor(false);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 // -------------------------------------------------------------------------------------
 //                              Display Functions
 // -------------------------------------------------------------------------------------
+
+// Left sidebar - folders
 function displayFolderStructure() {
   const container = document.getElementById('folderStructure');
 
@@ -100,44 +388,70 @@ function displayFolderStructure() {
   });
 
   // Notes without folder
+  // Notes without folder
   const unfiled = groupNotes.filter((note) => note.folder_id == null);
 
   if (unfiled.length) {
-    const folderDiv = document.createElement('div');
+    // Give Unfiled its own state key
+    if (folderStates['unfiled'] === undefined) {
+      folderStates['unfiled'] = true;
+    }
 
+    const expanded = folderStates['unfiled'];
+
+    const folderDiv = document.createElement('div');
     folderDiv.className = 'folder';
 
     folderDiv.innerHTML = `
-            <div class="folder-header">
-                <i class="bi bi-chevron-down"></i>
-                <i class="bi bi-folder-fill text-warning"></i>
-                Unfiled
-            </div>
+    <div class="folder-header">
+      <i class="bi ${expanded ? 'bi-chevron-down' : 'bi-chevron-right'}"></i>
+      <i class="bi bi-folder-fill text-warning"></i>
+      Unfiled
+    </div>
 
-            <div class="folder-items"></div>
-        `;
+    <div class="folder-items" style="display:${expanded ? 'block' : 'none'}"></div>
+  `;
 
     const items = folderDiv.querySelector('.folder-items');
 
     unfiled.forEach((note) => {
       const link = document.createElement('a');
-
       link.className = 'wiki-file';
 
+      // Active note highlight
+      if (note.id === currNoteId) {
+        link.classList.add('active');
+      }
+
       link.innerHTML = `
-                <i class="bi bi-file-earmark-text"></i>
-                ${note.title}
-            `;
+      <i class="bi ${
+        note.id === currNoteId ? 'bi-file-earmark-text-fill' : 'bi-file-earmark-text'
+      }"></i>
+      ${note.title}
+    `;
 
       link.onclick = () => displayNote(note.id);
 
       items.appendChild(link);
     });
 
+    // Make Unfiled collapsible
+    const header = folderDiv.querySelector('.folder-header');
+    const arrow = header.querySelector('.bi');
+
+    header.onclick = () => {
+      folderStates['unfiled'] = !folderStates['unfiled'];
+
+      items.style.display = folderStates['unfiled'] ? 'block' : 'none';
+
+      arrow.className = folderStates['unfiled'] ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
+    };
+
     container.appendChild(folderDiv);
   }
 }
 
+// Middle section - Actual note being shown
 function displayNote(noteId) {
   const note = groupNotes.find((n) => n.id === noteId);
 
@@ -156,7 +470,38 @@ function displayNote(noteId) {
   displayFolderStructure();
 }
 
-function displayLinks() {}
+// NOT DONE
+// Displays graph view
+// When zoomed out no note name, note names shown if zoomed in
+// TODO: Handle when a link to a note that doesn't exist occurs (like obsidian? or dont allow?)
+function displayLinks() {
+  console.log('graph view');
+}
+
+// NOT DONE
+// Displays links that are connected to the node that was clicked
+function displayConnectedLinks() {}
+
+// NOT DONE
+// Display in another whiteboard folder
+function displayWhiteboards() {}
+
+// NOT DONE
+// Hide editor when not editing a note
+// Show editor when editing a note
+function displayNoteEditor(editing) {
+  document.getElementById('noteTitle').classList.toggle('d-none', editing);
+
+  document.getElementById('noteContent').classList.toggle('d-none', editing);
+
+  document.getElementById('noteTitleInput').classList.toggle('d-none', !editing);
+
+  document.getElementById('noteEditor').classList.toggle('d-none', !editing);
+
+  document.getElementById('editNoteBtn').classList.toggle('d-none', editing);
+
+  document.getElementById('saveNoteBtn').classList.toggle('d-none', !editing);
+}
 
 // -------------------------------------------------------------------------------------
 //                              Other Functions
@@ -196,6 +541,11 @@ async function fetchGroupNotes() {
 
 // Gets the folders for the group
 async function fetchGroupFolders() {
+  // Get stored group
+  let groupId = localStorage.getItem('groupId');
+  // Get stored token
+  let token = localStorage.getItem('token');
+
   return new Promise((resolve, reject) => {
     const url = `http://localhost:3000/notes/folders/group/${groupId}`;
 
@@ -337,8 +687,6 @@ async function createNote(title) {
       if (responseStatus == 201) {
         resolve(responseData);
 
-        displayToast('success', 'Note was created!');
-
         // Token expired
       } else if (responseStatus == 401) {
         window.location.href = './home.html';
@@ -349,8 +697,6 @@ async function createNote(title) {
           type: 'conflict',
           message: 'Note with the same name already exists',
         });
-
-        displayToast('error', 'Note with the same name already exists');
 
         // bad request: missing info
       } else if (responseStatus == 400) {
@@ -514,7 +860,7 @@ async function deleteNote(id) {
 }
 
 // Create folder
-async function createFolder(name) {
+async function createNoteFolder(name) {
   return new Promise((resolve, reject) => {
     const url = `http://localhost:3000/notes/folders/${groupId}`;
 
@@ -523,13 +869,11 @@ async function createFolder(name) {
     };
 
     const callback = (responseStatus, responseData) => {
-      console.log('createFolder', responseData);
+      console.log('createNoteFolder', responseData);
 
       // folder created: success
       if (responseStatus == 201) {
         resolve(responseData);
-
-        displayToast('success', 'Folder was created!');
 
         // Token expired
       } else if (responseStatus == 401) {
@@ -541,8 +885,6 @@ async function createFolder(name) {
           type: 'conflict',
           message: 'Folder with the same name already exists',
         });
-
-        displayToast('error', 'Folder with the same name already exists');
 
         // bad request: missing info
       } else if (responseStatus == 400) {
