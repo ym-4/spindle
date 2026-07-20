@@ -257,10 +257,10 @@ textarea.form-control {
 
 /* Success toast */
 .toast-container {
-position: fixed;
-top: 1.25rem;
-right: 1.25rem;
-z-index: 9999;
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 9999;
 }
 
 .tag-tooltip-icon {
