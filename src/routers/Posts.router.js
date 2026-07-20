@@ -2,6 +2,7 @@ const express = require('express');
 const upload = require('../middlewares/upload');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
+const { checkAndAwardBadges } = require('../services/badgeService');
 
 const Notification = require('../models/Notification.model');
 const pool = require('../models/db');
@@ -405,6 +406,12 @@ router.post('/', upload.single('attachment'), (req, res) => {
         gif_url: data.gif_url,
       });
 
+      try {
+        await checkAndAwardBadges(parseInt(data.user_id), ['post_created']);
+      } catch (e) {
+        console.warn('Badge check error:', e.message);
+      }
+
       // Notify @mentioned users (skip if anonymous)
       if (!data.is_anonymous) {
         try {
@@ -593,8 +600,9 @@ router.post('/like', authenticateJWT, (req, res, next) => {
       });
 
       // Notify post owner
+      let post;
       try {
-        const post = await getPostByID({ id: data.post_id });
+        post = await getPostByID({ id: data.post_id });
         if (!post) return;
         if (parseInt(post.user_id) === parseInt(data.user_id)) return;
 
@@ -613,6 +621,11 @@ router.post('/like', authenticateJWT, (req, res, next) => {
         });
       } catch (e) {
         console.warn('Post like notify error:', e.message);
+      }
+      if (post) {
+        checkAndAwardBadges(parseInt(post.user_id), ['post_liked'], {
+          postId: data.post_id,
+        });
       }
     })
     .catch((error) => {

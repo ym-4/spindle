@@ -2414,6 +2414,112 @@ body {
   border-radius: 12px;
 }
 
+/* Badge unlock pop up  */
+#badgeUnlockBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  cursor: pointer;
+}
+
+#badgeUnlockBackdrop.badge-unlock--visible {
+  opacity: 1;
+}
+
+/* Popup  */
+#badgeUnlockPopup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 360px;
+  max-width: 92vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2.4rem 2rem 2rem;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fffdf6 0%, #fff8e6 100%);
+  border: 2px solid #f2c14e;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.35),
+    0 0 40px rgba(255, 212, 76, 0.25);
+  overflow: hidden;
+  z-index: 9999;
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0;
+  transition:
+    transform 0.45s cubic-bezier(0.18, 1.35, 0.35, 1),
+    opacity 0.3s ease;
+}
+
+#badgeUnlockPopup::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.65), transparent 70%);
+  pointer-events: none;
+}
+
+#badgeUnlockPopup.badge-unlock--visible {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+
+.badge-unlock-icon {
+  width: 90px;
+  height: 90px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffeeb2, #ffd24d);
+  box-shadow:
+    0 0 0 8px rgba(255, 220, 110, 0.25),
+    0 10px 25px rgba(240, 192, 64, 0.35);
+  font-size: 3rem;
+  animation: badgeBounce 0.8s ease;
+}
+
+@keyframes badgeBounce {
+  0% {
+    transform: scale(0.2) rotate(-20deg);
+  }
+  60% {
+    transform: scale(1.18) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.badge-unlock-label {
+  margin-top: 1.4rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c48b00;
+}
+
+.badge-unlock-title {
+  margin-top: 0.4rem;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #2d2d2d;
+}
+
+.badge-unlock-desc {
+  margin-top: 0.7rem;
+  font-size: 0.96rem;
+  line-height: 1.5;
+  color: #6a6a6a;
+}
+
 /*  Scrollbar  */
 .sidebar::-webkit-scrollbar,
 .right-sidebar::-webkit-scrollbar {

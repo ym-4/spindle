@@ -75,6 +75,82 @@ const reactions = [
   { userEmail: 'grace@example.com', postTitle: 'Need Help', reactionType: 'dislike' },
 ];
 
+// Example badges
+const badges = [
+  {
+    key: 'first_post',
+    name: 'Explorer',
+    description: 'Published your first post on Spindle',
+    imageUrl: '/images/badges/first_post.png',
+  },
+  {
+    key: 'first_comment',
+    name: 'Icebreaker',
+    description: 'Left your first comment',
+    imageUrl: '/images/badges/birthdaybash.png',
+  },
+  {
+    key: 'social_butterfly',
+    name: 'Social Butterfly',
+    description: 'Made 25 friends',
+    imageUrl: '/images/badges/social_butterfly.png',
+  },
+  {
+    key: 'chatterbox',
+    name: 'Chatterbox',
+    description: 'Posted 10 comments',
+    imageUrl: '/images/badges/chatterbox.png',
+  },
+  {
+    key: 'prolific_poster',
+    name: 'Busy Bee',
+    description: 'Created 10 posts',
+    imageUrl: '/images/badges/prolific_poster.png',
+  },
+  {
+    key: 'group_joiner',
+    name: 'Alliance Formed',
+    description: 'Joined your first study group',
+    imageUrl: '/images/badges/birthdaybash.png',
+  },
+  {
+    key: 'liked_post',
+    name: 'Sprout',
+    description: 'Received your first like on a post',
+    imageUrl: '/images/badges/birthdaybash.png',
+  },
+  {
+    key: 'pandabot_user',
+    name: 'Panda Pal',
+    description: 'Summoned PandaBot for the first time',
+    imageUrl: '/images/badges/birthdaybash.png',
+  },
+  {
+    key: 'fan_favorite',
+    name: 'Fan Favorite',
+    description: 'Received 100 total likes across your posts',
+    imageUrl: '/images/badges/fan_favorite.png',
+  },
+  {
+    key: 'rising_star',
+    name: 'Rising Star',
+    description: 'Had a post reach 20 likes',
+    imageUrl: '/images/badges/rising_star.png',
+  },
+  {
+    key: 'night_owl',
+    name: 'Night Owl',
+    description: 'Posted after midnight 20 times',
+    imageUrl: '/images/badges/birthdaybash.png',
+  },
+  {
+    key: 'pandabot_whisperer',
+    name: 'Panda Whisperer',
+    description: 'Mentioned PandaBot 50 times',
+    imageUrl: '/images/badges/panda_whisperer.png',
+  },
+];
+
 // Example saved posts
 const savedPosts = [{ userEmail: 'heidi@example.com', postTitle: 'General Thoughts' }];
 
@@ -927,7 +1003,7 @@ async function seed() {
     `UPDATE "Person" SET display_name = 'PandaBot 🐼', bio = 'bot'
      WHERE email = 'pandabot@spindle.internal'`,
   );
-  console.log('⍝ʕ´•ᴥ•`ʔ⍝  ~  PandaBot seeded.');
+  console.log('⍝ʕ´•ᴥ•`ʔ⍝   PandaBot is online!');
 
   const aliceRes = await pool.query(`SELECT id FROM "Person" WHERE email = 'alice@example.com'`);
   const bobRes = await pool.query(`SELECT id FROM "Person" WHERE email = 'bob@example.com'`);
@@ -1035,6 +1111,15 @@ async function seed() {
   }
   console.log(`Inserted ${savedPosts.length} saved posts.`);
 
+  for (const badge of badges) {
+    await pool.query(
+      `INSERT INTO "Badges" (key, name, description, image_url)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (key) DO NOTHING`,
+      [badge.key, badge.name, badge.description, badge.imageUrl],
+    );
+  }
+  console.log(`Inserted ${badges.length} badges.`);
   // // Insert groups
   // for (const group of groups) {
   //   const creatorRes = await pool.query(

@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticateJWT } = require('../middlewares/auth.middleware');
+const { checkAndAwardBadges } = require('../services/badgeService');
 
 const {
   generatePandabotReply,
@@ -296,6 +297,9 @@ router.post('/:post_id', authenticateJWT, commentUpload.single('attachment'), (r
         console.warn('Mention notify error:', e.message);
       }
 
+      // award first_comment badge
+      checkAndAwardBadges(parseInt(data.user_id), ['comment_created']);
+
       // Notify post owner
       try {
         if (post && parseInt(post.user_id) !== parseInt(data.user_id)) {
@@ -346,6 +350,9 @@ router.post('/:post_id', authenticateJWT, commentUpload.single('attachment'), (r
         body: botReply.slice(0, 120),
         ref_id: data.post_id,
       });
+
+      // award panda_bot badge
+      checkAndAwardBadges(parseInt(data.user_id), ['pandabot_used']);
     })
     .catch((error) => {
       console.error('Error insertComments: ' + error);

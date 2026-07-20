@@ -78,9 +78,7 @@ describe('PostComments.model - getCommentsByPostID', () => {
 
     const result = await getCommentsByPostID({ post_id: 10 });
 
-    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE pc.post_id = $1'), [
-      10,
-    ]);
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE pc.post_id = $1'), [10]);
     expect(result).toEqual(fakeComments);
   });
 
@@ -90,9 +88,10 @@ describe('PostComments.model - getCommentsByPostID', () => {
 
     const result = await getCommentsByPostID({ post_id: 999 });
 
-    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE pc.post_id = $1'), [
-      999,
-    ]);
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE pc.post_id = $1'),
+      [999],
+    );
     expect(result).toEqual([]);
   });
 
@@ -102,9 +101,7 @@ describe('PostComments.model - getCommentsByPostID', () => {
 
     const result = await getCommentsByPostID({ post_id: 0 });
 
-    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE pc.post_id = $1'), [
-      0,
-    ]);
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE pc.post_id = $1'), [0]);
     expect(result).toEqual([]);
   });
 
@@ -359,9 +356,7 @@ describe('PostComments.model - getSavedCommentsByUserID', () => {
 
     const result = await getSavedCommentsByUserID({ user_id: 5 });
 
-    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE sc.user_id = $1'), [
-      5,
-    ]);
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE sc.user_id = $1'), [5]);
     expect(result).toEqual(savedComments);
   });
 
@@ -380,9 +375,7 @@ describe('PostComments.model - getSavedCommentsByUserID', () => {
 
     const result = await getSavedCommentsByUserID({ user_id: 0 });
 
-    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE sc.user_id = $1'), [
-      0,
-    ]);
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE sc.user_id = $1'), [0]);
     expect(result).toEqual([]);
   });
 

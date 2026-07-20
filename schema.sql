@@ -224,10 +224,10 @@ CREATE TABLE "SavedComments" (
 );
 
 CREATE TABLE "Reports" (
-  "id"        SERIAL PRIMARY KEY,
-  "post_id"   INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
-  "user_id"   INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
-  "reason"    VARCHAR(100) NOT NULL,
+  "id" SERIAL PRIMARY KEY,
+  "post_id" INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
+  "user_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "reason" VARCHAR(100) NOT NULL,
   "description" TEXT DEFAULT '',
   "dismissed" BOOLEAN DEFAULT FALSE,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -315,7 +315,21 @@ CREATE TABLE "GroupAnnouncements" (
 ---------------------------------------------------------------------------------------
 --                                  USER
 -- -------------------------------------------------------------------------------------
+CREATE TABLE "Badges" (
+  "id" SERIAL PRIMARY KEY,
+  "key" TEXT NOT NULL UNIQUE,  
+  "name" TEXT NOT NULL,
+  "description" TEXT NOT NULL,
+  "image_url" TEXT NOT NULL       
+);
 
+CREATE TABLE "UserBadges" (
+  "id" SERIAL PRIMARY KEY,
+  "user_id" INT  NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "badge_id" INT  NOT NULL REFERENCES "Badges"("id") ON DELETE CASCADE,
+  "awarded_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE ("user_id", "badge_id")
+);
 
 CREATE TABLE "UserSettings" (
   "user_id" INT NOT NULL,

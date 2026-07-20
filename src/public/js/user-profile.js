@@ -203,6 +203,12 @@ function renderView(profile) {
       <div class="pro-profile__stat"><strong>${stats.friends ?? 0}</strong><span>Friends</span></div>
       <div class="pro-profile__stat"><strong>${stats.groups ?? 0}</strong><span>Groups</span></div>
     </div>
+     <div class="pro-profile__section" id="badgesSection">
+      <h3>Badges</h3>
+      <div class="pro-profile__badges" id="badgesGrid">
+        <span class="text-muted small">Loading badges…</span>
+      </div>
+    </div>
     ${!isOwnProfile ? `<div class="pro-profile__friend-actions" id="friendActions">${relActions(profile)}</div>` : ''}
     <div class="pro-profile__section">
       <h3>About</h3>
@@ -441,10 +447,47 @@ async function loadUserProfile() {
     loading.classList.add('d-none');
     root.classList.remove('d-none');
     renderView(profile);
+    loadBadges(profile.id);
   } catch (err) {
     loading.classList.add('d-none');
     errEl.textContent = err.message || 'Could not load profile.';
     errEl.classList.remove('d-none');
+  }
+}
+
+async function loadBadges(userId) {
+  const grid = document.getElementById('badgesGrid');
+  if (!grid) return;
+
+  try {
+    const badges = await authFetch(`/badges/${userId}`);
+    if (!badges.length) {
+      grid.innerHTML = '<span class="text-muted small">No badges yet.</span>';
+      return;
+    }
+
+    grid.innerHTML = '';
+    badges.forEach((badge) => {
+      const el = document.createElement('div');
+      el.className = `pro-profile__badge${badge.unlocked ? '' : ' pro-profile__badge--locked'}`;
+      el.title = badge.unlocked
+        ? `${badge.name} — ${badge.description}`
+        : `${badge.name} (Locked) — ${badge.description}`;
+
+      el.innerHTML = `
+        <img src="${esc(badge.image_url)}" alt="${esc(badge.name)}">
+        <span class="pro-profile__badge-name">${esc(badge.name)}</span>
+        ${
+          badge.unlocked && badge.awarded_at
+            ? `<span class="pro-profile__badge-date">${new Date(badge.awarded_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</span>`
+            : ''
+        }`;
+
+      grid.appendChild(el);
+    });
+  } catch (e) {
+    const grid2 = document.getElementById('badgesGrid');
+    if (grid2) grid2.innerHTML = '<span class="text-muted small">Could not load badges.</span>';
   }
 }
 

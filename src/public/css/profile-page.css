@@ -247,3 +247,58 @@
   color: #65676b;
   font-weight: 400;
 }
+
+/* Profile badges  */
+.pro-profile__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.pro-profile__badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 72px;
+  text-align: center;
+  cursor: default;
+}
+
+.pro-profile__badge img {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f0c040;
+  box-shadow: 0 2px 8px rgba(240, 192, 64, 0.35);
+  transition: transform 0.2s;
+}
+
+.pro-profile__badge:hover img {
+  transform: scale(1.08);
+}
+
+.pro-profile__badge--locked img {
+  filter: grayscale(100%) opacity(0.4);
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+.pro-profile__badge-name {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 0.3rem;
+  line-height: 1.2;
+}
+
+.pro-profile__badge--locked .pro-profile__badge-name {
+  color: var(--text-secondary);
+}
+
+.pro-profile__badge-date {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  margin-top: 0.1rem;
+}
