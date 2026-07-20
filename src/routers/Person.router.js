@@ -1,4 +1,5 @@
 const express = require('express');
+const createError = require('http-errors');
 const router = express.Router();
 
 const {
@@ -8,13 +9,11 @@ const {
   getPersonByEmail,
   insertPerson,
   login,
-  readUserByEmailAndUsername,
   register,
 } = require('../models/Person.model');
 
 const bcryptMiddleware = require('../middlewares/bcryptMiddleware');
 const { signToken } = require('../utils/jwt');
-const { authenticateJWT } = require('../middlewares/auth.middleware');
 
 // GET ALL PERSONS
 router.get('/', (req, res, next) => {
