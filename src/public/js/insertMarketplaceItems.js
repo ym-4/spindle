@@ -24,7 +24,19 @@ function qualityBadgeClass(rawQuality) {
 // listings — Edit / Mark as Sold / Delete). Kept as one function since the
 // media/body markup (image, badge, title, price, tags, meetup) is identical
 // either way; only the footer and the sold-overlay differ.
-function addListing({ seller_id, id, name, description, price, quality, meetup, images, tags, status, mode = 'browse' }) {
+function addListing({
+  seller_id,
+  id,
+  name,
+  description,
+  price,
+  quality,
+  meetup,
+  images,
+  tags,
+  status,
+  mode = 'browse',
+}) {
   const container = document.getElementById('listings-container');
 
   const card = document.createElement('div');
@@ -41,10 +53,12 @@ function addListing({ seller_id, id, name, description, price, quality, meetup, 
   const meetupMarkup = meetup
     ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(meetup)}</p>`
     : '';
-  const thumbnailSrc = images && images.length > 0 ? images[0].image_url : '../uploads/marketplace-uploads/1.png';
-  const tagsMarkup = tags && tags.length > 0
-    ? `<div class="spindle-card-tags">${tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
-    : '';
+  const thumbnailSrc =
+    images && images.length > 0 ? images[0].image_url : '../uploads/marketplace-uploads/1.png';
+  const tagsMarkup =
+    tags && tags.length > 0
+      ? `<div class="spindle-card-tags">${tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
+      : '';
 
   const footerMarkup =
     mode === 'owner'
@@ -94,7 +108,11 @@ function addListing({ seller_id, id, name, description, price, quality, meetup, 
   if (mode === 'owner') {
     card.querySelector('.spindle-status-btn').addEventListener('click', () => {
       const nextStatus = isSold ? 'active' : 'sold';
-      if (nextStatus === 'sold' && !confirm(`Mark "${name}" as sold? It'll be hidden from the marketplace.`)) return;
+      if (
+        nextStatus === 'sold' &&
+        !confirm(`Mark "${name}" as sold? It'll be hidden from the marketplace.`)
+      )
+        return;
 
       fetch(`http://localhost:3000/marketplace/${id}/status`, {
         method: 'PATCH',
@@ -254,7 +272,11 @@ async function loadUserListings() {
       } else {
         emptyState.classList.add('d-none');
 
-        for (let i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
+        for (
+          let i = (currentPage - 1) * LISTINGS_PER_PAGE;
+          i < LISTINGS_PER_PAGE * currentPage;
+          i++
+        ) {
           if (!userListings[i]) continue;
           addListing({ ...userListings[i], mode: 'owner' });
         }
@@ -265,7 +287,9 @@ async function loadUserListings() {
   });
 }
 
-function addCartItem(seller_id, id, name, description, price, quantity) {
+function addCartItem(seller_id, id, name, description, price, quantity, images) {
+  const thumbnailSrc =
+    images && images.length > 0 ? images[0].image_url : '../uploads/marketplace-uploads/1.png';
   const container = document.querySelector('.cart-container');
   const card = document.createElement('div');
   card.setAttribute('data-seller-id', seller_id);
@@ -274,7 +298,7 @@ function addCartItem(seller_id, id, name, description, price, quantity) {
     <div class="card mb-3">
       <div class="row g-0 align-items-center">
         <div class="col-md-3">
-          <img src="https://placehold.co/150x120" class="img-fluid rounded-start" alt="${escapeHtml(name)}" />
+          <img src="${escapeHtml(thumbnailSrc)}" class="img-fluid rounded-start" alt="${escapeHtml(name)}" />
         </div>
         <div class="col-md-6">
           <div class="card-body">
@@ -363,6 +387,7 @@ async function loadCart() {
                 cartData.description,
                 cartData.price,
                 item.amount,
+                cartData.images,
               );
             }
           },
@@ -379,37 +404,32 @@ let currentPage = 1;
 
 // Insert the correct items based on the name of the document ;-D
 if (document.title == 'Marketplace') {
-
-  document.getElementById('prev-page-btn').addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      container.innerHTML = '';
-      loadListings();
-    }
-  });
-  document.getElementById('next-page-btn').addEventListener('click', () => {
-    currentPage++;
-    container.innerHTML = '';
-    loadListings();
-  });
-
   loadListings();
 } else if (document.title == 'Cart') {
   loadCart();
 } else if (document.title == 'Marketplace - Your Listings') {
-
-  document.getElementById('prev-page-btn').addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      container.innerHTML = '';
-      loadListings();
-    }
-  });
-  document.getElementById('next-page-btn').addEventListener('click', () => {
-    currentPage++;
-    container.innerHTML = '';
-    loadListings();
-  });
-
   loadUserListings();
+}
+
+if (document.title.includes('Marketplace')) {
+  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
+    const filtered = applySpindleFilters(hideSoldItems(data));
+    let totalListings = filtered.length;
+    let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
+
+    document.getElementById('prev-page-btn').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        container.innerHTML = '';
+        loadListings();
+      }
+    });
+    document.getElementById('next-page-btn').addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        container.innerHTML = '';
+        loadListings();
+      }
+    });
+  });
 }
