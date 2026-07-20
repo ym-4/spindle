@@ -48,21 +48,21 @@ function showConfirmModal(title, bodyText, onOk) {
   document.getElementById('confirmModalTitle').textContent = title;
   document.getElementById('confirmModalBody').textContent = bodyText;
   document.getElementById('confirmModal').classList.remove('hidden');
-var okBtn = document.getElementById('confirmModalOk');
-var cancelBtn = document.getElementById('confirmModalCancel');
-var okHandler = function () {
-  document.getElementById('confirmModal').classList.add('hidden');
-  okBtn.removeEventListener('click', okHandler);
-  cancelBtn.removeEventListener('click', cancelHandler);
-  onOk();
-};
-var cancelHandler = function () {
-  document.getElementById('confirmModal').classList.add('hidden');
-  okBtn.removeEventListener('click', okHandler);
-  cancelBtn.removeEventListener('click', cancelHandler);
-};
-okBtn.addEventListener('click', okHandler);
-cancelBtn.addEventListener('click', cancelHandler);
+  var okBtn = document.getElementById('confirmModalOk');
+  var cancelBtn = document.getElementById('confirmModalCancel');
+  var okHandler = function () {
+    document.getElementById('confirmModal').classList.add('hidden');
+    okBtn.removeEventListener('click', okHandler);
+    cancelBtn.removeEventListener('click', cancelHandler);
+    onOk();
+  };
+  var cancelHandler = function () {
+    document.getElementById('confirmModal').classList.add('hidden');
+    okBtn.removeEventListener('click', okHandler);
+    cancelBtn.removeEventListener('click', cancelHandler);
+  };
+  okBtn.addEventListener('click', okHandler);
+  cancelBtn.addEventListener('click', cancelHandler);
 }
 
 async function loadSettings() {
@@ -106,7 +106,8 @@ async function loadSettings() {
         var nextDate = new Date(s.last_display_name_change);
         nextDate.setDate(nextDate.getDate() + 7);
         var el = document.getElementById('displayNameLimitMsg');
-        el.textContent = 'You can change your display name again on ' + nextDate.toLocaleDateString();
+        el.textContent =
+          'You can change your display name again on ' + nextDate.toLocaleDateString();
         el.style.display = 'block';
         document.getElementById('accDisplayName').disabled = true;
       }
@@ -189,7 +190,10 @@ function bindSettings() {
 
   document.getElementById('btnSaveAccountConfirm').addEventListener('click', async function () {
     var pw = document.getElementById('accConfirmPassword').value;
-    if (!pw) { showToast('Please enter your current password.', true); return; }
+    if (!pw) {
+      showToast('Please enter your current password.', true);
+      return;
+    }
     try {
       await authFetch('/profile/settings/account', {
         method: 'PUT',
@@ -280,26 +284,30 @@ function bindSettings() {
       showToast('Passwords do not match', true);
       return;
     }
-    showConfirmModal('Change password?', 'Are you sure you want to change your password?', async function () {
-      try {
-        await authFetch('/profile/settings/password', {
-          method: 'PUT',
-          body: JSON.stringify({
-            current_password: document.getElementById('curPassword').value,
-            new_password: newPw,
-            new_password_confirm: confirmPw,
-            code: document.getElementById('pwd2faCode').value.trim(),
-          }),
-        });
-        showToast('Password updated');
-        document.getElementById('curPassword').value = '';
-        document.getElementById('newPassword').value = '';
-        document.getElementById('newPasswordConfirm').value = '';
-        document.getElementById('pwd2faCode').value = '';
-      } catch (err) {
-        showToast(err.message, true);
-      }
-    });
+    showConfirmModal(
+      'Change password?',
+      'Are you sure you want to change your password?',
+      async function () {
+        try {
+          await authFetch('/profile/settings/password', {
+            method: 'PUT',
+            body: JSON.stringify({
+              current_password: document.getElementById('curPassword').value,
+              new_password: newPw,
+              new_password_confirm: confirmPw,
+              code: document.getElementById('pwd2faCode').value.trim(),
+            }),
+          });
+          showToast('Password updated');
+          document.getElementById('curPassword').value = '';
+          document.getElementById('newPassword').value = '';
+          document.getElementById('newPasswordConfirm').value = '';
+          document.getElementById('pwd2faCode').value = '';
+        } catch (err) {
+          showToast(err.message, true);
+        }
+      },
+    );
   });
 
   // Payment
@@ -446,10 +454,14 @@ async function loadBlockedUsers() {
       .map(function (u) {
         return (
           '<li class="list-group-item d-flex justify-content-between align-items-center">' +
-          '<span><strong>' + escapeHtml(u.name) + '</strong><br /><small class="text-muted">' +
-          escapeHtml(u.email) + '</small></span>' +
+          '<span><strong>' +
+          escapeHtml(u.name) +
+          '</strong><br /><small class="text-muted">' +
+          escapeHtml(u.email) +
+          '</small></span>' +
           '<button type="button" class="btn btn-outline-secondary btn-sm unblock-btn" data-id="' +
-          u.blocked_id + '">Unblock</button></li>'
+          u.blocked_id +
+          '">Unblock</button></li>'
         );
       })
       .join('');
