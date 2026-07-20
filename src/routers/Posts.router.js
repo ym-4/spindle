@@ -95,7 +95,7 @@ router.get('/related/:category/:id', (req, res, next) => {
     .catch(next);
 });
 
-// Saved posts 
+// Saved posts
 router.get('/saved/:user_id', (req, res, next) => {
   const data = {
     user_id: req.params.user_id,
@@ -274,7 +274,7 @@ router.post('/', upload.single('attachment'), (req, res, next) => {
   const attachmentUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
   const data = {
-    user_id: req.body.user_id,
+    user_id: Number.parseInt(req.body.user_id, 10),
     title: req.body.title,
     category: req.body.category,
     content: req.body.content || '',
