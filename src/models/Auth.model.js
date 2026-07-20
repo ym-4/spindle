@@ -424,7 +424,7 @@ module.exports.banUserWithReason = async function banUserWithReason(
   userId,
   until,
   reason,
-  adminId,
+  _adminId,
 ) {
   await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS banned_reason TEXT`);
   await pool.query(`UPDATE "Person" SET suspended_until = $1, banned_reason = $2 WHERE id = $3`, [

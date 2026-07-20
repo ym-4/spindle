@@ -528,7 +528,7 @@ describe('Profile features', () => {
     const putRes = await request(app)
       .put('/profile/settings/account')
       .set('Authorization', `Bearer ${user.token}`)
-      .send({ bio: 'Hello campus', campus: 'SP', phone: '80001111' });
+      .send({ bio: 'Hello campus', campus: 'SP', phone: '80001111', current_password: 'secret' });
 
     expect(putRes.status).toBe(200);
     expect(putRes.body.settings.bio).toBe('Hello campus');
@@ -668,7 +668,7 @@ describe('Profile features', () => {
     const alice = await registerAndVerify('GroupAlice', 'galice@example.com');
     const { rows } = await pool.query(
       `INSERT INTO "Groups" (name, creator_id, description, school, module)
-       VALUES ('Test Group', $1, 'Desc', 'SP', 'MOD') RETURNING id`,
+       VALUES ('Test Group', $1, 'Desc', 'SOC', 'MOD') RETURNING id`,
       [alice.user.id],
     );
     await pool.query(

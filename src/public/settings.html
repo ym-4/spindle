@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Settings — Spindle</title>
+    <link rel="stylesheet" href="css/theme.css" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -151,6 +152,7 @@
               <div class="settings-pane-card">
                 <label>Display name</label>
                 <input type="text" id="accDisplayName" class="form-control" />
+                <div id="displayNameLimitMsg" class="small text-warning mt-1" style="display:none"></div>
                 <label>Email</label>
                 <div class="input-group">
                   <input type="email" id="accEmail" class="form-control" /><button
@@ -181,6 +183,14 @@
                   <option value="America/New_York">America/New York</option>
                   <option value="Europe/London">Europe/London</option>
                 </select>
+                <div id="accPasswordConfirm" class="mt-3 p-3 rounded" style="background:#fff3cd; display:none;">
+                  <label class="fw-semibold small">Re-enter your current password to confirm changes</label>
+                  <input type="password" id="accConfirmPassword" class="form-control mt-1" autocomplete="off" />
+                  <div class="d-flex gap-2 mt-2">
+                    <button type="button" class="btn btn-primary btn-sm" id="btnSaveAccountConfirm">Confirm</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSaveAccountCancel">Cancel</button>
+                  </div>
+                </div>
                 <button type="button" class="btn btn-primary mt-3" id="btnSaveAccount">
                   Save changes
                 </button>
@@ -223,7 +233,7 @@
                 <hr />
                 <h6>Change password</h6>
                 <label>Current password</label
-                ><input type="password" id="curPassword" class="form-control" />
+                ><input type="password" id="curPassword" class="form-control" autocomplete="off" />
                 <label>New password</label
                 ><input type="password" id="newPassword" class="form-control" minlength="4" />
                 <label>Confirm new password</label
@@ -271,9 +281,10 @@
             <div class="set-accordion-body" id="appBody">
               <div class="settings-pane-card">
                 <label>Theme</label>
-                <select id="appTheme" class="form-select">
+                  <select id="appTheme" class="form-select">
                   <option value="light">Light</option>
                   <option value="dark">Dark</option>
+                  <option value="futuristic">Futuristic</option>
                 </select>
                 <label>Font size</label>
                 <select id="appFontSize" class="form-select">
@@ -364,6 +375,65 @@
             </div>
           </div>
 
+          <!-- Notifications -->
+          <div class="set-accordion-item">
+            <button class="set-accordion-header" aria-expanded="false" data-target="notifBody">
+              <span class="set-icon" style="background: #e8f5e9; color: #2e7d32"
+                ><i class="fas fa-bell"></i
+              ></span>
+              <span
+                ><strong>Notifications</strong><br /><small class="text-muted"
+                  >What triggers alerts</small
+                ></span
+              >
+              <i class="fas fa-chevron-down set-chevron"></i>
+            </button>
+            <div class="set-accordion-body" id="notifBody">
+              <div class="settings-pane-card">
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="ntfEmail" checked />
+                  <label class="form-check-label" for="ntfEmail">Email notifications</label>
+                </div>
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="ntfProduct" checked />
+                  <label class="form-check-label" for="ntfProduct">Product updates</label>
+                </div>
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="ntfSecurity" checked />
+                  <label class="form-check-label" for="ntfSecurity">Security alerts</label>
+                </div>
+                <label class="mt-2">Digest frequency</label>
+                <select id="ntfFrequency" class="form-select">
+                  <option value="instant">Instant</option>
+                  <option value="daily">Daily digest</option>
+                  <option value="weekly">Weekly digest</option>
+                </select>
+                <button type="button" class="btn btn-primary mt-3" id="btnSaveNotifications">Save</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blocked users -->
+          <div class="set-accordion-item">
+            <button class="set-accordion-header" aria-expanded="false" data-target="blockBody">
+              <span class="set-icon" style="background: #fef3cd; color: #856404"
+                ><i class="fas fa-ban"></i
+              ></span>
+              <span
+                ><strong>Blocked users</strong><br /><small class="text-muted"
+                  >Manage blocked people</small
+                ></span
+              >
+              <i class="fas fa-chevron-down set-chevron"></i>
+            </button>
+            <div class="set-accordion-body" id="blockBody">
+              <div class="settings-pane-card">
+                <ul id="blockedUsersList" class="list-group list-group-flush"></ul>
+                <p id="blockedUsersEmpty" class="small text-muted mt-2">No blocked users.</p>
+              </div>
+            </div>
+          </div>
+
           <!-- Account actions -->
           <div class="set-accordion-item">
             <button class="set-accordion-header" aria-expanded="false" data-target="dangerBody">
@@ -407,6 +477,17 @@
             Cancel
           </button>
           <button type="button" class="btn btn-danger" id="dangerModalConfirm">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="confirmModal" class="wa-danger-modal hidden" role="dialog" aria-modal="true">
+      <div class="wa-danger-modal__card">
+        <h3 id="confirmModalTitle">Confirm</h3>
+        <p id="confirmModalBody"></p>
+        <div class="d-flex gap-2 justify-content-end mt-3">
+          <button type="button" class="btn btn-outline-secondary" id="confirmModalCancel">Cancel</button>
+          <button type="button" class="btn btn-primary" id="confirmModalOk">OK</button>
         </div>
       </div>
     </div>

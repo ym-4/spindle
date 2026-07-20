@@ -1,7 +1,7 @@
 /* Professional profile — Spindle light theme */
 .profile-page .content-area {
   padding: 0;
-  background: #f0f2f5;
+  background: var(--bg);
 }
 
 .pro-profile {
@@ -13,7 +13,7 @@
 .pro-profile__cover {
   position: relative;
   height: 200px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
   border-radius: 0 0 12px 12px;
   overflow: hidden;
 }
@@ -45,16 +45,16 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 4px solid #fff;
-  background: linear-gradient(135deg, #e02020, #ff6b6b);
+  border: 4px solid var(--bg-elevated);
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.5rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--accent-text);
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .pro-profile__avatar img {
@@ -79,19 +79,19 @@
 .pro-profile__name {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1c1c1c;
+  color: var(--text);
   margin: 0.75rem 0 0.25rem;
   clear: both;
 }
 
 .pro-profile__headline {
-  color: #65676b;
+  color: var(--text-secondary);
   font-size: 1rem;
   margin: 0;
 }
 
 .pro-profile__meta-line {
-  color: #65676b;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin-top: 0.35rem;
 }
@@ -101,9 +101,9 @@
   flex-wrap: wrap;
   gap: 1.5rem;
   padding: 1rem 1.5rem;
-  border-top: 1px solid #e4e6eb;
-  border-bottom: 1px solid #e4e6eb;
-  background: #fff;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
   margin: 0 1.5rem;
   border-radius: 12px;
   margin-top: 1rem;
@@ -112,35 +112,35 @@
 .pro-profile__stat strong {
   display: block;
   font-size: 1.25rem;
-  color: #1c1c1c;
+  color: var(--text);
 }
 
 .pro-profile__stat span {
   font-size: 0.8rem;
-  color: #65676b;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
 .pro-profile__section {
-  background: #fff;
+  background: var(--bg-elevated);
   margin: 1rem 1.5rem 0;
   padding: 1.25rem;
   border-radius: 12px;
-  border: 1px solid #e4e6eb;
+  border: 1px solid var(--border);
 }
 
 .pro-profile__section h3 {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #65676b;
+  color: var(--text-secondary);
   margin: 0 0 0.75rem;
   font-weight: 600;
 }
 
 .pro-profile__bio {
-  color: #1c1c1c;
+  color: var(--text);
   line-height: 1.6;
   margin: 0;
 }
@@ -156,9 +156,9 @@
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 500;
-  border: 1px solid #e4e6eb;
-  background: #f7f8fa;
-  color: #1c1c1c;
+  border: 1px solid var(--border);
+  background: var(--bg-hover);
+  color: var(--text);
 }
 
 .pro-profile__skill:nth-child(5n + 1) {
@@ -190,7 +190,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--border);
 }
 
 .pro-profile__links li:last-child {
@@ -198,7 +198,7 @@
 }
 
 .pro-profile__links a {
-  color: #1877f2;
+  color: var(--text-link);
   text-decoration: none;
 }
 
@@ -216,8 +216,8 @@
 /* Edit form */
 .pro-profile-edit {
   margin: 1rem 1.5rem;
-  background: #fff;
-  border: 1px solid #e4e6eb;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.25rem;
 }
@@ -234,7 +234,7 @@
   width: 100%;
   margin-top: 0.25rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #e4e6eb;
+  border: 1px solid var(--border);
   border-radius: 8px;
 }
 
@@ -244,7 +244,7 @@
 
 .pro-profile-edit .form-hint {
   font-size: 0.8rem;
-  color: #65676b;
+  color: var(--text-secondary);
   font-weight: 400;
 }
 

@@ -24,6 +24,10 @@ jest.mock('../../src/models/db', () => ({
   end: jest.fn(),
 }));
 
+beforeEach(() => {
+  pool.query.mockClear();
+});
+
 afterAll(() => {
   jest.restoreAllMocks();
 });
