@@ -5,14 +5,14 @@
    ─────────────────────────────────────────────── */
 
 :root,
-[data-theme="light"] {
+[data-theme='light'] {
   /* Backgrounds */
   --bg: #f0f2f5;
   --bg-elevated: #ffffff;
   --bg-input: #f0f2f5;
   --bg-hover: #f2f3f5;
   --bg-active: #e4e6eb;
-  --bg-overlay: rgba(0,0,0,0.5);
+  --bg-overlay: rgba(0, 0, 0, 0.5);
 
   /* Text */
   --text: #050505;
@@ -67,10 +67,10 @@
   --pill-SOC-text: #4a2db5;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-lg: 0 4px 16px rgba(0,0,0,0.12);
-  --shadow-xl: 0 8px 24px rgba(0,0,0,0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.16);
 
   /* Sidebar */
   --sidebar-bg: #ffffff;
@@ -88,7 +88,7 @@
 
   /* Modal */
   --modal-bg: #ffffff;
-  --modal-overlay: rgba(0,0,0,0.5);
+  --modal-overlay: rgba(0, 0, 0, 0.5);
 
   /* Input */
   --input-bg: #f0f2f5;
@@ -142,13 +142,13 @@
   --hover-bg: var(--bg-hover);
 }
 
-[data-theme="dark"] {
+[data-theme='dark'] {
   --bg: #18191a;
   --bg-elevated: #242526;
   --bg-input: #3a3b3c;
   --bg-hover: #3a3b3c;
   --bg-active: #4e4f50;
-  --bg-overlay: rgba(0,0,0,0.7);
+  --bg-overlay: rgba(0, 0, 0, 0.7);
 
   --text: #e4e6eb;
   --text-secondary: #b0b3b8;
@@ -196,10 +196,10 @@
   --pill-cca-text: #ff99c2;
   --pill-SOC-text: #b399ff;
 
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md: 0 2px 8px rgba(0,0,0,0.4);
-  --shadow-lg: 0 4px 16px rgba(0,0,0,0.5);
-  --shadow-xl: 0 8px 24px rgba(0,0,0,0.6);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.6);
 
   --sidebar-bg: #242526;
   --sidebar-width: 280px;
@@ -213,7 +213,7 @@
   --card-header-text: #e4e6eb;
 
   --modal-bg: #242526;
-  --modal-overlay: rgba(0,0,0,0.7);
+  --modal-overlay: rgba(0, 0, 0, 0.7);
 
   --input-bg: #3a3b3c;
   --input-border: #4e4f50;
@@ -259,13 +259,13 @@
   --hover-bg: var(--bg-hover);
 }
 
-[data-theme="futuristic"] {
+[data-theme='futuristic'] {
   --bg: #0a0e17;
   --bg-elevated: #111827;
   --bg-input: #1a2332;
   --bg-hover: #1a2332;
   --bg-active: #243044;
-  --bg-overlay: rgba(0,0,0,0.8);
+  --bg-overlay: rgba(0, 0, 0, 0.8);
 
   --text: #e0f2fe;
   --text-secondary: #94a3b8;
@@ -313,10 +313,10 @@
   --pill-cca-text: #f472b6;
   --pill-SOC-text: #a78bfa;
 
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
-  --shadow-md: 0 2px 8px rgba(0,0,0,0.5);
-  --shadow-lg: 0 4px 16px rgba(0,0,0,0.6);
-  --shadow-xl: 0 8px 24px rgba(0,0,0,0.7);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.7);
 
   --sidebar-bg: #111827;
   --sidebar-width: 280px;
@@ -330,7 +330,7 @@
   --card-header-text: #e0f2fe;
 
   --modal-bg: #111827;
-  --modal-overlay: rgba(0,0,0,0.8);
+  --modal-overlay: rgba(0, 0, 0, 0.8);
 
   --input-bg: #1a2332;
   --input-border: #334155;
@@ -387,7 +387,8 @@
   border-bottom-color: var(--card-border) !important;
   color: var(--card-header-text) !important;
 }
-.card-body, .card-footer {
+.card-body,
+.card-footer {
   background-color: var(--card-bg);
 }
 
@@ -433,17 +434,20 @@
   color: var(--text) !important;
 }
 
-.form-control, .form-select {
+.form-control,
+.form-select {
   background-color: var(--input-bg) !important;
   border-color: var(--input-border) !important;
   color: var(--input-text) !important;
 }
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
   background-color: var(--input-bg) !important;
   border-color: var(--accent) !important;
-   box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--accent) 25%, transparent) !important;
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--accent) 25%, transparent) !important;
 }
-.form-control::placeholder, .form-select::placeholder {
+.form-control::placeholder,
+.form-select::placeholder {
   color: var(--input-placeholder) !important;
 }
 
@@ -605,7 +609,11 @@ html .text-muted {
 html .text-secondary {
   color: var(--text-secondary) !important;
 }
-html .border, html .border-top, html .border-bottom, html .border-start, html .border-end {
+html .border,
+html .border-top,
+html .border-bottom,
+html .border-start,
+html .border-end {
   border-color: var(--border) !important;
 }
 
@@ -631,7 +639,9 @@ html .text-dark {
   color: var(--list-active-text) !important;
 }
 
-a:not(.btn):not(.nav-link):not(.dropdown-item):not(.list-group-item):not(.sidebar-item):not(.wa-btn) {
+a:not(.btn):not(.nav-link):not(.dropdown-item):not(.list-group-item):not(.sidebar-item):not(
+    .wa-btn
+  ) {
   color: var(--text-link);
 }
 a:hover {
@@ -639,7 +649,10 @@ a:hover {
 }
 
 /* Wa-specific overrides */
-.wa-list, .wa-list-item, .wa-side-panel, .wa-chat-shell {
+.wa-list,
+.wa-list-item,
+.wa-side-panel,
+.wa-chat-shell {
   background-color: var(--bg-elevated) !important;
 }
 .wa-bubble {

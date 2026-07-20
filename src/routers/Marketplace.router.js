@@ -1,7 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middlewares/upload');
-const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage, setItemTags, getItemsByTag, getRecommendedItems } = require('../models/Marketplace.model');
+const {
+  createItem,
+  getAllItems,
+  updateItem,
+  deleteItem,
+  getAllItemsById,
+  addImagesToItem,
+  deleteItemImage,
+  setItemTags,
+  getItemsByTag,
+  getRecommendedItems,
+} = require('../models/Marketplace.model');
 
 // Create a new item
 router.post('/', (req, res, next) => {

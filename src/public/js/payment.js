@@ -86,7 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('paymentForm').classList.add('d-none');
         document.getElementById('receiptRef').textContent = data.paymentRef;
         document.getElementById('receiptLast4').textContent = data.last4;
-        document.getElementById('receiptTotal').textContent = document.getElementById('paymentTotal').textContent;
+        document.getElementById('receiptTotal').textContent =
+          document.getElementById('paymentTotal').textContent;
         document.getElementById('paymentSuccess').classList.remove('d-none');
 
         clearCart(localStorage.loggedInUserId);

@@ -399,7 +399,6 @@ body {
   background: linear-gradient(135deg, #fff0d6, #ffe0b3);
   color: #7a4000;
 }
-}
 .category-qna {
   background-color: var(--bg-hover);
   color: var(--primary-color);
@@ -637,97 +636,97 @@ body {
 }
 
 .create-post-input input {
-    flex: 1;
-    margin-left: 0.75rem;
-    padding: 0.95rem 1.2rem;
+  flex: 1;
+  margin-left: 0.75rem;
+  padding: 0.95rem 1.2rem;
 
-    background: var(--bg-input);
-    border: 1.5px solid var(--border);
-    border-radius: 999px;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
 
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
 
-    cursor: pointer;
-    transition: all 0.2s ease;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .create-post-input input::placeholder {
-    color: var(--text-placeholder);
-    font-weight: 500;
+  color: var(--text-placeholder);
+  font-weight: 500;
 }
 
 .create-post-input input:hover {
-    background: var(--bg-hover);
-    border-color: var(--border);
-    box-shadow: var(--shadow-sm);
+  background: var(--bg-hover);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 .create-post-input input:focus {
-    outline: none;
-    background: var(--bg-elevated);
-    border-color: var(--accent);
-    box-shadow: 0 0 0 4px rgba(224, 32, 32, 0.08);
+  outline: none;
+  background: var(--bg-elevated);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(224, 32, 32, 0.08);
 }
 
 .create-post-options {
-    display: flex;
-    gap: 0.75rem;
-    padding-top: 0.85rem;
-    border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-color);
 }
 
 .create-post-option {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.55rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
 
-    padding: 0.8rem 0.75rem;
+  padding: 0.8rem 0.75rem;
 
-    border: none;
-    border-radius: 14px;
+  border: none;
+  border-radius: 14px;
 
-    background: var(--btn-secondary-bg);
-    color: var(--text-secondary);
+  background: var(--btn-secondary-bg);
+  color: var(--text-secondary);
 
-    font-size: 0.92rem;
-    font-weight: 600;
+  font-size: 0.92rem;
+  font-weight: 600;
 
-    cursor: pointer;
-    transition: all 0.2s ease;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .create-post-option i {
-    font-size: 1.1rem;
-    transition: transform .2s ease;
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
 }
 
 .create-post-option:hover {
-    background: var(--bg-elevated);
-    color: var(--text);
+  background: var(--bg-elevated);
+  color: var(--text);
 
-    transform: translateY(-1px);
+  transform: translateY(-1px);
 
-    box-shadow:
-        var(--shadow-md),
-        0 0 0 1px rgba(224,32,32,.08);
+  box-shadow:
+    var(--shadow-md),
+    0 0 0 1px rgba(224, 32, 32, 0.08);
 }
 
 .create-post-option:hover i {
-    transform: scale(1.15);
+  transform: scale(1.15);
 }
 
 .create-post-option:active {
-    transform: scale(.97);
+  transform: scale(0.97);
 }
 
 .create-post-option.selected {
-    background: rgba(224,32,32,.08);
-    color: var(--primary-color);
-    box-shadow: inset 0 0 0 2px rgba(224,32,32,.18);
+  background: rgba(224, 32, 32, 0.08);
+  color: var(--primary-color);
+  box-shadow: inset 0 0 0 2px rgba(224, 32, 32, 0.18);
 }
 
 .modern-post-modal {
@@ -868,7 +867,10 @@ body {
   background: var(--bg-elevated);
   border-radius: 8px;
   cursor: pointer;
-  transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+  transition:
+    opacity 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
   box-shadow: var(--shadow-sm);
 }
 
@@ -923,113 +925,113 @@ body {
 
 /* =========== Gif modal (posts.js) =========== */
 .modal-content.gif-modal {
-    border: none;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: var(--shadow-xl);
+  border: none;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
 }
 
-.modal-content.gif-modal .modal-header{
-    border-bottom:1px solid var(--border);
-    padding:18px 22px;
+.modal-content.gif-modal .modal-header {
+  border-bottom: 1px solid var(--border);
+  padding: 18px 22px;
 }
 
-.modal-content.gif-modal .modal-body{
-    padding:18px;
-    background:var(--bg-input);
+.modal-content.gif-modal .modal-body {
+  padding: 18px;
+  background: var(--bg-input);
 }
 
 /* Search */
-#gifSearchInput{
-    border-radius:14px;
-    border:1.5px solid var(--border-color);
-    padding:12px 16px;
-    font-size:15px;
-    transition:.18s;
+#gifSearchInput {
+  border-radius: 14px;
+  border: 1.5px solid var(--border-color);
+  padding: 12px 16px;
+  font-size: 15px;
+  transition: 0.18s;
 }
 
-#gifSearchInput:focus{
-    border-color:var(--primary-color);
-    box-shadow:0 0 0 .2rem rgba(24,119,242,.12);
+#gifSearchInput:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(24, 119, 242, 0.12);
 }
 
 /* Results */
-#giphyResults{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-    gap:10px;
-    max-height:420px;
-    overflow-y:auto;
-    padding:4px;
+#giphyResults {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 4px;
 }
 
 /* scrollbar */
-#giphyResults::-webkit-scrollbar{
-    width:8px;
+#giphyResults::-webkit-scrollbar {
+  width: 8px;
 }
 
-#giphyResults::-webkit-scrollbar-thumb{
-    background:var(--border);
-    border-radius:20px;
+#giphyResults::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 20px;
 }
 
 /* GIF */
-.giphy-thumb{
-    width:100%;
-    height:auto;
-    max-height:220px;
-    object-fit:contain;
-    background:var(--bg-elevated);
-    border-radius:12px;
-    cursor:pointer;
-    transition:.18s;
-    border:3px solid transparent;
-    box-shadow:var(--shadow-sm);
+.giphy-thumb {
+  width: 100%;
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+  background: var(--bg-elevated);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.18s;
+  border: 3px solid transparent;
+  box-shadow: var(--shadow-sm);
 }
 
-.giphy-thumb:hover{
-    transform:translateY(-3px);
-    box-shadow:var(--shadow-lg);
+.giphy-thumb:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
 }
 
-.giphy-thumb.selected{
-    border-color:var(--primary-color);
-    box-shadow:0 0 0 3px rgba(24,119,242,.15);
+.giphy-thumb.selected {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.15);
 }
 
 /* Loading */
-.giphy-loading{
-    text-align:center;
-    padding:40px;
-    color:var(--text-placeholder);
+.giphy-loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-placeholder);
 }
 
 /* Empty */
-.giphy-empty{
-    text-align:center;
-    padding:50px;
-    color:var(--text-muted);
-    font-size:15px;
+.giphy-empty {
+  text-align: center;
+  padding: 50px;
+  color: var(--text-muted);
+  font-size: 15px;
 }
 
-#openEditGifPicker{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border:none;
-    border-radius: 45%;
-    background:var(--btn-secondary-bg);
-    color:var(--btn-secondary-text);
-    font-size:1.1rem;
-    cursor:pointer;
+#openEditGifPicker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 45%;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  font-size: 1.1rem;
+  cursor: pointer;
 }
 
-#openEditGifPicker:hover{
-    transform:translateY(-1px) scale(1.04);
+#openEditGifPicker:hover {
+  transform: translateY(-1px) scale(1.04);
 }
 
-#openEditGifPicker:active{
-    transform:scale(.5);
+#openEditGifPicker:active {
+  transform: scale(0.5);
 }
 
 /* ── Category filter pills ───────────────────────────────── */
@@ -1599,7 +1601,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  transition: background-color 0.15s, color 0.15s;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
 }
 
 .comment-like-btn:hover {

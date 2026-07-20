@@ -7,7 +7,7 @@ async function findOrCreateTag(name) {
     `INSERT INTO "Tags" ("name") VALUES ($1)
      ON CONFLICT ("name") DO UPDATE SET "name" = EXCLUDED."name"
      RETURNING "id", "name"`,
-    [normalized]
+    [normalized],
   );
   return rows[0];
 }
