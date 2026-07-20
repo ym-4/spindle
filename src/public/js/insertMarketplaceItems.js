@@ -34,10 +34,12 @@ function addListing(seller_id, id, name, description, price, quality, meetup, im
   const meetupMarkup = meetup
     ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(meetup)}</p>`
     : '';
-  const thumbnailSrc = images && images.length > 0 ? images[0].image_url : '../marketplace-uploads/1.png';
-  const tagsMarkup = tags && tags.length > 0
-    ? `<div class="spindle-card-tags">${tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
-    : '';
+  const thumbnailSrc =
+    images && images.length > 0 ? images[0].image_url : '../marketplace-uploads/1.png';
+  const tagsMarkup =
+    tags && tags.length > 0
+      ? `<div class="spindle-card-tags">${tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
+      : '';
 
   card.innerHTML = `
     <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(id)}">
@@ -180,7 +182,11 @@ async function loadUserListings() {
       } else {
         emptyState.classList.add('d-none');
 
-        for (let i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
+        for (
+          let i = (currentPage - 1) * LISTINGS_PER_PAGE;
+          i < LISTINGS_PER_PAGE * currentPage;
+          i++
+        ) {
           if (!userListings[i]) continue;
           addListing(
             userListings[i].seller_id,
@@ -315,7 +321,6 @@ let currentPage = 1;
 
 // Insert the correct items based on the name of the document ;-D
 if (document.title == 'Marketplace') {
-
   document.getElementById('prev-page-btn').addEventListener('click', () => {
     if (currentPage > 1) {
       currentPage--;
@@ -333,7 +338,6 @@ if (document.title == 'Marketplace') {
 } else if (document.title == 'Cart') {
   loadCart();
 } else if (document.title == 'Marketplace - Your Listings') {
-
   document.getElementById('prev-page-btn').addEventListener('click', () => {
     if (currentPage > 1) {
       currentPage--;

@@ -15,7 +15,9 @@ async function ensurePaymentRow(userId) {
 }
 
 module.exports.getAllSettings = async function getAllSettings(userId) {
-  await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS last_display_name_change TIMESTAMP`);
+  await pool.query(
+    `ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS last_display_name_change TIMESTAMP`,
+  );
   await ensureSettingsRow(userId);
   await ensurePaymentRow(userId);
   const { rows } = await pool.query(
@@ -40,10 +42,14 @@ module.exports.getAllSettings = async function getAllSettings(userId) {
 module.exports.getSettings = module.exports.getAllSettings;
 
 module.exports.updateAccountSettings = async function updateAccountSettings(userId, data) {
-  await pool.query(`ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS last_display_name_change TIMESTAMP`);
+  await pool.query(
+    `ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS last_display_name_change TIMESTAMP`,
+  );
 
   if (data.current_password) {
-    const { rows } = await pool.query(`SELECT hashed_password FROM "Person" WHERE id = $1`, [userId]);
+    const { rows } = await pool.query(`SELECT hashed_password FROM "Person" WHERE id = $1`, [
+      userId,
+    ]);
     const Auth = require('./Auth.model');
     if (!Auth.verifyPassword(data.current_password, rows[0]?.hashed_password || '')) {
       const err = new Error('Current password is incorrect.');
@@ -54,28 +60,32 @@ module.exports.updateAccountSettings = async function updateAccountSettings(user
 
   if (data.display_name !== undefined) {
     const { rows: existing } = await pool.query(
-      `SELECT display_name, last_display_name_change FROM "Person" WHERE id = $1`, [userId]
+      `SELECT display_name, last_display_name_change FROM "Person" WHERE id = $1`,
+      [userId],
     );
     const row = existing[0];
     if (row && row.display_name && row.display_name !== data.display_name?.trim()) {
       if (row.last_display_name_change) {
-        const daysSince = (Date.now() - new Date(row.last_display_name_change).getTime()) / 86400000;
+        const daysSince =
+          (Date.now() - new Date(row.last_display_name_change).getTime()) / 86400000;
         if (daysSince < 7) {
-          const err = new Error('You can change your display name again on ' +
-            new Date(row.last_display_name_change.getTime() + 7 * 86400000).toLocaleDateString());
+          const err = new Error(
+            'You can change your display name again on ' +
+              new Date(row.last_display_name_change.getTime() + 7 * 86400000).toLocaleDateString(),
+          );
           err.status = 429;
           throw err;
         }
       }
-      await pool.query(`UPDATE "Person" SET display_name = $1, last_display_name_change = NOW() WHERE id = $2`, [
-        data.display_name?.trim() || null,
-        userId,
-      ]);
+      await pool.query(
+        `UPDATE "Person" SET display_name = $1, last_display_name_change = NOW() WHERE id = $2`,
+        [data.display_name?.trim() || null, userId],
+      );
     } else if (row && !row.display_name) {
-      await pool.query(`UPDATE "Person" SET display_name = $1, last_display_name_change = NOW() WHERE id = $2`, [
-        data.display_name?.trim() || null,
-        userId,
-      ]);
+      await pool.query(
+        `UPDATE "Person" SET display_name = $1, last_display_name_change = NOW() WHERE id = $2`,
+        [data.display_name?.trim() || null, userId],
+      );
     }
   }
   if (data.email?.trim()) {
@@ -93,9 +103,9 @@ module.exports.updateAccountSettings = async function updateAccountSettings(user
     [data.phone ?? null, data.campus ?? null, data.language ?? null, data.timezone ?? null, userId],
   );
   const result = await module.exports.getAllSettings(userId);
-  result.last_display_name_change = (await pool.query(
-    `SELECT last_display_name_change FROM "Person" WHERE id = $1`, [userId]
-  )).rows[0]?.last_display_name_change || null;
+  result.last_display_name_change =
+    (await pool.query(`SELECT last_display_name_change FROM "Person" WHERE id = $1`, [userId]))
+      .rows[0]?.last_display_name_change || null;
   return result;
 };
 

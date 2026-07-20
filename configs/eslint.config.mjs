@@ -183,10 +183,24 @@ export default [
   // ── Server-side unused-vars overrides ──────────────────
   // Excludes src/public/js/ which has its own relaxed config
   {
-    files: ['src/**/*.js', 'scripts/**/*.js', 'configs/**/*.js', '__tests__/**/*.js', 'e2e-tests/**/*.js', 'tests-examples/**/*.js'],
+    files: [
+      'src/**/*.js',
+      'scripts/**/*.js',
+      'configs/**/*.js',
+      '__tests__/**/*.js',
+      'e2e-tests/**/*.js',
+      'tests-examples/**/*.js',
+    ],
     ignores: ['src/public/js/**/*.js', 'src/public/getCurrentURL.js'],
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_|^(next|req|res|e)$', caughtErrors: 'none' }],
+      'no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_|^(next|req|res|e)$',
+          caughtErrors: 'none',
+        },
+      ],
     },
   },
 

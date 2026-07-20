@@ -110,7 +110,9 @@
   font-size: 1.1rem;
   padding: 0.4rem 0.75rem;
   border-radius: 6px;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .btn-back-listing:hover {

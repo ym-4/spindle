@@ -82,10 +82,14 @@ function renderRecommendedCard(item) {
   const meetupMarkup = item.meetup
     ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(item.meetup)}</p>`
     : '';
-  const thumbnailSrc = item.images && item.images.length > 0 ? item.images[0].image_url : '../marketplace-uploads/1.png';
-  const tagsMarkup = item.tags && item.tags.length > 0
-    ? `<div class="spindle-card-tags">${item.tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
-    : '';
+  const thumbnailSrc =
+    item.images && item.images.length > 0
+      ? item.images[0].image_url
+      : '../marketplace-uploads/1.png';
+  const tagsMarkup =
+    item.tags && item.tags.length > 0
+      ? `<div class="spindle-card-tags">${item.tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
+      : '';
 
   card.innerHTML = `
     <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(item.id)}">
@@ -163,10 +167,14 @@ function renderRecommendedCard(item) {
   const meetupMarkup = item.meetup
     ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(item.meetup)}</p>`
     : '';
-  const thumbnailSrc = item.images && item.images.length > 0 ? item.images[0].image_url : '../marketplace-uploads/1.png';
-  const tagsMarkup = item.tags && item.tags.length > 0
-    ? `<div class="spindle-card-tags">${item.tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
-    : '';
+  const thumbnailSrc =
+    item.images && item.images.length > 0
+      ? item.images[0].image_url
+      : '../marketplace-uploads/1.png';
+  const tagsMarkup =
+    item.tags && item.tags.length > 0
+      ? `<div class="spindle-card-tags">${item.tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
+      : '';
 
   card.innerHTML = `
     <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(item.id)}">
