@@ -15,7 +15,7 @@ const {
   insertSaved,
   getReactionByUserID,
   insertLike,
-  updateReaction
+  updateReaction,
 } = require('../../src/models/Posts.model');
 
 // ── Mocking ──────────────────────────────────────────────
@@ -23,6 +23,10 @@ jest.mock('../../src/models/db', () => ({
   query: jest.fn(),
   end: jest.fn(),
 }));
+
+beforeEach(() => {
+  pool.query.mockClear();
+});
 
 afterAll(() => {
   jest.restoreAllMocks();
@@ -90,10 +94,7 @@ describe('Posts.model - getPostByID', () => {
 
     const result = await getPostByID({ id: 1 });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('WHERE p.id = $1'),
-      [1],
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE p.id = $1'), [1]);
     expect(result).toEqual(fakePost);
   });
 
@@ -103,10 +104,7 @@ describe('Posts.model - getPostByID', () => {
 
     const result = await getPostByID({ id: 999 });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('WHERE p.id = $1'),
-      [999],
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE p.id = $1'), [999]);
     expect(result).toBeUndefined();
   });
 
@@ -116,10 +114,7 @@ describe('Posts.model - getPostByID', () => {
 
     const result = await getPostByID({ id: 0 });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('WHERE p.id = $1'),
-      [0],
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE p.id = $1'), [0]);
     expect(result).toBeUndefined();
   });
 
@@ -154,10 +149,9 @@ describe('Posts.model - getPostByCategory', () => {
 
     const result = await getPostByCategory({ category: 'general' });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('WHERE p.category = $1'),
-      ['general'],
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE p.category = $1'), [
+      'general',
+    ]);
     expect(result).toEqual(fakePosts);
   });
 
@@ -167,10 +161,9 @@ describe('Posts.model - getPostByCategory', () => {
 
     await getPostByCategory({ category: 'q&a' });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('WHERE p.category = $1'),
-      ['qna'],
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE p.category = $1'), [
+      'qna',
+    ]);
   });
 
   // Boundary: no posts exist in the specified category
@@ -179,10 +172,9 @@ describe('Posts.model - getPostByCategory', () => {
 
     const result = await getPostByCategory({ category: 'events' });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('WHERE p.category = $1'),
-      ['events'],
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE p.category = $1'), [
+      'events',
+    ]);
     expect(result).toEqual([]);
   });
 
@@ -190,9 +182,9 @@ describe('Posts.model - getPostByCategory', () => {
   test('should propagate database errors', async () => {
     pool.query.mockRejectedValue(new Error('database connection failed'));
 
-    await expect(
-      getPostByCategory({ category: 'general' }),
-    ).rejects.toThrow('database connection failed');
+    await expect(getPostByCategory({ category: 'general' })).rejects.toThrow(
+      'database connection failed',
+    );
   });
 });
 
@@ -258,17 +250,7 @@ describe('Posts.model - insertPost', () => {
     expect(pool.query).toHaveBeenCalledWith(
       `INSERT INTO "Posts" (user_id, title, category, content, attachment_url, gif_url, is_anonymous, visibility, pinned) 
   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-      [
-        2,
-        'Default Values',
-        'confession',
-        'Testing defaults',
-        null,
-        null,
-        true,
-        'everyone',
-        false,
-      ],
+      [2, 'Default Values', 'confession', 'Testing defaults', null, null, true, 'everyone', false],
     );
 
     expect(result).toEqual(fakePost);
@@ -289,30 +271,27 @@ describe('Posts.model - insertPost', () => {
       is_anonymous: false,
     });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.any(String),
-      [
-        1,
-        '',
-        'general',
-        'Content',
-        null,
-        null,
-        false,
-        'everyone',
-        false,
-      ],
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [
+      1,
+      '',
+      'general',
+      'Content',
+      null,
+      null,
+      false,
+      'everyone',
+      false,
+    ]);
   });
 
   // Error handling: foreign key violation propagates to the caller
-    test('should propagate foreign key errors', async () => {
+  test('should propagate foreign key errors', async () => {
     pool.query.mockRejectedValue(
-        new Error('insert or update on table "Posts" violates foreign key constraint'),
+      new Error('insert or update on table "Posts" violates foreign key constraint'),
     );
 
     await expect(
-        insertPost({
+      insertPost({
         user_id: 999,
         title: 'Test',
         category: 'general',
@@ -320,9 +299,9 @@ describe('Posts.model - insertPost', () => {
         attachment_url: null,
         gif_url: null,
         is_anonymous: false,
-        }),
+      }),
     ).rejects.toThrow('foreign key');
-    });
+  });
 
   // Error handling: database errors propagate to the caller
   test('should propagate database errors', async () => {
@@ -370,15 +349,7 @@ describe('Posts.model - updatePostByID', () => {
     expect(pool.query).toHaveBeenCalledWith(
       `UPDATE "Posts" SET "title" = $1, "content" = $2, "category" = $3, "attachment_url" = $4, "gif_url" = $5, "visibility" = $6, "updated_at" = CURRENT_TIMESTAMP 
      WHERE "id" = $7 RETURNING *`,
-      [
-        'Updated Title',
-        'Updated content',
-        'general',
-        'image.png',
-        'gif.gif',
-        'everyone',
-        1,
-      ],
+      ['Updated Title', 'Updated content', 'general', 'image.png', 'gif.gif', 'everyone', 1],
     );
 
     expect(result).toEqual(updatedPost);
@@ -409,7 +380,7 @@ describe('Posts.model - updatePostByID', () => {
     expect(params).toContain(1);
   });
 
-  // Boundary: default visibility is used 
+  // Boundary: default visibility is used
   test('should use default visibility when visibility is not provided', async () => {
     pool.query.mockResolvedValue({ rows: [] });
 
@@ -422,18 +393,15 @@ describe('Posts.model - updatePostByID', () => {
       gif_url: null,
     });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.any(String),
-      [
-        'Updated',
-        'Updated',
-        'general',
-        null,
-        null,
-        'everyone',
-        1,
-      ],
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [
+      'Updated',
+      'Updated',
+      'general',
+      null,
+      null,
+      'everyone',
+      1,
+    ]);
   });
 
   // Boundary: non-existent id returns undefined
@@ -467,18 +435,15 @@ describe('Posts.model - updatePostByID', () => {
       visibility: 'everyone',
     });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.any(String),
-      [
-        'Test',
-        'Content',
-        'general',
-        null,
-        null,
-        'everyone',
-        0,
-      ],
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [
+      'Test',
+      'Content',
+      'general',
+      null,
+      null,
+      'everyone',
+      0,
+    ]);
 
     expect(result).toBeUndefined();
   });
@@ -517,14 +482,11 @@ describe('Posts.model - deletePostByID', () => {
 
     const result = await deletePostByID({ id: 3 });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      'DELETE FROM "Posts" WHERE "id" = $1 RETURNING *',
-      [3],
-    );
+    expect(pool.query).toHaveBeenCalledWith('DELETE FROM "Posts" WHERE "id" = $1 RETURNING *', [3]);
     expect(result).toEqual(deletedPost);
   });
 
-  // Boundary: non-existent id returns undefined 
+  // Boundary: non-existent id returns undefined
   test('should return undefined when id does not exist', async () => {
     pool.query.mockResolvedValue({ rows: [] });
 
@@ -540,16 +502,13 @@ describe('Posts.model - deletePostByID', () => {
     await expect(deletePostByID({ id: 1 })).rejects.toThrow('connection lost');
   });
 
-  // Boundary: id = 0 is below the valid range 
+  // Boundary: id = 0 is below the valid range
   test('should pass id = 0 to the query (boundary value)', async () => {
     pool.query.mockResolvedValue({ rows: [] });
 
     const result = await deletePostByID({ id: 0 });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      'DELETE FROM "Posts" WHERE "id" = $1 RETURNING *',
-      [0],
-    );
+    expect(pool.query).toHaveBeenCalledWith('DELETE FROM "Posts" WHERE "id" = $1 RETURNING *', [0]);
     expect(result).toBeUndefined();
   });
 
@@ -817,9 +776,7 @@ describe('Posts.model - getPollByPostID', () => {
       },
     ];
 
-    pool.query
-      .mockResolvedValueOnce({ rows: [poll] })
-      .mockResolvedValueOnce({ rows: options });
+    pool.query.mockResolvedValueOnce({ rows: [poll] }).mockResolvedValueOnce({ rows: options });
 
     const result = await getPollByPostID({
       post_id: 5,
@@ -831,11 +788,7 @@ describe('Posts.model - getPollByPostID', () => {
       [5],
     );
 
-    expect(pool.query).toHaveBeenNthCalledWith(
-      2,
-      expect.stringContaining('SELECT'),
-      [1],
-    );
+    expect(pool.query).toHaveBeenNthCalledWith(2, expect.stringContaining('SELECT'), [1]);
 
     expect(result).toEqual({
       ...poll,
@@ -851,9 +804,7 @@ describe('Posts.model - getPollByPostID', () => {
       question: 'Empty poll',
     };
 
-    pool.query
-      .mockResolvedValueOnce({ rows: [poll] })
-      .mockResolvedValueOnce({ rows: [] });
+    pool.query.mockResolvedValueOnce({ rows: [poll] }).mockResolvedValueOnce({ rows: [] });
 
     const result = await getPollByPostID({
       post_id: 8,
@@ -886,10 +837,7 @@ describe('Posts.model - getPollByPostID', () => {
       post_id: 0,
     });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      'SELECT * FROM "PostPolls" WHERE post_id = $1',
-      [0],
-    );
+    expect(pool.query).toHaveBeenCalledWith('SELECT * FROM "PostPolls" WHERE post_id = $1', [0]);
 
     expect(result).toBeNull();
   });
@@ -955,9 +903,7 @@ describe('Posts.model - insertPollVote', () => {
 
   // Error handling: duplicate vote violates the UNIQUE constraint
   test('should propagate unique constraint errors when a user votes twice', async () => {
-    pool.query.mockRejectedValue(
-      new Error('duplicate key value violates unique constraint'),
-    );
+    pool.query.mockRejectedValue(new Error('duplicate key value violates unique constraint'));
 
     await expect(
       insertPollVote({
@@ -1017,10 +963,7 @@ describe('Posts.model - getSavedByUserID', () => {
       user_id: 5,
     });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      'SELECT * FROM "SavedPosts" WHERE user_id = $1',
-      [5],
-    );
+    expect(pool.query).toHaveBeenCalledWith('SELECT * FROM "SavedPosts" WHERE user_id = $1', [5]);
 
     expect(result).toEqual(savedPosts);
   });
@@ -1044,10 +987,7 @@ describe('Posts.model - getSavedByUserID', () => {
       user_id: 0,
     });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      'SELECT * FROM "SavedPosts" WHERE user_id = $1',
-      [0],
-    );
+    expect(pool.query).toHaveBeenCalledWith('SELECT * FROM "SavedPosts" WHERE user_id = $1', [0]);
 
     expect(result).toEqual([]);
   });
@@ -1105,9 +1045,7 @@ describe('Posts.model - insertSaved', () => {
 
   // Error handling: duplicate save violates the UNIQUE constraint
   test('should propagate unique constraint errors when a post is saved twice', async () => {
-    pool.query.mockRejectedValue(
-      new Error('duplicate key value violates unique constraint'),
-    );
+    pool.query.mockRejectedValue(new Error('duplicate key value violates unique constraint'));
 
     await expect(
       insertSaved({
@@ -1264,9 +1202,7 @@ describe('Posts.model - insertLike', () => {
 
   // Error handling: duplicate reaction violates the UNIQUE constraint
   test('should propagate unique constraint errors when a user reacts to the same post twice', async () => {
-    pool.query.mockRejectedValue(
-      new Error('duplicate key value violates unique constraint'),
-    );
+    pool.query.mockRejectedValue(new Error('duplicate key value violates unique constraint'));
 
     await expect(
       insertLike({
