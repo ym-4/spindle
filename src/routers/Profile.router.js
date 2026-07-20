@@ -19,6 +19,12 @@ router.get('/settings', async (req, res, next) => {
 
 router.put('/settings/account', async (req, res, next) => {
   try {
+    const { current_password, email, phone, display_name } = req.body ?? {};
+    if (email !== undefined || phone !== undefined || display_name !== undefined) {
+      if (!current_password) {
+        return res.status(400).json({ error: 'Current password is required to change account settings.' });
+      }
+    }
     const settings = await Profile.updateAccountSettings(req.user.id, req.body ?? {});
     res.status(200).json({ settings });
   } catch (err) {

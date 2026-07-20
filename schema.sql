@@ -454,7 +454,7 @@ CREATE TABLE "UserSettings" (
   "notify_product" BOOLEAN DEFAULT FALSE,
   "notify_security" BOOLEAN DEFAULT TRUE,
   "notify_frequency" TEXT DEFAULT 'weekly',
-  "theme" TEXT DEFAULT 'dark',
+  "theme" TEXT DEFAULT 'light',
   "compact_mode" BOOLEAN DEFAULT FALSE,
   "font_size" TEXT DEFAULT 'medium',
   "public_profile" BOOLEAN DEFAULT TRUE,

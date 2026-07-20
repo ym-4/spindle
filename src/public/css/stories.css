@@ -8,11 +8,11 @@
   --amber: #f7b731;
   --magenta: #c44dff;
   --twilight: #1a1a2e;
-  --card-bg: #ffffff;
-  --text-soft: #8888a0;
-  --text-body: #2d2d3f;
-  --ring-grey: #d0d0d8;
-  --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --card-bg: var(--bg-elevated);
+  --text-soft: var(--text-muted);
+  --text-body: var(--text);
+  --ring-grey: var(--ring-seen);
+  --shadow-soft: var(--shadow-md);
 
   --ring-anim: conic-gradient(from 0deg, var(--coral), var(--amber), var(--magenta), var(--coral));
   font-family:
@@ -107,7 +107,7 @@
   font-weight: 700;
   font-size: 1.1rem;
   color: var(--text-soft);
-  background: #f0f0f5;
+  background: var(--bg);
 }
 
 .story-ring-avatar img {
@@ -206,7 +206,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid #e4e6eb;
+  border: 1px solid var(--border);
   background: var(--card-bg);
   color: var(--text-soft);
   display: flex;
@@ -334,12 +334,12 @@
 
 .stories-desc-input {
   width: 100%;
-  border: 1px solid #e4e6eb;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.5rem 0.75rem;
   font-size: 0.85rem;
   font-family: 'Inter', sans-serif;
-  background: #fafafa;
+  background: var(--bg);
   color: var(--text-body);
   resize: vertical;
   min-height: 60px;
@@ -396,7 +396,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(90deg, #e8e8ee 25%, #f0f0f5 50%, #e8e8ee 75%);
+  background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
   flex-shrink: 0;
@@ -406,7 +406,7 @@
   height: 14px;
   border-radius: 8px;
   flex: 1;
-  background: linear-gradient(90deg, #e8e8ee 25%, #f0f0f5 50%, #e8e8ee 75%);
+  background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
@@ -441,7 +441,7 @@
   gap: 0.75rem;
   padding: 0.65rem 0.5rem;
   cursor: pointer;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border);
   transition: background 0.15s;
   border-radius: 8px;
   margin: 0 -0.5rem;
@@ -494,7 +494,7 @@
   font-weight: 700;
   font-size: 0.85rem;
   color: var(--text-soft);
-  background: #f0f0f5;
+  background: var(--bg);
 }
 
 .stories-list-avatar img {
@@ -533,7 +533,7 @@
 
 .stories-draft-btn {
   background: none;
-  border: 1px solid #e4e6eb;
+  border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0.35rem 0.75rem;
   font-size: 0.75rem;
@@ -566,13 +566,13 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.5rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--divider);
   border-radius: 6px;
   transition: background 0.1s;
 }
 
 .stories-draft-item:hover {
-  background: #fafafa;
+  background: var(--bg);
 }
 
 .stories-draft-info {
@@ -616,17 +616,17 @@
   cursor: pointer;
   font-size: 0.7rem;
   transition: background 0.1s;
-  background: #f0f0f5;
-  color: #666;
+  background: var(--bg);
+  color: var(--text-secondary);
 }
 
 .stories-draft-actions button:hover {
-  background: #e4e4ec;
+  background: var(--bg-hover);
 }
 
 .stories-draft-publish {
   background: #e8f5e9 !important;
-  color: #2e7d32 !important;
+  color: var(--success) !important;
 }
 
 .stories-draft-publish:hover {

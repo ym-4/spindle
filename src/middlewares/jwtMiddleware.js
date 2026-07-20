@@ -40,7 +40,7 @@ module.exports.generateToken = (req, res, next) => {
     }
   };
 
-  const token = jwt.sign(payload, secretKey, options, callback); // generate token
+  jwt.sign(payload, secretKey, options, callback); // generate token
 };
 
 //////////////////////////////////////////////////////

@@ -187,3 +187,31 @@ main {
   font-size: 14px;
   color: #777;
 }
+
+/* ── Dark / Futuristic theme overrides ──────────────────────────── */
+[data-theme="dark"] main,
+[data-theme="futuristic"] main {
+  background-color: var(--bg);
+}
+
+[data-theme="dark"] .group-card,
+[data-theme="futuristic"] .group-card {
+  background: var(--card-bg);
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+[data-theme="dark"] .group-card p,
+[data-theme="futuristic"] .group-card p {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .group-footer,
+[data-theme="futuristic"] .group-footer {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .card-line,
+[data-theme="futuristic"] .card-line {
+  background: var(--border);
+}
