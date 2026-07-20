@@ -4,10 +4,10 @@
 }
 
 .settings-spindle-page .settings-menu-card {
-  border: 1px solid #e4e6eb;
+  border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: var(--bg-elevated);
 }
 
 .settings-spindle-page .settings-menu-item {
@@ -17,14 +17,14 @@
   width: 100%;
   padding: 1rem 1.25rem;
   border: none;
-  border-bottom: 1px solid #e4e6eb;
-  background: #fff;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
   text-align: left;
   cursor: pointer;
 }
 
 .settings-spindle-page .settings-menu-item:hover {
-  background: #f7f8fa;
+  background: var(--bg-hover);
 }
 
 .settings-spindle-page .settings-menu-item:last-child {
@@ -38,8 +38,8 @@
 }
 
 .settings-spindle-page .settings-pane-card {
-  background: #fff;
-  border: 1px solid #e4e6eb;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.25rem;
 }
@@ -48,7 +48,7 @@
   display: block;
   margin-bottom: 0.75rem;
   font-weight: 500;
-  color: #1c1c1c;
+  color: var(--text);
 }
 
 .settings-spindle-page .settings-pane-card input,
@@ -57,14 +57,14 @@
   width: 100%;
   margin-top: 0.25rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #e4e6eb;
+  border: 1px solid var(--border);
   border-radius: 8px;
 }
 
 .settings-spindle-page .wa-danger-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--bg-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -76,8 +76,8 @@
 }
 
 .settings-spindle-page .wa-danger-modal__card {
-  background: #fff;
-  color: #1c1c1c;
+  background: var(--bg-elevated);
+  color: var(--text);
   padding: 1.5rem;
   border-radius: 12px;
   max-width: 400px;

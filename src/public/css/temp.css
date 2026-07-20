@@ -6,8 +6,8 @@
 
 .sidebar {
   width: 250px;
-  background-color: #fff;
-  border-right: 1px solid #ddd;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
   flex-shrink: 0;
 }
 
@@ -17,6 +17,6 @@
 }
 
 main {
-  background-color: #f0f2f5;
+  background-color: var(--bg);
   padding-top: 1rem !important;
 }

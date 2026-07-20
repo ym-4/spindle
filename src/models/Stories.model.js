@@ -98,7 +98,7 @@ module.exports.addView = async function addView(storyId, viewerId) {
   return rows[0] || null;
 };
 
-module.exports.getViews = async function getViews(storyId, userId) {
+module.exports.getViews = async function getViews(storyId, _userId) {
   var { rows: countRows } = await pool.query(
     `SELECT COUNT(*)::int AS count FROM "StoryViews" WHERE story_id = $1`,
     [storyId],

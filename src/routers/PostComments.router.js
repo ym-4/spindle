@@ -15,6 +15,7 @@ const {
   updateCommentReaction,
   deleteCommentReaction,
   deleteCommentByPostOwner,
+  insertCommentReport,
 } = require('../models/PostComments.model');
 
 const router = express.Router();
