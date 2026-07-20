@@ -1,3 +1,5 @@
+/* global loadListings, addListing, loadUserListings */
+
 let searchBar = document.getElementById('marketplaceSearch');
 let listingContainer = document.getElementById('listings-container');
 

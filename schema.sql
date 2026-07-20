@@ -413,7 +413,7 @@ CREATE TABLE "Notes" (
     REFERENCES "Groups"("id") ON DELETE CASCADE,
   FOREIGN KEY ("folder_id")
     REFERENCES "NoteFolders"("id") ON DELETE SET NULL,
-  UNIQUE ("group_id", "name")
+  UNIQUE ("group_id", "title")
 );
 
 -- Updates notes updated at

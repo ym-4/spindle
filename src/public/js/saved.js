@@ -1,3 +1,5 @@
+/* global fetchMethod, currentUrl, API_BASE, getApiBase */
+
 //  Spindle — Saved Posts Page
 //  GET /posts/saved/:user_id  → display saved posts
 //  DELETE /posts/saved/:id    → unsave

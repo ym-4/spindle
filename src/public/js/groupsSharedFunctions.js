@@ -1,3 +1,5 @@
+/* global token, fetchMethod, userId, groupId */
+
 // Shared functions used across multiple groups_XX.js files
 
 // -------------------------------------------------------------------------------------

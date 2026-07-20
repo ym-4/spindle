@@ -1,3 +1,5 @@
+/* global token, fetchMethod, groupId, displayToast, bootstrap */
+
 // Token, userId and groupId is global in other js file
 // Global variables
 let groupNotes = [];
@@ -7,27 +9,146 @@ let folderStates = {};
 
 let currNoteId = null;
 
+const newNoteFolderModal = new bootstrap.Modal(document.getElementById('newNoteFolderModal'));
+const newNoteModal = new bootstrap.Modal(document.getElementById('newNoteModal'));
+
 window.addEventListener('DOMContentLoaded', async () => {
   // Fetch data
   await fetchNoteData();
 
-  // Display data
+  // Display folder structure
   displayFolderStructure();
 
+  // Display note
   if (groupNotes.length > 0) {
     displayNote(groupNotes[0].id);
   }
 
+  // Hide editor
+  displayNoteEditor(false);
+
   // Attach listeners
+  addListeners();
 });
 
 // -------------------------------------------------------------------------------------
 //                           Event Listener Functions
 // -------------------------------------------------------------------------------------
 
+function addListeners() {
+  // For save and edit note
+  document.getElementById('saveNoteBtn').addEventListener('click', handleSaveNote);
+  document.getElementById('editNoteBtn').addEventListener('click', handleEditNote);
+
+  // For create new note / folder / whiteboard
+  document.getElementById('createNoteBtn').addEventListener('click', () => {
+    // Show modal to create note
+    document.getElementById('noteNameInput').value = '';
+    newNoteModal.show();
+  });
+  document.getElementById('newNoteBtn').addEventListener('click', handleNewNote);
+
+  document.getElementById('createNoteFolderBtn').addEventListener('click', () => {
+    // Shows modal to create new note folder
+    document.getElementById('noteFolderNameInput').value = '';
+    newNoteFolderModal.show();
+  });
+
+  document.getElementById('newNoteFolderBtn').addEventListener('click', handleNewNoteFolder);
+
+  document.getElementById('createWhiteboardBtn').addEventListener('click', handleNewWhiteboard);
+
+  // For graph view
+  document.getElementById('graphViewBtn').addEventListener('click', displayLinks);
+}
+
+// -------------------------------------------------------------------------------------
+//                              Handler Functions
+// -------------------------------------------------------------------------------------
+
+// -----------------------
+// Create new something
+// -----------------------
+async function handleNewNoteFolder() {
+  console.log('new folder');
+  let folderName = document.getElementById('noteFolderNameInput').value;
+
+  // Hide the modal
+  newNoteFolderModal.hide();
+
+  try {
+    // Create folder
+    const response = await createNoteFolder(folderName);
+
+    // Refresh data
+    await fetchNoteData();
+    displayFolderStructure();
+
+    displayToast('success', 'Folder was created!');
+  } catch (err) {
+    displayToast('error', 'Folder with the same name already exists');
+  }
+}
+
+async function handleNewNote() {
+  console.log('new note');
+  let noteName = document.getElementById('noteNameInput').value;
+
+  // Hide the modal
+  newNoteModal.hide();
+
+  try {
+    // Create note
+    const response = await createNote(noteName);
+
+    // Refresh data
+    await fetchNoteData();
+    // Calls display folder structure
+    displayNote(response[0].id);
+
+    displayToast('success', 'Note was created!');
+  } catch (err) {
+    displayToast('error', 'Note with the same name already exists');
+  }
+}
+
+// NOT DONE
+// Use whiteboard.js file
+function handleNewWhiteboard() {
+  console.log('new whiteboard');
+}
+
+// -----------------------
+// Edit something
+// -----------------------
+
+// NOT DONE
+function handleEditNote() {
+  const note = groupNotes.find((n) => n.id === currNoteId);
+
+  if (!note) return;
+
+  document.getElementById('noteTitleInput').value = note.title;
+  document.getElementById('noteContentInput').value = note.content || '';
+
+  displayNoteEditor(true);
+}
+
+// NOT DONE
+function handleEditWhiteboard() {}
+
+// -----------------------
+// Save something
+// -----------------------
+function handleSaveNote() {
+  console.log('save note');
+}
+
 // -------------------------------------------------------------------------------------
 //                              Display Functions
 // -------------------------------------------------------------------------------------
+
+// Left sidebar - folders
 function displayFolderStructure() {
   const container = document.getElementById('folderStructure');
 
@@ -100,44 +221,70 @@ function displayFolderStructure() {
   });
 
   // Notes without folder
+  // Notes without folder
   const unfiled = groupNotes.filter((note) => note.folder_id == null);
 
   if (unfiled.length) {
-    const folderDiv = document.createElement('div');
+    // Give Unfiled its own state key
+    if (folderStates['unfiled'] === undefined) {
+      folderStates['unfiled'] = true;
+    }
 
+    const expanded = folderStates['unfiled'];
+
+    const folderDiv = document.createElement('div');
     folderDiv.className = 'folder';
 
     folderDiv.innerHTML = `
-            <div class="folder-header">
-                <i class="bi bi-chevron-down"></i>
-                <i class="bi bi-folder-fill text-warning"></i>
-                Unfiled
-            </div>
+    <div class="folder-header">
+      <i class="bi ${expanded ? 'bi-chevron-down' : 'bi-chevron-right'}"></i>
+      <i class="bi bi-folder-fill text-warning"></i>
+      Unfiled
+    </div>
 
-            <div class="folder-items"></div>
-        `;
+    <div class="folder-items" style="display:${expanded ? 'block' : 'none'}"></div>
+  `;
 
     const items = folderDiv.querySelector('.folder-items');
 
     unfiled.forEach((note) => {
       const link = document.createElement('a');
-
       link.className = 'wiki-file';
 
+      // Active note highlight
+      if (note.id === currNoteId) {
+        link.classList.add('active');
+      }
+
       link.innerHTML = `
-                <i class="bi bi-file-earmark-text"></i>
-                ${note.title}
-            `;
+      <i class="bi ${
+        note.id === currNoteId ? 'bi-file-earmark-text-fill' : 'bi-file-earmark-text'
+      }"></i>
+      ${note.title}
+    `;
 
       link.onclick = () => displayNote(note.id);
 
       items.appendChild(link);
     });
 
+    // Make Unfiled collapsible
+    const header = folderDiv.querySelector('.folder-header');
+    const arrow = header.querySelector('.bi');
+
+    header.onclick = () => {
+      folderStates['unfiled'] = !folderStates['unfiled'];
+
+      items.style.display = folderStates['unfiled'] ? 'block' : 'none';
+
+      arrow.className = folderStates['unfiled'] ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
+    };
+
     container.appendChild(folderDiv);
   }
 }
 
+// Middle section - Actual note being shown
 function displayNote(noteId) {
   const note = groupNotes.find((n) => n.id === noteId);
 
@@ -156,7 +303,38 @@ function displayNote(noteId) {
   displayFolderStructure();
 }
 
-function displayLinks() {}
+// NOT DONE
+// Displays graph view
+// When zoomed out no note name, note names shown if zoomed in
+// TODO: Handle when a link to a note that doesn't exist occurs (like obsidian? or dont allow?)
+function displayLinks() {
+  console.log('graph view');
+}
+
+// NOT DONE
+// Displays links that are connected to the node that was clicked
+function displayConnectedLinks() {}
+
+// NOT DONE
+// Display in another whiteboard folder
+function displayWhiteboards() {}
+
+// NOT DONE
+// Hide editor when not editing a note
+// Show editor when editing a note
+function displayNoteEditor(editing) {
+  document.getElementById('noteTitle').classList.toggle('d-none', editing);
+
+  document.getElementById('noteContent').classList.toggle('d-none', editing);
+
+  document.getElementById('noteTitleInput').classList.toggle('d-none', !editing);
+
+  document.getElementById('noteContentInput').classList.toggle('d-none', !editing);
+
+  document.getElementById('editNoteBtn').classList.toggle('d-none', editing);
+
+  document.getElementById('saveNoteBtn').classList.toggle('d-none', !editing);
+}
 
 // -------------------------------------------------------------------------------------
 //                              Other Functions
@@ -196,6 +374,11 @@ async function fetchGroupNotes() {
 
 // Gets the folders for the group
 async function fetchGroupFolders() {
+  // Get stored group
+  let groupId = localStorage.getItem('groupId');
+  // Get stored token
+  let token = localStorage.getItem('token');
+
   return new Promise((resolve, reject) => {
     const url = `http://localhost:3000/notes/folders/group/${groupId}`;
 
@@ -337,8 +520,6 @@ async function createNote(title) {
       if (responseStatus == 201) {
         resolve(responseData);
 
-        displayToast('success', 'Note was created!');
-
         // Token expired
       } else if (responseStatus == 401) {
         window.location.href = './home.html';
@@ -349,8 +530,6 @@ async function createNote(title) {
           type: 'conflict',
           message: 'Note with the same name already exists',
         });
-
-        displayToast('error', 'Note with the same name already exists');
 
         // bad request: missing info
       } else if (responseStatus == 400) {
@@ -509,12 +688,12 @@ async function deleteNote(id) {
       }
     };
 
-    fetchMethod(url, callback, 'DELETE', data, token);
+    fetchMethod(url, callback, 'DELETE', null, token);
   });
 }
 
 // Create folder
-async function createFolder(name) {
+async function createNoteFolder(name) {
   return new Promise((resolve, reject) => {
     const url = `http://localhost:3000/notes/folders/${groupId}`;
 
@@ -523,13 +702,11 @@ async function createFolder(name) {
     };
 
     const callback = (responseStatus, responseData) => {
-      console.log('createFolder', responseData);
+      console.log('createNoteFolder', responseData);
 
       // folder created: success
       if (responseStatus == 201) {
         resolve(responseData);
-
-        displayToast('success', 'Folder was created!');
 
         // Token expired
       } else if (responseStatus == 401) {
@@ -541,8 +718,6 @@ async function createFolder(name) {
           type: 'conflict',
           message: 'Folder with the same name already exists',
         });
-
-        displayToast('error', 'Folder with the same name already exists');
 
         // bad request: missing info
       } else if (responseStatus == 400) {

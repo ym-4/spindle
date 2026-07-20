@@ -1,3 +1,5 @@
+/* global isLoggedIn, getStoredUser, isAdmin */
+
 /**
  * Must run synchronously right after api.js on protected pages.
  */

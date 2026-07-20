@@ -1,3 +1,5 @@
+/* global fetchMethod, bootstrap, removeFromCart, addToCart */
+
 // Escape user-submitted text before it's dropped into innerHTML.
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
@@ -124,7 +126,11 @@ async function loadListings() {
       } else {
         emptyState.classList.add('d-none');
 
-        for (i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
+        for (
+          let i = (currentPage - 1) * LISTINGS_PER_PAGE;
+          i < LISTINGS_PER_PAGE * currentPage;
+          i++
+        ) {
           if (!data[i]) continue;
           addListing(
             data[i].seller_id,
@@ -251,7 +257,7 @@ function addCartItem(seller_id, id, name, description, price, quantity) {
 
     // Save button handler
     modal.querySelector('#editSaveBtn').onclick = () => {
-      const newQuantity = parseInt(modal.querySelector('#editQuantity').value);
+      let newQuantity = parseInt(modal.querySelector('#editQuantity').value);
       if (newQuantity < 1) {
         newQuantity = 1;
       }

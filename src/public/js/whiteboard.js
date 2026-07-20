@@ -1,3 +1,5 @@
+/* global fetchMethod, groupId, token:writable, userWhiteboards */
+
 // --------------------------------------------------
 //                 GLOBAL VARIABLES
 // --------------------------------------------------
