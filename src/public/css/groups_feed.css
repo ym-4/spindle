@@ -537,135 +537,139 @@ main {
   background-color: var(--bg);
 }
 
-[data-theme="dark"] .custom-tabs .btn,
-[data-theme="futuristic"] .custom-tabs .btn {
+[data-theme='dark'] .custom-tabs .btn,
+[data-theme='futuristic'] .custom-tabs .btn {
   background: var(--card-bg);
   border-color: var(--border);
   color: var(--text);
 }
 
-[data-theme="dark"] .modal-content,
-[data-theme="futuristic"] .modal-content {
+[data-theme='dark'] .modal-content,
+[data-theme='futuristic'] .modal-content {
   background: var(--card-bg);
 }
 
-[data-theme="dark"] .members-offcanvas,
-[data-theme="futuristic"] .members-offcanvas {
+[data-theme='dark'] .members-offcanvas,
+[data-theme='futuristic'] .members-offcanvas {
   background: var(--bg-elevated);
 }
 
-[data-theme="dark"] .members-offcanvas .offcanvas-header,
-[data-theme="futuristic"] .members-offcanvas .offcanvas-header {
+[data-theme='dark'] .members-offcanvas .offcanvas-header,
+[data-theme='futuristic'] .members-offcanvas .offcanvas-header {
   background: var(--card-bg);
   border-bottom-color: var(--border);
 }
 
-[data-theme="dark"] .member-card,
-[data-theme="futuristic"] .member-card {
+[data-theme='dark'] .member-card,
+[data-theme='futuristic'] .member-card {
   background: var(--card-bg);
 }
 
-[data-theme="dark"] .member-card:hover,
-[data-theme="futuristic"] .member-card:hover {
+[data-theme='dark'] .member-card:hover,
+[data-theme='futuristic'] .member-card:hover {
   background: var(--bg-hover);
 }
 
-[data-theme="dark"] .member-card.admin,
-[data-theme="futuristic"] .member-card.admin {
+[data-theme='dark'] .member-card.admin,
+[data-theme='futuristic'] .member-card.admin {
   background: color-mix(in srgb, var(--accent) 20%, var(--card-bg));
 }
 
-[data-theme="dark"] .member-card.creator,
-[data-theme="futuristic"] .member-card.creator {
-  background: linear-gradient(to right, color-mix(in srgb, #f4b400 20%, var(--card-bg)), var(--card-bg) 100%);
+[data-theme='dark'] .member-card.creator,
+[data-theme='futuristic'] .member-card.creator {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, #f4b400 20%, var(--card-bg)),
+    var(--card-bg) 100%
+  );
 }
 
-[data-theme="dark"] .chat-header,
-[data-theme="futuristic"] .chat-header {
+[data-theme='dark'] .chat-header,
+[data-theme='futuristic'] .chat-header {
   background-color: color-mix(in srgb, var(--accent) 12%, var(--bg-elevated)) !important;
   color: var(--text) !important;
 }
 
-[data-theme="dark"] .msg-left .bubble,
-[data-theme="futuristic"] .msg-left .bubble {
+[data-theme='dark'] .msg-left .bubble,
+[data-theme='futuristic'] .msg-left .bubble {
   background: var(--bg-active);
 }
 
-[data-theme="dark"] .msg-right .bubble,
-[data-theme="futuristic"] .msg-right .bubble {
+[data-theme='dark'] .msg-right .bubble,
+[data-theme='futuristic'] .msg-right .bubble {
   background: color-mix(in srgb, var(--accent) 20%, var(--bg-elevated));
 }
 
-[data-theme="dark"] .meta,
-[data-theme="futuristic"] .meta {
+[data-theme='dark'] .meta,
+[data-theme='futuristic'] .meta {
   color: var(--text-secondary);
 }
 
-[data-theme="dark"] .chat-divider,
-[data-theme="futuristic"] .chat-divider {
+[data-theme='dark'] .chat-divider,
+[data-theme='futuristic'] .chat-divider {
   color: var(--text-muted);
 }
 
-[data-theme="dark"] .chat-divider::before,
-[data-theme="dark"] .chat-divider::after,
-[data-theme="futuristic"] .chat-divider::before,
-[data-theme="futuristic"] .chat-divider::after {
+[data-theme='dark'] .chat-divider::before,
+[data-theme='dark'] .chat-divider::after,
+[data-theme='futuristic'] .chat-divider::before,
+[data-theme='futuristic'] .chat-divider::after {
   background: var(--border);
 }
 
-[data-theme="dark"] .announcement-color,
-[data-theme="futuristic"] .announcement-color {
+[data-theme='dark'] .announcement-color,
+[data-theme='futuristic'] .announcement-color {
   background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated)) !important;
   color: var(--text) !important;
 }
 
-[data-theme="dark"] #createChannelBtn,
-[data-theme="futuristic"] #createChannelBtn {
+[data-theme='dark'] #createChannelBtn,
+[data-theme='futuristic'] #createChannelBtn {
   background: var(--card-bg);
   border-color: var(--accent);
   color: var(--accent);
 }
 
-[data-theme="dark"] .channel-input,
-[data-theme="futuristic"] .channel-input {
+[data-theme='dark'] .channel-input,
+[data-theme='futuristic'] .channel-input {
   background: var(--bg-input);
   border-color: var(--input-border);
   color: var(--input-text);
 }
 
-[data-theme="dark"] .channel-input:focus,
-[data-theme="futuristic"] .channel-input:focus {
+[data-theme='dark'] .channel-input:focus,
+[data-theme='futuristic'] .channel-input:focus {
   background: var(--bg-input);
   border-color: var(--accent);
 }
 
-[data-theme="dark"] .input-group-text,
-[data-theme="futuristic"] .input-group-text {
+[data-theme='dark'] .input-group-text,
+[data-theme='futuristic'] .input-group-text {
   background: var(--bg-input);
   border-color: var(--input-border);
   color: var(--text-secondary);
 }
 
-[data-theme="dark"] .channel-modal small,
-[data-theme="futuristic"] .channel-modal small {
+[data-theme='dark'] .channel-modal small,
+[data-theme='futuristic'] .channel-modal small {
   color: var(--text-secondary);
 }
 
-[data-theme="dark"] .message-preview,
-[data-theme="futuristic"] .message-preview {
+[data-theme='dark'] .message-preview,
+[data-theme='futuristic'] .message-preview {
   background: var(--bg-elevated);
   border-color: var(--border);
 }
 
-[data-theme="dark"] #editMessageInput,
-[data-theme="futuristic"] #editMessageInput {
+[data-theme='dark'] #editMessageInput,
+[data-theme='futuristic'] #editMessageInput {
   background: var(--bg-input);
   border-color: var(--input-border);
   color: var(--input-text);
 }
 
-[data-theme="dark"] .members-offcanvas .offcanvas-header,
-[data-theme="futuristic"] .members-offcanvas .offcanvas-header {
+[data-theme='dark'] .members-offcanvas .offcanvas-header,
+[data-theme='futuristic'] .members-offcanvas .offcanvas-header {
   border-bottom: 1px solid var(--border);
 } */
 

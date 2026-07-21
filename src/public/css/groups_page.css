@@ -194,24 +194,24 @@ main {
   background-color: var(--bg);
 }
 
-[data-theme="dark"] .group-card,
-[data-theme="futuristic"] .group-card {
+[data-theme='dark'] .group-card,
+[data-theme='futuristic'] .group-card {
   background: var(--card-bg);
   border-color: var(--border);
   box-shadow: none;
 }
 
-[data-theme="dark"] .group-card p,
-[data-theme="futuristic"] .group-card p {
+[data-theme='dark'] .group-card p,
+[data-theme='futuristic'] .group-card p {
   color: var(--text-secondary);
 }
 
-[data-theme="dark"] .group-footer,
-[data-theme="futuristic"] .group-footer {
+[data-theme='dark'] .group-footer,
+[data-theme='futuristic'] .group-footer {
   color: var(--text-secondary);
 }
 
-[data-theme="dark"] .card-line,
-[data-theme="futuristic"] .card-line {
+[data-theme='dark'] .card-line,
+[data-theme='futuristic'] .card-line {
   background: var(--border);
 } */

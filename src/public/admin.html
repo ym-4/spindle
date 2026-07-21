@@ -757,87 +757,109 @@
       </div>
     </div>
 
-    <!-- Breadcrumb -->
-    <div id="breadcrumb" class="breadcrumb-wrap"></div>
+      <!-- Breadcrumb -->
+      <div id="breadcrumb" class="breadcrumb-wrap"></div>
 
-    <!-- Priority Needs Attention strip -->
-    <div id="priorityStrip" class="priority-strip hidden"></div>
+      <!-- Priority Needs Attention strip -->
+      <div id="priorityStrip" class="priority-strip hidden"></div>
 
-    <!-- Stats -->
-    <div id="adminStats" class="row g-3 mb-4"></div>
+      <!-- Stats -->
+      <div id="adminStats" class="row g-3 mb-4"></div>
 
-    <!-- Tabs -->
-    <div class="admin-tabs">
-      <button class="tab-btn active" data-tab="users">
-        <i class="fas fa-users me-1"></i>Users
-        <span class="kbd-hint"><kbd>G</kbd> <kbd>U</kbd></span>
-      </button>
-      <button class="tab-btn" data-tab="posts">
-        <i class="fas fa-newspaper me-1"></i>Posts
-        <span class="kbd-hint"><kbd>G</kbd> <kbd>P</kbd></span>
-      </button>
-      <button class="tab-btn" data-tab="reports">
-        <i class="fas fa-flag me-1"></i>Reports
-        <span class="kbd-hint"><kbd>G</kbd> <kbd>R</kbd></span>
-      </button>
-      <button class="tab-btn" data-tab="appeals">
-        <i class="fas fa-gavel me-1"></i>Appeals
-        <span class="kbd-hint"><kbd>G</kbd> <kbd>A</kbd></span>
-      </button>
-      <button class="tab-btn" data-tab="audit">
-        <i class="fas fa-history me-1"></i>Audit Log
-        <span class="kbd-hint"><kbd>G</kbd> <kbd>L</kbd></span>
-      </button>
-    </div>
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="users">
+          <i class="fas fa-users me-1"></i>Users
+          <span class="kbd-hint"><kbd>G</kbd> <kbd>U</kbd></span>
+        </button>
+        <button class="tab-btn" data-tab="posts">
+          <i class="fas fa-newspaper me-1"></i>Posts
+          <span class="kbd-hint"><kbd>G</kbd> <kbd>P</kbd></span>
+        </button>
+        <button class="tab-btn" data-tab="reports">
+          <i class="fas fa-flag me-1"></i>Reports
+          <span class="kbd-hint"><kbd>G</kbd> <kbd>R</kbd></span>
+        </button>
+        <button class="tab-btn" data-tab="appeals">
+          <i class="fas fa-gavel me-1"></i>Appeals
+          <span class="kbd-hint"><kbd>G</kbd> <kbd>A</kbd></span>
+        </button>
+        <button class="tab-btn" data-tab="audit">
+          <i class="fas fa-history me-1"></i>Audit Log
+          <span class="kbd-hint"><kbd>G</kbd> <kbd>L</kbd></span>
+        </button>
+      </div>
 
-    <!-- ===== USERS TAB ===== -->
-    <div id="tabUsers" class="tab-content">
-      <div class="admin-card">
-        <div class="admin-card-header">
-          <h5><i class="fas fa-users me-2"></i>All Users</h5>
-          <div>
-            <span id="userCount" class="badge bg-secondary me-2"></span
-            ><button class="btn btn-outline-secondary btn-sm" id="exportUsersBtn">
-              <i class="fas fa-download me-1"></i>Export CSV
-            </button>
+      <!-- ===== USERS TAB ===== -->
+      <div id="tabUsers" class="tab-content">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h5><i class="fas fa-users me-2"></i>All Users</h5>
+            <div>
+              <span id="userCount" class="badge bg-secondary me-2"></span
+              ><button class="btn btn-outline-secondary btn-sm" id="exportUsersBtn">
+                <i class="fas fa-download me-1"></i>Export CSV
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="admin-card-body">
-          <div class="filter-preset-chips" id="userPresetChips"></div>
-          <div class="filter-bar">
-            <input
-              type="text"
-              id="userSearch"
-              placeholder="Search by name or email..."
-              style="flex: 1; min-width: 120px"
-            />
-            <select id="userFilterRole">
-              <option value="">All Roles</option>
-              <option value="user">User</option>
-              <option value="moderator">Moderator</option>
-              <option value="admin">Admin</option>
-            </select>
-            <select id="userFilterStatus">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="banned">Banned</option>
-            </select>
-            <button class="btn btn-outline-secondary btn-sm" id="showBannedBtn">
-              <i class="fas fa-ban me-1"></i>Show Banned
-            </button>
-            <button
-              class="btn btn-outline-secondary btn-sm"
-              id="saveUserFilterBtn"
-              title="Save current filter as preset"
-            >
-              <i class="fas fa-bookmark"></i>
-            </button>
-          </div>
-          <div id="bulkUserBar" class="bulk-bar hidden">
-            <span id="bulkUserCount">0 selected</span
-            ><button id="bulkUserDelete"><i class="fas fa-trash me-1"></i>Delete</button
-            ><button id="bulkUserBan"><i class="fas fa-ban me-1"></i>Ban</button
-            ><button id="bulkUserClear">Clear</button>
+          <div class="admin-card-body">
+            <div class="filter-preset-chips" id="userPresetChips"></div>
+            <div class="filter-bar">
+              <input
+                type="text"
+                id="userSearch"
+                placeholder="Search by name or email..."
+                style="flex: 1; min-width: 120px"
+              />
+              <select id="userFilterRole">
+                <option value="">All Roles</option>
+                <option value="user">User</option>
+                <option value="moderator">Moderator</option>
+                <option value="admin">Admin</option>
+              </select>
+              <select id="userFilterStatus">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="banned">Banned</option>
+              </select>
+              <button class="btn btn-outline-secondary btn-sm" id="showBannedBtn">
+                <i class="fas fa-ban me-1"></i>Show Banned
+              </button>
+              <button
+                class="btn btn-outline-secondary btn-sm"
+                id="saveUserFilterBtn"
+                title="Save current filter as preset"
+              >
+                <i class="fas fa-bookmark"></i>
+              </button>
+            </div>
+            <div id="bulkUserBar" class="bulk-bar hidden">
+              <span id="bulkUserCount">0 selected</span
+              ><button id="bulkUserDelete"><i class="fas fa-trash me-1"></i>Delete</button
+              ><button id="bulkUserBan"><i class="fas fa-ban me-1"></i>Ban</button
+              ><button id="bulkUserClear">Clear</button>
+            </div>
+            <div id="adminLoading" class="text-center py-4 text-muted">
+              <i class="fas fa-spinner fa-spin me-2"></i>Loading users...
+            </div>
+            <div id="adminError" class="alert alert-danger hidden"></div>
+            <div id="adminPanel" class="hidden">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th style="width: 32px"><input type="checkbox" id="userSelectAll" /></th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Status</th>
+                    <th style="width: 200px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUsersBody"></tbody>
+              </table>
+            </div>
           </div>
           <div id="adminLoading" class="text-center py-4 text-muted">
             <i class="fas fa-spinner fa-spin me-2"></i>Loading users...
@@ -847,12 +869,10 @@
             <table class="admin-table">
               <thead>
                 <tr>
-                  <th style="width: 32px"><input type="checkbox" id="userSelectAll" /></th>
                   <th>ID</th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Role</th>
-                  <th>Joined</th>
                   <th>Status</th>
                   <th style="width: 200px">Actions</th>
                 </tr>
@@ -861,65 +881,66 @@
             </table>
           </div>
         </div>
-        <div id="adminLoading" class="text-center py-4 text-muted">
-          <i class="fas fa-spinner fa-spin me-2"></i>Loading users...
-        </div>
-        <div id="adminError" class="alert alert-danger hidden"></div>
-        <div id="adminPanel" class="hidden">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th style="width: 200px">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="adminUsersBody"></tbody>
-          </table>
-        </div>
       </div>
     </div>
 
-    <!-- ===== POSTS TAB ===== -->
-    <div id="tabPosts" class="tab-content hidden">
-      <div class="admin-card">
-        <div class="admin-card-header">
-          <h5><i class="fas fa-newspaper me-2"></i>All Posts</h5>
-          <span id="postCount" class="badge bg-secondary"></span>
-        </div>
-        <div class="admin-card-body">
-          <div class="filter-preset-chips" id="postPresetChips"></div>
-          <div class="filter-bar">
-            <input
-              type="text"
-              id="postSearch"
-              placeholder="Search by title, author, or content..."
-              style="flex: 1; min-width: 120px"
-            />
-            <select id="filterCategory">
-              <option value="">All Categories</option>
-              <option value="Confession">Confession</option>
-              <option value="Q&A">Q&amp;A</option>
-              <option value="General">General</option>
-            </select>
-            <select id="filterDate">
-              <option value="">All Time</option>
-              <option value="1">Last Hour</option>
-              <option value="24">Last 24 Hours</option>
-              <option value="720">Last 30 Days</option>
-            </select>
-            <button
-              class="btn btn-outline-secondary btn-sm"
-              id="savePostFilterBtn"
-              title="Save filter as preset"
-            >
-              <i class="fas fa-bookmark"></i>
-            </button>
+      <!-- ===== POSTS TAB ===== -->
+      <div id="tabPosts" class="tab-content hidden">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h5><i class="fas fa-newspaper me-2"></i>All Posts</h5>
+            <span id="postCount" class="badge bg-secondary"></span>
           </div>
-          <div id="postsLoading" class="loading-skel hidden"></div>
+          <div class="admin-card-body">
+            <div class="filter-preset-chips" id="postPresetChips"></div>
+            <div class="filter-bar">
+              <input
+                type="text"
+                id="postSearch"
+                placeholder="Search by title, author, or content..."
+                style="flex: 1; min-width: 120px"
+              />
+              <select id="filterCategory">
+                <option value="">All Categories</option>
+                <option value="Confession">Confession</option>
+                <option value="Q&A">Q&amp;A</option>
+                <option value="General">General</option>
+              </select>
+              <select id="filterDate">
+                <option value="">All Time</option>
+                <option value="1">Last Hour</option>
+                <option value="24">Last 24 Hours</option>
+                <option value="720">Last 30 Days</option>
+              </select>
+              <button
+                class="btn btn-outline-secondary btn-sm"
+                id="savePostFilterBtn"
+                title="Save filter as preset"
+              >
+                <i class="fas fa-bookmark"></i>
+              </button>
+            </div>
+            <div id="postsLoading" class="loading-skel hidden"></div>
+            <div id="postsError" class="alert alert-danger hidden"></div>
+            <div id="postsPanel" class="hidden">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th style="width: 80px">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminPostsBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="postsLoading" class="text-center py-4 text-muted">
+            <i class="fas fa-spinner fa-spin me-2"></i>Loading posts...
+          </div>
           <div id="postsError" class="alert alert-danger hidden"></div>
           <div id="postsPanel" class="hidden">
             <table class="admin-table">
@@ -959,50 +980,69 @@
       </div>
     </div>
 
-    <!-- ===== REPORTS TAB ===== -->
-    <div id="tabReports" class="tab-content hidden">
-      <div class="admin-card">
-        <div class="admin-card-header">
-          <h5><i class="fas fa-flag me-2"></i>Reports</h5>
-          <div>
-            <button class="btn btn-outline-secondary btn-sm me-2" id="showResolvedReportsBtn">
-              <i class="fas fa-check-double me-1"></i>Resolved</button
-            ><span id="reportCount" class="badge bg-danger"></span>
+      <!-- ===== REPORTS TAB ===== -->
+      <div id="tabReports" class="tab-content hidden">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h5><i class="fas fa-flag me-2"></i>Reports</h5>
+            <div>
+              <button class="btn btn-outline-secondary btn-sm me-2" id="showResolvedReportsBtn">
+                <i class="fas fa-check-double me-1"></i>Resolved</button
+              ><span id="reportCount" class="badge bg-danger"></span>
+            </div>
           </div>
-        </div>
-        <div class="admin-card-body">
-          <div id="reportsLoading" class="loading-skel hidden"></div>
-          <div id="reportsError" class="alert alert-danger hidden"></div>
-          <div id="reportsPanel" class="hidden">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Post</th>
-                  <th>Reason</th>
-                  <th>Description</th>
-                  <th>Reporter</th>
-                  <th>Author</th>
-                  <th>Date</th>
-                  <th style="width: 200px">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="reportsBody"></tbody>
-            </table>
+          <div class="admin-card-body">
+            <div id="reportsLoading" class="loading-skel hidden"></div>
+            <div id="reportsError" class="alert alert-danger hidden"></div>
+            <div id="reportsPanel" class="hidden">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Post</th>
+                    <th>Reason</th>
+                    <th>Description</th>
+                    <th>Reporter</th>
+                    <th>Author</th>
+                    <th>Date</th>
+                    <th style="width: 200px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="reportsBody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ===== APPEALS TAB ===== -->
-    <div id="tabAppeals" class="tab-content hidden">
-      <div class="admin-card">
-        <div class="admin-card-header">
-          <h5><i class="fas fa-gavel me-2"></i>Ban Appeals</h5>
-          <span id="appealCount" class="badge bg-warning"></span>
-        </div>
-        <div class="admin-card-body">
-          <div id="appealsLoading" class="loading-skel hidden"></div>
+      <!-- ===== APPEALS TAB ===== -->
+      <div id="tabAppeals" class="tab-content hidden">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h5><i class="fas fa-gavel me-2"></i>Ban Appeals</h5>
+            <span id="appealCount" class="badge bg-warning"></span>
+          </div>
+          <div class="admin-card-body">
+            <div id="appealsLoading" class="loading-skel hidden"></div>
+            <div id="appealsError" class="alert alert-danger hidden"></div>
+            <div id="appealsPanel" class="hidden">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Ban Reason</th>
+                    <th>Duration</th>
+                    <th>Appeal Message</th>
+                    <th>Submitted</th>
+                    <th style="width: 180px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="appealsBody"></tbody>
+              </table>
+            </div>
+          </div>
           <div id="appealsError" class="alert alert-danger hidden"></div>
           <div id="appealsPanel" class="hidden">
             <table class="admin-table">
