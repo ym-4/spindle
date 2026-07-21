@@ -9,9 +9,12 @@ let folderStates = {};
 let quill;
 
 let currNoteId = null;
+let selectedFolderId = null;
+let noteGraph = null;
 
 const newNoteFolderModal = new bootstrap.Modal(document.getElementById('newNoteFolderModal'));
 const newNoteModal = new bootstrap.Modal(document.getElementById('newNoteModal'));
+const insertLinkModal = new bootstrap.Modal(document.getElementById('insertLinkModal'));
 
 window.addEventListener('DOMContentLoaded', async () => {
   // Fetch data
@@ -70,14 +73,12 @@ function addListeners() {
   document.getElementById('createWhiteboardBtn').addEventListener('click', handleNewWhiteboard);
 
   // For graph view
-  document.getElementById('graphViewBtn').addEventListener('click', displayLinks);
+  document.getElementById('graphViewBtn').addEventListener('click', displayGraphView);
+
+  document.getElementById('closeGraphViewBtn').addEventListener('click', hideGraphView);
 }
 
-// BUGS: Not implemented: Highlighter, checkboxes, insert functions
-// Not working: Font size
-// Using headings make scroll move up
-// Cannot see save button
-// Can change note will editing a note??
+// Not implemented: checkboxes, most insert functions
 function addEditorListeners() {
   // Bold
   document.getElementById('boldBtn').addEventListener('click', () => {
@@ -136,14 +137,26 @@ function addEditorListeners() {
   });
 
   // Lists
-  document.getElementById('bulletList').onclick = () => quill.format('list', 'bullet');
+  document.getElementById('bulletList').onclick = (e) => {
+    e.preventDefault();
+    quill.format('list', 'bullet');
+  };
 
-  document.getElementById('numberList').onclick = () => quill.format('list', 'ordered');
+  document.getElementById('numberList').onclick = (e) => {
+    e.preventDefault();
+    quill.format('list', 'ordered');
+  };
 
   // DOESN'T WORK
-  document.getElementById('checkList').onclick = () => quill.format('list', 'check');
+  // document.getElementById('checkList').onclick = (e) => {
+  //   e.preventDefault();
+  //   quill.format('list', 'check');
+  // };
 
-  document.getElementById('noneList').onclick = () => quill.format('list', false);
+  document.getElementById('noneList').onclick = (e) => {
+    e.preventDefault();
+    quill.format('list', false);
+  };
 
   // Alignment
   document.getElementById('leftAlignBtn').onclick = () => quill.format('align', '');
@@ -161,47 +174,134 @@ function addEditorListeners() {
 
   Quill.register(Size, true);
 
-  quill = new Quill('#noteEditor', {
-    theme: 'snow',
-    modules: {
-      toolbar: false,
-    },
-  });
-
-  document.getElementById('fontSize12').onclick = () => quill.format('size', '12px');
-  document.getElementById('fontSize14').onclick = () => quill.format('size', '14px');
-  document.getElementById('fontSize16').onclick = () => quill.format('size', '16px');
-  document.getElementById('fontSize18').onclick = () => quill.format('size', '18px');
-  document.getElementById('fontSize20').onclick = () => quill.format('size', '20px');
-  document.getElementById('fontSize24').onclick = () => quill.format('size', '24px');
-  document.getElementById('fontSize28').onclick = () => quill.format('size', '28px');
-  document.getElementById('fontSize32').onclick = () => quill.format('size', '32px');
+  document.getElementById('fontSize12').onclick = (e) => {
+    e.preventDefault();
+    quill.format('size', '12px');
+  };
+  document.getElementById('fontSize14').onclick = (e) => {
+    e.preventDefault();
+    quill.format('size', '14px');
+  };
+  document.getElementById('fontSize16').onclick = (e) => {
+    e.preventDefault();
+    quill.format('size', '16px');
+  };
+  document.getElementById('fontSize18').onclick = (e) => {
+    e.preventDefault();
+    quill.format('size', '18px');
+  };
+  document.getElementById('fontSize20').onclick = (e) => {
+    e.preventDefault();
+    quill.format('size', '20px');
+  };
+  document.getElementById('fontSize24').onclick = (e) => {
+    e.preventDefault();
+    quill.format('size', '24px');
+  };
+  document.getElementById('fontSize28').onclick = (e) => {
+    e.preventDefault();
+    quill.format('size', '28px');
+  };
+  document.getElementById('fontSize32').onclick = (e) => {
+    e.preventDefault();
+    quill.format('size', '32px');
+  };
 
   // Inserts
 
   // Link
-  document.getElementById('insertLink').onclick = () => {
-    const url = prompt('Enter URL');
-
-    if (!url) return;
-
-    const range = quill.getSelection();
-
-    if (range) {
-      quill.format('link', url);
-    }
-  };
-
-  // Image
-  document.getElementById('insertImage').onclick = () => {
-    const url = prompt('Image URL');
-
-    if (!url) return;
+  // Link
+  // Link
+  document.getElementById('insertLinkBtn').onclick = (e) => {
+    e.preventDefault();
 
     const range = quill.getSelection(true);
 
-    quill.insertEmbed(range.index, 'image', url);
+    if (!range || range.length === 0) {
+      displayToast('error', 'Please select some text first.');
+      return;
+    }
+
+    // Clear previous input/error
+    document.getElementById('linkUrlInput').value = '';
+    document.getElementById('linkUrlError').classList.add('d-none');
+
+    // Show modal
+    insertLinkModal.show();
+
+    // Focus input after modal opens
+    document.getElementById('insertLinkModal').addEventListener(
+      'shown.bs.modal',
+      () => {
+        document.getElementById('linkUrlInput').focus();
+      },
+      { once: true },
+    );
   };
+
+  // Confirm inserting link
+  document.getElementById('confirmInsertLinkBtn').onclick = () => {
+    let url = document.getElementById('linkUrlInput').value.trim();
+    const error = document.getElementById('linkUrlError');
+
+    if (!url) {
+      error.textContent = 'Please enter a URL.';
+      error.classList.remove('d-none');
+      return;
+    }
+
+    // Add https:// if the user didn't provide a protocol
+    if (!/^https?:\/\//i.test(url)) {
+      url = `https://${url}`;
+    }
+
+    // Validate URL
+    try {
+      new URL(url);
+    } catch (err) {
+      error.textContent = 'Please enter a valid URL.';
+      error.classList.remove('d-none');
+      return;
+    }
+
+    const range = quill.getSelection(true);
+
+    if (!range || range.length === 0) {
+      insertLinkModal.hide();
+      displayToast('error', 'Please select some text first.');
+      return;
+    }
+
+    // Apply link to selected text
+    quill.formatText(range.index, range.length, 'link', url);
+
+    // Close modal
+    insertLinkModal.hide();
+  };
+
+  // Image - not working
+  // document.getElementById('insertImageBtn').onclick = () => {
+  //   const url = prompt('Image URL');
+
+  //   if (!url) return;
+
+  //   const range = quill.getSelection(true);
+
+  //   quill.insertEmbed(range.index, 'image', url);
+  // };
+
+  // Horizontal line - not working
+  // document.getElementById('insertHorizontalLineBtn').onclick = (e) => {
+  //   e.preventDefault();
+
+  //   const range = quill.getSelection(true);
+
+  //   if (!range) return;
+
+  //   quill.clipboard.dangerouslyPasteHTML(range.index, '<hr><p><br></p>');
+
+  //   quill.setSelection(range.index + 2, 0);
+  // };
 }
 
 // -------------------------------------------------------------------------------------
@@ -272,6 +372,56 @@ function handleEditNote() {
   document.getElementById('noteTitleInput').value = note.title;
   quill.root.innerHTML = note.content || '';
 
+  const dropdownMenu = document.getElementById('noteFolderDropdownMenu');
+  const dropdownButton = document.getElementById('noteFolderDropdownBtn');
+
+  // Set current folder
+  selectedFolderId = note.folder_id;
+
+  const currentFolder = groupFolders.find((folder) => folder.id === note.folder_id);
+
+  dropdownButton.textContent = currentFolder ? currentFolder.name : 'Unfiled';
+
+  // Clear dropdown
+  dropdownMenu.innerHTML = '';
+
+  // Add Unfiled option
+  const unfiledItem = document.createElement('li');
+  unfiledItem.innerHTML = `
+    <button class="dropdown-item" type="button" data-folder-id="">
+      Unfiled
+    </button>
+  `;
+  dropdownMenu.appendChild(unfiledItem);
+
+  // Add folders
+  groupFolders.forEach((folder) => {
+    const item = document.createElement('li');
+
+    item.innerHTML = `
+      <button
+        class="dropdown-item"
+        type="button"
+        data-folder-id="${folder.id}"
+      >
+        ${folder.name}
+      </button>
+    `;
+
+    dropdownMenu.appendChild(item);
+  });
+
+  // Add click listeners
+  dropdownMenu.querySelectorAll('.dropdown-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      const folderId = item.dataset.folderId;
+
+      selectedFolderId = folderId === '' ? null : Number(folderId);
+
+      dropdownButton.textContent = item.textContent.trim();
+    });
+  });
+
   displayNoteEditor(true);
 }
 
@@ -284,19 +434,33 @@ function handleEditWhiteboard() {}
 async function handleSaveNote() {
   const title = document.getElementById('noteTitleInput').value;
   const content = quill.root.innerHTML;
+  const note = groupNotes.find((n) => n.id === currNoteId);
 
   try {
-    // Update note title
-    await updateNote({
-      id: currNoteId,
-      title: title,
+    console.log('Before update:', {
+      currNoteId,
+      title,
+      selectedFolderId,
+      selectedFolderIdType: typeof selectedFolderId,
     });
+
+    // Update note title and folder
+    if (note.user_id == userId) {
+      await updateNote({
+        id: currNoteId,
+        title: title,
+        folder_id: selectedFolderId,
+      });
+    }
 
     // Update note content
     await updateNoteContent({
       id: currNoteId,
       content: content,
     });
+
+    // Update links
+    await makeNoteLinks(currNoteId, content);
 
     // Refresh data
     await fetchNoteData();
@@ -466,6 +630,8 @@ function displayNote(noteId) {
 
   document.getElementById('noteContent').innerHTML = note.content || '';
 
+  displayNoteEditor(false);
+
   // Refresh sidebar so active note changes
   displayFolderStructure();
 }
@@ -474,8 +640,145 @@ function displayNote(noteId) {
 // Displays graph view
 // When zoomed out no note name, note names shown if zoomed in
 // TODO: Handle when a link to a note that doesn't exist occurs (like obsidian? or dont allow?)
+
 function displayLinks() {
-  console.log('graph view');
+  const container = document.getElementById('noteGraph');
+
+  if (!container) return;
+
+  // Remove old graph
+  if (noteGraph) {
+    noteGraph.destroy();
+    noteGraph = null;
+  }
+
+  // Create nodes
+  const nodes = groupNotes.map((note) => ({
+    data: {
+      id: String(note.id),
+      label: note.title,
+    },
+  }));
+
+  // Create edges
+  const edges = noteLinks
+    .filter((link) => {
+      const sourceExists = groupNotes.some((note) => note.id === link.source_note_id);
+
+      const targetExists = groupNotes.some((note) => note.id === link.target_note_id);
+
+      return sourceExists && targetExists;
+    })
+    .map((link) => ({
+      data: {
+        id: `${link.source_note_id}-${link.target_note_id}`,
+        source: String(link.source_note_id),
+        target: String(link.target_note_id),
+      },
+    }));
+
+  // Create graph
+  noteGraph = cytoscape({
+    container: container,
+
+    elements: [...nodes, ...edges],
+
+    style: [
+      {
+        selector: 'node',
+
+        style: {
+          'background-color': '#a3d2f2',
+          label: 'data(label)',
+          color: '#212529',
+
+          'text-valign': 'bottom',
+          'text-halign': 'center',
+
+          'font-size': '12px',
+
+          width: 15,
+          height: 15,
+
+          'border-width': 2,
+          'border-color': '#ffffff',
+
+          'text-margin-y': 8,
+        },
+      },
+
+      {
+        selector: 'edge',
+
+        style: {
+          width: 2,
+          'line-color': '#adb5bd',
+
+          'target-arrow-color': '#adb5bd',
+          'target-arrow-shape': 'triangle',
+
+          'curve-style': 'bezier',
+        },
+      },
+
+      {
+        selector: 'node:selected',
+
+        style: {
+          'background-color': '#0d6efd',
+          'border-width': 3,
+          'border-color': '#084298',
+        },
+      },
+    ],
+
+    layout: {
+      name: 'cose',
+      animate: true,
+      padding: 50,
+    },
+
+    userZoomingEnabled: true,
+    userPanningEnabled: true,
+    boxSelectionEnabled: false,
+  });
+
+  document.getElementById('zoomInBtn').onclick = () => {
+    noteGraph.zoom({
+      level: noteGraph.zoom() * 1.2,
+      renderedPosition: {
+        x: noteGraph.width() / 2,
+        y: noteGraph.height() / 2,
+      },
+    });
+  };
+
+  document.getElementById('zoomOutBtn').onclick = () => {
+    noteGraph.zoom({
+      level: noteGraph.zoom() / 1.2,
+      renderedPosition: {
+        x: noteGraph.width() / 2,
+        y: noteGraph.height() / 2,
+      },
+    });
+  };
+
+  document.getElementById('fitGraphBtn').onclick = () => {
+    noteGraph.fit(undefined, 50);
+  };
+
+  // Clicking a note
+  noteGraph.on('tap', 'node', (event) => {
+    const node = event.target;
+
+    const noteId = Number(node.id());
+
+    // Close graph
+    hideGraphView();
+
+    // Open note
+    displayNote(noteId);
+  });
 }
 
 // NOT DONE
@@ -486,7 +789,6 @@ function displayConnectedLinks() {}
 // Display in another whiteboard folder
 function displayWhiteboards() {}
 
-// NOT DONE
 // Hide editor when not editing a note
 // Show editor when editing a note
 function displayNoteEditor(editing) {
@@ -501,6 +803,20 @@ function displayNoteEditor(editing) {
   document.getElementById('editNoteBtn').classList.toggle('d-none', editing);
 
   document.getElementById('saveNoteBtn').classList.toggle('d-none', !editing);
+
+  document.getElementById('noteFolderDropdown').classList.toggle('d-none', !editing);
+}
+
+function displayGraphView() {
+  document.getElementById('wikiNormalView').classList.add('d-none');
+  document.getElementById('wikiGraphView').classList.remove('d-none');
+
+  displayLinks();
+}
+
+function hideGraphView() {
+  document.getElementById('wikiGraphView').classList.add('d-none');
+  document.getElementById('wikiNormalView').classList.remove('d-none');
 }
 
 // -------------------------------------------------------------------------------------
@@ -510,6 +826,59 @@ async function fetchNoteData() {
   groupNotes = await fetchGroupNotes();
   groupFolders = await fetchGroupFolders();
   noteLinks = await fetchNoteLinks();
+}
+
+// Logic for making note links
+// extract links -> find the linked notes id -> get the existing links from database
+// -> compare old links with new link, create new links, deleted removed links -> refetch links data
+async function makeNoteLinks(sourceNoteId, content) {
+  // Get the links in the content
+  const linkedTitles = extractNoteLinks(content);
+
+  // Find the notes mentioned in the link
+  const targetNotes = linkedTitles.map(findNoteByTitle).filter(Boolean);
+
+  const newTargetIds = targetNotes.map((note) => note.id);
+
+  // Get the existing links
+  const existingLinks = await fetchNoteLinksBySourceNoteId(sourceNoteId);
+
+  // Get current target ids
+  const existingTargetIds = existingLinks.map((link) => link.target_note_id);
+
+  // Create new links
+  for (const targetId of newTargetIds) {
+    // Checks if the link already exists
+    // If does not exist: create link
+    if (!existingTargetIds.includes(targetId)) {
+      await createNoteLink(sourceNoteId, targetId);
+    }
+  }
+
+  // Delete removed links
+  for (const targetId of existingTargetIds) {
+    if (!newTargetIds.includes(targetId)) {
+      await deleteNoteLink(sourceNoteId, targetId);
+    }
+  }
+}
+
+// Finds text that matches [[link name]]
+function extractNoteLinks(content) {
+  const regex = /\[\[([^\]]+)\]\]/g;
+
+  const links = [];
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    links.push(match[1].trim());
+  }
+
+  return links;
+}
+
+function findNoteByTitle(title) {
+  return groupNotes.find((note) => note.title.toLowerCase() === title.toLowerCase());
 }
 
 // -------------------------------------------------------------------------------------
@@ -1084,8 +1453,7 @@ async function createNoteLink(source_note_id, target_note_id) {
       // folder created: success
       if (responseStatus == 201) {
         resolve(responseData);
-
-        displayToast('success', 'Notes are linked!');
+        displayToast('success', 'Links updated');
 
         // Token expired
       } else if (responseStatus == 401) {
@@ -1098,16 +1466,12 @@ async function createNoteLink(source_note_id, target_note_id) {
           message: 'Note not found',
         });
 
-        displayToast('error', 'Note not found');
-
         // title conflict
       } else if (responseStatus == 409) {
         reject({
           type: 'conflict',
           message: 'Note link already exists',
         });
-
-        displayToast('error', 'Note link already exists');
 
         // bad request: missing info
       } else if (responseStatus == 400) {
@@ -1134,8 +1498,7 @@ async function deleteNoteLink(source_note_id, target_note_id) {
 
       if (responseStatus == 204) {
         resolve(responseData);
-
-        displayToast('success', 'Link was removed!');
+        displayToast('success', 'Links updated');
 
         // Token expired
       } else if (responseStatus == 401) {
@@ -1147,8 +1510,6 @@ async function deleteNoteLink(source_note_id, target_note_id) {
           type: 'not found',
           message: 'Link not found',
         });
-
-        displayToast('error', 'Link not found');
       } else {
         reject(responseData);
       }

@@ -123,11 +123,11 @@ router.post('/:group_id', authenticateJWT, (req, res, next) => {
 router.put('/:id/group/:group_id', authenticateJWT, (req, res, next) => {
   if (
     req.body == undefined ||
-    (req.body.folder_id == undefined &&
-      req.body.title == undefined &&
-      req.body.template == undefined &&
-      req.body.is_pinned == undefined &&
-      req.body.is_archived == undefined)
+    (req.body.folder_id === undefined &&
+      req.body.title === undefined &&
+      req.body.template === undefined &&
+      req.body.is_pinned === undefined &&
+      req.body.is_archived === undefined)
   ) {
     res.status(400).json({ message: 'Error: Missing required fields' });
     return;
@@ -162,23 +162,23 @@ router.put('/:id/group/:group_id', authenticateJWT, (req, res, next) => {
             // A note with the same title and group already exists
             if (notes.length > 0) {
               if (notes[0].id == data.id) {
-                if (data.title == undefined) {
+                if (data.title === undefined) {
                   data.title = note.title;
                 }
 
-                if (data.is_archived == undefined) {
+                if (data.is_archived === undefined) {
                   data.is_archived = note.is_archived;
                 }
 
-                if (data.is_pinned == undefined) {
+                if (data.is_pinned === undefined) {
                   data.is_pinned = note.is_pinned;
                 }
 
-                if (data.template == undefined) {
+                if (data.template === undefined) {
                   data.template = note.template;
                 }
 
-                if (data.folder_id == undefined) {
+                if (data.folder_id === undefined) {
                   data.folder_id = note.folder_id;
                 }
 
@@ -193,23 +193,23 @@ router.put('/:id/group/:group_id', authenticateJWT, (req, res, next) => {
 
               // Update the note
             } else {
-              if (data.title == undefined) {
+              if (data.title === undefined) {
                 data.title = note.title;
               }
 
-              if (data.is_archived == undefined) {
+              if (data.is_archived === undefined) {
                 data.is_archived = note.is_archived;
               }
 
-              if (data.is_pinned == undefined) {
+              if (data.is_pinned === undefined) {
                 data.is_pinned = note.is_pinned;
               }
 
-              if (data.template == undefined) {
+              if (data.template === undefined) {
                 data.template = note.template;
               }
 
-              if (data.folder_id == undefined) {
+              if (data.folder_id === undefined) {
                 data.folder_id = note.folder_id;
               }
 
