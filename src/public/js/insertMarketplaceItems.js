@@ -367,11 +367,14 @@ function updateSummary() {
 async function loadCart() {
   fetchMethod(`http://localhost:3000/cart/${localStorage.loggedInUserId}`, (status, data) => {
     const emptyState = document.getElementById('empty-cart-state');
+    const clearBtn = document.getElementById('clear-cart-btn');
 
     if (data.length == 0 || !data) {
       emptyState.classList.remove('d-none');
+      if (clearBtn) clearBtn.classList.add('d-none');
     } else {
       emptyState.classList.add('d-none');
+      if (clearBtn) clearBtn.classList.remove('d-none');
     }
 
     if (status === 200) {
