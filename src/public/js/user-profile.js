@@ -166,6 +166,8 @@ function renderView(profile) {
       </div>
       <div class="pro-profile__friend-actions text-center" id="friendActions">${relActions(profile)}</div>
       ${!isOwnProfile ? `<div class="text-center mt-2">${reportBtn}</div>` : ''}`;
+    const rightSidebarPriv = document.getElementById('profileRightSidebar');
+    if (rightSidebarPriv) rightSidebarPriv.innerHTML = '';
     if (!isOwnProfile) {
       bindFriendActions(document.getElementById('friendActions'));
       document
@@ -224,6 +226,30 @@ function renderView(profile) {
       <h3>Links</h3>
       ${renderLinks(profile)}
     </div>`;
+
+  const rightSidebar = document.getElementById('profileRightSidebar');
+  if (rightSidebar) {
+    rightSidebar.innerHTML = `
+      <div class="pro-profile__section pro-profile__activity">
+        <h3><i class="fas fa-stream me-2"></i>Activity</h3>
+        <div class="pro-profile__tabs" id="profileActivityTabs">
+          <button class="pro-profile__tab active" data-tab="posts">
+            Posts
+          </button>
+          <button class="pro-profile__tab" data-tab="comments" disabled title="Coming soon">
+            Comments
+          </button>
+          <button class="pro-profile__tab" data-tab="liked" disabled title="Coming soon">
+            Liked
+          </button>
+        </div>
+        <div id="profileTabContent" class="pro-profile__tab-content">
+          <div class="text-muted text-center py-3">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+          </div>
+        </div>
+      </div>`;
+  }
 
   if (!isOwnProfile) {
     bindFriendActions(document.getElementById('friendActions'));
@@ -443,11 +469,15 @@ async function loadUserProfile() {
       isOwnProfile = false;
     }
     currentProfile = profile;
+
+    const isPrivate = profile.is_private && !isOwnProfile && profile.relationship !== 'friends';
+
     document.title = `${profile.display_name || profile.name} — Spindle`;
     loading.classList.add('d-none');
     root.classList.remove('d-none');
     renderView(profile);
     loadBadges(profile.id);
+    loadProfilePosts(profile.id, isPrivate);
   } catch (err) {
     loading.classList.add('d-none');
     errEl.textContent = err.message || 'Could not load profile.';
@@ -489,6 +519,139 @@ async function loadBadges(userId) {
     const grid2 = document.getElementById('badgesGrid');
     if (grid2) grid2.innerHTML = '<span class="text-muted small">Could not load badges.</span>';
   }
+}
+
+// Profile activity tabs
+function setupProfileTabs() {
+  const tabsEl = document.getElementById('profileActivityTabs');
+  if (!tabsEl) return;
+
+  tabsEl.querySelectorAll('.pro-profile__tab:not([disabled])').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      tabsEl.querySelectorAll('.pro-profile__tab').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      // For now only posts tab (likes and comments WIP)
+      if (btn.dataset.tab === 'posts' && currentProfile) {
+        loadProfilePosts(currentProfile.id);
+      }
+    });
+  });
+}
+
+async function loadProfilePosts(userId, isPrivate = false) {
+  const container = document.getElementById('profileTabContent');
+  if (!container) return;
+
+  if (isPrivate) {
+    container.innerHTML =
+      '<p class="text-muted small text-center py-3">This profile is private.</p>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="text-muted text-center py-3">
+      <div class="spinner-border spinner-border-sm" role="status"></div>
+      Loading posts…
+    </div>`;
+
+  try {
+    const allPosts = await authFetch(`/posts/user/${userId}`);
+    const posts = (allPosts || []).filter((post) => !post.is_anonymous);
+
+    if (!posts.length) {
+      container.innerHTML = `
+        <div class="text-muted text-center py-4">
+          <i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>
+          No posts yet.
+        </div>`;
+      setupProfileTabs();
+      return;
+    }
+
+    container.innerHTML = '';
+
+    posts.forEach((post) => {
+      const card = buildProfilePostCard(post);
+      container.appendChild(card);
+    });
+
+    setupProfileTabs();
+  } catch (e) {
+    container.innerHTML = '<p class="text-muted text-center py-3">Could not load posts.</p>';
+  }
+}
+
+function buildProfilePostCard(post) {
+  const el = document.createElement('div');
+  el.className = 'pro-profile__post-card';
+
+  const categoryLabels = {
+    confession: 'Confession',
+    qna: 'Q&A',
+    general: 'General Talk',
+    events: 'Events',
+    news: 'News',
+    cca: 'CCA',
+    internship: 'Internship',
+    SOC: 'SOC',
+    ABE: 'ABE',
+    SB: 'SB',
+    CLS: 'CLS',
+    EEE: 'EEE',
+    MAD: 'MAD',
+    MAE: 'MAE',
+    SMA: 'SMA',
+  };
+  const categoryClasses = {
+    confession: 'category-confession',
+    qna: 'category-qna',
+    general: 'category-general',
+    events: 'category-events',
+    news: 'category-news',
+    internship: 'category-internship',
+    cca: 'category-cca',
+    SOC: 'category-SOC',
+    ABE: 'category-ABE',
+    SB: 'category-SB',
+    CLS: 'category-CLS',
+    EEE: 'category-EEE',
+    MAD: 'category-MAD',
+    MAE: 'category-MAE',
+    SMA: 'category-SMA',
+  };
+
+  const label = categoryLabels[post.category] || post.category || '';
+  const cls = categoryClasses[post.category] || 'category-general';
+
+  const date = post.created_at
+    ? new Date(post.created_at).toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '';
+
+  const plainContent = (post.content || '').replace(/<[^>]*>/g, '');
+  const preview = plainContent.length > 180 ? plainContent.slice(0, 180) + '…' : plainContent;
+
+  el.innerHTML = `
+    <div class="pro-profile__post-meta">
+      <span class="post-category ${cls}">${esc(label)}</span>
+      <span class="pro-profile__post-date">${esc(date)}</span>
+    </div>
+    <div class="pro-profile__post-title">${esc(post.title || '')}</div>
+    ${preview ? `<div class="pro-profile__post-preview">${esc(preview)}</div>` : ''}
+    <div class="pro-profile__post-stats">
+      <span><i class="far fa-thumbs-up"></i> ${post.like_count ?? 0}</span>
+      <span><i class="far fa-comment"></i> ${post.comment_count ?? 0}</span>
+    </div>`;
+
+  el.style.cursor = 'pointer';
+  el.addEventListener('click', () => {
+    window.location.href = `posts.html?id=${post.id}`;
+  });
+
+  return el;
 }
 
 document.addEventListener('DOMContentLoaded', loadUserProfile);

@@ -40,7 +40,6 @@ const persons = [
 
 const somethings = [{ name: 'Seed 1' }, { name: 'Seed 2' }];
 
-// seed data for discussion pg
 // Example posts
 const posts = [
   {
@@ -60,6 +59,118 @@ const posts = [
     title: 'General Thoughts',
     category: 'general',
     content: 'Postgres is powerful.',
+  },
+  {
+    userEmail: 'dave@example.com',
+    title: 'Best Spot to Study on Campus?',
+    category: 'general',
+    content: 'Curious where everyone likes to study best — vote below!',
+  },
+  {
+    userEmail: 'grace@example.com',
+    title: 'Favourite Programming Language for CS1010?',
+    category: 'SOC',
+    content: 'We get to pick our own language for the final project. What should I go with?',
+  },
+  {
+    userEmail: 'ivan@example.com',
+    title: 'Anyone else stressed about finals?',
+    category: 'confession',
+    content: 'I have 4 exams in 3 days and I am not okay 😭',
+    isAnonymous: true,
+  },
+  {
+    userEmail: 'heidi@example.com',
+    title: 'Internship at a fintech startup - AMA',
+    category: 'internship',
+    content: 'Just wrapped up a 6-month internship, happy to answer questions!',
+  },
+  {
+    userEmail: 'frank@example.com',
+    title: 'Freshman Orientation Camp 2026 Sign-ups Open',
+    category: 'events',
+    content: 'Sign-ups for Freshman Orientation Camp are now open! Link in comments.',
+    pinned: true,
+  },
+  {
+    userEmail: 'judy@example.com',
+    title: 'Robotics Club Recruitment',
+    category: 'cca',
+    content: 'We are recruiting new members for the robotics club this semester!',
+  },
+  {
+    userEmail: 'oscar@example.com',
+    title: 'PSA: Library extended hours during exam period',
+    category: 'news',
+    content: 'The library will be open 24 hours starting next week for exam season.',
+  },
+];
+
+// Example tags
+const popularTags = [
+  'study',
+  'exam-tips',
+  'internship',
+  'career',
+  'cca',
+  'robotics',
+  'events',
+  'orientation',
+  'programming',
+  'cs1010',
+  'database',
+  'library',
+  'fintech',
+  'confession',
+  'food',
+  'psa',
+  'help',
+  'recruitment',
+];
+
+// Example tags attached to post
+const postTags = [
+  { postTitle: 'First Confession', tags: ['food', 'confession'] },
+  { postTitle: 'General Thoughts', tags: ['database', 'postgres'] },
+  {
+    postTitle: 'Favourite Programming Language for CS1010?',
+    tags: ['programming', 'cs1010', 'help'],
+  },
+  {
+    postTitle: 'Internship at a fintech startup - AMA',
+    tags: ['internship', 'fintech', 'career'],
+  },
+  { postTitle: 'Robotics Club Recruitment', tags: ['robotics', 'cca', 'recruitment'] },
+  {
+    postTitle: 'PSA: Library extended hours during exam period',
+    tags: ['library', 'psa', 'exam-tips'],
+  },
+];
+
+// Exmaple polls 
+const postPolls = [
+  {
+    postTitle: 'Best Spot to Study on Campus?',
+    question: 'Where do you usually study best?',
+    options: ['Library', 'Canteen', 'Dorm Room', 'Outdoor Benches'],
+    votes: [
+      { userEmail: 'alice@example.com', option: 'Library' },
+      { userEmail: 'bob@example.com', option: 'Library' },
+      { userEmail: 'carol@example.com', option: 'Canteen' },
+      { userEmail: 'dave@example.com', option: 'Dorm Room' },
+      { userEmail: 'eve@example.com', option: 'Library' },
+    ],
+  },
+  {
+    postTitle: 'Favourite Programming Language for CS1010?',
+    question: 'Which language would you pick for your final project?',
+    options: ['Python', 'Java', 'JavaScript', 'C++'],
+    votes: [
+      { userEmail: 'frank@example.com', option: 'Python' },
+      { userEmail: 'grace@example.com', option: 'Python' },
+      { userEmail: 'heidi@example.com', option: 'JavaScript' },
+      { userEmail: 'ivan@example.com', option: 'C++' },
+    ],
   },
 ];
 
@@ -111,19 +222,19 @@ const badges = [
     key: 'group_joiner',
     name: 'Alliance Formed',
     description: 'Joined your first study group',
-    imageUrl: '/images/badges/birthdaybash.png',
+    imageUrl: '/images/badges/group_joiner.png',
   },
   {
     key: 'liked_post',
     name: 'Sprout',
     description: 'Received your first like on a post',
-    imageUrl: '/images/badges/birthdaybash.png',
+    imageUrl: '/images/badges/liked_post.png',
   },
   {
     key: 'pandabot_user',
     name: 'Panda Pal',
     description: 'Summoned PandaBot for the first time',
-    imageUrl: '/images/badges/birthdaybash.png',
+    imageUrl: '/images/badges/pandabot_user.png',
   },
   {
     key: 'fan_favorite',
@@ -141,7 +252,7 @@ const badges = [
     key: 'night_owl',
     name: 'Night Owl',
     description: 'Posted after midnight 20 times',
-    imageUrl: '/images/badges/birthdaybash.png',
+    imageUrl: '/images/badges/night_owl.png',
   },
   {
     key: 'pandabot_whisperer',
@@ -1105,20 +1216,129 @@ async function seed() {
   // Discussion board extras
   console.log('Seed data inserted successfully.');
 
-  // homepg function
   // Insert posts
   for (const post of posts) {
     const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [post.userEmail]);
     if (userRes.rows.length > 0) {
       await pool.query(
-        `INSERT INTO "Posts" ("user_id", "title", "category", "content")
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO "Posts"
+          ("user_id", "title", "category", "content", "attachment_url", "gif_url", "is_anonymous", "visibility", "pinned")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          ON CONFLICT DO NOTHING`,
-        [userRes.rows[0].id, post.title, post.category, post.content],
+        [
+          userRes.rows[0].id,
+          post.title,
+          post.category,
+          post.content,
+          post.attachmentUrl || null,
+          post.gifUrl || null,
+          post.isAnonymous || false,
+          post.visibility || 'everyone',
+          post.pinned || false,
+        ],
       );
     }
   }
   console.log(`Inserted ${posts.length} posts.`);
+
+  // Insert tag 
+  for (const tagName of popularTags) {
+    await pool.query(`INSERT INTO "Tags" ("name") VALUES ($1) ON CONFLICT ("name") DO NOTHING`, [
+      tagName,
+    ]);
+  }
+  console.log(`Inserted ${popularTags.length} tags.`);
+
+  // Attach tags to posts
+ for (const pt of postTags) {
+    const postRes = await pool.query(`SELECT id FROM "Posts" WHERE title = $1`, [pt.postTitle]);
+    if (postRes.rows.length === 0) continue;
+    const postId = postRes.rows[0].id;
+
+    for (const tagName of pt.tags) {
+      const tagRes = await pool.query(
+        `INSERT INTO "Tags" ("name") VALUES ($1)
+         ON CONFLICT ("name") DO UPDATE SET name = EXCLUDED.name
+         RETURNING id`,
+        [tagName],
+      );
+      const tagId = tagRes.rows[0].id;
+
+      await pool.query(
+        `INSERT INTO "PostTags" ("post_id", "tag_id") VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [postId, tagId],
+      );
+    }
+  }
+  console.log(`Tagged ${postTags.length} posts.`);
+
+  // Insert polls (with options and a few sample votes)
+  for (const poll of postPolls) {
+    const postRes = await pool.query(`SELECT id FROM "Posts" WHERE title = $1`, [poll.postTitle]);
+    if (postRes.rows.length === 0) continue;
+    const postId = postRes.rows[0].id;
+
+    let pollId;
+    const existingPoll = await pool.query(`SELECT id FROM "PostPolls" WHERE post_id = $1`, [
+      postId,
+    ]);
+    if (existingPoll.rows.length > 0) {
+      pollId = existingPoll.rows[0].id;
+    } else {
+      const insertedPoll = await pool.query(
+        `INSERT INTO "PostPolls" ("post_id", "question") VALUES ($1, $2) RETURNING id`,
+        [postId, poll.question],
+      );
+      pollId = insertedPoll.rows[0].id;
+    }
+
+    const optionIds = {};
+    for (const optionText of poll.options) {
+      const existingOption = await pool.query(
+        `SELECT id FROM "PollOptions" WHERE poll_id = $1 AND option_text = $2`,
+        [pollId, optionText],
+      );
+      if (existingOption.rows.length > 0) {
+        optionIds[optionText] = existingOption.rows[0].id;
+      } else {
+        const insertedOption = await pool.query(
+          `INSERT INTO "PollOptions" ("poll_id", "option_text") VALUES ($1, $2) RETURNING id`,
+          [pollId, optionText],
+        );
+        optionIds[optionText] = insertedOption.rows[0].id;
+      }
+    }
+
+    for (const vote of poll.votes || []) {
+      const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+        vote.userEmail,
+      ]);
+      const optionId = optionIds[vote.option];
+      if (userRes.rows.length === 0 || !optionId) continue;
+
+      await pool.query(
+        `INSERT INTO "PollVotes" ("poll_id", "option_id", "user_id") VALUES ($1, $2, $3)
+         ON CONFLICT ("poll_id", "user_id") DO NOTHING`,
+        [pollId, optionId, userRes.rows[0].id],
+      );
+    }
+
+    // Recalculate vote_count 
+    await pool.query(
+      `UPDATE "PollOptions" po
+       SET vote_count = COALESCE(sub.count, 0)
+       FROM (
+         SELECT o.id AS option_id, COUNT(pv.id)::int AS count
+         FROM "PollOptions" o
+         LEFT JOIN "PollVotes" pv ON pv.option_id = o.id
+         WHERE o.poll_id = $1
+         GROUP BY o.id
+       ) sub
+       WHERE po.id = sub.option_id`,
+      [pollId],
+    );
+  }
+  console.log(`Inserted ${postPolls.length} polls.`);
 
   // Insert comments
   for (const comment of comments) {
@@ -1173,6 +1393,7 @@ async function seed() {
   }
   console.log(`Inserted ${savedPosts.length} saved posts.`);
 
+  // insert badges
   for (const badge of badges) {
     await pool.query(
       `INSERT INTO "Badges" (key, name, description, image_url)

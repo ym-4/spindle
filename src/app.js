@@ -90,7 +90,7 @@ app.use((req, res, next) => {
 // Sends a consistent JSON response instead of Express's default HTML error page.
 // NOTE: Express requires exactly 4 parameters (error, req, res, next) to recognize
 // this as an error handler. 'next' is not used here, so we disable the ESLint rule.
-// eslint-disable-next-line no-unused-vars
+
 app.use((error, req, res, next) => {
   console.error(error);
   const status = error.status || 500;

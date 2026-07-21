@@ -145,7 +145,7 @@ module.exports.getPostByID = async function getPostByID(data) {
   return rows[0];
 };
 
-// GET Post by Category (confession/qna/general)
+// GET Post by Category
 module.exports.getPostByCategory = async function getPostByCategory(data) {
   const categoryMap = { confession: 'confession', 'q&a': 'qna', qna: 'qna', general: 'general' };
   const cat = categoryMap[(data.category || '').toLowerCase()] || data.category;
@@ -234,10 +234,42 @@ module.exports.getRelatedPosts = async function getRelatedPosts(data) {
   return rows;
 };
 
-// GET Post by userID?? WIP
-module.exports.getPostByUserID = async function getPostByUserID(data) {
-  const VALUES = [data.user_id];
-  const { rows } = await pool.query('SELECT * FROM "Person" WHERE email = ?', VALUES);
+// GET posts by user ID (for profile page)
+module.exports.getPostsByUserID = async function getPostsByUserID(data) {
+  const { rows } = await pool.query(
+    `SELECT
+      p.id,
+      p.user_id,
+      p.title,
+      p.category,
+      p.content,
+      p.attachment_url,
+      p.gif_url,
+      p.created_at,
+      p.updated_at,
+      p.is_anonymous,
+      p.visibility,
+      p.pinned,
+      pp.id AS poll_id,
+      per.name AS author_name,
+      COUNT(DISTINCT pc.id)::int AS comment_count,
+      COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int    AS like_count,
+      COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
+    FROM "Posts" p
+    LEFT JOIN "PostPolls" pp ON pp.post_id  = p.id
+    JOIN "Person" per ON per.id       = p.user_id
+    LEFT JOIN "PostComments" pc ON pc.post_id  = p.id
+    LEFT JOIN "PostReactions" pr ON pr.post_id = p.id
+    WHERE p.user_id = $1
+    AND p.is_anonymous = FALSE 
+    GROUP BY
+      p.id, p.user_id, p.title, p.category, p.content,
+      p.attachment_url, p.gif_url, pp.id, p.is_anonymous,
+      p.created_at, p.updated_at, p.visibility, p.pinned,
+      per.name
+    ORDER BY p.pinned DESC, p.created_at DESC`,
+    [data.user_id],
+  );
   return rows;
 };
 

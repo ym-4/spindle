@@ -15,6 +15,7 @@ const {
   getPostByID,
   getPostByCategory,
   getRelatedPosts,
+  getPostsByUserID,
   insertPost,
   updatePostByID,
   deletePostByID,
@@ -134,6 +135,13 @@ router.get('/related/:category/:id', (req, res, next) => {
   };
 
   getRelatedPosts(data)
+    .then((posts) => res.status(200).json(posts))
+    .catch(next);
+});
+
+// get posts by user ID (for profile page)
+router.get('/user/:user_id', (req, res, next) => {
+  getPostsByUserID({ user_id: req.params.user_id })
     .then((posts) => res.status(200).json(posts))
     .catch(next);
 });
