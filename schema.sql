@@ -100,6 +100,7 @@ CREATE TABLE "Posts" (
   "is_anonymous" BOOLEAN DEFAULT FALSE,
   "visibility" TEXT DEFAULT 'everyone',
   "pinned" BOOLEAN DEFAULT FALSE,
+  "view_count" INT DEFAULT 0,
   CONSTRAINT "Posts_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );

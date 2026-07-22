@@ -147,7 +147,7 @@ const postTags = [
   },
 ];
 
-// Exmaple polls 
+// Exmaple polls
 const postPolls = [
   {
     postTitle: 'Best Spot to Study on Campus?',
@@ -198,7 +198,7 @@ const badges = [
     key: 'first_comment',
     name: 'Icebreaker',
     description: 'Left your first comment',
-    imageUrl: '/images/badges/birthdaybash.png',
+    imageUrl: '/images/badges/icebreaker.png',
   },
   {
     key: 'social_butterfly',
@@ -264,6 +264,36 @@ const badges = [
 
 // Example saved posts
 const savedPosts = [{ userEmail: 'heidi@example.com', postTitle: 'General Thoughts' }];
+
+// Example for analytics
+const analyticsReactions = [
+  { userEmail: 'bob@example.com', reactionType: 'like', daysAgo: 9 },
+  { userEmail: 'carol@example.com', reactionType: 'like', daysAgo: 8 },
+  { userEmail: 'dave@example.com', reactionType: 'like', daysAgo: 8 },
+  { userEmail: 'eve@example.com', reactionType: 'like', daysAgo: 7 },
+  { userEmail: 'grace@example.com', reactionType: 'dislike', daysAgo: 6 },
+  { userEmail: 'heidi@example.com', reactionType: 'like', daysAgo: 6 },
+  { userEmail: 'ivan@example.com', reactionType: 'like', daysAgo: 5 },
+  { userEmail: 'judy@example.com', reactionType: 'like', daysAgo: 5 },
+  { userEmail: 'mallory@example.com', reactionType: 'like', daysAgo: 4 },
+  { userEmail: 'oscar@example.com', reactionType: 'dislike', daysAgo: 4 },
+  { userEmail: 'peggy@example.com', reactionType: 'like', daysAgo: 3 },
+  { userEmail: 'trent@example.com', reactionType: 'like', daysAgo: 3 },
+  { userEmail: 'victor@example.com', reactionType: 'like', daysAgo: 2 },
+  { userEmail: 'walter@example.com', reactionType: 'like', daysAgo: 1 },
+  { userEmail: 'xavier@example.com', reactionType: 'like', daysAgo: 1 },
+  { userEmail: 'yvonne@example.com', reactionType: 'dislike', daysAgo: 0 },
+  { userEmail: 'zara@example.com', reactionType: 'like', daysAgo: 0 },
+];
+
+const analyticsSaves = [
+  { userEmail: 'leo@example.com', daysAgo: 7 },
+  { userEmail: 'beni@example.com', daysAgo: 6 },
+  { userEmail: 'emataso@example.com', daysAgo: 4 },
+  { userEmail: 'hinano@example.com', daysAgo: 3 },
+  { userEmail: 'frank@example.com', daysAgo: 1 },
+  { userEmail: 'judy@example.com', daysAgo: 0 },
+];
 
 // Marketplace items
 const marketplaceItems = [
@@ -1241,7 +1271,7 @@ async function seed() {
   }
   console.log(`Inserted ${posts.length} posts.`);
 
-  // Insert tag 
+  // Insert tag
   for (const tagName of popularTags) {
     await pool.query(`INSERT INTO "Tags" ("name") VALUES ($1) ON CONFLICT ("name") DO NOTHING`, [
       tagName,
@@ -1250,7 +1280,7 @@ async function seed() {
   console.log(`Inserted ${popularTags.length} tags.`);
 
   // Attach tags to posts
- for (const pt of postTags) {
+  for (const pt of postTags) {
     const postRes = await pool.query(`SELECT id FROM "Posts" WHERE title = $1`, [pt.postTitle]);
     if (postRes.rows.length === 0) continue;
     const postId = postRes.rows[0].id;
@@ -1323,7 +1353,7 @@ async function seed() {
       );
     }
 
-    // Recalculate vote_count 
+    // Recalculate vote_count
     await pool.query(
       `UPDATE "PollOptions" po
        SET vote_count = COALESCE(sub.count, 0)
@@ -1392,6 +1422,42 @@ async function seed() {
     }
   }
   console.log(`Inserted ${savedPosts.length} saved posts.`);
+
+  // Insert analytics data
+  const analyticsPostRes = await pool.query(`SELECT id FROM "Posts" WHERE title = $1`, [
+    'First Confession',
+  ]);
+  if (analyticsPostRes.rows.length > 0) {
+    const analyticsPostId = analyticsPostRes.rows[0].id;
+
+    for (const r of analyticsReactions) {
+      const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [r.userEmail]);
+      if (userRes.rows.length === 0) continue;
+
+      await pool.query(
+        `INSERT INTO "PostReactions" ("post_id", "user_id", "reaction_type", "created_at")
+         VALUES ($1, $2, $3, NOW() - ($4 || ' days')::interval)
+         ON CONFLICT ("post_id", "user_id") DO NOTHING`,
+        [analyticsPostId, userRes.rows[0].id, r.reactionType, r.daysAgo],
+      );
+    }
+    console.log(`Inserted ${analyticsReactions.length} analytics reactions.`);
+
+    for (const s of analyticsSaves) {
+      const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [s.userEmail]);
+      if (userRes.rows.length === 0) continue;
+
+      await pool.query(
+        `INSERT INTO "SavedPosts" ("user_id", "post_id", "created_at")
+         VALUES ($1, $2, NOW() - ($3 || ' days')::interval)
+         ON CONFLICT ("user_id", "post_id") DO NOTHING`,
+        [userRes.rows[0].id, analyticsPostId, s.daysAgo],
+      );
+    }
+    console.log(`Inserted ${analyticsSaves.length} analytics saves.`);
+  } else {
+    console.warn('Could not find "First Confession" post — skipped analytics seed data.');
+  }
 
   // insert badges
   for (const badge of badges) {
@@ -1479,8 +1545,8 @@ async function seed() {
       [group.name, userRes.rows[0].id, group.description, group.school, group.module, group.public],
     );
   }
-
   console.log(`Inserted ${groups.length} groups.`);
+
   // Insert group members
   for (const member of groupMembers) {
     const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [

@@ -627,3 +627,102 @@ module.exports.searchAllPosts = async function searchAllPosts({ search, category
   const { rows } = await pool.query(sql, params);
   return rows;
 };
+
+// Calc view count for a post
+module.exports.incrementPostView = async function incrementPostView(postId) {
+  const { rows } = await pool.query(
+    `UPDATE "Posts" SET view_count = view_count + 1 WHERE id = $1 RETURNING view_count`,
+    [postId],
+  );
+  return rows[0]?.view_count ?? 0;
+};
+
+// Get post analytics for post owner
+module.exports.getPostAnalytics = async function getPostAnalytics(data) {
+  const { rows } = await pool.query(
+    `SELECT
+       p.id,
+       p.title,
+       p.category,
+       p.created_at,
+       p.view_count,
+
+       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
+       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count,
+       COUNT(DISTINCT pc.id)::int AS comment_count,
+       COUNT(DISTINCT sp.id)::int AS save_count
+
+     FROM "Posts" p
+     LEFT JOIN "PostReactions" pr ON pr.post_id  = p.id
+     LEFT JOIN "PostComments" pc ON pc.post_id  = p.id
+     LEFT JOIN "SavedPosts" sp ON sp.post_id  = p.id
+     WHERE p.id = $1 AND p.user_id = $2
+     GROUP BY p.id`,
+    [data.post_id, data.user_id],
+  );
+  return rows[0] || null;
+};
+
+// Get stats over time for a single post
+module.exports.getPostEngagementOverTime = async function getPostEngagementOverTime(data) {
+  const { rows } = await pool.query(
+    `SELECT
+       day,
+       SUM(likes)::int AS likes,
+       SUM(dislikes)::int AS dislikes,
+       SUM(saves)::int AS saves
+     FROM (
+       SELECT
+         DATE(pr.created_at) AS day,
+         COUNT(*) FILTER (WHERE pr.reaction_type = 'like') AS likes,
+         COUNT(*) FILTER (WHERE pr.reaction_type = 'dislike') AS dislikes,
+         0 AS saves
+       FROM "PostReactions" pr
+       JOIN "Posts" p ON p.id = pr.post_id
+       WHERE pr.post_id = $1 AND p.user_id = $2
+       GROUP BY DATE(pr.created_at)
+
+       UNION ALL
+
+       SELECT
+         DATE(sp.created_at) AS day,
+         0 AS likes,
+         0 AS dislikes,
+         COUNT(*) AS saves
+       FROM "SavedPosts" sp
+       JOIN "Posts" p ON p.id = sp.post_id
+       WHERE sp.post_id = $1 AND p.user_id = $2
+       GROUP BY DATE(sp.created_at)
+     ) combined
+     GROUP BY day
+     ORDER BY day ASC`,
+    [data.post_id, data.user_id],
+  );
+  return rows;
+};
+
+// Get all posts analytics summary for user
+module.exports.getUserPostsAnalytics = async function getUserPostsAnalytics(data) {
+  const { rows } = await pool.query(
+    `SELECT
+       p.id,
+       p.title,
+       p.category,
+       p.created_at,
+       p.view_count,
+       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
+       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count,
+       COUNT(DISTINCT pc.id)::int AS comment_count,
+       COUNT(DISTINCT sp.id)::int AS save_count
+     FROM "Posts" p
+     LEFT JOIN "PostReactions" pr ON pr.post_id  = p.id
+     LEFT JOIN "PostComments" pc ON pc.post_id  = p.id
+     LEFT JOIN "SavedPosts" sp ON sp.post_id  = p.id
+     WHERE p.user_id = $1
+       AND p.is_anonymous = FALSE
+     GROUP BY p.id
+     ORDER BY p.created_at DESC`,
+    [data.user_id],
+  );
+  return rows;
+};

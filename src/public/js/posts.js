@@ -637,7 +637,10 @@ function loadPost(postId, editMode = false) {
     fetchMethod(`${currentUrl}/posts/${postId}`, (status, data) => {
       if (status === 200 && data) {
         if (editMode) renderPostEditMode(data);
-        else renderPost(data);
+        else {
+          renderPost(data);
+          fetchMethod(`${feedApiBase()}/posts/${postId}/view`, () => {}, 'POST', null, null);
+        }
         document.getElementById('commentsSection').style.display = 'block';
         loadComments(postId);
         setupCommentSubmit(postId);
@@ -671,6 +674,9 @@ function renderPost(post) {
     </button></li>
     <li><button class="dropdown-item edit-post-btn">
       <i class="fas fa-pen me-2"></i>Edit post
+    </button></li>
+    <li><button class="dropdown-item insights-post-btn">
+      <i class="fas fa-chart-bar me-2"></i>View Insights
     </button></li>
     <li><button class="dropdown-item text-danger delete-post-btn">
       <i class="fas fa-trash-alt me-2"></i>Delete post
@@ -809,6 +815,10 @@ function renderPost(post) {
 
     document.querySelector('.edit-post-btn').addEventListener('click', () => {
       renderPostEditMode(post);
+    });
+
+    document.querySelector('.insights-post-btn').addEventListener('click', () => {
+      window.location.href = `postAnalytics.html?id=${post.id}`;
     });
 
     document.querySelector('.delete-post-btn').addEventListener('click', () => {

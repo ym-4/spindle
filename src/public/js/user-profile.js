@@ -641,15 +641,35 @@ function buildProfilePostCard(post) {
     </div>
     <div class="pro-profile__post-title">${esc(post.title || '')}</div>
     ${preview ? `<div class="pro-profile__post-preview">${esc(preview)}</div>` : ''}
-    <div class="pro-profile__post-stats">
-      <span><i class="far fa-thumbs-up"></i> ${post.like_count ?? 0}</span>
-      <span><i class="far fa-comment"></i> ${post.comment_count ?? 0}</span>
+    <div class="pro-profile__post-footer">
+      <div class="pro-profile__post-stats">
+        <span><i class="far fa-eye"></i> ${post.view_count ?? 0}</span>
+        <span><i class="far fa-thumbs-up"></i> ${post.like_count ?? 0}</span>
+        <span><i class="far fa-comment"></i> ${post.comment_count ?? 0}</span>
+      </div>
+      ${
+        isOwnProfile
+          ? `
+      <button class="pro-profile__analytics-btn" data-post-id="${post.id}" title="View analytics"> View Insights
+      </button>`
+          : ''
+      }
     </div>`;
 
   el.style.cursor = 'pointer';
-  el.addEventListener('click', () => {
+
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('.pro-profile__analytics-btn')) return;
     window.location.href = `posts.html?id=${post.id}`;
   });
+
+  // Analytics
+  if (isOwnProfile) {
+    el.querySelector('.pro-profile__analytics-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.location.href = `postAnalytics.html?id=${post.id}`;
+    });
+  }
 
   return el;
 }

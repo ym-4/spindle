@@ -43,6 +43,10 @@ const {
   getTagsByPostID,
   deletePostTags,
   searchTags,
+  incrementPostView,
+  getPostAnalytics,
+  getPostEngagementOverTime,
+  getUserPostsAnalytics,
 } = require('../models/Posts.model');
 
 const router = express.Router();
@@ -339,6 +343,42 @@ router.put('/:id/tags', authenticateJWT, async (req, res, next) => {
     console.error('Error updating post tags:', err);
     next(err);
   }
+});
+
+//=========================== ANALYTICS ===============================
+// Increment view count (when post page loads)
+router.post('/:id/view', (req, res, next) => {
+  incrementPostView(req.params.id)
+    .then((viewCount) => res.status(200).json({ view_count: viewCount }))
+    .catch(next);
+});
+
+// Get single post analytics (owner only)
+router.get('/:id/analytics', authenticateJWT, (req, res, next) => {
+  getPostAnalytics({ post_id: req.params.id, user_id: req.user.id })
+    .then((data) => {
+      if (!data) return res.status(404).json({ message: 'Post not found or not yours.' });
+      res.status(200).json(data);
+    })
+    .catch(next);
+});
+
+// GET likes/dislikes/saves over time for a single post
+router.get('/:id/analytics/engagement-over-time', authenticateJWT, (req, res, next) => {
+  const data = {
+    post_id: req.params.id,
+    user_id: req.user.id,
+  };
+  getPostEngagementOverTime(data)
+    .then((rows) => res.status(200).json(rows))
+    .catch(next);
+});
+
+// Get all posts analytics for logged in user
+router.get('/analytics/all', authenticateJWT, (req, res, next) => {
+  getUserPostsAnalytics({ user_id: req.user.id })
+    .then((data) => res.status(200).json(data))
+    .catch(next);
 });
 
 //========================= basic posts ==============================

@@ -435,6 +435,9 @@ function buildPostCard(post) {
     <li><a class="dropdown-item edit-post-btn" href="#" data-post-id="${post.id}">
       <i class="fas fa-pen me-2"></i>Edit post
     </a></li>
+    <li><a class="dropdown-item insights-post-btn" href="#" data-post-id="${post.id}">
+      <i class="fas fa-chart-bar me-2"></i>View Insights
+    </a></li>
     <li><button class="dropdown-item text-danger delete-post-btn" data-post-id="${post.id}">
       <i class="fas fa-trash-alt me-2"></i>Delete post
     </button></li>`
@@ -561,12 +564,19 @@ function buildPostCard(post) {
     e.stopPropagation();
     openReportModal(post.id, post.user_id);
   });
+
   // owner actions
   if (isOwner) {
     card.querySelector('.edit-post-btn').addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       window.location.href = `posts.html?id=${post.id}&edit=true`;
+    });
+
+    card.querySelector('.insights-post-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = `postAnalytics.html?id=${post.id}`;
     });
 
     card.querySelector('.delete-post-btn').addEventListener('click', (e) => {
