@@ -1,3 +1,5 @@
+/* global clearAuth, handleLogout, isLoggedIn */
+
 function esc(t) {
   const d = document.createElement('div');
   d.textContent = t ?? '';
