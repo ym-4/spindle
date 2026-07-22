@@ -1,0 +1,122 @@
+body {
+  margin: 0;
+  background: #f4f6f8;
+  font-family: Arial, Helvetica, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#toolbar {
+  position: sticky;
+  top: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 12px 18px;
+  background: #ffffff;
+  border-bottom: 1px solid #d8dee9;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+
+  z-index: 100;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 14px;
+  background: #f7f8fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+}
+
+.right {
+  margin-left: auto;
+}
+
+button,
+select,
+input[type='color'],
+input[type='range'] {
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+button {
+  background: white;
+  padding: 0 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+select {
+  padding: 0 10px;
+  background: white;
+}
+
+input[type='color'] {
+  width: 42px;
+  padding: 2px;
+  cursor: pointer;
+}
+
+input[type='range'] {
+  width: 100px;
+}
+
+label {
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#canvasContainer {
+  flex: 1;
+  overflow: auto;
+  background: #ececec;
+}
+
+#drawing-board {
+  display: block;
+  transform-origin: top left;
+}
+
+#eraser.active {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+#zoomLevel {
+  font-weight: bold;
+  min-width: 55px;
+  text-align: center;
+}
+
+#toolbar button.active-mode {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.35);
+}
+
+#toolbar button:hover {
+  background: #214dac;
+}

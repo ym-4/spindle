@@ -11,6 +11,17 @@
   --wa-danger: #ea0038;
   --wa-bubble-in: #202c33;
   --wa-bubble-out: #005c4b;
+
+  /* fallback variables */
+  --bg: #ffffff;
+  --bg-hover: #f3f4f6;
+  --bg-elevated: #ffffff;
+  --text-inverse: #ffffff;
+  --success: #28a745;
+  --modal-overlay: rgba(0, 0, 0, 0.5);
+
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 12px 30px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme='light'] {

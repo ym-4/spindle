@@ -280,13 +280,24 @@ CREATE TABLE "GroupDiscussions" (
 CREATE TABLE "GroupFiles" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
-  "message" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "group_id" INT NOT NULL,
-  "description" TEXT NOT NULL,
   "file_path" TEXT NOT NULL,
+  "folder_name" TEXT NOT NULL,
   CONSTRAINT "GroupFiles_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
+  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "GroupFolders" (
+  "id" SERIAL PRIMARY KEY,
+  "group_id" INT NOT NULL,
+  "name" TEXT NOT NULL,
+  "created_by" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (group_id) REFERENCES "Groups"(id) ON DELETE CASCADE, 
+  UNIQUE(group_id, name)
 );
 
 CREATE TABLE "GroupAnnouncements" (
@@ -300,7 +311,132 @@ CREATE TABLE "GroupAnnouncements" (
   FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
 );
 
----------------------------------------------------------------------------------------
+CREATE TYPE task_status AS ENUM (
+  'todo',
+  'in_progress',
+  'done'
+);
+
+CREATE TABLE "GroupTasks" (
+  "id" SERIAL PRIMARY KEY,
+  "group_id" INT NOT NULL,
+  "creator_id" INT NOT NULL,
+  "assignee_id" INT,
+  "title" TEXT NOT NULL,
+  "description" TEXT DEFAULT '',
+  "status" task_status NOT NULL DEFAULT 'todo',
+  "due_date" TIMESTAMP,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY ("group_id")
+    REFERENCES "Groups"("id") ON DELETE CASCADE,
+
+  FOREIGN KEY ("creator_id")
+    REFERENCES "Person"("id") ON DELETE CASCADE,
+
+  FOREIGN KEY ("assignee_id")
+    REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "GroupTaskItems" (
+  "id" SERIAL PRIMARY KEY,
+  "task_id" INT NOT NULL,
+  "text" TEXT NOT NULL,
+  "completed" BOOLEAN DEFAULT FALSE,
+  "completed_by" INT,
+  "completed_at" TIMESTAMP,
+
+  FOREIGN KEY ("task_id")
+    REFERENCES "GroupTasks"("id") ON DELETE CASCADE,
+
+  FOREIGN KEY ("completed_by")
+    REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TYPE modes AS ENUM (
+  'whiteboard',
+  'pixel'
+);
+
+CREATE TABLE "WhiteboardDrawings" (
+    "id" SERIAL PRIMARY KEY,
+    "user_id" INT NOT NULL,
+    "group_id" INT, 
+    "title" VARCHAR(100) NOT NULL,
+    "mode" modes NOT NULL,
+    "drawing_data" JSONB NOT NULL,
+    "image" TEXT,
+    "created_at" TIMESTAMP DEFAULT NOW(),
+    "updated_at" TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY ("user_id")
+      REFERENCES "Person"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("group_id")
+      REFERENCES "Groups"("id") ON DELETE CASCADE
+);
+
+-- Updates the whiteboard timestamp for updated_at
+CREATE TRIGGER update_whiteboard_timestamp
+BEFORE UPDATE
+ON "WhiteboardDrawings"
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE "NoteFolders" (
+  "id" SERIAL PRIMARY KEY,
+  "group_id" INT,
+  "name" TEXT NOT NULL,
+  "color" VARCHAR(20) DEFAULT '#ffffff',
+  "icon" VARCHAR(50) DEFAULT 'folder',
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY ("group_id")
+    REFERENCES "Groups"("id") ON DELETE CASCADE,
+  UNIQUE ("group_id", "name")
+);
+
+CREATE TABLE "Notes" (
+  "id" SERIAL PRIMARY KEY,
+  "user_id" INT NOT NULL,
+  "group_id" INT,
+  "folder_id" INT,
+  "title" TEXT NOT NULL,
+  "content" TEXT NOT NULL DEFAULT '',
+  "template" TEXT DEFAULT NULL,
+  "is_pinned" BOOLEAN DEFAULT FALSE,
+  "is_archived" BOOLEAN DEFAULT FALSE,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY ("user_id")
+    REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("group_id")
+    REFERENCES "Groups"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("folder_id")
+    REFERENCES "NoteFolders"("id") ON DELETE SET NULL,
+  UNIQUE ("group_id", "title")
+);
+
+-- Updates notes updated at
+CREATE TRIGGER update_notes_updated_at
+BEFORE UPDATE
+ON "Notes"
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE "NoteLinks" (
+  "source_note_id" INT NOT NULL,
+  "target_note_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY ("source_note_id", "target_note_id"),
+  FOREIGN KEY ("source_note_id")
+    REFERENCES "Notes"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("target_note_id")
+    REFERENCES "Notes"("id") ON DELETE CASCADE, 
+  UNIQUE ("source_note_id", "target_note_id")
+);
+
+----------------------------------------------------------------------------------------
 --                                  USER
 -- -------------------------------------------------------------------------------------
 
