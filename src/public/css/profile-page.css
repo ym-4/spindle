@@ -428,8 +428,7 @@
 }
 
 .pro-profile__tab-content {
-  max-height: 60vh;
-  overflow-y: auto;
+  min-height: 120px;
 }
 
 /* Profile post cards */
@@ -494,6 +493,13 @@
 
 .pro-profile__post-stats i {
   margin-right: 0.2rem;
+}
+
+/* Comments by user */
+.pro-profile__comment-context {
+  font-size: 0.78rem;
+  color: var(--text-secondary, #65676b);
+  margin-top: 0.2rem;
 }
 
 /*  Post card analytics button  */

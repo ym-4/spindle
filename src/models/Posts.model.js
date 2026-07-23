@@ -535,6 +535,37 @@ module.exports.getReactionByUserID = async function getReactionByUserID(data) {
   return rows;
 };
 
+// GET posts liked by a user (for profile page)
+module.exports.getLikedPostsByUserID = async function getLikedPostsByUserID(data) {
+  const { rows } = await pool.query(
+    `SELECT
+       p.id,
+       p.title,
+       p.category,
+       p.created_at,
+       p.is_anonymous,
+       p.view_count,
+       per.name AS author_name,
+       COUNT(DISTINCT pc.id)::int AS comment_count,
+       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
+       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count,
+       pr_me.reaction_type AS my_reaction
+     FROM "PostReactions" pr_me
+     JOIN "Posts" p ON p.id = pr_me.post_id
+     JOIN "Person" per ON per.id = p.user_id
+     LEFT JOIN "PostComments" pc ON pc.post_id = p.id
+     LEFT JOIN "PostReactions" pr ON pr.post_id = p.id
+     WHERE pr_me.user_id = $1
+       AND pr_me.reaction_type = 'like'
+       AND p.is_anonymous = FALSE
+     GROUP BY p.id, p.title, p.category, p.created_at, p.is_anonymous,
+              p.view_count, per.name, pr_me.reaction_type
+     ORDER BY p.created_at DESC`,
+    [data.user_id],
+  );
+  return rows;
+};
+
 // like a post
 module.exports.insertLike = async function insertLike(data) {
   const VALUES = [data.post_id, data.user_id, data.reaction_type];

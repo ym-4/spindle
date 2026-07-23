@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 // ── Helper ───────────────────────────────────────────────
-const BASE_URL = 'http://localhost:3001';
+const BASE_URL = 'http://localhost:3000/index.html';
 
 const NEW_POSTS = [
   { title: 'E2E Test Post One', content: 'This is the first automated test post.' },

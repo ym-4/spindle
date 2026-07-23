@@ -23,6 +23,7 @@ const {
   insertSaved,
   deleteSavedByID,
   getReactionByUserID,
+  getLikedPostsByUserID,
   insertLike,
   updateReaction,
   deleteReaction,
@@ -146,6 +147,13 @@ router.get('/related/:category/:id', (req, res, next) => {
 // get posts by user ID (for profile page)
 router.get('/user/:user_id', (req, res, next) => {
   getPostsByUserID({ user_id: req.params.user_id })
+    .then((posts) => res.status(200).json(posts))
+    .catch(next);
+});
+
+// GET posts liked by a user (for profile page)
+router.get('/liked/:user_id', authenticateJWT, (req, res, next) => {
+  getLikedPostsByUserID({ user_id: req.params.user_id })
     .then((posts) => res.status(200).json(posts))
     .catch(next);
 });

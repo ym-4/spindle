@@ -234,12 +234,12 @@ function renderView(profile) {
         <h3><i class="fas fa-stream me-2"></i>Activity</h3>
         <div class="pro-profile__tabs" id="profileActivityTabs">
           <button class="pro-profile__tab active" data-tab="posts">
-            Posts
+            Posts 
           </button>
-          <button class="pro-profile__tab" data-tab="comments" disabled title="Coming soon">
+          <button class="pro-profile__tab" data-tab="comments">
             Comments
           </button>
-          <button class="pro-profile__tab" data-tab="liked" disabled title="Coming soon">
+          <button class="pro-profile__tab" data-tab="liked">
             Liked
           </button>
         </div>
@@ -526,14 +526,18 @@ function setupProfileTabs() {
   const tabsEl = document.getElementById('profileActivityTabs');
   if (!tabsEl) return;
 
-  tabsEl.querySelectorAll('.pro-profile__tab:not([disabled])').forEach((btn) => {
+  tabsEl.querySelectorAll('.pro-profile__tab').forEach((btn) => {
     btn.addEventListener('click', () => {
       tabsEl.querySelectorAll('.pro-profile__tab').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
-      // For now only posts tab (likes and comments WIP)
-      if (btn.dataset.tab === 'posts' && currentProfile) {
-        loadProfilePosts(currentProfile.id);
-      }
+
+      const tab = btn.dataset.tab;
+      const userId = currentProfile?.id;
+      if (!userId) return;
+
+      if (tab === 'posts') loadProfilePosts(userId);
+      if (tab === 'comments') loadProfileComments(userId);
+      if (tab === 'liked') loadProfileLiked(userId);
     });
   });
 }
@@ -581,7 +585,65 @@ async function loadProfilePosts(userId, isPrivate = false) {
   }
 }
 
-function buildProfilePostCard(post) {
+async function loadProfileComments(userId) {
+  const container = document.getElementById('profileTabContent');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="text-muted text-center py-3">
+      <div class="spinner-border spinner-border-sm" role="status"></div>
+      Loading comments…
+    </div>`;
+
+  try {
+    const comments = await authFetch(`/comments/user/${userId}`);
+
+    if (!comments || !comments.length) {
+      container.innerHTML = `
+        <div class="text-muted text-center py-4">
+          <i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>
+          No comments yet.
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = '';
+    comments.forEach((comment) => container.appendChild(buildProfileCommentCard(comment)));
+  } catch (e) {
+    container.innerHTML = '<p class="text-muted text-center py-3">Could not load comments.</p>';
+  }
+}
+
+async function loadProfileLiked(userId) {
+  const container = document.getElementById('profileTabContent');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="text-muted text-center py-3">
+      <div class="spinner-border spinner-border-sm" role="status"></div>
+      Loading liked posts…
+    </div>`;
+
+  try {
+    const posts = await authFetch(`/posts/liked/${userId}`);
+
+    if (!posts || !posts.length) {
+      container.innerHTML = `
+        <div class="text-muted text-center py-4">
+          <i class="fas fa-heart fa-2x mb-2 d-block"></i>
+          No liked posts yet.
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = '';
+    posts.forEach((post) => container.appendChild(buildProfilePostCard(post, false)));
+  } catch (e) {
+    container.innerHTML = '<p class="text-muted text-center py-3">Could not load liked posts.</p>';
+  }
+}
+
+function buildProfilePostCard(post, allowInsights = true) {
   const el = document.createElement('div');
   el.className = 'pro-profile__post-card';
 
@@ -647,13 +709,13 @@ function buildProfilePostCard(post) {
         <span><i class="far fa-thumbs-up"></i> ${post.like_count ?? 0}</span>
         <span><i class="far fa-comment"></i> ${post.comment_count ?? 0}</span>
       </div>
-      ${
-        isOwnProfile
-          ? `
-      <button class="pro-profile__analytics-btn" data-post-id="${post.id}" title="View analytics"> View Insights
-      </button>`
-          : ''
-      }
+       ${
+         isOwnProfile && allowInsights
+           ? `
+        <button class="pro-profile__analytics-btn" data-post-id="${post.id}" title="View analytics"> View Insights
+        </button>`
+           : ''
+       }
     </div>`;
 
   el.style.cursor = 'pointer';
@@ -664,12 +726,95 @@ function buildProfilePostCard(post) {
   });
 
   // Analytics
-  if (isOwnProfile) {
+  if (isOwnProfile && allowInsights) {
     el.querySelector('.pro-profile__analytics-btn')?.addEventListener('click', (e) => {
       e.stopPropagation();
       window.location.href = `postAnalytics.html?id=${post.id}`;
     });
   }
+
+  return el;
+}
+
+function buildProfileCommentCard(comment) {
+  const el = document.createElement('div');
+  el.className = 'pro-profile__post-card';
+  el.style.cursor = 'pointer';
+
+  const categoryLabels = {
+    confession: 'Confession',
+    qna: 'Q&A',
+    general: 'General Talk',
+    events: 'Events',
+    news: 'News',
+    cca: 'CCA',
+    internship: 'Internship',
+    SOC: 'SOC',
+    ABE: 'ABE',
+    SB: 'SB',
+    CLS: 'CLS',
+    EEE: 'EEE',
+    MAD: 'MAD',
+    MAE: 'MAE',
+    SMA: 'SMA',
+  };
+  const categoryClasses = {
+    confession: 'category-confession',
+    qna: 'category-qna',
+    general: 'category-general',
+    events: 'category-events',
+    news: 'category-news',
+    internship: 'category-internship',
+    cca: 'category-cca',
+    SOC: 'category-SOC',
+    ABE: 'category-ABE',
+    SB: 'category-SB',
+    CLS: 'category-CLS',
+    EEE: 'category-EEE',
+    MAD: 'category-MAD',
+    MAE: 'category-MAE',
+    SMA: 'category-SMA',
+  };
+
+  const label = categoryLabels[comment.post_category] || comment.post_category || '';
+  const cls = categoryClasses[comment.post_category] || 'category-general';
+
+  const date = comment.created_at
+    ? new Date(comment.created_at).toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '';
+
+  const preview =
+    (comment.content || '').length > 180 ? comment.content.slice(0, 180) + '…' : comment.content;
+
+  el.innerHTML = `
+    <div class="pro-profile__post-meta">
+      <span class="post-category ${cls}">${esc(label)}</span>
+      <span class="pro-profile__post-date">${esc(date)}</span>
+    </div>
+    <div class="pro-profile__comment-context">
+      <i class="fas fa-reply me-1"></i> On:
+      <strong>${esc(comment.post_title || 'a post')}</strong>
+    </div>
+    <div class="pro-profile__post-preview" style="margin-top:0.3rem;">
+      ${esc(preview)}
+    </div>
+    ${
+      comment.attachment_url
+        ? `
+    <div class="mt-2">
+      <img src="${esc(comment.attachment_url)}" alt="Attachment"
+        style="max-height:100px; border-radius:8px; object-fit:cover;">
+    </div>`
+        : ''
+    }`;
+
+  el.addEventListener('click', () => {
+    window.location.href = `posts.html?id=${comment.post_id}#comment-${comment.id}`;
+  });
 
   return el;
 }

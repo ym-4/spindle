@@ -6,4 +6,3 @@ node_modules
 /blob-report/
 /playwright/.cache/
 /coverage-report/
-e2e-tests/.auth/

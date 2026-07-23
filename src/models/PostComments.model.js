@@ -6,6 +6,29 @@ module.exports.getAllComments = async function getAllComments() {
   return rows;
 };
 
+// GET Comments by userId
+module.exports.getCommentsByUserID = async function getCommentsByUserID(data) {
+  const { rows } = await pool.query(
+    `SELECT
+       pc.id,
+       pc.content,
+       pc.created_at,
+       pc.post_id,
+       pc.parent_comment_id,
+       pc.attachment_url,
+       p.title AS post_title,
+       p.category AS post_category,
+       p.is_anonymous AS post_is_anonymous
+     FROM "PostComments" pc
+     JOIN "Posts" p ON p.id = pc.post_id
+     WHERE pc.user_id = $1
+       AND p.is_anonymous = FALSE
+     ORDER BY pc.created_at DESC`,
+    [data.user_id],
+  );
+  return rows;
+};
+
 // GET Comments by post_id (all comments under a post)
 module.exports.getCommentsByPostID = async function getCommentsByPostID(data) {
   const VALUES = [data.post_id];
@@ -24,13 +47,6 @@ module.exports.getCommentsByPostID = async function getCommentsByPostID(data) {
   `,
     VALUES,
   );
-  return rows;
-};
-
-// GET Comments by userID?? WIP
-module.exports.getCommentsByUserID = async function getCommentsByUserID(data) {
-  const VALUES = [data.user_id];
-  const { rows } = await pool.query('SELECT * FROM "PostComments" WHERE email = ?', VALUES);
   return rows;
 };
 

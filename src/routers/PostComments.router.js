@@ -29,6 +29,7 @@ const commentUpload = multer({ storage: commentStorage, limits: { fileSize: 8 * 
 const {
   getAllComments,
   getCommentsByPostID,
+  getCommentsByUserID,
   insertComments,
   updateCommentsByID,
   deleteCommentsByID,
@@ -49,6 +50,13 @@ const router = express.Router();
 router.get('/', (req, res, next) => {
   getAllComments()
     .then((Comments) => res.status(200).json(Comments))
+    .catch(next);
+});
+
+// GET comments by user (for profile page)
+router.get('/user/:user_id', authenticateJWT, (req, res, next) => {
+  getCommentsByUserID({ user_id: req.params.user_id })
+    .then((results) => res.status(200).json(results))
     .catch(next);
 });
 
