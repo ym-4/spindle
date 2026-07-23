@@ -1,3 +1,5 @@
+/* global fetchMethod, currentUrl*/
+
 //  individual posts view
 //  fetches GET /posts/:id, renders post
 //  Comments: GET /comments/:post_id, POST /comments/:post_id, PUT /comments/:id, DELETE /comments/:id

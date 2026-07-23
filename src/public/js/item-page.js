@@ -1,3 +1,5 @@
+/* global fetchMethod, addToCart */
+
 // item-page.js — loads a single marketplace listing by id (?id=) and renders it
 
 function escapeHtml(str) {

@@ -1,3 +1,5 @@
+/* global fetchMethod, bootstrap */
+
 // ── Character counters ──
 const titleInput = document.getElementById('listingTitle');
 const descInput = document.getElementById('listingDescription');

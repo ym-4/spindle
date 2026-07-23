@@ -1,3 +1,5 @@
+/* global token, fetchMethod, userWhiteboards, groupId, userId*/
+
 // For groups_admin.html
 
 // Get stored school

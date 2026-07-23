@@ -1,3 +1,5 @@
+/* global fetchMethod, getStoredUser, IsLoggedIn, updateNavForUser, onWs, handleLogout, refreshNotifBadge, openAuthModal, clearAuth, getPostLoginRedirect */
+
 function setupHome() {
   const user = getStoredUser();
   const loggedIn = !!user && isLoggedIn();
