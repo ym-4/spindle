@@ -500,6 +500,7 @@ CREATE TABLE "MarketplaceItems" (
   "price" NUMERIC(10, 2) NOT NULL,
   "quality" TEXT NOT NULL,
   "meetup" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'active',
   CONSTRAINT "MarketplaceItems_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("seller_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );

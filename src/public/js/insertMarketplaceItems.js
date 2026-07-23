@@ -22,7 +22,23 @@ function qualityBadgeClass(rawQuality) {
   return 'default';
 }
 
-function addListing(seller_id, id, name, description, price, quality, meetup, images, tags) {
+// mode: 'browse' (marketplace grid — qty + Add to Cart) or 'owner' (my
+// listings — Edit / Mark as Sold / Delete). Kept as one function since the
+// media/body markup (image, badge, title, price, tags, meetup) is identical
+// either way; only the footer and the sold-overlay differ.
+function addListing({
+  seller_id,
+  id,
+  name,
+  description,
+  price,
+  quality,
+  meetup,
+  images,
+  tags,
+  status,
+  mode = 'browse',
+}) {
   const container = document.getElementById('listings-container');
 
   const card = document.createElement('div');
@@ -30,32 +46,38 @@ function addListing(seller_id, id, name, description, price, quality, meetup, im
   card.dataset.sellerId = seller_id;
   card.dataset.id = id;
 
+  const isSold = (status || 'active') === 'sold';
+
   const badgeMarkup = quality
     ? `<span class="spindle-badge spindle-badge--${qualityBadgeClass(quality)}">${escapeHtml(quality)}</span>`
     : '';
+  const soldOverlayMarkup = isSold ? `<div class="spindle-sold-overlay">Sold</div>` : '';
   const meetupMarkup = meetup
     ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(meetup)}</p>`
     : '';
   const thumbnailSrc =
-    images && images.length > 0 ? images[0].image_url : '../marketplace-uploads/1.png';
+    images && images.length > 0 ? images[0].image_url : '../uploads/marketplace-uploads/1.png';
   const tagsMarkup =
     tags && tags.length > 0
       ? `<div class="spindle-card-tags">${tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
       : '';
 
-  card.innerHTML = `
-    <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(id)}">
-      <div class="spindle-card-media">
-        <img src="${escapeHtml(thumbnailSrc)}" alt="">
-        ${badgeMarkup}
-      </div>
-      <div class="spindle-card-body">
-        <h3 class="spindle-card-title">${escapeHtml(name)}</h3>
-        <p class="spindle-card-price">$${Number(price).toFixed(2)}</p>
-        ${tagsMarkup}
-        ${meetupMarkup}
-      </div>
-    </a>
+  const footerMarkup =
+    mode === 'owner'
+      ? `
+    <div class="spindle-card-footer spindle-card-footer--owner">
+      <a href="create_listing.html?id=${encodeURIComponent(id)}" class="btn btn-sm btn-outline-secondary spindle-owner-btn">
+        <i class="fas fa-pen"></i> Edit
+      </a>
+      <button type="button" class="btn btn-sm btn-outline-dark spindle-owner-btn spindle-status-btn">
+        <i class="fas fa-tag"></i> ${isSold ? 'Relist' : 'Mark as Sold'}
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-danger spindle-owner-btn spindle-delete-btn">
+        <i class="fas fa-trash"></i> Delete
+      </button>
+    </div>
+  `
+      : `
     <div class="spindle-card-footer">
       <div class="spindle-qty">
         <button type="button" class="spindle-qty-btn" data-step="-1" aria-label="Decrease quantity">−</button>
@@ -68,20 +90,76 @@ function addListing(seller_id, id, name, description, price, quality, meetup, im
     </div>
   `;
 
-  const qtyInput = card.querySelector('.qty-input');
+  card.innerHTML = `
+    <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(id)}">
+      <div class="spindle-card-media">
+        <img src="${escapeHtml(thumbnailSrc)}" alt="">
+        ${badgeMarkup}
+        ${soldOverlayMarkup}
+      </div>
+      <div class="spindle-card-body">
+        <h3 class="spindle-card-title">${escapeHtml(name)}</h3>
+        <p class="spindle-card-price">$${Number(price).toFixed(2)}</p>
+        ${tagsMarkup}
+        ${meetupMarkup}
+      </div>
+    </a>
+    ${footerMarkup}
+  `;
 
-  card.querySelectorAll('.spindle-qty-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const step = Number(btn.dataset.step);
-      const next = Number(qtyInput.value) + step;
-      qtyInput.value = Math.min(99, Math.max(1, next));
+  if (mode === 'owner') {
+    card.querySelector('.spindle-status-btn').addEventListener('click', () => {
+      const nextStatus = isSold ? 'active' : 'sold';
+      if (
+        nextStatus === 'sold' &&
+        !confirm(`Mark "${name}" as sold? It'll be hidden from the marketplace.`)
+      )
+        return;
+
+      fetch(`http://localhost:3000/marketplace/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus }),
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            console.error('Status update failed', await res.text());
+            return;
+          }
+          container.innerHTML = '';
+          loadUserListings();
+        })
+        .catch((err) => console.error('Status update error:', err));
     });
-  });
 
-  card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
-    const amount = qtyInput.value;
-    addToCart(seller_id, id, localStorage.loggedInUserId, amount);
-  });
+    card.querySelector('.spindle-delete-btn').addEventListener('click', () => {
+      if (!confirm(`Delete "${name}"? This can't be undone.`)) return;
+      fetch(`http://localhost:3000/marketplace/${id}`, { method: 'DELETE' })
+        .then(async (res) => {
+          if (!res.ok) {
+            console.error('Delete failed', await res.text());
+            return;
+          }
+          card.remove();
+        })
+        .catch((err) => console.error('Delete error:', err));
+    });
+  } else {
+    const qtyInput = card.querySelector('.qty-input');
+
+    card.querySelectorAll('.spindle-qty-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const step = Number(btn.dataset.step);
+        const next = Number(qtyInput.value) + step;
+        qtyInput.value = Math.min(99, Math.max(1, next));
+      });
+    });
+
+    card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
+      const amount = qtyInput.value;
+      addToCart(seller_id, id, localStorage.loggedInUserId, amount);
+    });
+  }
 
   container.appendChild(card);
 }
@@ -93,10 +171,26 @@ const emptyState = document.getElementById('no-listings-state');
 
 const LISTINGS_PER_PAGE = 10;
 
+// Applies the shared SpindleFilters state (search text, price range, tags) if
+// present. Falls back to returning everything unfiltered if filters.js hasn't
+// loaded on this page, so this stays safe to call from anywhere.
+function applySpindleFilters(data) {
+  if (typeof SpindleFilters === 'undefined') return data;
+  return data.filter((item) => SpindleFilters.matches(item));
+}
+
+// The public marketplace never shows sold items — that's a fixed business
+// rule, not something the shopper can toggle, so it's applied here directly
+// rather than through SpindleFilters (which only holds user-chosen filters).
+function hideSoldItems(data) {
+  return data.filter((item) => (item.status || 'active') !== 'sold');
+}
+
 async function loadListings() {
   // Update Page Navigation Bar
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
-    let totalListings = data.length;
+    const filtered = applySpindleFilters(hideSoldItems(data));
+    let totalListings = filtered.length;
     let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
 
     const controls = document.getElementById('pagination-controls');
@@ -121,7 +215,9 @@ async function loadListings() {
   // Fetch and Load Listings
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
     if (status === 200) {
-      if (data.length == 0 || !data) {
+      const filtered = applySpindleFilters(hideSoldItems(data));
+
+      if (filtered.length == 0 || !filtered) {
         emptyState.classList.remove('d-none');
       } else {
         emptyState.classList.add('d-none');
@@ -155,7 +251,9 @@ async function loadListings() {
 async function loadUserListings() {
   // Update Page Navigation Bar
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
-    const userListings = data.filter((item) => item.seller_id == localStorage.loggedInUserId);
+    const userListings = applySpindleFilters(
+      data.filter((item) => item.seller_id == localStorage.loggedInUserId),
+    );
     let totalListings = userListings.length;
     let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
 
@@ -181,7 +279,9 @@ async function loadUserListings() {
   // Fetch and Load Listings
   fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
     if (status === 200) {
-      const userListings = data.filter((item) => item.seller_id == localStorage.loggedInUserId);
+      const userListings = applySpindleFilters(
+        data.filter((item) => item.seller_id == localStorage.loggedInUserId),
+      );
 
       if (userListings.length == 0) {
         emptyState.classList.remove('d-none');
@@ -194,17 +294,7 @@ async function loadUserListings() {
           i++
         ) {
           if (!userListings[i]) continue;
-          addListing(
-            userListings[i].seller_id,
-            userListings[i].id,
-            userListings[i].name,
-            userListings[i].description,
-            userListings[i].price,
-            userListings[i].quality,
-            userListings[i].meetup,
-            userListings[i].images,
-            userListings[i].tags,
-          );
+          addListing({ ...userListings[i], mode: 'owner' });
         }
       }
     } else {
@@ -213,7 +303,9 @@ async function loadUserListings() {
   });
 }
 
-function addCartItem(seller_id, id, name, description, price, quantity) {
+function addCartItem(seller_id, id, name, description, price, quantity, images) {
+  const thumbnailSrc =
+    images && images.length > 0 ? images[0].image_url : '../uploads/marketplace-uploads/1.png';
   const container = document.querySelector('.cart-container');
   const card = document.createElement('div');
   card.setAttribute('data-seller-id', seller_id);
@@ -222,7 +314,7 @@ function addCartItem(seller_id, id, name, description, price, quantity) {
     <div class="card mb-3">
       <div class="row g-0 align-items-center">
         <div class="col-md-3">
-          <img src="https://placehold.co/150x120" class="img-fluid rounded-start" alt="${escapeHtml(name)}" />
+          <img src="${escapeHtml(thumbnailSrc)}" class="img-fluid rounded-start" alt="${escapeHtml(name)}" />
         </div>
         <div class="col-md-6">
           <div class="card-body">
@@ -291,11 +383,14 @@ function updateSummary() {
 async function loadCart() {
   fetchMethod(`http://localhost:3000/cart/${localStorage.loggedInUserId}`, (status, data) => {
     const emptyState = document.getElementById('empty-cart-state');
+    const clearBtn = document.getElementById('clear-cart-btn');
 
     if (data.length == 0 || !data) {
       emptyState.classList.remove('d-none');
+      if (clearBtn) clearBtn.classList.add('d-none');
     } else {
       emptyState.classList.add('d-none');
+      if (clearBtn) clearBtn.classList.remove('d-none');
     }
 
     if (status === 200) {
@@ -311,6 +406,7 @@ async function loadCart() {
                 cartData.description,
                 cartData.price,
                 item.amount,
+                cartData.images,
               );
             }
           },
@@ -327,19 +423,6 @@ let currentPage = 1;
 
 // Insert the correct items based on the name of the document ;-D
 if (document.title == 'Marketplace') {
-  document.getElementById('prev-page-btn').addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      container.innerHTML = '';
-      loadListings();
-    }
-  });
-  document.getElementById('next-page-btn').addEventListener('click', () => {
-    currentPage++;
-    container.innerHTML = '';
-    loadListings();
-  });
-
   loadListings();
 } else if (document.title == 'Cart') {
   loadCart();
@@ -357,5 +440,19 @@ if (document.title == 'Marketplace') {
     loadListings();
   });
 
-  loadUserListings();
+    document.getElementById('prev-page-btn').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        container.innerHTML = '';
+        loadListings();
+      }
+    });
+    document.getElementById('next-page-btn').addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        container.innerHTML = '';
+        loadListings();
+      }
+    });
+  });
 }
