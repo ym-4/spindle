@@ -1,3 +1,5 @@
+/* global fetchMethod, addToCart */
+
 // item-page.js — loads a single marketplace listing by id (?id=) and renders it
 
 function escapeHtml(str) {
@@ -130,10 +132,99 @@ function renderRecommendedCard(item) {
   const meetupMarkup = item.meetup
     ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(item.meetup)}</p>`
     : '';
-  const thumbnailSrc = item.images && item.images.length > 0 ? item.images[0].image_url : '../uploads/marketplace-uploads/1.png';
-  const tagsMarkup = item.tags && item.tags.length > 0
-    ? `<div class="spindle-card-tags">${item.tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
+  const thumbnailSrc =
+    item.images && item.images.length > 0
+      ? item.images[0].image_url
+      : '../marketplace-uploads/1.png';
+  const tagsMarkup =
+    item.tags && item.tags.length > 0
+      ? `<div class="spindle-card-tags">${item.tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
+      : '';
+
+  card.innerHTML = `
+    <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(item.id)}">
+      <div class="spindle-card-media">
+        <img src="${escapeHtml(thumbnailSrc)}" alt="">
+        ${badgeMarkup}
+      </div>
+      <div class="spindle-card-body">
+        <h3 class="spindle-card-title">${escapeHtml(item.name)}</h3>
+        <p class="spindle-card-price">$${Number(item.price).toFixed(2)}</p>
+        ${tagsMarkup}
+        ${meetupMarkup}
+      </div>
+    </a>
+    <div class="spindle-card-footer">
+      <div class="spindle-qty">
+        <button type="button" class="spindle-qty-btn" data-step="-1" aria-label="Decrease quantity">−</button>
+        <input type="number" class="form-control qty-input spindle-qty-input" value="1" min="1" max="99" />
+        <button type="button" class="spindle-qty-btn" data-step="1" aria-label="Increase quantity">+</button>
+      </div>
+      <button class="spindle-add-btn add-to-cart-btn" data-bs-toggle="modal" data-bs-target="#addedToCartModal" type="button" aria-label="Add to cart">
+        <i class="fas fa-cart-plus"></i>
+      </button>
+    </div>
+  `;
+
+  const qtyInput = card.querySelector('.qty-input');
+
+  card.querySelectorAll('.spindle-qty-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const step = Number(btn.dataset.step);
+      const next = Number(qtyInput.value) + step;
+      qtyInput.value = Math.min(99, Math.max(1, next));
+    });
+  });
+
+  card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
+    addToCart(item.seller_id, item.id, localStorage.loggedInUserId, qtyInput.value);
+  });
+
+  container.appendChild(card);
+}
+
+function loadRecommendedItems(itemId) {
+  fetchMethod(`http://localhost:3000/marketplace/${itemId}/recommended`, (status, data) => {
+    const container = document.getElementById('recommended-container');
+    const section = document.getElementById('recommended-section');
+    if (!container || !section) return;
+
+    container.innerHTML = '';
+
+    if (status === 200 && Array.isArray(data) && data.length > 0) {
+      section.classList.remove('d-none');
+      data.forEach((recItem) => renderRecommendedCard(recItem));
+    } else {
+      section.classList.add('d-none');
+    }
+  });
+}
+
+// Builds a card identical in markup to the marketplace grid's spindle-card,
+// so recommended items look and behave the same as the main listings.
+function renderRecommendedCard(item) {
+  const container = document.getElementById('recommended-container');
+  if (!container) return;
+
+  const card = document.createElement('div');
+  card.className = 'spindle-card';
+  card.dataset.sellerId = item.seller_id;
+  card.dataset.id = item.id;
+
+  const badgeMarkup = item.quality
+    ? `<span class="spindle-badge spindle-badge--${qualityMeta(item.quality).className}">${escapeHtml(item.quality)}</span>`
     : '';
+  const meetupMarkup = item.meetup
+    ? `<p class="spindle-card-meetup"><i class="fas fa-map-marker-alt"></i>${escapeHtml(item.meetup)}</p>`
+    : '';
+  const thumbnailSrc =
+    item.images && item.images.length > 0
+      ? item.images[0].image_url
+      : '../marketplace-uploads/1.png';
+  const tagsMarkup =
+    item.tags && item.tags.length > 0
+      ? `<div class="spindle-card-tags">${item.tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
+      : '';
 
   card.innerHTML = `
     <a class="spindle-card-link" href="item.html?id=${encodeURIComponent(item.id)}">

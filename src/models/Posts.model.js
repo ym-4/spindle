@@ -1,5 +1,18 @@
 const pool = require('./db');
 
+// Run once on module load — add any missing columns
+(async function migratePosts() {
+  try {
+    await pool.query(
+      `ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS visibility TEXT DEFAULT 'everyone'`,
+    );
+    await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`);
+    await pool.query(`ALTER TABLE "Posts" ADD COLUMN IF NOT EXISTS gif_url TEXT`);
+  } catch (e) {
+    console.warn('[Posts.model] Migration skipped:', e.message);
+  }
+})();
+
 // Get all Posts
 module.exports.getAllPost = async function getAllPost() {
   const { rows } = await pool.query(`

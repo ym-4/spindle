@@ -15,75 +15,20 @@ export default [
     ],
   },
 
-  // ── Base: all JS files are CommonJS ────────────────────
-  { files: ['**/*.js'], languageOptions: { sourceType: 'commonjs' } },
-  { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
+  // ── Server-side Node / CommonJS ────────────────────────
+  {
+    files: ['src/**/*.js'],
+    languageOptions: { sourceType: 'commonjs', globals: { ...globals.node } },
+  },
+  {
+    files: ['scripts/**/*.js', 'configs/**/*.js'],
+    languageOptions: { sourceType: 'commonjs', globals: { ...globals.node } },
+  },
 
   // ── ESLint recommended rules ───────────────────────────
-  // Enables core rules from @eslint/js including:
-  //   constructor-super        – Require super() in constructors of derived classes
-  //   for-direction            – Enforce correct direction in for-loops
-  //   getter-return            – Require return in getters
-  //   no-async-promise-executor – Disallow async functions passed to new Promise()
-  //   no-class-assign          – Disallow reassigning class declarations
-  //   no-compare-neg-zero      – Disallow comparing against -0
-  //   no-cond-assign           – Disallow assignment in conditional expressions
-  //   no-const-assign          – Disallow reassigning const variables
-  //   no-constant-condition    – Disallow constant expressions in conditions
-  //   no-control-regex         – Disallow control characters in regex
-  //   no-debugger              – Disallow the use of debugger
-  //   no-delete-var            – Disallow deleting variables
-  //   no-dupe-args             – Disallow duplicate arguments in functions
-  //   no-dupe-class-members    – Disallow duplicate class members
-  //   no-dupe-else-if          – Disallow duplicate conditions in if-else chains
-  //   no-dupe-keys             – Disallow duplicate keys in object literals
-  //   no-duplicate-case        – Disallow duplicate case labels
-  //   no-empty                 – Disallow empty block statements
-  //   no-empty-character-class – Disallow empty character classes in regex
-  //   no-empty-pattern         – Disallow empty destructuring patterns
-  //   no-ex-assign             – Disallow reassigning exceptions in catch clauses
-  //   no-extra-boolean-cast    – Disallow unnecessary boolean casts
-  //   no-fallthrough           – Disallow case statement fallthrough
-  //   no-func-assign           – Disallow reassigning function declarations
-  //   no-global-assign         – Disallow assignment to native objects
-  //   no-import-assign         – Disallow assigning to imported bindings
-  //   no-inner-declarations    – Disallow function/var declarations in nested blocks
-  //   no-invalid-regexp        – Disallow invalid regex constructors
-  //   no-irregular-whitespace  – Disallow irregular whitespace
-  //   no-loss-of-precision     – Disallow literal numbers that lose precision
-  //   no-misleading-character-class – Disallow characters that behave unexpectedly in regex
-  //   no-new-symbol            – Disallow new operators with the Symbol object
-  //   no-nonoctal-decimal-escape – Disallow \8 and \9 escape sequences in strings
-  //   no-obj-calls             – Disallow calling global objects as functions (Math(), JSON())
-  //   no-octal                 – Disallow octal literals
-  //   no-prototype-builtins    – Disallow calling Object.prototype methods directly on objects
-  //   no-redeclare             – Disallow variable redeclaration
-  //   no-regex-spaces          – Disallow multiple spaces in regex
-  //   no-self-assign           – Disallow assignments where both sides are the same
-  //   no-setter-return         – Disallow returning values from setters
-  //   no-shadow-restricted-names – Disallow shadowing restricted names (undefined, NaN, etc.)
-  //   no-sparse-arrays         – Disallow sparse arrays ([1,,3])
-  //   no-this-before-super     – Disallow this/super before calling super() in constructors
-  //   no-undef                 – Disallow use of undeclared variables
-  //   no-unexpected-multiline  – Disallow confusing multiline expressions
-  //   no-unreachable           – Disallow unreachable code after return/throw/break/continue
-  //   no-unsafe-finally        – Disallow control flow in finally blocks
-  //   no-unsafe-negation       – Disallow negating the left operand of relational operators
-  //   no-unsafe-optional-chaining – Disallow optional chaining in contexts where undefined is not allowed
-  //   no-unused-labels         – Disallow unused labels
-  //   no-unused-vars           – Disallow unused variables
-  //   no-useless-backreference – Disallow useless backreferences in regex
-  //   no-useless-catch         – Disallow unnecessary catch clauses
-  //   no-useless-escape        – Disallow unnecessary escape characters
-  //   no-with                  – Disallow with statements
-  //   require-yield            – Require generator functions to contain yield
-  //   use-isnan                – Require calls to isNaN() when checking for NaN
-  //   valid-typeof             – Enforce comparing typeof against valid strings
   pluginJs.configs.recommended,
 
   // ── Prettier: disable conflicting ESLint rules ─────────
-  // Turns off ~330 formatting rules (indent, quotes, semi, spacing, etc.)
-  // so Prettier alone handles code formatting without ESLint conflicts.
   prettierConfig,
 
   // ── Prettier as an ESLint rule ─────────────────────────
@@ -94,13 +39,176 @@ export default [
     },
   },
 
-  // ── Test-file overrides ────────────────────────────────
+  // ── Global rule overrides (applied before per-scope blocks) ──
   {
-    files: ['__tests__/**/*.js', 'e2e-tests/**/*.js'],
+    rules: {
+      'no-empty': ['error', { allowEmptyCatch: true }],
+    },
+  },
+
+  // ── Browser frontend scripts (vanilla JS, <script> tags) ──
+  {
+    files: ['src/public/js/**/*.js', 'src/public/getCurrentURL.js'],
     languageOptions: {
+      sourceType: 'script',
       globals: {
-        ...globals.jest,
+        ...globals.browser,
+
+        // ── API / auth ──────────────────────────────────
+        authFetch: 'readonly',
+        fetchMethod: 'readonly',
+        currentUrl: 'readonly',
+        API_BASE: 'readonly',
+        getApiBase: 'readonly',
+        getToken: 'readonly',
+        setAuth: 'readonly',
+        clearAuth: 'readonly',
+        getStoredUser: 'readonly',
+        isLoggedIn: 'readonly',
+        isAdmin: 'readonly',
+        getRememberToken: 'readonly',
+        setRememberToken: 'readonly',
+        redirectToLogin: 'readonly',
+        redirectAfterLogin: 'readonly',
+        getPostLoginRedirect: 'readonly',
+        updateNavForUser: 'readonly',
+        handleLogout: 'readonly',
+        token: 'readonly',
+
+        // ── Media / WebSocket ───────────────────────────
+        mediaUrl: 'readonly',
+        getWsUrl: 'readonly',
+        connectSocket: 'readonly',
+        onWs: 'readonly',
+        sendChatMessage: 'readonly',
+        sendCallInvite: 'readonly',
+        sendCallAccept: 'readonly',
+        sendCallDecline: 'readonly',
+        sendCallBusy: 'readonly',
+        sendCallCancel: 'readonly',
+        sendCallSignal: 'readonly',
+        endCall: 'readonly',
+        isCamOff: 'writable',
+
+        // ── Toast / notifications ────────────────────────
+        showToast: 'readonly',
+        displayToast: 'readonly',
+        refreshNotifBadge: 'readonly',
+
+        // ── Navigation / shell ───────────────────────────
+        injectWaNav: 'readonly',
+        injectWaHeader: 'readonly',
+        injectHeaderActions: 'readonly',
+        injectNotificationsOnly: 'readonly',
+        initAppShell: 'readonly',
+        initFriendsPanel: 'readonly',
+        initSettingsPanel: 'readonly',
+        initProfileHub: 'readonly',
+        initPersonalChat: 'readonly',
+        openMessagesForPeer: 'readonly',
+        openAuthModal: 'readonly',
+        showAuthPopup: 'readonly',
+
+        // ── Reactions / posts ────────────────────────────
+        loadUserReactions: 'readonly',
+        initReactionButtons: 'readonly',
+        setupReactionEvents: 'readonly',
+        renderSpindleSidebar: 'readonly',
+        loadYourGroups: 'readonly',
+        validatePostForm: 'readonly',
+        groupId: 'readonly',
+
+        // ── Marketplace ─────────────────────────────────
+        addToCart: 'readonly',
+        removeFromCart: 'readonly',
+        editCart: 'readonly',
+        clearCart: 'readonly',
+
+        // ── Groups ──────────────────────────────────────
+        checkGroupAdmin: 'readonly',
+        checkGroupCreator: 'readonly',
+        channelName: 'readonly',
+        fetchGroup: 'readonly',
+        fetchGroups: 'readonly',
+        createGroup: 'readonly',
+        updateGroup: 'readonly',
+        deleteGroup: 'readonly',
+        acceptJoinRequest: 'readonly',
+        declineJoinRequest: 'readonly',
+        deleteJoinRequest: 'readonly',
+        updateRoleToAdmin: 'readonly',
+        updateRoleToUser: 'readonly',
+        fetchAllUsers: 'readonly',
+        fetchGroupMembers: 'readonly',
+        fetchGroupAnnouncements: 'readonly',
+        fetchGroupChannels: 'readonly',
+        fetchGroupByGroupId: 'readonly',
+        fetchGroupJoinRequests: 'readonly',
+        fetchGroupDiscussionByChannel: 'readonly',
+        createGroupAnnouncement: 'readonly',
+        createGroupDiscussionChannel: 'readonly',
+        createGroupDiscussionMessage: 'readonly',
+        updateGroupAnnouncement: 'readonly',
+        updateGroupDiscussionMessage: 'readonly',
+        updateGroupPublicity: 'readonly',
+        updateGroupModule: 'readonly',
+        updateGroupDescription: 'readonly',
+        deleteGroupAnnouncement: 'readonly',
+        deleteGroupDiscussionChannel: 'readonly',
+        deleteGroupDiscussionMessage: 'readonly',
+        deleteGroupMember: 'readonly',
+        deleteGroupMembership: 'readonly',
+
+        // ── Third-party ─────────────────────────────────
+        bootstrap: 'readonly',
+        Quill: 'readonly',
+        DOMPurify: 'readonly',
       },
+    },
+    rules: {
+      'no-unused-vars': ['warn', { vars: 'local', args: 'none' }],
+      'no-redeclare': 'off',
+    },
+  },
+
+  // ── Test file overrides (Jest + CommonJS) ──────────────
+  {
+    files: ['__tests__/**/*.js', 'e2e-tests/**/*.js', 'tests-examples/**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: { ...globals.node, ...globals.jest },
+    },
+  },
+
+  // ── Server-side unused-vars overrides ──────────────────
+  // Excludes src/public/js/ which has its own relaxed config
+  {
+    files: [
+      'src/**/*.js',
+      'scripts/**/*.js',
+      'configs/**/*.js',
+      '__tests__/**/*.js',
+      'e2e-tests/**/*.js',
+      'tests-examples/**/*.js',
+    ],
+    ignores: ['src/public/js/**/*.js', 'src/public/getCurrentURL.js'],
+    rules: {
+      'no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_|^(next|req|res|e)$',
+          caughtErrors: 'none',
+        },
+      ],
+    },
+  },
+
+  // ── Router overrides (Express handlers) ────────────────
+  {
+    files: ['src/routers/**/*.js'],
+    rules: {
+      'no-unused-vars': ['error', { argsIgnorePattern: '^(next|req|res)$' }],
     },
   },
 ];

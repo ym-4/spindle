@@ -1,5 +1,6 @@
 const express = require('express');
-const { insertBlock, isBlocked } = require('../models/BlockedUsers.model');
+const { insertBlock, isBlocked, listBlocked, unblock } = require('../models/BlockedUsers.model');
+const { authenticateJWT } = require('../middlewares/auth.middleware');
 const router = express.Router();
 
 // POST /block — Block a user
@@ -25,6 +26,23 @@ router.post('/', (req, res, next) => {
 router.get('/check/:blocker_id/:blocked_id', (req, res, next) => {
   isBlocked(req.params.blocker_id, req.params.blocked_id)
     .then((blocked) => res.status(200).json({ blocked }))
+    .catch(next);
+});
+
+// GET /list — List users blocked by the authenticated user
+router.get('/list', authenticateJWT, (req, res, next) => {
+  listBlocked(req.user.id)
+    .then((users) => res.status(200).json(users))
+    .catch(next);
+});
+
+// DELETE /:blocked_id — Unblock a user
+router.delete('/:blocked_id', authenticateJWT, (req, res, next) => {
+  unblock(req.user.id, req.params.blocked_id)
+    .then((removed) => {
+      if (!removed) return res.status(404).json({ message: 'Not blocked.' });
+      res.status(200).json({ message: 'Unblocked.' });
+    })
     .catch(next);
 });
 

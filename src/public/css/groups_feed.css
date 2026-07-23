@@ -531,6 +531,148 @@ main {
   background-color: rgb(255, 207, 238);
 }
 
+/* ── Dark / Futuristic theme overrides ──────────────────────────── */
+/* [data-theme="dark"] main,
+[data-theme="futuristic"] main {
+  background-color: var(--bg);
+}
+
+[data-theme='dark'] .custom-tabs .btn,
+[data-theme='futuristic'] .custom-tabs .btn {
+  background: var(--card-bg);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+[data-theme='dark'] .modal-content,
+[data-theme='futuristic'] .modal-content {
+  background: var(--card-bg);
+}
+
+[data-theme='dark'] .members-offcanvas,
+[data-theme='futuristic'] .members-offcanvas {
+  background: var(--bg-elevated);
+}
+
+[data-theme='dark'] .members-offcanvas .offcanvas-header,
+[data-theme='futuristic'] .members-offcanvas .offcanvas-header {
+  background: var(--card-bg);
+  border-bottom-color: var(--border);
+}
+
+[data-theme='dark'] .member-card,
+[data-theme='futuristic'] .member-card {
+  background: var(--card-bg);
+}
+
+[data-theme='dark'] .member-card:hover,
+[data-theme='futuristic'] .member-card:hover {
+  background: var(--bg-hover);
+}
+
+[data-theme='dark'] .member-card.admin,
+[data-theme='futuristic'] .member-card.admin {
+  background: color-mix(in srgb, var(--accent) 20%, var(--card-bg));
+}
+
+[data-theme='dark'] .member-card.creator,
+[data-theme='futuristic'] .member-card.creator {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, #f4b400 20%, var(--card-bg)),
+    var(--card-bg) 100%
+  );
+}
+
+[data-theme='dark'] .chat-header,
+[data-theme='futuristic'] .chat-header {
+  background-color: color-mix(in srgb, var(--accent) 12%, var(--bg-elevated)) !important;
+  color: var(--text) !important;
+}
+
+[data-theme='dark'] .msg-left .bubble,
+[data-theme='futuristic'] .msg-left .bubble {
+  background: var(--bg-active);
+}
+
+[data-theme='dark'] .msg-right .bubble,
+[data-theme='futuristic'] .msg-right .bubble {
+  background: color-mix(in srgb, var(--accent) 20%, var(--bg-elevated));
+}
+
+[data-theme='dark'] .meta,
+[data-theme='futuristic'] .meta {
+  color: var(--text-secondary);
+}
+
+[data-theme='dark'] .chat-divider,
+[data-theme='futuristic'] .chat-divider {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .chat-divider::before,
+[data-theme='dark'] .chat-divider::after,
+[data-theme='futuristic'] .chat-divider::before,
+[data-theme='futuristic'] .chat-divider::after {
+  background: var(--border);
+}
+
+[data-theme='dark'] .announcement-color,
+[data-theme='futuristic'] .announcement-color {
+  background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated)) !important;
+  color: var(--text) !important;
+}
+
+[data-theme='dark'] #createChannelBtn,
+[data-theme='futuristic'] #createChannelBtn {
+  background: var(--card-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+[data-theme='dark'] .channel-input,
+[data-theme='futuristic'] .channel-input {
+  background: var(--bg-input);
+  border-color: var(--input-border);
+  color: var(--input-text);
+}
+
+[data-theme='dark'] .channel-input:focus,
+[data-theme='futuristic'] .channel-input:focus {
+  background: var(--bg-input);
+  border-color: var(--accent);
+}
+
+[data-theme='dark'] .input-group-text,
+[data-theme='futuristic'] .input-group-text {
+  background: var(--bg-input);
+  border-color: var(--input-border);
+  color: var(--text-secondary);
+}
+
+[data-theme='dark'] .channel-modal small,
+[data-theme='futuristic'] .channel-modal small {
+  color: var(--text-secondary);
+}
+
+[data-theme='dark'] .message-preview,
+[data-theme='futuristic'] .message-preview {
+  background: var(--bg-elevated);
+  border-color: var(--border);
+}
+
+[data-theme='dark'] #editMessageInput,
+[data-theme='futuristic'] #editMessageInput {
+  background: var(--bg-input);
+  border-color: var(--input-border);
+  color: var(--input-text);
+}
+
+[data-theme='dark'] .members-offcanvas .offcanvas-header,
+[data-theme='futuristic'] .members-offcanvas .offcanvas-header {
+  border-bottom: 1px solid var(--border);
+} */
+
 /* -------------------------------------------------------------- */
 /*                           GLOW CARD                            */
 /* -------------------------------------------------------------- */
@@ -592,4 +734,491 @@ main {
   100% {
     background-position: 0 0;
   }
+}
+
+/* -------------------------------------------------------------- */
+/*                           FILES TAB                            */
+/* -------------------------------------------------------------- */
+
+.files-sidebar {
+  background: white;
+  overflow: hidden;
+}
+
+.files-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 18px;
+
+  border-bottom: 1px solid #eee;
+}
+
+.folder-list {
+  padding: 10px;
+}
+
+.folder-item {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 12px;
+
+  margin-bottom: 6px;
+
+  border-radius: 14px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+
+  font-weight: 500;
+}
+
+.folder-item:hover {
+  background: #f5f7fb;
+}
+
+.folder-item.active {
+  background: #eef4ff;
+
+  color: #0d6efd;
+}
+
+.folder-item small {
+  margin-left: auto;
+
+  color: #888;
+}
+
+.folder-icon {
+  width: 35px;
+
+  height: 35px;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  border-radius: 10px;
+
+  background: #fff4cc;
+
+  color: #f4b400;
+}
+
+.quick-actions {
+  padding: 15px;
+
+  border-top: 1px solid #eee;
+}
+
+.quick-actions button {
+  border-radius: 12px;
+}
+
+/* Files */
+#filesTab .card {
+  transition: 0.2s;
+}
+
+#filesTab .list-group-item {
+  border: none;
+  padding: 14px 18px;
+  transition: 0.2s;
+}
+
+#filesTab .list-group-item:hover {
+  background: #f8f9fa;
+  padding-left: 22px;
+}
+
+#filesTab .card-header {
+  border-bottom: 1px solid #eee;
+}
+
+#filesTab .btn-primary {
+  border-radius: 10px;
+}
+
+#filesTab .rounded-4 {
+  border-radius: 16px !important;
+}
+
+#filesTab .bi-download {
+  font-size: 1.1rem;
+  color: #6c757d;
+}
+
+#filesTab .bi-download:hover {
+  color: #0d6efd;
+}
+
+#filesTab img {
+  object-fit: cover;
+}
+
+.file-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding: 16px;
+
+  border-radius: 14px;
+
+  margin-bottom: 12px;
+
+  background: white;
+
+  transition: 0.2s;
+
+  border: 1px solid #ececec;
+}
+
+.file-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  cursor: pointer;
+}
+
+/* -------------------------------------------------------------- */
+/*                           WIKI TAB                             */
+/* -------------------------------------------------------------- */
+.wiki-sidebar {
+  height: 100%;
+  border-radius: 14px;
+}
+
+.folder {
+  margin-bottom: 6px;
+}
+
+.folder-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.folder-header:hover {
+  background: #f4f4f4;
+}
+
+.folder-items {
+  margin-left: 26px;
+  margin-top: 4px;
+}
+
+.wiki-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: #444;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.wiki-file:hover {
+  background: #f5f5f5;
+  color: #000;
+}
+
+.wiki-file.active {
+  background: #e9ecef;
+  font-weight: 600;
+}
+
+#noteEditor {
+  height: 500px;
+}
+
+#noteEditorContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+#noteEditor {
+  height: 500px;
+  overflow-y: auto;
+}
+
+.note-graph {
+  height: 700px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #f8f9fa;
+  border-radius: 0 0 1rem 1rem;
+}
+
+.graph-controls {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.graph-controls button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* -------------------------------------------------------------- */
+/*                           TASKS TAB                            */
+/* -------------------------------------------------------------- */
+/* ---------------- KANBAN ---------------- */
+
+#tasksTab {
+  padding: 10px 5px 30px;
+}
+
+.kanban-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.kanban-column {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 18px;
+  min-height: 600px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+
+  border-bottom: 2px solid rgba(0, 0, 0, 0.06);
+
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.task-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Smaller sticky notes */
+
+.task-card {
+  width: 100%;
+  min-height: 170px;
+
+  padding: 16px;
+
+  border-radius: 14px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+  transition: all 0.25s ease;
+
+  cursor: pointer;
+}
+
+.task-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-card h6 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.subtasks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.subtasks div {
+  display: flex;
+  align-items: center;
+}
+
+.task-footer {
+  margin-top: auto;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+
+  font-size: 0.8rem;
+}
+
+.task-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.task-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #666;
+}
+
+.progress {
+  height: 7px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.task-card:hover {
+  transform: translateY(-3px);
+}
+
+.task-due {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.task-card small {
+  color: #555;
+}
+
+.progress {
+  height: 8px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.progress-bar {
+  border-radius: 20px;
+}
+
+.note-yellow {
+  background: #f1e8d6;
+}
+
+.note-blue {
+  background: #d9e5ef;
+}
+
+.note-green {
+  background: #deeede;
+}
+
+.column-header.todo {
+  color: #d97706;
+}
+
+.column-header.in-progress {
+  color: #2563eb;
+}
+
+.column-header.done {
+  color: #16a34a;
+}
+
+.kanban-header .btn {
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-weight: 600;
+}
+
+.form-check-input:checked + .form-check-label {
+  text-decoration: line-through;
+  color: #6c757d;
+}
+
+.completed span {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.task-card {
+  cursor: grab;
+  transition: transform 0.2s;
+}
+
+.task-card:active {
+  cursor: grabbing;
+}
+
+.task-card.dragging {
+  opacity: 0.5;
+}
+
+.task-container {
+  min-height: 250px;
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.edit-task-btn {
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  opacity: 0;
+  transition: 0.2s;
+}
+
+.task-card:hover .edit-task-btn {
+  opacity: 1;
+}
+
+.edit-task-btn:hover {
+  background: #f1f3f5;
+}
+
+#leaveButton {
+  background-color: red !important;
+  border-color: red !important;
 }

@@ -1,14 +1,14 @@
 /* Spindle marketplace card revamp — Shopee/Lazada-style listing cards */
 
 :root {
-  --sp-accent: #ee4d2d;
-  --sp-accent-dark: #c9391c;
+  --sp-accent: var(--accent);
+  --sp-accent-dark: var(--accent-hover);
   --sp-navy: #14213d;
-  --sp-bg: #f7f7fb;
-  --sp-surface: #ffffff;
-  --sp-border: #e8e8ed;
-  --sp-text: #1a1a1e;
-  --sp-muted: #6b7280;
+  --sp-bg: var(--bg);
+  --sp-surface: var(--bg-elevated);
+  --sp-border: var(--border);
+  --sp-text: var(--text);
+  --sp-muted: var(--text-secondary);
   --sp-quality-new: #1d4ed8;
   --sp-quality-likenew: #2e7d32;
   --sp-quality-good: #b7791f;
@@ -35,7 +35,7 @@
 }
 
 .spindle-card:hover {
-  box-shadow: 0 6px 18px rgba(20, 33, 61, 0.1);
+  box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
 
@@ -66,7 +66,7 @@
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: #fff;
+  color: var(--text-inverse);
   padding: 3px 8px;
   border-radius: 999px;
   text-transform: uppercase;
@@ -320,7 +320,7 @@
 
 .spindle-add-btn {
   background: var(--sp-accent);
-  color: #fff;
+  color: var(--text-inverse);
   border: none;
   width: 32px;
   height: 32px;

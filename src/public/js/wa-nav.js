@@ -1,3 +1,5 @@
+/* global clearAuth, handleLogout, isLoggedIn */
+
 function esc(t) {
   const d = document.createElement('div');
   d.textContent = t ?? '';
@@ -162,7 +164,7 @@ function injectWaHeader(title, opts = {}) {
 
   const loggedIn = !!localStorage.getItem('token');
 
-  let actionsHTML = '';
+  let actionsHTML;
   if (loggedIn) {
     const bell = opts.bell !== false ? renderNotifBell() : '';
     actionsHTML = `

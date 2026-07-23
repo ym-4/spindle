@@ -6,6 +6,9 @@ const urlParams = new URLSearchParams(window.location.search);
 const editingItemId = urlParams.get('id');
 
 // ── Element refs ──
+/* global fetchMethod, bootstrap */
+
+// ── Character counters ──
 const titleInput = document.getElementById('listingTitle');
 const descInput = document.getElementById('listingDescription');
 const titleCount = document.getElementById('titleCount');

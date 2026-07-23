@@ -84,180 +84,180 @@ const marketplaceItems = [
     name: 'Backpack',
     description: 'Durable everyday backpack with multiple compartments.',
     price: 49.9,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Calculator',
     description: 'Scientific calculator suitable for engineering modules.',
     price: 15.0,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Folder',
     description: 'A4 document folder to keep your notes organised.',
     price: 3.5,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Notebook',
     description: 'Lined notebook, 200 pages, hardcover.',
     price: 6.9,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Paper',
     description: 'A4 80gsm printing paper, 500 sheets per ream.',
     price: 8.0,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Pen',
     description: 'Smooth ballpoint pen, blue ink.',
     price: 1.5,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Pencil',
     description: 'HB pencil, ideal for sketching and writing.',
     price: 0.8,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Stationery Pack',
     description: 'Bundle of essentials: pens, pencils, ruler, eraser, and sharpener.',
     price: 12.0,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Highlighter Set',
     description: 'Pack of 6 pastel highlighters, low bleed-through.',
     price: 5.5,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Sticky Notes',
     description: 'Assorted colour sticky notes, 5 pads.',
     price: 3.0,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Whiteboard Marker Set',
     description: 'Set of 4 whiteboard markers with eraser cap.',
     price: 4.5,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Correction Tape',
     description: 'Compact correction tape roller, 6m length.',
     price: 2.2,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: '30cm Ruler',
     description: 'Clear acrylic ruler with cm and inch markings.',
     price: 1.2,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Eraser',
     description: 'Soft white eraser, smudge-free.',
     price: 0.6,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Stapler',
     description: 'Compact desktop stapler with 1000 staples included.',
     price: 7.5,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Graph Paper Pad',
     description: 'Engineering graph paper pad, 50 sheets, 5mm grid.',
     price: 4.0,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Binder Clips Pack',
     description: 'Assorted size binder clips, 24 pieces.',
     price: 2.5,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Index Cards',
     description: 'Ruled index cards, 100 pieces, ring-bound.',
     price: 3.2,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Laptop Sleeve',
     description: '13-inch neoprene laptop sleeve, water-resistant.',
     price: 14.9,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'USB Flash Drive 32GB',
     description: 'Compact USB 3.0 flash drive, 32GB capacity.',
     price: 9.9,
-    quality: "Brand New",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
 
   {
@@ -265,360 +265,360 @@ const marketplaceItems = [
     name: 'Introduction to Algorithms Textbook',
     description: 'CLRS 3rd edition, some highlighting in first 3 chapters.',
     price: 35.0,
-    quality: "Good",
-    meetup: "Clementi MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Clementi MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Mechanical Keyboard',
     description: 'TKL mechanical keyboard with brown switches, RGB backlight.',
     price: 55.0,
-    quality: "Like New",
-    meetup: "Buona Vista MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Like New',
+    meetup: 'Buona Vista MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Study Desk Lamp',
     description: 'Adjustable LED desk lamp with 3 brightness settings.',
     price: 18.0,
-    quality: "Good",
-    meetup: "Jurong East MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Jurong East MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Office Chair',
     description: 'Ergonomic mesh-back office chair, minor scuffs on base.',
     price: 60.0,
-    quality: "Fair",
-    meetup: "Tampines MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Fair',
+    meetup: 'Tampines MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Wireless Mouse',
     description: 'Bluetooth wireless mouse, works perfectly, light scratches on top.',
     price: 8.5,
-    quality: "Fair",
-    meetup: "Bishan MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Fair',
+    meetup: 'Bishan MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Discrete Mathematics Notes (Printed)',
     description: 'Compiled lecture notes and past year papers, spiral-bound.',
     price: 6.0,
-    quality: "Good",
-    meetup: "Serangoon MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Serangoon MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'External SSD 500GB',
     description: 'Portable USB-C SSD, fast transfer speeds, barely used.',
     price: 65.0,
-    quality: "Like New",
-    meetup: "Yishun MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Like New',
+    meetup: 'Yishun MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Study Table (Foldable)',
     description: 'Foldable laptop table, some wear on the surface.',
     price: 20.0,
-    quality: "Well Used",
-    meetup: "Woodlands MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Well Used',
+    meetup: 'Woodlands MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Noise-Cancelling Headphones',
     description: 'Over-ear ANC headphones, minor cosmetic wear, great sound.',
     price: 70.0,
-    quality: "Good",
-    meetup: "Punggol MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Punggol MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Raspberry Pi 4 (4GB)',
     description: 'Used for a semester-long IoT project, fully functional.',
     price: 45.0,
-    quality: "Good",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Breadboard and Jumper Wires Kit',
     description: 'Electronics prototyping kit, a few wires slightly bent.',
     price: 10.0,
-    quality: "Fair",
-    meetup: "Clementi MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Fair',
+    meetup: 'Clementi MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Arduino Uno Starter Kit',
     description: 'Complete starter kit with sensors, mostly unused.',
     price: 30.0,
-    quality: "Like New",
-    meetup: "Buona Vista MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Like New',
+    meetup: 'Buona Vista MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Database Systems Textbook',
     description: 'Elmasri & Navathe, cover slightly bent, no writing inside.',
     price: 25.0,
-    quality: "Good",
-    meetup: "Jurong East MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Jurong East MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Monitor Stand Riser',
     description: 'Wooden monitor stand with storage space underneath.',
     price: 12.0,
-    quality: "Good",
-    meetup: "Tampines MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Tampines MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Graphing Calculator (TI-84)',
     description: 'TI-84 Plus, buttons slightly worn but fully functional.',
     price: 40.0,
-    quality: "Fair",
-    meetup: "Bishan MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Fair',
+    meetup: 'Bishan MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Bean Bag Chair',
     description: 'Comfy bean bag for dorm room, some fading on fabric.',
     price: 15.0,
-    quality: "Well Used",
-    meetup: "Serangoon MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Well Used',
+    meetup: 'Serangoon MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Portable Whiteboard',
     description: 'A3-size portable whiteboard, great for practicing diagrams.',
     price: 9.0,
-    quality: "Good",
-    meetup: "Yishun MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Yishun MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Bluetooth Speaker',
     description: 'Compact portable speaker, decent battery life.',
     price: 20.0,
-    quality: "Fair",
-    meetup: "Woodlands MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Fair',
+    meetup: 'Woodlands MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Mini Fridge',
     description: 'Compact dorm-size fridge, works well, some rust on hinge.',
     price: 80.0,
-    quality: "Well Used",
-    meetup: "Punggol MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Well Used',
+    meetup: 'Punggol MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Computer Networking Textbook',
     description: 'Kurose & Ross top-down approach, 7th edition.',
     price: 28.0,
-    quality: "Good",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Webcam 1080p',
     description: 'HD webcam with built-in mic, used for online classes.',
     price: 18.0,
-    quality: "Like New",
-    meetup: "Clementi MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Like New',
+    meetup: 'Clementi MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Drawing Tablet',
     description: 'Small graphics tablet for digital sketching, pen included.',
     price: 35.0,
-    quality: "Good",
-    meetup: "Buona Vista MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Buona Vista MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Study Chair Cushion',
     description: 'Memory foam seat cushion for long study sessions.',
     price: 10.0,
-    quality: "Brand New",
-    meetup: "Jurong East MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Jurong East MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Physics for Scientists Textbook',
     description: 'Serway & Jewett, some annotations in pencil.',
     price: 22.0,
-    quality: "Fair",
-    meetup: "Tampines MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Fair',
+    meetup: 'Tampines MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Laptop Stand (Adjustable)',
     description: 'Aluminium laptop stand, improves posture and airflow.',
     price: 16.0,
-    quality: "Like New",
-    meetup: "Bishan MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Like New',
+    meetup: 'Bishan MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Desk Organizer Tray',
     description: 'Multi-compartment tray for pens, cables, and stationery.',
     price: 7.0,
-    quality: "Good",
-    meetup: "Serangoon MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Serangoon MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Router (Dual-Band)',
     description: 'Home Wi-Fi router, reliable for dorm/home use.',
     price: 25.0,
-    quality: "Fair",
-    meetup: "Yishun MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Fair',
+    meetup: 'Yishun MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Study Bookshelf (Small)',
     description: '3-tier bookshelf, some scratches on the sides.',
     price: 18.0,
-    quality: "Well Used",
-    meetup: "Woodlands MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Well Used',
+    meetup: 'Woodlands MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Portable Monitor 15.6"',
     description: 'USB-C portable monitor, great for a dual-screen setup.',
     price: 90.0,
-    quality: "Like New",
-    meetup: "Punggol MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Like New',
+    meetup: 'Punggol MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Cybersecurity Fundamentals Textbook',
     description: 'Covers OWASP Top 10 and network security basics.',
     price: 20.0,
-    quality: "Good",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Mechanical Pencil Set',
     description: 'Set of 3 mechanical pencils with extra lead refills.',
     price: 4.5,
-    quality: "Brand New",
-    meetup: "Clementi MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Clementi MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Table Fan',
     description: 'Compact desk fan, 3 speed settings, quiet motor.',
     price: 12.0,
-    quality: "Fair",
-    meetup: "Buona Vista MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Fair',
+    meetup: 'Buona Vista MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'HDMI Cable (2m)',
     description: 'High-speed HDMI cable, supports 4K resolution.',
     price: 5.0,
-    quality: "Brand New",
-    meetup: "Jurong East MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Brand New',
+    meetup: 'Jurong East MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Ethernet Cable (5m)',
     description: 'Cat6 ethernet cable, good for stable connections.',
     price: 6.0,
-    quality: "Like New",
-    meetup: "Tampines MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Like New',
+    meetup: 'Tampines MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Storage Bins (Set of 3)',
     description: 'Stackable plastic storage bins, ideal for dorm rooms.',
     price: 14.0,
-    quality: "Good",
-    meetup: "Bishan MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Bishan MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Study Timer / Clock',
     description: 'Digital timer clock, useful for Pomodoro study sessions.',
     price: 8.0,
-    quality: "Fair",
-    meetup: "Serangoon MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Fair',
+    meetup: 'Serangoon MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Portable Scanner',
     description: 'Compact document scanner, scans directly to USB drive.',
     price: 30.0,
-    quality: "Well Used",
-    meetup: "Yishun MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Well Used',
+    meetup: 'Yishun MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Yoga Mat',
     description: 'Non-slip yoga mat, used occasionally for stretching breaks.',
     price: 10.0,
-    quality: "Good",
-    meetup: "Woodlands MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Woodlands MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Water Bottle (Insulated)',
     description: '750ml stainless steel insulated bottle, keeps drinks cold.',
     price: 9.0,
-    quality: "Like New",
-    meetup: "Punggol MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Like New',
+    meetup: 'Punggol MRT',
+    image: '/marketplace-uploads/1.png',
   },
   {
     sellerEmail: 'alice@example.com',
     name: 'Software Engineering Textbook',
     description: 'Sommerville 10th edition, covers CI/CD and agile methods.',
     price: 27.0,
-    quality: "Good",
-    meetup: "Dover MRT",
-    image: "/marketplace-uploads/1.png"
+    quality: 'Good',
+    meetup: 'Dover MRT',
+    image: '/marketplace-uploads/1.png',
   },
 ];
 
@@ -942,6 +942,336 @@ const groupAnnouncements = [
   },
 ];
 
+// Example tasks
+const tasks = [
+  {
+    groupName: 'SOC Study Buddies',
+    title: 'Build Login Page',
+    description: 'Implement login UI and authentication.',
+    status: 'todo',
+    creatorEmail: 'alice@example.com',
+    assigneeEmail: 'bob@example.com',
+    dueDate: '2026-09-01',
+  },
+  {
+    groupName: 'SOC Database Club',
+    title: 'Database Schema',
+    description: 'Design PostgreSQL database schema.',
+    status: 'in_progress',
+    creatorEmail: 'beni@example.com',
+    assigneeEmail: 'carol@example.com',
+    dueDate: '2026-09-03',
+  },
+  {
+    groupName: 'SOC Study Buddies',
+    title: 'Marketplace API',
+    description: 'Implement CRUD APIs for marketplace.',
+    status: 'todo',
+    creatorEmail: 'bob@example.com',
+    assigneeEmail: 'dave@example.com',
+    dueDate: '2026-09-05',
+  },
+  {
+    groupName: 'MAD Project Team',
+    title: 'UI Polish',
+    description: 'Improve responsiveness and styling.',
+    status: 'done',
+    creatorEmail: 'frank@example.com',
+    assigneeEmail: 'grace@example.com',
+    dueDate: '2026-08-20',
+  },
+];
+
+// Example sub tasks
+const subtasks = [
+  // Build Login Page
+  {
+    taskTitle: 'Build Login Page',
+    text: 'Create Login Form',
+    completed: true,
+  },
+  {
+    taskTitle: 'Build Login Page',
+    text: 'Connect Login API',
+    completed: false,
+  },
+  {
+    taskTitle: 'Build Login Page',
+    text: 'Remember Me Function',
+    completed: false,
+  },
+
+  // Database Schema
+  {
+    taskTitle: 'Database Schema',
+    text: 'Create ER Diagram',
+    completed: true,
+  },
+  {
+    taskTitle: 'Database Schema',
+    text: 'Write SQL Schema',
+    completed: true,
+  },
+  {
+    taskTitle: 'Database Schema',
+    text: 'Add Indexes',
+    completed: false,
+  },
+
+  // Marketplace API
+  {
+    taskTitle: 'Marketplace API',
+    text: 'Create GET Endpoint',
+    completed: true,
+  },
+  {
+    taskTitle: 'Marketplace API',
+    text: 'Create POST Endpoint',
+    completed: false,
+  },
+  {
+    taskTitle: 'Marketplace API',
+    text: 'Write Unit Tests',
+    completed: false,
+  },
+
+  // UI Polish
+  {
+    taskTitle: 'UI Polish',
+    text: 'Fix Mobile Layout',
+    completed: true,
+  },
+  {
+    taskTitle: 'UI Polish',
+    text: 'Improve Colors',
+    completed: true,
+  },
+];
+
+const whiteboards = [
+  {
+    groupName: 'SOC Study Buddies',
+    creatorEmail: 'alice@example.com',
+    title: 'Sprint Planning',
+    mode: 'whiteboard',
+    drawing_data: {},
+  },
+  {
+    groupName: 'SOC Study Buddies',
+    creatorEmail: 'alice@example.com',
+    title: 'CS1010 Mind Map',
+    mode: 'pixel',
+    drawing_data: {},
+  },
+  {
+    groupName: 'SOC Database Club',
+    creatorEmail: 'carol@example.com',
+    title: 'ER Diagram',
+    mode: 'whiteboard',
+    drawing_data: {},
+  },
+  {
+    groupName: 'MAD Project Team',
+    creatorEmail: 'frank@example.com',
+    title: 'UI Wireframe',
+    mode: 'pixel',
+    drawing_data: {},
+  },
+  {
+    groupName: 'EEE Circuit Masters',
+    creatorEmail: 'grace@example.com',
+    title: 'Circuit Revision',
+    mode: 'whiteboard',
+    drawing_data: {},
+  },
+];
+
+// Example note folders
+const noteFolders = [
+  {
+    groupName: 'SOC Study Buddies',
+    name: 'CS1010',
+    color: '#4F46E5',
+  },
+  {
+    groupName: 'SOC Study Buddies',
+    name: 'Exam Revision',
+    color: '#16A34A',
+  },
+  {
+    groupName: 'SOC Database Club',
+    name: 'CS2102',
+    color: '#DC2626',
+  },
+  {
+    groupName: 'MAD Project Team',
+    name: 'Project Notes',
+    color: '#EA580C',
+  },
+  {
+    groupName: 'EEE Circuit Masters',
+    name: 'Labs',
+    color: '#0891B2',
+  },
+];
+
+// Example notes
+const notes = [
+  {
+    groupName: 'SOC Study Buddies',
+    folder: 'CS1010',
+    creatorEmail: 'alice@example.com',
+    title: 'Programming Basics',
+    content: `
+<h1>Programming Basics</h1>
+
+<p>This note introduces variables, loops and functions.</p>
+
+<p>Continue with [[Recursion]] afterwards.</p>
+`,
+  },
+
+  {
+    groupName: 'SOC Study Buddies',
+    folder: 'CS1010',
+    creatorEmail: 'alice@example.com',
+    title: 'Recursion',
+    content: `
+<h1>Recursion</h1>
+
+<p>A function calling itself.</p>
+
+<p>Prerequisite: [[Programming Basics]]</p>
+
+<p>Next: [[Binary Trees]]</p>
+`,
+  },
+
+  {
+    groupName: 'SOC Study Buddies',
+    folder: 'CS1010',
+    creatorEmail: 'bob@example.com',
+    title: 'Binary Trees',
+    content: `
+<h1>Binary Trees</h1>
+
+<p>Tree traversal algorithms.</p>
+
+<p>Review [[Recursion]] first.</p>
+`,
+  },
+
+  {
+    groupName: 'SOC Study Buddies',
+    folder: 'Exam Revision',
+    creatorEmail: 'carol@example.com',
+    title: 'Final Exam Checklist',
+    content: `
+<ul>
+<li>[[Programming Basics]]</li>
+<li>[[Recursion]]</li>
+<li>[[Binary Trees]]</li>
+</ul>
+`,
+  },
+
+  {
+    groupName: 'SOC Database Club',
+    folder: 'CS2102',
+    creatorEmail: 'carol@example.com',
+    title: 'Normalization',
+    content: `
+<p>Understand 1NF, 2NF and 3NF.</p>
+
+<p>Read [[ER Diagram]] afterwards.</p>
+`,
+  },
+
+  {
+    groupName: 'SOC Database Club',
+    folder: 'CS2102',
+    creatorEmail: 'carol@example.com',
+    title: 'ER Diagram',
+    content: `
+<p>Entity Relationship Diagrams.</p>
+
+<p>Uses concepts from [[Normalization]].</p>
+`,
+  },
+
+  {
+    groupName: 'MAD Project Team',
+    folder: 'Project Notes',
+    creatorEmail: 'frank@example.com',
+    title: 'Frontend Architecture',
+    content: `
+<p>React + Express architecture.</p>
+
+<p>See [[API Endpoints]].</p>
+`,
+  },
+
+  {
+    groupName: 'MAD Project Team',
+    folder: 'Project Notes',
+    creatorEmail: 'grace@example.com',
+    title: 'API Endpoints',
+    content: `
+<p>REST endpoints used by the frontend.</p>
+
+<p>Back to [[Frontend Architecture]].</p>
+`,
+  },
+];
+
+// Example note links
+const noteLinks = [
+  {
+    from: 'Programming Basics',
+    to: 'Recursion',
+  },
+  {
+    from: 'Recursion',
+    to: 'Programming Basics',
+  },
+  {
+    from: 'Recursion',
+    to: 'Binary Trees',
+  },
+  {
+    from: 'Binary Trees',
+    to: 'Recursion',
+  },
+  {
+    from: 'Final Exam Checklist',
+    to: 'Programming Basics',
+  },
+  {
+    from: 'Final Exam Checklist',
+    to: 'Recursion',
+  },
+  {
+    from: 'Final Exam Checklist',
+    to: 'Binary Trees',
+  },
+  {
+    from: 'Normalization',
+    to: 'ER Diagram',
+  },
+  {
+    from: 'ER Diagram',
+    to: 'Normalization',
+  },
+  {
+    from: 'Frontend Architecture',
+    to: 'API Endpoints',
+  },
+  {
+    from: 'API Endpoints',
+    to: 'Frontend Architecture',
+  },
+];
+
 async function seed() {
   console.log('Seeding data...');
 
@@ -1090,49 +1420,6 @@ async function seed() {
   }
   console.log(`Inserted ${savedPosts.length} saved posts.`);
 
-  // // Insert groups
-  // for (const group of groups) {
-  //   const creatorRes = await pool.query(
-  //     `SELECT id FROM "Person" WHERE email = $1`,
-  //     [group.creatorEmail]
-  //   );
-
-  //   if (creatorRes.rows.length > 0) {
-  //     await pool.query(
-  //       `INSERT INTO "Groups"
-  //       ("name", "creator_id", "description", "school", "module", "public")
-  //       VALUES ($1, $2, $3, $4, $5, $6)
-  //       ON CONFLICT ("name") DO NOTHING`,
-  //       [
-  //         group.name,
-  //         creatorRes.rows[0].id,
-  //         group.description,
-  //         group.school,
-  //         group.module,
-  //         group.public,
-  //       ]
-  //     );
-  //   }
-  // }
-
-  // console.log(`Inserted ${groups.length} groups.`);
-
-  //   // Insert group members
-  // for (const gm of groupMembers) {
-  //   const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [gm.userEmail]);
-  //   const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [gm.groupName]);
-
-  //   if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
-  //     await pool.query(
-  //       `INSERT INTO "GroupMembers" ("group_id", "user_id", "role")
-  //        VALUES ($1, $2, $3)
-  //        ON CONFLICT DO NOTHING`,
-  //       [groupRes.rows[0].id, userRes.rows[0].id, gm.role],
-  //     );
-  //   }
-  // }
-  // console.log(`Inserted ${groupMembers.length} group members.`);
-
   // Insert marketplace items
   const sellerRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
     'alice@example.com',
@@ -1252,10 +1539,185 @@ async function seed() {
       );
     }
   }
+  // -----------------------------------------------------------------------------
+  // Insert Tasks
+  // -----------------------------------------------------------------------------
+
+  for (const task of tasks) {
+    const creatorRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      task.creatorEmail,
+    ]);
+
+    const assigneeRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      task.assigneeEmail,
+    ]);
+
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [task.groupName]);
+
+    if (
+      creatorRes.rows.length === 0 ||
+      assigneeRes.rows.length === 0 ||
+      groupRes.rows.length === 0
+    ) {
+      continue;
+    }
+
+    await pool.query(
+      `INSERT INTO "GroupTasks"
+    ("group_id","creator_id","assignee_id","title","description","status","due_date")
+    VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [
+        groupRes.rows[0].id,
+        creatorRes.rows[0].id,
+        assigneeRes.rows[0].id,
+        task.title,
+        task.description,
+        task.status,
+        task.dueDate,
+      ],
+    );
+  }
+  console.log(`Inserted ${tasks.length} tasks.`);
+  // -----------------------------------------------------------------------------
+  // Insert Sub Tasks
+  // -----------------------------------------------------------------------------
+
+  for (const subtask of subtasks) {
+    const taskRes = await pool.query(`SELECT id FROM "GroupTasks" WHERE title = $1`, [
+      subtask.taskTitle,
+    ]);
+
+    if (taskRes.rows.length === 0) continue;
+
+    await pool.query(
+      `INSERT INTO "GroupTaskItems"
+    ("task_id","text","completed")
+    VALUES ($1,$2,$3)`,
+      [taskRes.rows[0].id, subtask.text, subtask.completed],
+    );
+  }
+
+  console.log(`Inserted ${subtasks.length} subtasks.`);
 
   console.log(`Inserted ${groupAnnouncements.length} group announcements.`);
 
   console.log(`Inserted ${groupDiscussions.length} group discussions.`);
+
+  // -----------------------------------------------------------------------------
+  // Insert Whiteboards
+  // -----------------------------------------------------------------------------
+  for (const board of whiteboards) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      board.creatorEmail,
+    ]);
+
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [board.groupName]);
+
+    if (!userRes.rows.length || !groupRes.rows.length) continue;
+
+    await pool.query(
+      `
+  INSERT INTO "WhiteboardDrawings"
+  ("user_id", "group_id", "title", "mode", "drawing_data")
+  VALUES ($1, $2, $3, $4, $5)
+  `,
+      [userRes.rows[0].id, groupRes.rows[0].id, board.title, board.mode, JSON.stringify({})],
+    );
+  }
+
+  console.log(`Inserted ${whiteboards.length} whiteboards.`);
+
+  // -----------------------------------------------------------------------------
+  // Insert Note Folders
+  // -----------------------------------------------------------------------------
+
+  for (const folder of noteFolders) {
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [
+      folder.groupName,
+    ]);
+
+    if (!groupRes.rows.length) continue;
+
+    await pool.query(
+      `
+    INSERT INTO "NoteFolders"
+      ("group_id", "name", "color")
+    VALUES ($1, $2, $3)
+    ON CONFLICT ("group_id","name") DO NOTHING
+    `,
+      [groupRes.rows[0].id, folder.name, folder.color],
+    );
+  }
+
+  console.log(`Inserted ${noteFolders.length} note folders.`);
+
+  // -----------------------------------------------------------------------------
+  // Insert Notes
+  // -----------------------------------------------------------------------------
+
+  for (const note of notes) {
+    const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+      note.creatorEmail,
+    ]);
+
+    const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [note.groupName]);
+
+    if (!userRes.rows.length || !groupRes.rows.length) continue;
+
+    const folderRes = await pool.query(
+      `
+    SELECT id
+    FROM "NoteFolders"
+    WHERE group_id = $1
+      AND name = $2
+    `,
+      [groupRes.rows[0].id, note.folder],
+    );
+
+    if (!folderRes.rows.length) continue;
+
+    await pool.query(
+      `
+    INSERT INTO "Notes"
+    (
+      "folder_id",
+      "group_id",
+      "user_id",
+      "title",
+      "content"
+    )
+    VALUES ($1,$2,$3,$4,$5)
+    ON CONFLICT DO NOTHING
+    `,
+      [folderRes.rows[0].id, groupRes.rows[0].id, userRes.rows[0].id, note.title, note.content],
+    );
+  }
+
+  console.log(`Inserted ${notes.length} notes.`);
+
+  // -----------------------------------------------------------------------------
+  // Insert Note Links
+  // -----------------------------------------------------------------------------
+
+  for (const link of noteLinks) {
+    const sourceRes = await pool.query(`SELECT id FROM "Notes" WHERE title = $1`, [link.from]);
+
+    const targetRes = await pool.query(`SELECT id FROM "Notes" WHERE title = $1`, [link.to]);
+
+    if (!sourceRes.rows.length || !targetRes.rows.length) continue;
+
+    await pool.query(
+      `
+    INSERT INTO "NoteLinks"
+    ("source_note_id","target_note_id")
+    VALUES ($1,$2)
+    ON CONFLICT DO NOTHING
+    `,
+      [sourceRes.rows[0].id, targetRes.rows[0].id],
+    );
+  }
+
+  console.log(`Inserted ${noteLinks.length} note links.`);
 
   console.log('Seed completed successfully.');
   console.log(

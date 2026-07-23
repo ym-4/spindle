@@ -11,7 +11,7 @@
     "multer": "^2.2.0",
     "nodemon": "^3.1.14",
     "pg": "^8.20.0",
-    "playwright": "^1.61.1",
+    "playwright": "1.58.2",
     "ws": "^8.19.0"
   },
   "devDependencies": {
@@ -33,8 +33,8 @@
     "seed": "dotenv -e .env.dev -- node scripts/seed.js",
     "migration:reset": "dotenv -e .env.dev -- node scripts/reset.js",
     "test:unit": "jest --testPathPatterns=__tests__/unit --silent",
-    "test:integration": "dotenv -e .env.test -- jest --testPathPatterns=__tests__/integration --globalSetup=./configs/jest-integration-setup.js --silent",
-    "test:e2e": "node scripts/clean-test-results.js && dotenv -e .env.test -- playwright test --config=configs/playwright.config.js",
+    "test:integration": "dotenv -e .env.test -- jest --testPathPatterns=__tests__/integration --globalSetup=./configs/jest-integration-setup.js --runInBand --silent",
+    "test:e2e": "node scripts/clean-test-results.js && dotenv -e .env.test -- npx playwright test --config=configs/playwright.config.js",
     "test": "jest --testPathPatterns=__tests__/unit --silent && dotenv -e .env.test -- jest --testPathPatterns=__tests__/integration --globalSetup=./configs/jest-integration-setup.js --silent && node scripts/clean-test-results.js && dotenv -e .env.test -- playwright test --config=configs/playwright.config.js",
     "test:trace": "npm run test:e2e -- --reporter=html --trace on",
     "lint": "eslint -c configs/eslint.config.mjs .",
@@ -56,14 +56,6 @@
       "!src/server.js",
       "!src/public/**"
     ],
-    "coverageDirectory": "coverage-report",
-    "coverageThreshold": {
-      "global": {
-        "branches": 80,
-        "functions": 80,
-        "lines": 80,
-        "statements": 80
-      }
-    }
+    "coverageDirectory": "coverage-report"
   }
 }

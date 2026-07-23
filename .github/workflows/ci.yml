@@ -10,18 +10,75 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: cicd-test
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Format check
+        run: npm run format-check
+
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Unit tests with coverage
+        run: npm run test:unit -- --coverage
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ci-jwt-secret
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
 
       - name: Install dependencies
         run: npm install
+      - name: Integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ci-jwt-secret
 
-      # - name: Prettier check
-      #   run: npm run format-check
+      # E2E tests disabled — no test files exist yet. Will be added in Phase 2.
+      # - name: Install Playwright browsers
+      #   run: npx playwright install --with-deps chromium
 
-      # - name: ESLint
-      #   run: npm run lint
+      # - name: E2E tests
+      #   run: npm run test:e2e
+      #   env:
+      #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      #     JWT_SECRET: ci-jwt-secret
+      #     PORT: 3001
 
-      # - name: Jest tests
+      # - name: Run tests
       #   run: npm test
+
+      # - name: Build tests
+      #   run: npm run build
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage-report/

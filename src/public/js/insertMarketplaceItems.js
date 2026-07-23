@@ -1,3 +1,5 @@
+/* global fetchMethod, bootstrap, removeFromCart, addToCart */
+
 // Escape user-submitted text before it's dropped into innerHTML.
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
@@ -220,9 +222,23 @@ async function loadListings() {
       } else {
         emptyState.classList.add('d-none');
 
-        for (i = (currentPage - 1) * LISTINGS_PER_PAGE; i < LISTINGS_PER_PAGE * currentPage; i++) {
-          if (!filtered[i]) continue;
-          addListing({ ...filtered[i], mode: 'browse' });
+        for (
+          let i = (currentPage - 1) * LISTINGS_PER_PAGE;
+          i < LISTINGS_PER_PAGE * currentPage;
+          i++
+        ) {
+          if (!data[i]) continue;
+          addListing(
+            data[i].seller_id,
+            data[i].id,
+            data[i].name,
+            data[i].description,
+            data[i].price,
+            data[i].quality,
+            data[i].meetup,
+            data[i].images,
+            data[i].tags,
+          );
         }
       }
     } else {
@@ -411,14 +427,18 @@ if (document.title == 'Marketplace') {
 } else if (document.title == 'Cart') {
   loadCart();
 } else if (document.title == 'Marketplace - Your Listings') {
-  loadUserListings();
-}
-
-if (document.title.includes('Marketplace')) {
-  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
-    const filtered = applySpindleFilters(hideSoldItems(data));
-    let totalListings = filtered.length;
-    let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
+  document.getElementById('prev-page-btn').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      container.innerHTML = '';
+      loadListings();
+    }
+  });
+  document.getElementById('next-page-btn').addEventListener('click', () => {
+    currentPage++;
+    container.innerHTML = '';
+    loadListings();
+  });
 
     document.getElementById('prev-page-btn').addEventListener('click', () => {
       if (currentPage > 1) {

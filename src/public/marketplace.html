@@ -7,6 +7,7 @@
     <meta name="author" content="" />
 
     <title>Marketplace</title>
+    <link rel="stylesheet" href="css/theme.css" />
 
     <!-- CSS -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
@@ -85,7 +86,43 @@
           </a>
           <button class="btn-navbar-logout d-none" id="logoutButton" type="button">Log Out</button>
         </div>
+        <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+        <a
+          href="home.html?login=1&tab=login&return=marketplace.html"
+          class="btn-navbar-login"
+          id="loginButton"
+          >Log In</a
+        >
+        <a
+          href="home.html?login=1&tab=register&return=marketplace.html"
+          class="btn-navbar-signup"
+          id="registerButton"
+          >Sign Up</a
+        >
+        <a href="profile.html" class="btn-navbar-profile d-none" id="profileButton">
+          <i class="fas fa-user-circle"></i> Profile
+        </a>
+        <button class="btn-navbar-logout d-none" id="logoutButton" type="button">Log Out</button>
       </div>
+      <a href="cart.html" class="btn-navbar-login">Cart</a>
+      <a href="create_listing.html" class="btn-navbar-login">+New Listing</a>
+      <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+      <a
+        href="home.html?login=1&tab=login&return=marketplace.html"
+        class="btn-navbar-login"
+        id="loginButton"
+        >Log In</a
+      >
+      <a
+        href="home.html?login=1&tab=register&return=marketplace.html"
+        class="btn-navbar-signup"
+        id="registerButton"
+        >Sign Up</a
+      >
+      <a href="profile.html" class="btn-navbar-profile d-none" id="profileButton">
+        <i class="fas fa-user-circle"></i> Profile
+      </a>
+      <button class="btn-navbar-logout d-none" id="logoutButton" type="button">Log Out</button>
     </nav>
 
     <!-- Main Container -->
@@ -257,6 +294,7 @@
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>
     <script src="js/spindle-sidebar.js"></script>
+    <script src="js/spindle-page.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         if (typeof injectNotificationsOnly === 'function') {
