@@ -348,10 +348,52 @@ textarea.form-control {
   margin-top: 0.75rem;
 }
 
+.image-preview-thumb {
+  position: relative;
+  width: 90px;
+  height: 90px;
+}
+
 .image-preview-thumb img {
   width: 90px;
   height: 90px;
   object-fit: cover;
   border-radius: 6px;
   border: 1px solid #dee2e6;
+  display: block;
+}
+
+.image-thumb-cover-btn,
+.image-thumb-remove-btn {
+  position: absolute;
+  top: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+
+.image-thumb-cover-btn {
+  left: 4px;
+}
+
+.image-thumb-remove-btn {
+  right: 4px;
+}
+
+.image-thumb-cover-btn:hover,
+.image-thumb-remove-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.image-thumb-cover-btn.active {
+  background: #f2b705;
+  color: #1a1a1e;
 }
