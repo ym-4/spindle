@@ -1,10 +1,28 @@
-// Marcus here, Im getting this weird CORS error, idk why but I added something to the app.js as I literally cannot run my code without it.
-
 const cors = require('cors'); // Might remove later
 const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
+const session = require('express-session');
 
+const app = express();
+
+app.use(cors()); // Might remove later
+
+// Session handler for the wordle
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'connect-pg-simple',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 day; games don't need to outlive this yet
+}));
+
+// Parse incoming JSON request bodies (e.g. from POST/PUT requests)
+app.use(express.json({limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve static files (HTML, CSS, JS, images) from the 'public' folder.
+// e.g. src/public/index.html is accessible at http://localhost:<port>/
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Import route handlers
 const somethingRouter = require('./routers/Something.router');
@@ -22,9 +40,7 @@ const searchRouter = require('./routers/Search.router');
 const groupRouter = require('./routers/Groups.router');
 const marketplaceRouter = require('./routers/Marketplace.router');
 const cartRouter = require('./routers/Cart.router');
-
-const app = express();
-app.use(cors()); // Might remove later
+const wordleRouter = require('./routers/wordle.router');
 
 // Allow Live Server / local dev frontends to call the API on another port
 app.use((req, res, next) => {
@@ -41,14 +57,6 @@ app.use((req, res, next) => {
   }
   next();
 });
-
-// Parse incoming JSON request bodies (e.g. from POST/PUT requests)
-app.use(express.json({limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Serve static files (HTML, CSS, JS, images) from the 'public' folder.
-// e.g. src/public/index.html is accessible at http://localhost:<port>/
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Browsers automatically request /favicon.ico — return 204 (no content) to avoid 404 noise.
 app.get('/', (req, res) => res.redirect('/home.html'));
@@ -70,6 +78,7 @@ app.use('/search', searchRouter);
 app.use('/groups', groupRouter);
 app.use('/marketplace', marketplaceRouter);
 app.use('/cart', cartRouter);
+app.use('/wordle', wordleRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
