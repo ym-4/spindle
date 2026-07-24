@@ -21,6 +21,15 @@ document.addEventListener('DOMContentLoaded', () => {
   setupCommentSortUI();
   setupSearch();
   if (typeof setupSearchDropdown === 'function') setupSearchDropdown();
+  // Close any other open Bootstrap dropdown when a new one opens
+  document.addEventListener('show.bs.dropdown', (event) => {
+    document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
+      const toggle = menu.previousElementSibling;
+      if (toggle && toggle !== event.target) {
+        bootstrap.Dropdown.getInstance(toggle)?.hide();
+      }
+    });
+  });
 
   const params = new URLSearchParams(window.location.search);
   const postId = params.get('id');
@@ -1380,10 +1389,9 @@ function sortCommentsForDisplay(comments, sortType, allComments = comments) {
 
     if (sortType === 'oldest') return getCreatedAt(a) - getCreatedAt(b);
 
-    //WIP: to change to like count
     if (sortType === 'top') {
-      const replyDiff = getReplyCount(b) - getReplyCount(a);
-      if (replyDiff !== 0) return replyDiff;
+      const likeDiff = (b.like_count || 0) - (a.like_count || 0);
+      if (likeDiff !== 0) return likeDiff;
     }
     return getCreatedAt(b) - getCreatedAt(a);
   });
@@ -1887,11 +1895,11 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
           <div class="comment-actions">
             <button class="comment-like-btn" data-comment-id="${comment.id}">
               <i class="far fa-thumbs-up"></i>
-              <span class="comment-like-count">0</span>
+              <span class="comment-like-count">${comment.like_count || 0}</span>
             </button>
             <button class="comment-dislike-btn" data-comment-id="${comment.id}">
               <i class="far fa-thumbs-down"></i>
-              <span class="comment-dislike-count">0</span>
+              <span class="comment-dislike-count">${comment.dislike_count || 0}</span>
             </button>
             <button class="comment-action-link reply-btn" data-comment-id="${comment.id}" data-author="${escapeHtml(authorDisplay)}">Reply</button>
             <span class="comment-timestamp">${timeStr}</span>

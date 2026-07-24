@@ -323,6 +323,13 @@ body {
   font-size: 0.95rem;
 }
 
+.post-owner-link {
+  cursor: pointer;
+}
+.post-author-name.post-owner-link:hover {
+  text-decoration: underline;
+}
+
 .post-timestamp {
   font-size: 0.85rem;
   color: var(--text-secondary);
@@ -405,6 +412,117 @@ body {
 .category-SMA {
   background: linear-gradient(135deg, #fff0d6, #ffe0b3);
   color: #7a4000;
+}
+
+/* Sort button  */
+.sort-pill {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--border-color);
+  background: var(--card-background);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.sort-pill:hover,
+.sort-pill.active {
+  border-color: #d60303;
+  color: var(--primary-color);
+  background: #ffe7e7;
+}
+
+.sort-dropdown {
+  position: absolute;
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 300;
+  min-width: 180px;
+  padding: 0.4rem 0;
+  animation: fadeInUp 0.15s ease;
+}
+
+.sort-dropdown-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 0.4rem 1rem 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sort-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.sort-dropdown button:hover,
+.sort-dropdown button.active {
+  background: var(--hover-bg);
+}
+
+.sort-dropdown button.active {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.sort-dropdown button i {
+  width: 16px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.sort-dropdown .sort-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.3rem 0;
+}
+
+.sort-timeframe-row {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  padding: 0.3rem 0.75rem 0.5rem;
+}
+
+.sort-timeframe-btn {
+  font-size: 0.75rem !important;
+  padding: 0.2rem 0.55rem !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px !important;
+  background: var(--hover-bg) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.sort-timeframe-btn.active,
+.sort-timeframe-btn:hover {
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+  background: #e7f3ff !important;
 }
 
 .post-content {

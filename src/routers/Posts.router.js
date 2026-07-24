@@ -15,6 +15,7 @@ const {
   getPostByID,
   getPostByCategory,
   getRelatedPosts,
+  getHotPosts,
   getPostsByUserID,
   insertPost,
   updatePostByID,
@@ -44,6 +45,7 @@ const {
   getTagsByPostID,
   deletePostTags,
   searchTags,
+  getSortedPosts,
   incrementPostView,
   getPostAnalytics,
   getPostEngagementOverTime,
@@ -144,6 +146,13 @@ router.get('/related/:category/:id', (req, res, next) => {
     .catch(next);
 });
 
+// GET top 3 hot posts for sidebar
+router.get('/hot', (req, res, next) => {
+  getHotPosts()
+    .then((posts) => res.status(200).json(posts))
+    .catch(next);
+});
+
 // get posts by user ID (for profile page)
 router.get('/user/:user_id', (req, res, next) => {
   getPostsByUserID({ user_id: req.params.user_id })
@@ -154,6 +163,18 @@ router.get('/user/:user_id', (req, res, next) => {
 // GET posts liked by a user (for profile page)
 router.get('/liked/:user_id', authenticateJWT, (req, res, next) => {
   getLikedPostsByUserID({ user_id: req.params.user_id })
+    .then((posts) => res.status(200).json(posts))
+    .catch(next);
+});
+
+// Get posts sorted
+router.get('/sorted', (req, res, next) => {
+  const data = {
+    sort: req.query.sort || 'newest',
+    timeframe: req.query.timeframe || 'all',
+    category: req.query.category || null,
+  };
+  getSortedPosts(data)
     .then((posts) => res.status(200).json(posts))
     .catch(next);
 });

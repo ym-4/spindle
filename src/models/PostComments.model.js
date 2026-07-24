@@ -36,10 +36,14 @@ module.exports.getCommentsByPostID = async function getCommentsByPostID(data) {
     `
     SELECT 
       pc.*,
-      p.name AS author_name
+      p.name AS author_name,
+      COUNT(DISTINCT cr.id) FILTER (WHERE cr.reaction_type = 'like')::int AS like_count,
+      COUNT(DISTINCT cr.id) FILTER (WHERE cr.reaction_type = 'dislike')::int AS dislike_count
     FROM "PostComments" pc
     JOIN "Person" p ON pc.user_id = p.id
+    LEFT JOIN "CommentReactions" cr ON cr.comment_id = pc.id
     WHERE pc.post_id = $1
+    GROUP BY pc.id, p.name
     ORDER BY 
       COALESCE(pc.parent_comment_id, pc.id),  
       pc.parent_comment_id NULLS FIRST,    
@@ -171,6 +175,7 @@ module.exports.deleteCommentReaction = async function deleteCommentReaction(data
   );
   return rows[0];
 };
+
 // Delete comment by post owner
 module.exports.deleteCommentByPostOwner = async function deleteCommentByPostOwner(data) {
   const { rows } = await pool.query(

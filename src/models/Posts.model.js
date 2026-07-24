@@ -217,19 +217,65 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
   return rows;
 };
 
-// GET related posts (3 random post form the same category)
+// GET related posts
 module.exports.getRelatedPosts = async function getRelatedPosts(data) {
   const VALUES = [data.category, data.id];
 
   const { rows } = await pool.query(
-    `SELECT p.id, p.title, p.category, p.is_anonymous, u.name AS author_name,
-      (SELECT COUNT(*) FROM "PostComments" pc WHERE pc.post_id = p.id) AS comment_count
-    FROM "Posts" p
-    LEFT JOIN "Person" u ON p.user_id = u.id
-    WHERE p.category = $1 AND p.id != $2
-    ORDER BY RANDOM()
-    LIMIT 3`,
+    `WITH current_tags AS (
+       SELECT tag_id FROM "PostTags" WHERE post_id = $2
+     )
+     SELECT
+       p.id, p.title, p.category, p.is_anonymous, p.view_count,
+       u.name AS author_name,
+       COUNT(DISTINCT pc.id)::int AS comment_count,
+       COUNT(DISTINCT pt.tag_id) FILTER (
+         WHERE pt.tag_id IN (SELECT tag_id FROM current_tags)
+       )::int AS shared_tag_count
+     FROM "Posts" p
+     LEFT JOIN "Person" u ON p.user_id = u.id
+     LEFT JOIN "PostComments" pc ON pc.post_id = p.id
+     LEFT JOIN "PostTags" pt ON pt.post_id = p.id
+     WHERE p.id != $2
+       AND p.is_anonymous = FALSE
+       AND (
+         p.category = $1
+         OR pt.tag_id IN (SELECT tag_id FROM current_tags)
+       )
+     GROUP BY p.id, u.name
+     ORDER BY shared_tag_count DESC, (p.category = $1) DESC, p.view_count DESC, RANDOM()
+     LIMIT 3`,
     VALUES,
+  );
+  return rows;
+};
+
+// Get top 3 hot posts (right sidebar)
+module.exports.getHotPosts = async function getHotPosts() {
+  const { rows } = await pool.query(
+    `SELECT
+       p.id,
+       p.title,
+       p.category,
+       p.created_at,
+       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
+       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count,
+       COUNT(DISTINCT pc.id)::int AS comment_count,
+       p.view_count,
+      
+       (
+         (COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like') * 2)
+         + COUNT(DISTINCT pc.id)
+         + (p.view_count * 0.1)
+       ) / GREATEST(1, EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600) AS hot_score
+     FROM "Posts" p
+     LEFT JOIN "PostReactions" pr ON pr.post_id = p.id
+     LEFT JOIN "PostComments"  pc ON pc.post_id = p.id
+     WHERE p.created_at >= NOW() - INTERVAL '7 days'
+       AND p.is_anonymous = FALSE
+     GROUP BY p.id
+     ORDER BY hot_score DESC
+     LIMIT 3`,
   );
   return rows;
 };
@@ -658,6 +704,76 @@ module.exports.searchAllPosts = async function searchAllPosts({ search, category
   const { rows } = await pool.query(sql, params);
   return rows;
 };
+
+// sort posts
+module.exports.getSortedPosts = async function getSortedPosts(data) {
+  const sort = data.sort || 'newest';
+  const timeframe = data.timeframe || 'all';
+  const category = data.category || null;
+
+  let timeFilter = '';
+  if (timeframe !== 'all' && (sort === 'top' || sort === 'hot')) {
+    const intervals = {
+      today: `INTERVAL '1 day'`,
+      week: `INTERVAL '7 days'`,
+      month: `INTERVAL '30 days'`,
+      year: `INTERVAL '365 days'`,
+    };
+    const interval = intervals[timeframe];
+    if (interval) timeFilter = `AND p.created_at >= NOW() - ${interval}`;
+  }
+
+  // Category filter
+  const categoryFilter = category ? `AND p.category = '${category}'` : '';
+
+  // Sort order
+  const orderMap = {
+    newest: 'p.created_at DESC',
+    oldest: 'p.created_at ASC',
+    // Hot: high engagement in recent time — weighted score
+    hot: `((COUNT(DISTINCT pr.id) * 2) + COUNT(DISTINCT pc.id) + (p.view_count * 0.1)) DESC, p.created_at DESC`,
+    // Top: highest likes (likes - dislikes)
+    top: `(COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like') - COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')) DESC, p.created_at DESC`,
+  };
+  const orderBy = orderMap[sort] || orderMap.newest;
+
+  const { rows } = await pool.query(
+    `SELECT
+       p.id,
+       p.user_id,
+       p.title,
+       p.category,
+       p.content,
+       p.created_at,
+       p.updated_at,
+       p.is_anonymous,
+       p.attachment_url,
+       p.gif_url,
+       p.view_count,
+       p.pinned,
+       pp.id AS poll_id,
+       per.name AS author_name,
+       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
+       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count,
+       COUNT(DISTINCT pc.id)::int AS comment_count
+     FROM "Posts" p
+     JOIN "Person" per ON per.id    = p.user_id
+     LEFT JOIN "PostPolls" pp ON pp.post_id = p.id
+     LEFT JOIN "PostReactions" pr ON pr.post_id = p.id
+     LEFT JOIN "PostComments" pc ON pc.post_id = p.id
+     WHERE 1=1
+     ${categoryFilter}
+     ${timeFilter}
+     GROUP BY p.id, p.user_id, p.title, p.category, p.content,
+              p.created_at, p.updated_at, p.is_anonymous,
+              p.attachment_url, p.gif_url, p.view_count,
+              p.pinned, pp.id, per.name
+     ORDER BY p.pinned DESC, ${orderBy}`,
+  );
+  return rows;
+};
+
+// =============== post analytics ================
 
 // Calc view count for a post
 module.exports.incrementPostView = async function incrementPostView(postId) {

@@ -137,8 +137,19 @@
         <!-- category tabs -->
         <div class="card mb-3">
           <div class="card-body p-2">
-            <div class="category-pills-wrapper" id="categoryPills">
-              <!-- Pills rendered by home.js -->
+            <div class="d-flex align-items-center gap-2">
+              <div class="category-pills-wrapper flex-grow-1" id="categoryPills"></div>
+              <div class="position-relative flex-shrink-0">
+                <button class="sort-pill" id="sortPillBtn">
+                  <i class="fas fa-arrow-down-wide-short"></i>
+                  <i class="fas fa-chevron-down" style="font-size: 0.65rem"></i>
+                </button>
+                <div
+                  class="sort-dropdown"
+                  id="sortDropdown"
+                  style="display: none; position: absolute; right: 0; top: calc(100% + 6px)"
+                ></div>
+              </div>
             </div>
           </div>
         </div>

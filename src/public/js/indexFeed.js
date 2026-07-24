@@ -39,6 +39,8 @@ let savedPostIds = new Set();
 let quillEditor = null;
 let pollActive = false;
 let selectedTags = [];
+let currentSort = 'newest';
+let currentTimeframe = 'all';
 
 function initFeedPage() {
   setupCreatePostAvatar();
@@ -55,6 +57,7 @@ function initFeedPage() {
     populateFeedUser();
 
     setupCategoryPills();
+    setupSortButton();
     setupCreatePost();
 
     setupSearch();
@@ -450,11 +453,13 @@ function buildPostCard(post) {
   card.dataset.postId = post.id;
   card.dataset.postType = post.category;
 
+  const canViewProfile = !post.is_anonymous && post.user_id;
+
   card.innerHTML = `
     <div class="post-header">
-      <div class="post-avatar">${getAvatarInitial(post)}</div>
+      <div class="post-avatar${canViewProfile ? ' post-owner-link' : ''}">${getAvatarInitial(post)}</div>
       <div class="post-author">
-        <div class="post-author-name">${getAuthorName(post)}</div>
+        <div class="post-author-name${canViewProfile ? ' post-owner-link' : ''}">${getAuthorName(post)}</div>
         <div class="post-timestamp">
           ${timeStr}
           ${wasEdited ? `<span class="post-edited-tag text-muted">·&nbsp;&nbsp;edited</span>` : ''}
@@ -527,6 +532,15 @@ function buildPostCard(post) {
     recordRecentlyViewed(post);
     window.location.href = `posts.html?id=${post.id}`;
   });
+
+  if (canViewProfile) {
+    card.querySelectorAll('.post-owner-link').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `profile.html?id=${post.user_id}`;
+      });
+    });
+  }
 
   card.querySelector('.post-menu-btn').addEventListener('click', (e) => e.stopPropagation());
   card.querySelector('.share-btn').addEventListener('click', (e) => {
@@ -653,11 +667,15 @@ function sortNewestFirst(posts) {
 function loadPosts() {
   showPostsLoading();
   resetHotPostsLoading();
-  fetchMethod(`${feedApiBase()}/posts`, (status, data) => {
+
+  const params = new URLSearchParams({ sort: currentSort });
+  if (currentTimeframe !== 'all') params.set('timeframe', currentTimeframe);
+
+  fetchMethod(`${feedApiBase()}/posts/sorted?${params.toString()}`, (status, data) => {
     try {
       if (status === 200 && Array.isArray(data)) {
-        renderPosts(sortNewestFirst(data));
-        renderTop3(data);
+        renderPosts(data);
+        loadHotPostsSidebar();
       } else {
         showPostsError();
         renderTop3([]);
@@ -665,18 +683,31 @@ function loadPosts() {
     } catch (err) {
       console.error('loadPosts error:', err);
       showPostsError();
-      renderTop3([]);
     }
   });
 }
 
 function loadPostsByCategory(category) {
   showPostsLoading();
-  fetchMethod(`${feedApiBase()}/posts/tag/${category}`, (status, data) => {
+
+  const params = new URLSearchParams({ sort: currentSort, category });
+  if (currentTimeframe !== 'all') params.set('timeframe', currentTimeframe);
+
+  fetchMethod(`${feedApiBase()}/posts/sorted?${params.toString()}`, (status, data) => {
     if (status === 200 && Array.isArray(data)) {
-      renderPosts(sortNewestFirst(data));
+      renderPosts(data);
     } else {
       showPostsError();
+    }
+  });
+}
+
+function loadHotPostsSidebar() {
+  fetchMethod(`${feedApiBase()}/posts/hot`, (status, data) => {
+    if (status === 200 && Array.isArray(data)) {
+      renderTop3(data);
+    } else {
+      renderTop3([]);
     }
   });
 }
@@ -854,6 +885,107 @@ function resetHotPostsLoading() {
     <div class="spinner-border spinner-border-sm" role="status"></div></div>`;
 }
 
+function setupSortButton() {
+  const btn = document.getElementById('sortPillBtn');
+  const dropdown = document.getElementById('sortDropdown');
+  const label = document.getElementById('sortPillLabel');
+  if (!btn || !dropdown) return;
+
+  const SORT_OPTIONS = [
+    { value: 'hot', label: 'Hot', icon: 'fa-fire' },
+    { value: 'top', label: 'Top', icon: 'fa-trophy' },
+    { value: 'newest', label: 'Newest', icon: 'fa-clock' },
+    { value: 'oldest', label: 'Oldest', icon: 'fa-clock-rotate-left' },
+  ];
+
+  const TIMEFRAMES = [
+    { value: 'today', label: 'Today' },
+    { value: 'week', label: 'This week' },
+    { value: 'month', label: 'This month' },
+    { value: 'year', label: 'This year' },
+    { value: 'all', label: 'All time' },
+  ];
+
+  function renderDropdown() {
+    dropdown.innerHTML = '';
+
+    const sortLabel = document.createElement('div');
+    sortLabel.className = 'sort-dropdown-section-label';
+    sortLabel.textContent = 'Sort by';
+    dropdown.appendChild(sortLabel);
+
+    SORT_OPTIONS.forEach((opt) => {
+      const btn2 = document.createElement('button');
+      btn2.className = opt.value === currentSort ? 'active' : '';
+      btn2.innerHTML = `<i class="fas ${opt.icon}"></i>${opt.label}`;
+      btn2.addEventListener('click', () => {
+        currentSort = opt.value;
+        btn.classList.add('active');
+        renderDropdown();
+
+        if (opt.value !== 'newest' && opt.value !== 'oldest') return;
+        applySort();
+      });
+      dropdown.appendChild(btn2);
+    });
+
+    if (currentSort === 'hot' || currentSort === 'top') {
+      const divider = document.createElement('div');
+      divider.className = 'sort-divider';
+      dropdown.appendChild(divider);
+
+      const tfLabel = document.createElement('div');
+      tfLabel.className = 'sort-dropdown-section-label';
+      tfLabel.textContent = 'Time range';
+      dropdown.appendChild(tfLabel);
+
+      const tfRow = document.createElement('div');
+      tfRow.className = 'sort-timeframe-row';
+
+      TIMEFRAMES.forEach((tf) => {
+        const tfBtn = document.createElement('button');
+        tfBtn.className = `sort-timeframe-btn${tf.value === currentTimeframe ? ' active' : ''}`;
+        tfBtn.textContent = tf.label;
+        tfBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentTimeframe = tf.value;
+          renderDropdown();
+          applySort();
+        });
+        tfRow.appendChild(tfBtn);
+      });
+
+      dropdown.appendChild(tfRow);
+    } else {
+      currentTimeframe = 'all';
+    }
+  }
+
+  function applySort() {
+    dropdown.style.display = 'none';
+    if (currentCategory === 'all') loadPosts();
+    else loadPostsByCategory(currentCategory);
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = dropdown.style.display === 'block';
+    if (isOpen) {
+      dropdown.style.display = 'none';
+      return;
+    }
+    renderDropdown();
+    closeAllDropdowns();
+    dropdown.style.display = 'block';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+}
+
 function setupCategoryPills() {
   const wrapper = document.getElementById('categoryPills');
   if (!wrapper) return;
@@ -913,6 +1045,7 @@ function setupCategoryPills() {
       return;
     }
     updateDropdownPosition();
+    closeAllDropdowns();
     dropdown.style.display = 'block';
   });
 
@@ -1582,30 +1715,30 @@ function renderTop3(posts) {
   const container = document.getElementById('top5Container');
   if (!container) return;
 
-  const list = Array.isArray(posts) ? posts : [];
-  const top3 = list
-    .slice()
-    .sort(
-      (a, b) =>
-        (b.like_count || 0) - (a.like_count || 0) ||
-        (b.comment_count || 0) - (a.comment_count || 0),
-    )
-    .slice(0, 3);
-
   container.innerHTML = '';
 
-  if (top3.length === 0) {
-    container.innerHTML = `<div class="list-group-item text-muted small text-center py-3">No posts yet.</div>`;
+  const list = Array.isArray(posts) ? posts : [];
+
+  if (!list.length) {
+    container.innerHTML = `<div class="list-group-item text-muted small text-center py-3">No trending posts right now.</div>`;
     return;
   }
 
-  top3.forEach((post, index) => {
+  list.slice(0, 3).forEach((post, index) => {
     const item = document.createElement('a');
     item.href = '#';
     item.className = 'list-group-item list-group-item-action py-2';
+
     item.innerHTML = `
-      <div class="text-muted mb-1" style="font-size:0.75rem;">Trending #${index + 1}</div>
-      <div class="fw-bold" style="font-size:0.9rem;">${escapeHtml(post.title)}</div>`;
+      <div class="d-flex align-items-center gap-1 mb-1">
+        <span class="text-muted" style="font-size:0.72rem;">Trending #${index + 1}</span>
+      </div>
+      <div class="fw-bold" style="font-size:0.88rem; line-height:1.3;">${escapeHtml(post.title)}</div>
+      <div class="text-muted mt-1" style="font-size:0.75rem;">
+        <span><i class="far fa-thumbs-up me-1"></i>${post.like_count ?? 0}</span>
+        <span class="ms-2"><i class="far fa-comment me-1"></i>${post.comment_count ?? 0}</span>
+      </div>`;
+
     item.addEventListener('click', (e) => {
       e.preventDefault();
       recordRecentlyViewed(post);
@@ -1967,9 +2100,10 @@ function setupTagInput() {
 
 // Share dropdown
 let activeShareDropdown = null;
+document.addEventListener('show.bs.dropdown', (e) => closeAllDropdowns(e.target));
 
 function openShareDropdown(btn, postId) {
-  // Close any already-open dropdown
+  // Close any already open dropdown
   if (activeShareDropdown) {
     activeShareDropdown.remove();
     activeShareDropdown = null;
@@ -2030,4 +2164,18 @@ function closeShareDropdown() {
     activeShareDropdown.remove();
     activeShareDropdown = null;
   }
+}
+
+function closeAllDropdowns(exceptToggle) {
+  const sortDropdown = document.getElementById('sortDropdown');
+  if (sortDropdown) sortDropdown.style.display = 'none';
+  const moreDropdown = document.getElementById('moreDropdown');
+  if (moreDropdown) moreDropdown.style.display = 'none';
+
+  document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
+    const toggle = menu.previousElementSibling;
+    if (toggle && toggle !== exceptToggle) {
+      bootstrap.Dropdown.getInstance(toggle)?.hide();
+    }
+  });
 }
