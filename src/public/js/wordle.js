@@ -1,7 +1,7 @@
 const readline = require('readline');
 
 let data = {
-    "words": ["ATIRE", "BIRCH", "CATER", "DIRGE"]
+    "words": ["RIGHT"]
 };
 
 // Select random word from data
@@ -18,24 +18,33 @@ function countOccurrences(str, char) {
 }
 
 function wordleGuess(guess, answer) {
-    let output = ["X", "X", "X", "X", "X"];
+  let output = ["X", "X", "X", "X", "X"];
+  let remaining = {}; // tracks unmatched letters left in answer
 
-    for (let i = 0; i < 5; i++) {
-
-        let showYellow = true;
-        let currentLetterCount = countOccurrences(answer, guess[i]);
-
-        for (let j = 0; j < 5; j++) {
-            if (answer[j] == guess[i]) {
-                currentLetterCount--
-                output[j] == "G";
-                console.log(output[j])
-            }
-        }
+  // Pass 1: mark greens, count up remaining letters for everything else
+  for (let i = 0; i < 5; i++) {
+    if (guess[i] === answer[i]) {
+      output[i] = "G";
+    } else {
+      remaining[answer[i]] = (remaining[answer[i]] || 0) + 1;
     }
+  }
 
-    console.log(output);
+  // Pass 2: mark yellows/grays for non-green letters
+  for (let i = 0; i < 5; i++) {
+    if (output[i] === "G") continue;
 
+    let letter = guess[i];
+    if (remaining[letter] > 0) {
+      output[i] = "Y";
+      remaining[letter]--;
+    } else {
+      output[i] = "X";
+    }
+  }
+
+  console.log(output);
+  return output;
 }
 
 console.log(selectedWord);
