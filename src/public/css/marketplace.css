@@ -1,16 +1,208 @@
 .main-container {
-    display: flex;
-    min-height: 100vh;
+  display: flex;
+  min-height: 100vh;
+}
+
+.navbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1050;
 }
 
 .sidebar {
-    width: 250px;
-    background-color: #fff;
-    border-right: 1px solid #ddd;
-    flex-shrink: 0;
+  width: 250px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 #content-area {
-    flex: 1;
+  flex: 1;
+  width: 100%;
+}
+
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 220px));
+  justify-content: center; /* centers the grid itself when items don't fill the row */
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.no-listings-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--text-secondary);
+}
+
+.no-listings-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.no-listings-state h4 {
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.empty-cart-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--text-secondary);
+  border: 1px dashed var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--bg);
+}
+
+.empty-cart-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-cart-state h4 {
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+#marketplace-header {
+  background-image: url('../images/Marketplace_Background.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#cart-header {
+  background-image: url('../images/Cart_Background.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#my-listings-header {
+  background-image: url('../images/My_listings_Background.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#create-listing-header {
+  background-image: url('../images/New_listing_Background.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.btn-back-listing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #495057;
+  font-weight: 500;
+  font-size: 1.1rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-back-listing:hover {
+  background-color: #f1f3f5;
+  color: #212529;
+}
+
+.btn-back-listing i {
+  font-size: 0.85rem;
+}
+
+.spindle-cart-link {
+  position: relative;
+}
+
+.spindle-cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  color: #fff;
+  background: #e02020;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* ---------- Wordle promo banner ---------- */
+
+.wordle-promo-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.wordle-promo-banner:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.wordle-promo-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--bg-input);
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+.wordle-promo-text {
+  flex: 1;
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.wordle-promo-text strong {
+  color: var(--text);
+}
+
+.wordle-promo-cta {
+  flex-shrink: 0;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+  .wordle-promo-banner {
+    flex-wrap: wrap;
+  }
+  .wordle-promo-cta {
     width: 100%;
+    text-align: right;
+  }
 }

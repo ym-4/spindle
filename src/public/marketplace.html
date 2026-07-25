@@ -1,77 +1,59 @@
 <!doctype html>
 <html lang="en">
-
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
 
-    <title>Marketplace — Campus Hub</title>
+    <title>Marketplace</title>
+    <link rel="stylesheet" href="css/theme.css" />
 
     <!-- CSS -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet"/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css"
+      rel="stylesheet"
     />
-    <link href="css/posts.css" rel="stylesheet" />
-    <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="css/auth.css" />
-    <link rel="stylesheet" href="css/temp.css">
-    <link rel="stylesheet" href="css/marketplace.css">
-  
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/posts.css" />
+    <link rel="stylesheet" href="css/temp.css" />
+    <link rel="stylesheet" href="css/marketplace.css" />
+    <link rel="stylesheet" href="css/marketplace-cards.css" />
+    <link rel="stylesheet" href="css/spindle-notif.css" />
+    <link rel="stylesheet" href="css/profile-page.css" />
+
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Freckle+Face&family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- JS -->
     <script src="js/api.js"></script>
-    <script src="js/page-guard.js" data-require-login data-return="marketplace.html"></script>
     <script src="js/auth.js"></script>
+    <script src="js/wa-nav.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         updateNavForUser(getStoredUser());
+        syncLegacyNavbar();
       });
     </script>
-
-
   </head>
 
-
-
-  <body class="auth-body" data-page="marketplace">
-
-    <div class="auth-bg" aria-hidden="true"></div>
-    <nav class="site-nav">
-      <a href="home.html" class="site-logo" style="text-decoration: none">CAMPUS HUB</a>
-      <div class="nav-actions">
-        <div id="navUser">
-          <span class="nav-user">Hello, <strong id="navUserName"></strong></span>
-          <a href="profile.html" class="btn-neon">Profile</a>
-          <button type="button" class="btn-neon" id="btnLogout">Log out</button>
-        </div>
-      </div>
-    </nav>
-    
-    <main class="hero">
-      <h1>Marketplace</h1>
-      <p>Coming soon — list and browse campus items here. Payment details are saved in your profile settings.</p>
-      <a href="profile.html" class="btn-neon" style="display: inline-block; margin-top: 1rem; text-decoration: none"
-        >Back to profile</a
-      >
-    </main>
-
+  <body class="" data-page="marketplace">
     <!-- Navigation-->
     <nav class="navbar">
-        <div class="container-fluid px-4 d-flex align-items-center">
-
+      <div class="container-fluid px-4 d-flex align-items-center">
         <!-- Brand (left) -->
         <a class="navbar-brand" href="index.html">
           <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
@@ -79,82 +61,78 @@
         </a>
 
         <div class="navbar-right">
-          <!-- Notification bell — always visible -->
-          <a href="#" class="notif-bell" title="Notifications">
-            <i class="fas fa-bell"></i>
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a href="profile.html" class="btn-navbar-profile" id="profileButton">
+            <i class="fas fa-user-circle"></i> Profile
           </a>
-
-          <!-- Login + Sign Up displayed (no token)-->
-          <a href="home.html" class="btn-navbar-login d-none" id="loginButton">Log In</a>
-          <a href="home.html" class="btn-navbar-signup d-none" id="registerButton"
+          <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+        </div>
+        <div>
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a
+            href="home.html?login=1&tab=login&return=marketplace.html"
+            class="btn-navbar-login"
+            id="loginButton"
+            >Log In</a
+          >
+          <a
+            href="home.html?login=1&tab=register&return=marketplace.html"
+            class="btn-navbar-signup"
+            id="registerButton"
             >Sign Up</a
           >
-
-          <!-- Profile + Logout displayed (token)-->
           <a href="profile.html" class="btn-navbar-profile d-none" id="profileButton">
             <i class="fas fa-user-circle"></i> Profile
           </a>
-          <button class="btn-navbar-logout d-none" id="logoutButton">Log Out</button>
+          <button class="btn-navbar-logout d-none" id="logoutButton" type="button">Log Out</button>
         </div>
+        <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+        <a
+          href="home.html?login=1&tab=login&return=marketplace.html"
+          class="btn-navbar-login"
+          id="loginButton"
+          >Log In</a
+        >
+        <a
+          href="home.html?login=1&tab=register&return=marketplace.html"
+          class="btn-navbar-signup"
+          id="registerButton"
+          >Sign Up</a
+        >
+        <a href="profile.html" class="btn-navbar-profile d-none" id="profileButton">
+          <i class="fas fa-user-circle"></i> Profile
+        </a>
+        <button class="btn-navbar-logout d-none" id="logoutButton" type="button">Log Out</button>
       </div>
+      <a href="cart.html" class="btn-navbar-login">Cart</a>
+      <a href="create_listing.html" class="btn-navbar-login">+New Listing</a>
+      <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+      <a
+        href="home.html?login=1&tab=login&return=marketplace.html"
+        class="btn-navbar-login"
+        id="loginButton"
+        >Log In</a
+      >
+      <a
+        href="home.html?login=1&tab=register&return=marketplace.html"
+        class="btn-navbar-signup"
+        id="registerButton"
+        >Sign Up</a
+      >
+      <a href="profile.html" class="btn-navbar-profile d-none" id="profileButton">
+        <i class="fas fa-user-circle"></i> Profile
+      </a>
+      <button class="btn-navbar-logout d-none" id="logoutButton" type="button">Log Out</button>
     </nav>
 
     <!-- Main Container -->
     <div class="main-container">
       <!-- Left Sidebar -->
-      <aside class="sidebar">
-          <a href="index.html" class="sidebar-item">
-              <i class="fas fa-home"></i>
-              <span>Home</span>
-          </a>
-          <a href="groups.html" class="sidebar-item">
-              <i class="fas fa-users"></i>
-              <span>Study Groups</span>
-          </a>
-          <a href="marketplace.html" class="sidebar-item active">
-              <i class="fas fa-store"></i>
-              <span>Marketplace</span>
-          </a>
-          <a href="profile.html" class="sidebar-item">
-              <i class="fas fa-user"></i>
-              <span>Profile</span>
-          </a>
-          
-          <div class="sidebar-divider"></div>
-          
-          <div class="sidebar-item">
-              <i class="fas fa-bookmark"></i>
-              <span>Saved Posts</span>
-          </div>
-          <div class="sidebar-item">
-              <i class="fas fa-clock"></i>
-              <span>Recent</span>
-          </div>
-          <div class="sidebar-item">
-              <i class="fas fa-cog"></i>
-              <span>Settings</span>
-          </div>
-          
-          <div class="sidebar-divider"></div>
-          
-          <h6 class="px-3 mt-3 mb-2 text-muted" style="font-size: 0.85rem; font-weight: 600;">YOUR GROUPS</h6>
-          <div class="sidebar-item">
-              <i class="fas fa-circle" style="font-size: 0.5rem; color: #42b72a;"></i>
-              <span>CS101 Study Group</span>
-          </div>
-          <div class="sidebar-item">
-              <i class="fas fa-circle" style="font-size: 0.5rem; color: #1877f2;"></i>
-              <span>Math Assignment Help</span>
-          </div>
-          <div class="sidebar-item">
-              <i class="fas fa-plus-circle"></i>
-              <span>See all groups</span>
-          </div>
-      </aside>
+      <aside class="sidebar"></aside>
 
       <main id="content-area">
         <!-- Header-->
-        <header class="bg-dark py-5">
+        <header class="py-5" id="marketplace-header">
           <div class="container px-4 px-lg-5 my-5">
             <div class="text-center text-white">
               <h1 class="display-4 fw-bolder">SP Marketplace</h1>
@@ -162,44 +140,140 @@
             </div>
           </div>
         </header>
+
         <!-- Section-->
         <section class="py-5">
           <div class="container px-4 px-lg-5 mt-5">
-            <div
-              id="listings-container"
-              class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center"
-            ></div>
-          </div>
-        </section>
-          <header class="bg-dark py-5">
-            <div class="container px-4 px-lg-5 my-5">
-              <div class="text-center text-white">
-                <h1 class="display-4 fw-bolder">SP Marketplace</h1>
-                <p class="lead fw-normal text-white-50 mb-0">Shop to your heart's content</p>
+            <!-- Wordle promo banner -->
+            <a href="wordle.html" class="wordle-promo-banner mb-4">
+              <span class="wordle-promo-icon" aria-hidden="true"><i class="fas fa-dice"></i></span>
+              <span class="wordle-promo-text">
+                <strong>Play today's Wordle</strong> &mdash; win to unlock a marketplace discount code
+              </span>
+              <span class="wordle-promo-cta">
+                Play now <i class="fas fa-arrow-right"></i>
+              </span>
+            </a>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-end gap-2 mb-4">
+              <a href="marketplace.html" class="btn btn-outline-dark">
+                <i class="fas fa-store"></i> Marketplace
+              </a>
+              <a href="cart.html" class="btn btn-outline-dark spindle-cart-link">
+                <i class="fas fa-shopping-cart"></i> Cart
+                <span id="cart-count-badge" class="spindle-cart-badge d-none"> 0 </span>
+              </a>
+              <a href="create_listing.html" class="btn btn-outline-dark">
+                <i class="fas fa-plus-circle"></i> Add Listing
+              </a>
+              <a href="my_listings.html" class="btn btn-outline-dark">
+                <i class="fas fa-list"></i> My Listings
+              </a>
+            </div>
+
+            <!-- Search + Filters -->
+            <div class="spindle-search-row mb-4">
+              <div class="spindle-search-bar">
+                <i class="fas fa-search spindle-search-icon"></i>
+                <input
+                  type="text"
+                  id="marketplaceSearch"
+                  class="spindle-search-input"
+                  placeholder="Search listings..."
+                />
+                <button
+                  type="button"
+                  id="search-clear-btn"
+                  class="spindle-search-clear d-none"
+                  aria-label="Clear search"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <div class="dropdown spindle-filter-dropdown">
+                <button
+                  class="btn btn-outline-dark dropdown-toggle spindle-filter-toggle-btn"
+                  type="button"
+                  id="filterDropdownBtn"
+                  data-bs-toggle="dropdown"
+                  data-bs-auto-close="outside"
+                  aria-expanded="false"
+                >
+                  <i class="fas fa-sliders-h"></i> Filters
+                  <span id="filter-active-count" class="spindle-filter-count-badge d-none">0</span>
+                </button>
+                <div class="dropdown-menu spindle-filter-menu" aria-labelledby="filterDropdownBtn">
+                  <div class="spindle-filter-group">
+                    <label class="spindle-filter-label">Price</label>
+                    <div class="spindle-filter-price-inputs">
+                      <input
+                        type="number"
+                        id="filter-min-price"
+                        class="form-control form-control-sm"
+                        placeholder="Min"
+                        min="0"
+                      />
+                      <span class="text-muted">–</span>
+                      <input
+                        type="number"
+                        id="filter-max-price"
+                        class="form-control form-control-sm"
+                        placeholder="Max"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="spindle-filter-group">
+                    <label class="spindle-filter-label">Tags</label>
+                    <div class="spindle-filter-tags" id="tag-filter-chips"></div>
+                  </div>
+
+                  <button
+                    type="button"
+                    id="filter-clear-btn"
+                    class="btn btn-sm btn-outline-secondary spindle-filter-clear-btn"
+                  >
+                    Clear filters
+                  </button>
+                </div>
               </div>
             </div>
-          </header>
-          <!-- Section-->
-          <section class="py-5">
-            <div class="container px-4 px-lg-5 mt-5">
-              <div
-                id="listings-container"
-                class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center"
-              ></div>
+
+            <!-- Listing Container -->
+            <div id="no-listings-state" class="no-listings-state d-none">
+              <i class="fas fa-box-open no-listings-icon"></i>
+              <h4>No listings matched your search</h4>
+              <p class="text-muted">Be the first to list that item in the marketplace!</p>
+              <a href="create_listing.html" class="btn btn-outline-dark">
+                <i class="fas fa-plus-circle"></i> Add a Listing
+              </a>
             </div>
-          </section>
-          <!-- Footer-->
-          <footer class="py-5 bg-dark">
-            <div class="container">
-              <p class="m-0 text-center text-white">Copyright &copy; Your Website 2026</p>
-            </div>
-          </footer>
-        </main>
-      
+            <div id="listings-container" class="listings-grid"></div>
+
+            <!-- Pagination -->
+            <nav id="pagination-nav" aria-label="Marketplace pagination" class="mt-4">
+              <ul class="pagination justify-content-center" id="pagination-controls">
+                <li class="page-item" id="prev-page-item">
+                  <button class="page-link" id="prev-page-btn" aria-label="Previous">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                </li>
+                <li class="page-item" id="next-page-item">
+                  <button class="page-link" id="next-page-btn" aria-label="Next">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </section>
+      </main>
     </div>
 
-
-    <!-- Modal -->
+    <!-- Item Added to Cart Modal -->
     <div
       class="modal fade"
       id="addedToCartModal"
@@ -221,20 +295,23 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-      crossorigin="anonymous"
-    ></script>
     <script src="js/queryCmds.js" type="text/javascript"></script>
     <script src="js/getCurrentURL.js" type="text/javascript"></script>
-    <script src="js/userNavBarToggle.js" type="text/javascript"></script>
+    <script src="js/marketplace-filters.js" type="text/javascript"></script>
     <script src="js/insertMarketplaceItems.js" type="text/javascript"></script>
     <script src="js/cartFunctions.js"></script>
+    <script src="js/searchBar-Marketplace.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/wa-nav.js"></script>
+    <script src="js/socket-client.js"></script>
     <script src="js/spindle-sidebar.js"></script>
-
-
+    <script src="js/spindle-page.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof injectNotificationsOnly === 'function') {
+          injectNotificationsOnly('spindleNotifSlot');
+        }
+      });
+    </script>
   </body>
 </html>
