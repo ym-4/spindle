@@ -46,7 +46,6 @@ function initFeedPage() {
   setupCreatePostAvatar();
 
   loadUserReactions();
-  loadSuggestedGroups();
   loadRecentlyViewedWidget();
 
   loadSavedIds().then(() => {
@@ -100,9 +99,16 @@ async function populateFeedUser() {
 
   const name = user?.display_name || user?.name || 'User';
   const initial = name.charAt(0).toUpperCase();
+  const profileImage = user?.profile_image || user?.avatar || null;
 
   const avatar = document.querySelector('.create-post-box .post-avatar');
-  if (avatar) avatar.textContent = initial;
+  if (avatar) {
+    if (profileImage) {
+      avatar.innerHTML = `<img src="${profileImage}" class="avatar-img" alt="${escapeHtml(name)}">`;
+    } else {
+      avatar.textContent = initial;
+    }
+  }
 }
 
 // gif
@@ -397,6 +403,14 @@ function getAvatarInitial(post) {
   return 'U';
 }
 
+// profile picture
+function getAvatarContent(post) {
+  if (!post.is_anonymous && post.author_avatar) {
+    return `<img src="${post.author_avatar}" class="avatar-img" alt="${escapeHtml(post.author_name || 'User')}">`;
+  }
+  return getAvatarInitial(post);
+}
+
 function getAuthorName(post) {
   if (post.is_anonymous) {
     return 'Anonymous';
@@ -409,8 +423,19 @@ function setupCreatePostAvatar() {
 
   if (!avatar) return;
 
+  let profileImage = null;
+  try {
+    const stored = JSON.parse(localStorage.getItem('pineappleUser') || '{}');
+    profileImage = stored?.profile_image || stored?.avatar || null;
+  } catch {
+    /* ignore */
+  }
+
   const displayName = localStorage.getItem('displayName');
-  if (displayName && displayName.trim()) {
+
+  if (profileImage) {
+    avatar.innerHTML = `<img src="${profileImage}" class="avatar-img" alt="${escapeHtml(displayName || 'User')}">`;
+  } else if (displayName && displayName.trim()) {
     avatar.textContent = displayName.charAt(0).toUpperCase();
   } else {
     avatar.textContent = '\uD83D\uDC3C';
@@ -457,7 +482,7 @@ function buildPostCard(post) {
 
   card.innerHTML = `
     <div class="post-header">
-      <div class="post-avatar${canViewProfile ? ' post-owner-link' : ''}">${getAvatarInitial(post)}</div>
+      <div class="post-avatar${canViewProfile ? ' post-owner-link' : ''}">${getAvatarContent(post)}</div>
       <div class="post-author">
         <div class="post-author-name${canViewProfile ? ' post-owner-link' : ''}">${getAuthorName(post)}</div>
         <div class="post-timestamp">
@@ -1568,64 +1593,6 @@ function protectCreatePostUI() {
 // =========================
 // Groups display
 // =========================
-function loadSuggestedGroups() {
-  const container = document.getElementById('suggestedGroupsContainer');
-  if (!container) return;
-
-  const token = feedToken();
-  fetchMethod(
-    `${feedApiBase()}/groups/suggested`,
-    (status, data) => {
-      container.innerHTML = '';
-
-      if (status === 401) {
-        console.warn('Suggested groups unauthorized. Leftover session tokens cleared.');
-        return;
-      }
-
-      if (status !== 200 || !data || !data.length) {
-        container.innerHTML = `
-        <div class="list-group-item text-muted small text-center py-3">
-          No suggestions available.
-        </div>`;
-        return;
-      }
-
-      data.forEach((group) => {
-        const item = document.createElement('div');
-        item.className = 'list-group-item';
-        item.innerHTML = `
-        <div class="d-flex align-items-center mb-2">
-          <div class="post-avatar me-2" style="width:40px;height:40px;font-size:0.8rem;">
-            ${escapeHtml(group.school)}
-          </div>
-          <div class="flex-grow-1">
-            <strong style="font-size:0.9rem;">${escapeHtml(group.name)}</strong>
-            <div class="small text-muted">${group.member_count} member${group.member_count !== 1 ? 's' : ''}</div>
-          </div>
-        </div>
-        <button class="btn btn-sm btn-primary w-100 join-group-btn" data-group-id="${group.id}">
-          Join Group
-        </button>
-      `;
-
-        item.querySelector('.join-group-btn').addEventListener('click', () => {
-          if (!feedIsLoggedIn()) {
-            showAuthPopup();
-            return;
-          }
-          window.location.href = `groups.html?id=${group.id}`;
-        });
-
-        container.appendChild(item);
-      });
-    },
-    'GET',
-    null,
-    token,
-  );
-}
-
 function loadYourGroups() {
   const token = feedToken();
   const section = document.getElementById('yourGroupsSection');

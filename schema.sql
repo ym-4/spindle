@@ -234,6 +234,12 @@ CREATE TABLE "Reports" (
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE ("post_id", "user_id")
 );
+
+CREATE TABLE "SnakeScores" (
+  "user_id" INT PRIMARY KEY REFERENCES "Person"("id") ON DELETE CASCADE,
+  "best_score" INT NOT NULL DEFAULT 0,
+  "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 -- -------------------------------------------------------------------------------------
 --                                  GROUPS
 -- -------------------------------------------------------------------------------------

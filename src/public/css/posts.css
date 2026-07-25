@@ -314,6 +314,14 @@ body {
   font-weight: 600;
 }
 
+.post-avatar img.avatar-img,
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .post-author {
   flex: 1;
 }

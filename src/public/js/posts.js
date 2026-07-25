@@ -669,8 +669,9 @@ function renderPost(post) {
   const { timeStr, wasEdited } = formatTimestamp(post.created_at, post.updated_at);
   const categoryLabel = getCategoryLabel(post.category);
   const categoryClass = getCategoryClass(post.category);
-  const initial = getAvatarInitial(post);
+  const avatarContent = getAvatarContent(post);
   const authorName = getAuthorName(post);
+  const canViewProfile = !post.is_anonymous && post.user_id;
 
   const isLoggedIn = !!localStorage.getItem('token');
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
@@ -697,9 +698,9 @@ function renderPost(post) {
   document.getElementById('postDetailContainer').innerHTML = `
     <div class="post-card" data-post-id="${post.id}" style="cursor: default;">
       <div class="post-header">
-        <div class="post-avatar">${initial}</div>
+        <div class="post-avatar${canViewProfile ? ' post-owner-link' : ''}">${avatarContent}</div>
         <div class="post-author">
-          <div class="post-author-name">${authorName}</div>
+          <div class="post-author-name${canViewProfile ? ' post-owner-link' : ''}">${authorName}</div>
           <div class="post-timestamp">
             ${timeStr}
             ${wasEdited ? `<span class="post-edited-tag text-muted">·&nbsp;&nbsp;edited</span>` : ''}
@@ -774,6 +775,15 @@ function renderPost(post) {
 
   setupReactionButtons(post.id);
   loadRelatedPosts(post.id, post.category);
+
+  if (canViewProfile) {
+    document.querySelectorAll('#postDetailContainer .post-owner-link').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `profile.html?id=${post.user_id}`;
+      });
+    });
+  }
 
   if (post.poll_id) {
     loadAndRenderPollOnPostPage(post.id);
@@ -938,7 +948,7 @@ function renderPostEditMode(post) {
   document.getElementById('postDetailContainer').innerHTML = `
     <div class="post-card" style="cursor: default;">
       <div class="post-header">
-        <div class="post-avatar">${getAvatarInitial(post)}</div>
+        <div class="post-avatar">${getAvatarContent(post)}</div>
         <div class="post-author">
           <div class="post-author-name">${getAuthorName(post)}</div>
           <div class="post-timestamp text-muted" style="font-size:0.8rem;">Editing post</div>
@@ -1784,6 +1794,11 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
       : 'U';
   const authorDisplay = comment.author_name || `User ${comment.user_id}`;
   const isPandabot = comment.author_name?.toLowerCase() === 'pandabot';
+  const commentAvatarContent = isPandabot
+    ? '🐼'
+    : comment.author_avatar
+      ? `<img src="${comment.author_avatar}" class="avatar-img" alt="${escapeHtml(authorDisplay)}">`
+      : initial;
 
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
   const isLoggedIn = !!localStorage.getItem('token');
@@ -1834,7 +1849,7 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
   el.innerHTML = `
     <div class="d-flex">
       <div class="comment-avatar${isPandabot ? ' pandabot-avatar' : ''}">
-        ${isPandabot ? '🐼' : initial}
+        ${commentAvatarContent}
       </div>
       <div class="flex-grow-1">
         <div class="comment-content">
@@ -2701,6 +2716,14 @@ function getAvatarInitial(post) {
     return post.author_name.charAt(0).toUpperCase();
   }
   return 'U';
+}
+
+// profile pic
+function getAvatarContent(post) {
+  if (!post.is_anonymous && post.author_avatar) {
+    return `<img src="${post.author_avatar}" class="avatar-img" alt="${escapeHtml(post.author_name || 'User')}">`;
+  }
+  return getAvatarInitial(post);
 }
 
 function getAuthorName(post) {

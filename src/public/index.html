@@ -25,6 +25,7 @@
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/posts.css" />
+    <link rel="stylesheet" href="css/snake.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
     <link rel="stylesheet" href="css/profile-page.css" />
   </head>
@@ -170,22 +171,33 @@
           </div>
         </div>
 
+        <!-- Mini game card -->
+        <div class="card mt-3 snake-game-card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-gamepad me-2 text-success"></i>Mini Game</span>
+          </div>
+          <div class="card-body snake-card-body">
+            <p class="snake-card-tagline">Need a quick break?</p>
+            <div class="snake-card-game-row">
+              <span class="snake-card-emoji">🐍</span>
+              <span class="snake-card-name">Snake</span>
+            </div>
+            <div class="snake-card-score-row">
+              <span class="snake-card-score-label">High Score</span>
+              <span class="snake-card-score-value" id="snakeHighScoreDisplay">0</span>
+            </div>
+            <button class="btn btn-success btn-sm w-100 mt-2" id="snakePlayBtn">
+              <i class="fas fa-play me-1"></i> Play
+            </button>
+          </div>
+        </div>
+
         <!-- recently viewed -->
         <div class="card mt-3" id="recentlyViewedCard" style="display: none">
           <div class="card-header">
             <i class="fas fa-history text-secondary me-2"></i>Recently Viewed
           </div>
           <div class="list-group list-group-flush" id="recentlyViewedContainer"></div>
-        </div>
-
-        <!-- suggested groups-->
-        <div class="card mt-3">
-          <div class="card-header">Suggested Groups</div>
-          <div class="list-group list-group-flush" id="suggestedGroupsContainer">
-            <div class="list-group-item text-muted small text-center py-3">
-              <div class="spinner-border spinner-border-sm" role="status"></div>
-            </div>
-          </div>
         </div>
 
         <!-- quick links-->
@@ -405,6 +417,89 @@
       </div>
     </div>
 
+    <!-- Snake Game Modal -->
+    <div id="snakeModalOverlay" class="snake-modal-overlay" style="display: none">
+      <div class="snake-modal">
+        <div class="snake-modal-header">
+          <span class="snake-modal-title">🐍 Snake</span>
+          <div class="snake-modal-stats">
+            <span>Score: <strong id="snakeLiveScore">0</strong></span>
+            <span>Best: <strong id="snakeLiveBest">0</strong></span>
+            <span>Level: <strong id="snakeLiveLevel">1</strong></span>
+          </div>
+          <button class="snake-quit-btn" id="snakeQuitBtn">✕ Quit</button>
+        </div>
+
+        <div class="snake-modal-body">
+          <canvas id="snakeCanvas" width="400" height="400"></canvas>
+
+          <div class="snake-side-panel">
+            <div class="snake-panel-section">
+              <div class="snake-panel-section">
+                <!-- rules -->
+                <div class="snake-panel-label">How to Play</div>
+                <ul class="snake-rules-list">
+                  <li>🍎 Eat the food to grow and score</li>
+                  <li>🧱 Don't hit the walls</li>
+                  <li>🐍 Don't run into your own tail</li>
+                  <li>⚡ Speed increases every 5 points</li>
+                  <li>⏸ Press <kbd>P</kbd> or <kbd>Esc</kbd> to pause</li>
+                </ul>
+              </div>
+              <!-- controls guide -->
+              <div class="snake-panel-label">Controls</div>
+              <div class="snake-controls-grid">
+                <div class="snake-key-wrap">
+                  <kbd>↑</kbd>
+                </div>
+                <div class="snake-key-row"><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></div>
+                <div class="snake-key-wrap"><kbd>P</kbd><span>Pause</span></div>
+                <div class="snake-controls-note">or WASD</div>
+              </div>
+            </div>
+
+            <!-- leaderboard -->
+            <div class="snake-panel-section">
+              <button class="btn btn-sm snake-lb-btn" id="snakeViewLeaderboardBtn">
+                View Leaderboard
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="snakeOverlay" class="snake-in-game-overlay" style="display: none">
+          <div id="snakeOverlayMain" class="snake-overlay-content">
+            <div id="snakeOverlayTitle" class="snake-overlay-title"></div>
+            <div id="snakeOverlayScore" class="snake-overlay-score"></div>
+            <button class="btn btn-success me-2" id="snakeRestartBtn">▶ Play again</button>
+            <button class="btn btn-outline-secondary me-2" id="snakeOverlayQuit">Quit</button>
+            <button class="btn btn-sm snake-lb-btn mt-2" id="snakeOverlayViewLeaderboardBtn">
+              View Leaderboard
+            </button>
+          </div>
+        </div>
+
+        <!-- Leaderboard card -->
+        <div id="snakeLeaderboardView" class="snake-lb-overlay" style="display: none">
+          <div class="snake-lb-panel">
+            <div class="snake-lb-panel-header">
+              <span class="snake-panel-label">Leaderboard</span>
+              <button
+                class="snake-lb-close-btn"
+                id="snakeLeaderboardBackBtn"
+                aria-label="Close leaderboard"
+              >
+                ✕
+              </button>
+            </div>
+            <ol class="snake-leaderboard" id="snakeLeaderboard">
+              <li class="snake-lb-empty">No scores yet</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Report Modal -->
     <div id="reportModalOverlay" class="report-modal-overlay d-none">
       <div class="report-modal-card">
@@ -494,6 +589,7 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <script src="js/quickLinks.js"></script>
+    <script src="js/snake.js"></script>
 
     <script src="js/api.js"></script>
     <script src="js/wa-nav.js"></script>

@@ -31,6 +31,7 @@ module.exports.getAllPost = async function getAllPost() {
     p.visibility,
     p.pinned,
     per.name AS author_name,
+    per.profile_image AS author_avatar,
 
     COUNT(DISTINCT pc.id)::int AS comment_count,
 
@@ -68,7 +69,8 @@ module.exports.getAllPost = async function getAllPost() {
     p.updated_at,
     p.visibility,
     p.pinned,
-    per.name
+    per.name,
+    per.profile_image
 
   ORDER BY p.pinned DESC, p.created_at DESC
   `);
@@ -98,6 +100,7 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.pinned,
 
       per.name AS author_name,
+      per.profile_image AS author_avatar,
 
       COUNT(DISTINCT pc.id)::int AS comment_count,
 
@@ -137,7 +140,8 @@ module.exports.getPostByID = async function getPostByID(data) {
       p.updated_at,
       p.visibility,
       p.pinned,
-      per.name
+      per.name,
+      per.profile_image
   `,
     VALUES,
   );
@@ -168,6 +172,7 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.pinned,
 
       per.name AS author_name,
+      per.profile_image AS author_avatar,
 
       COUNT(DISTINCT pc.id)::int AS comment_count,
 
@@ -207,7 +212,8 @@ module.exports.getPostByCategory = async function getPostByCategory(data) {
       p.updated_at,
       p.visibility,
       p.pinned,
-      per.name
+      per.name,
+      per.profile_image
 
     ORDER BY p.pinned DESC, p.created_at DESC
   `,
@@ -228,6 +234,7 @@ module.exports.getRelatedPosts = async function getRelatedPosts(data) {
      SELECT
        p.id, p.title, p.category, p.is_anonymous, p.view_count,
        u.name AS author_name,
+       u.profile_image AS author_avatar,
        COUNT(DISTINCT pc.id)::int AS comment_count,
        COUNT(DISTINCT pt.tag_id) FILTER (
          WHERE pt.tag_id IN (SELECT tag_id FROM current_tags)
@@ -242,7 +249,7 @@ module.exports.getRelatedPosts = async function getRelatedPosts(data) {
          p.category = $1
          OR pt.tag_id IN (SELECT tag_id FROM current_tags)
        )
-     GROUP BY p.id, u.name
+     GROUP BY p.id, u.name, u.profile_image
      ORDER BY shared_tag_count DESC, (p.category = $1) DESC, p.view_count DESC, RANDOM()
      LIMIT 3`,
     VALUES,
@@ -298,6 +305,7 @@ module.exports.getPostsByUserID = async function getPostsByUserID(data) {
       p.pinned,
       pp.id AS poll_id,
       per.name AS author_name,
+      per.profile_image AS author_avatar,
       COUNT(DISTINCT pc.id)::int AS comment_count,
       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int    AS like_count,
       COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count
@@ -312,7 +320,7 @@ module.exports.getPostsByUserID = async function getPostsByUserID(data) {
       p.id, p.user_id, p.title, p.category, p.content,
       p.attachment_url, p.gif_url, pp.id, p.is_anonymous,
       p.created_at, p.updated_at, p.visibility, p.pinned,
-      per.name
+      per.name, per.profile_image
     ORDER BY p.pinned DESC, p.created_at DESC`,
     [data.user_id],
   );
@@ -678,7 +686,7 @@ module.exports.searchAllPosts = async function searchAllPosts({ search, category
   };
   const mappedCategory = category ? categoryMap[category.toLowerCase()] || null : null;
   let sql = `SELECT p.id, p.title, p.category, p.content, p.created_at,
-             per.name AS author_name, per.id AS author_id
+             per.name AS author_name, per.id AS author_id, per.profile_image AS author_avatar
              FROM "Posts" p
              LEFT JOIN "Person" per ON p.user_id = per.id
              WHERE 1=1`;
@@ -753,6 +761,7 @@ module.exports.getSortedPosts = async function getSortedPosts(data) {
        p.pinned,
        pp.id AS poll_id,
        per.name AS author_name,
+       per.profile_image AS author_avatar,
        COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
        COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count,
        COUNT(DISTINCT pc.id)::int AS comment_count
@@ -767,7 +776,7 @@ module.exports.getSortedPosts = async function getSortedPosts(data) {
      GROUP BY p.id, p.user_id, p.title, p.category, p.content,
               p.created_at, p.updated_at, p.is_anonymous,
               p.attachment_url, p.gif_url, p.view_count,
-              p.pinned, pp.id, per.name
+              p.pinned, pp.id, per.name, per.profile_image
      ORDER BY p.pinned DESC, ${orderBy}`,
   );
   return rows;

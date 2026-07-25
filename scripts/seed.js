@@ -13,7 +13,7 @@ const hashedAdminPassword = hashPassword(ADMIN_PASSWORD);
 
 const persons = [
   { email: 'pandabot@spindle.internal', name: 'PandaBot' },
-  { email: 'alice@example.com', name: 'Alice' },
+  { email: 'alice@example.com', name: 'Alice', profile_image: '/uploads/avatars/user-2.png' },
   { email: 'bob@example.com', name: 'Bob' },
   { email: 'carol@example.com', name: 'Carol' },
   { email: 'dave@example.com', name: 'Dave' },
@@ -1501,8 +1501,8 @@ async function seed() {
     );
 
     await pool.query(
-      `INSERT INTO "Person" ("email", "name", "hashed_password") VALUES ($1, $2, $3) ON CONFLICT ("email") DO NOTHING`,
-      [person.email, person.name, hashedPassword],
+      `INSERT INTO "Person" ("email", "name", "hashed_password", "profile_image") VALUES ($1, $2, $3, $4) ON CONFLICT ("email") DO NOTHING`,
+      [person.email, person.name, hashedPassword, person.profile_image],
     );
   }
   console.log(`Inserted ${persons.length} persons.`);
