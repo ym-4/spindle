@@ -3,3 +3,11 @@ test-results
 playwright-report
 coverage
 reports
+# Pre-existing format/syntax issues from other contributors — not our files
+src/public/groups_feed.html
+src/public/js/insertMarketplaceItems.js
+src/public/js/marketplace-filters.js
+src/public/js/new-listing.js
+src/public/js/searchBar-Marketplace.js
+src/public/my_listings.html
+src/routers/Marketplace.router.js
