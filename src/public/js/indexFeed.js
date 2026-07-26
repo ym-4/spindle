@@ -508,6 +508,8 @@ function buildPostCard(post) {
       ${post.pinned ? '<span class="badge bg-info text-dark" style="font-size:0.65rem;"><i class="fas fa-thumbtack me-1"></i>Pinned</span>' : ''}
     </div>
 
+    ${post.title ? `<div class="post-title">${escapeHtml(post.title)}</div>` : ''}
+
     <div class="post-content">
         ${DOMPurify.sanitize(post.content)}
     </div>

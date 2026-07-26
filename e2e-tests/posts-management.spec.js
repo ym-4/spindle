@@ -4,9 +4,12 @@ const { test, expect } = require('@playwright/test');
 const BASE_URL = 'http://localhost:3000/index.html';
 
 const NEW_POSTS = [
-  { title: 'E2E Test Post One', content: 'This is the first automated test post.' },
-  { title: 'E2E Test Post Two', content: 'This is the second automated test post.' },
-  { title: 'E2E Delete Target', content: 'This post exists only to be deleted.' },
+  { title: 'E2E Test Post 1', content: 'This is the 1st automated test post.' },
+  { title: 'E2E Test Post 2', content: 'This is the 2nd automated test post.' },
+  { title: 'E2E Test Delete Post', content: 'This post exists only to be deleted.' },
+  { title: 'E2E Test Post Category A', content: 'Content for the category A test.' },
+  { title: 'E2E Test Post Category B', content: 'Content for the category B test.' },
+  { title: 'E2E Test Post Remains', content: 'This post should remain after another is deleted.' },
 ];
 
 // valid category values
@@ -21,18 +24,13 @@ function postCards(page) {
   return page.locator('.post-card').filter({ has: page.locator('.post-author-name') });
 }
 
-/**
- * Waits for the feed's initial fetch to finish (showPostsLoading()'s
- * spinner to be gone) so tests don't race the loading state.
- */
+// Waits for the feed's initial fetch to complete
+ 
 async function waitForFeedLoaded(page) {
   await expect(page.locator('#postsContainer .spinner-border')).toHaveCount(0, { timeout: 15000 });
 }
 
-/**
- * Fill in the create-post modal and submit a new Post.
- * Waits until the feed contains the new title and the modal closes.
- */
+// Fill in the create-post modal and submit a new post
 async function addPost(page, { title, content, category = CATEGORIES[0] }) {
   await page.locator('.create-post-input').click();
   await expect(page.locator('#createPostModal')).toBeVisible();
@@ -44,9 +42,7 @@ async function addPost(page, { title, content, category = CATEGORIES[0] }) {
   await expect(postCards(page).filter({ hasText: title })).toBeVisible();
 }
 
-/**
- * Delete a post by its title via the dropdown menu + confirm dialog.
- */
+// Delete a post by its title via the dropdown menu + confirm dialog
 async function deletePost(page, title) {
   const card = postCards(page).filter({ hasText: title });
   await card.locator('.post-menu-btn').click();
@@ -56,10 +52,7 @@ async function deletePost(page, title) {
   await expect(postCards(page).filter({ hasText: title })).toHaveCount(0);
 }
 
-/**
- * From the feed, open a post's dropdown and click "Edit post", landing
- * on posts.html?id=<id>&edit=true with the edit form already rendered.
- */
+// From the feed, open a post's dropdown and click "Edit post", landing on posts.html?id=<id>&edit=true with the edit mode open
 async function goToEditPage(page, title) {
   const card = postCards(page).filter({ hasText: title });
   await card.locator('.post-menu-btn').click();
@@ -112,12 +105,12 @@ test.describe('New Post', () => {
 
   // Valid partition: add multiple posts in different categories – all appear in the feed
   test('should allow me to create posts in different categories', async ({ page }) => {
-    await addPost(page, { ...NEW_POSTS[0], category: CATEGORIES[0] });
-    await addPost(page, { ...NEW_POSTS[1], category: CATEGORIES[1] });
+    await addPost(page, { ...NEW_POSTS[3], category: CATEGORIES[0] });
+    await addPost(page, { ...NEW_POSTS[4], category: CATEGORIES[1] });
 
     const container = page.locator('#postsContainer');
-    await expect(container).toContainText(NEW_POSTS[0].title);
-    await expect(container).toContainText(NEW_POSTS[1].title);
+    await expect(container).toContainText(NEW_POSTS[3].title);
+    await expect(container).toContainText(NEW_POSTS[4].title);
   });
 
   // Boundary: title/category/content empty – submit stays disabled (mirrors validateForm())
@@ -144,30 +137,44 @@ test.describe('New Post', () => {
 
 // ── Delete Post ──────────────────────────────────────────
 test.describe('Delete Post', () => {
-  // Valid partition: delete a specific post and verify it disappears
-  test('should allow me to delete a post I created', async ({ page }) => {
-    await addPost(page, NEW_POSTS[2]);
-    await deletePost(page, NEW_POSTS[2].title);
-  });
-
-  // Valid partition: other posts remain unaffected after deleting one
-  test('other posts should remain after deleting one', async ({ page }) => {
-    await addPost(page, NEW_POSTS[0]);
+  // Valid partition: deleting a post removes it from the feed while other posts remain 
+  test('should allow me to delete a post I created, leaving other posts intact', async ({ page }) => {
+    await addPost(page, NEW_POSTS[5]);
     await addPost(page, NEW_POSTS[2]);
 
     await deletePost(page, NEW_POSTS[2].title);
 
-    await expect(postCards(page).filter({ hasText: NEW_POSTS[0].title })).toBeVisible();
+    await expect(postCards(page).filter({ hasText: NEW_POSTS[5].title })).toBeVisible();
     await expect(postCards(page).filter({ hasText: NEW_POSTS[2].title })).toHaveCount(0);
   });
 
-  // Boundary: a deleted post should not remain anywhere in the feed
-  test('a deleted post should no longer be present anywhere in the feed', async ({ page }) => {
+  // Boundary: a deleted post's own .html?id=n page should no longer be reachable
+  test("a deleted post's detail page should show a not-found state", async ({ page }) => {
     await addPost(page, NEW_POSTS[2]);
+
+    const card = postCards(page).filter({ hasText: NEW_POSTS[2].title });
+    const postId = await card.getAttribute('data-post-id');
+
     await deletePost(page, NEW_POSTS[2].title);
 
-    const remaining = postCards(page).filter({ hasText: NEW_POSTS[2].title });
-    await expect(remaining).toHaveCount(0);
+    await page.goto(`http://localhost:3000/posts.html?id=${postId}`);
+    await expect(page.locator('#postDetailContainer')).toContainText('Post not found.');
+  });
+
+  // Error handling: cancelling the confirm-delete modal should discard the action
+  test('cancelling the delete confirmation should keep the post', async ({ page }) => {
+    const original = { title: 'E2E Cancel Delete Check', content: 'This post should survive a cancel.' };
+    await addPost(page, original);
+
+    const card = postCards(page).filter({ hasText: original.title });
+    await card.locator('.post-menu-btn').click();
+    await card.locator('.delete-post-btn').click();
+    await expect(page.locator('#confirmOverlay')).toBeVisible();
+
+    await page.locator('#confirmCancelBtn').click();
+
+    await expect(page.locator('#confirmOverlay')).toBeHidden();
+    await expect(postCards(page).filter({ hasText: original.title })).toBeVisible();
   });
 });
 

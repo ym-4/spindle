@@ -917,6 +917,11 @@ body {
   padding: 0 1.5rem 1.5rem;
 }
 
+.post-title {
+  font-weight: bold;
+  font-size: 600;
+}
+
 .post-title-input {
   border: none;
   box-shadow: none !important;

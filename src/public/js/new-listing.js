@@ -224,7 +224,9 @@ const CONDITION_TO_QUALITY = {
 };
 
 function qualityToConditionValue(quality) {
-  const q = String(quality || '').trim().toLowerCase();
+  const q = String(quality || '')
+    .trim()
+    .toLowerCase();
   if (q === 'brand new' || q === 'new') return 'new';
   if (q === 'like new') return 'like_new';
   if (q === 'good') return 'good';
@@ -248,7 +250,7 @@ async function loadItemForEditing() {
     // directly via the API. This only stops the UI from being used that way;
     // it is not real authorization.
     if (String(item.seller_id) !== String(localStorage.loggedInUserId)) {
-      alert("You can only edit your own listings.");
+      alert('You can only edit your own listings.');
       window.location.href = 'my_listings.html';
       return;
     }
@@ -341,7 +343,10 @@ function submitCreate(data) {
         const ordered = [...selectedFiles].sort((a, b) =>
           a._key === coverKey ? -1 : b._key === coverKey ? 1 : 0,
         );
-        await uploadImages(itemId, ordered.map((f) => f.file));
+        await uploadImages(
+          itemId,
+          ordered.map((f) => f.file),
+        );
       }
 
       if (currentTags.length > 0) {
@@ -375,7 +380,11 @@ function submitEdit(data) {
         const ordered = [...selectedFiles].sort((a, b) =>
           a._key === coverKey ? -1 : b._key === coverKey ? 1 : 0,
         );
-        uploadedNew = (await uploadImages(itemId, ordered.map((f) => f.file))) || [];
+        uploadedNew =
+          (await uploadImages(
+            itemId,
+            ordered.map((f) => f.file),
+          )) || [];
       }
 
       // Persist the cover choice if it landed on an existing image (not the

@@ -2656,7 +2656,7 @@ function setupSearch() {
 function formatTimestamp(createdAt, updatedAt) {
   const created = new Date(createdAt);
   const updated = updatedAt ? new Date(updatedAt) : null;
-  const wasEdited = updated && Math.abs(updated - created) > 5000;
+  const wasEdited = updated && updated.getTime() !== created.getTime();
 
   const now = new Date();
   const diffMs = now - created;

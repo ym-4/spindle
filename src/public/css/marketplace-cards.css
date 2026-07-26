@@ -236,7 +236,10 @@
   border-radius: 999px;
   padding: 4px 12px;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .spindle-filter-chip:hover {
@@ -354,7 +357,9 @@
   border-radius: 999px;
   padding: 0 16px;
   min-width: 0;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .spindle-search-bar:focus-within {
@@ -400,7 +405,9 @@
   justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .spindle-search-clear:hover {

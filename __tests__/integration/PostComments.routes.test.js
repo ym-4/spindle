@@ -1,4 +1,5 @@
 const request = require('supertest');
+const { generatePandabotReply, getPandabotUserId } = require('../../src/services/pandabot');
 
 let mockUserId = 1;
 
@@ -18,6 +19,13 @@ jest.mock('../../src/middlewares/auth.middleware', () => ({
   },
 }));
 
+jest.mock('../../src/services/pandabot', () => ({
+  generatePandabotReply: jest.fn(),
+  getPandabotUserId: jest.fn(),
+  PANDABOT_EMAIL: 'pandabot@spindle.internal',
+}));
+
+
 const app = require('../../src/app');
 const pool = require('../../src/models/db');
 
@@ -27,6 +35,8 @@ const pool = require('../../src/models/db');
 
 beforeEach(async () => {
   // Clean slate for every test
+  jest.clearAllMocks();
+  await pool.query('DELETE FROM "Notifications"');
   await pool.query('DELETE FROM "CommentReactions"');
   await pool.query('DELETE FROM "SavedComments"');
   await pool.query('DELETE FROM "PostComments"');
@@ -36,6 +46,7 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
+  await pool.query('DELETE FROM "Notifications"');
   await pool.query('DELETE FROM "CommentReactions"');
   await pool.query('DELETE FROM "SavedComments"');
   await pool.query('DELETE FROM "PostComments"');
@@ -89,6 +100,15 @@ async function createTestPost(userId, title = 'Test Post', category = 'general')
   return { id: rows[0].id };
 }
 
+async function waitFor(conditionFn, { timeout = 3000, interval = 100 } = {}) {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const result = await conditionFn();
+    if (result) return result;
+    await new Promise((r) => setTimeout(r, interval));
+  }
+  throw new Error('Timed out waiting for condition');
+}
 // ─────────────────────────────────────────────────────────
 // GET /comments
 // ─────────────────────────────────────────────────────────
@@ -744,5 +764,121 @@ describe('DELETE /comments/reaction/:id', () => {
 
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/reaction not found/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// POST /comments/:post_id — PandaBot auto-reply
+// ─────────────────────────────────────────────────────────
+describe('POST /comments/:post_id — PandaBot auto-reply', () => {
+  async function createPandabotUser() {
+    const { rows } = await pool.query(
+      `INSERT INTO "Person" (name, email, hashed_password, role, email_verified)
+       VALUES ('PandaBot', 'pandabot@spindle.internal', 'fakehash', 'user', TRUE)
+       RETURNING id`,
+    );
+    return rows[0].id;
+  }
+
+  // Valid partition: a comment mentioning @pandabot gets a threaded bot reply
+  test('should create a threaded PandaBot reply when a comment mentions @pandabot', async () => {
+    const author = await createTestUser('BotPostAuthor', 'botpostauthor@example.com');
+    const post = await createTestPost(author.id);
+    const botUserId = await createPandabotUser();
+
+    getPandabotUserId.mockResolvedValue(botUserId);
+    generatePandabotReply.mockResolvedValue('Sounds like a solid plan tbh.');
+
+    await createTestUser('BotCommenter', 'botcommenter@example.com');
+
+    const res = await request(app)
+      .post(`/comments/${post.id}`)
+      .field('content', 'hey @pandabot what do you think?');
+
+    expect(res.status).toBe(201);
+    const triggerCommentId = res.body.id;
+
+    const botReply = await waitFor(async () => {
+      const { rows } = await pool.query(
+        `SELECT * FROM "PostComments" WHERE user_id = $1 AND parent_comment_id = $2`,
+        [botUserId, triggerCommentId],
+      );
+      return rows[0];
+    });
+
+    expect(botReply.content).toContain('Sounds like a solid plan tbh.');
+    expect(botReply.content).toContain('@BotCommenter');
+  });
+
+  // Boundary: a comment with no @pandabot mention should never trigger the bot
+  test('should not create a PandaBot reply when the comment does not mention @pandabot', async () => {
+    const author = await createTestUser('NoBotPostAuthor', 'nobotpostauthor@example.com');
+    const post = await createTestPost(author.id);
+    await createPandabotUser();
+    await createTestUser('NoBotCommenter', 'nobotcommenter@example.com');
+
+    const res = await request(app)
+      .post(`/comments/${post.id}`)
+      .field('content', 'just a normal comment');
+
+    expect(res.status).toBe(201);
+
+    await new Promise((r) => setTimeout(r, 300));
+
+    const { rows } = await pool.query(`SELECT * FROM "PostComments" WHERE post_id = $1`, [post.id]);
+    expect(rows).toHaveLength(1);
+    expect(generatePandabotReply).not.toHaveBeenCalled();
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// POST /comments/:post_id — @mention notifications
+// ─────────────────────────────────────────────────────────
+describe('POST /comments/:post_id — @mention notifications', () => {
+  // Valid partition: mentioning another user creates a 'mention' notification for them
+  test('should create a notification for a mentioned user', async () => {
+    const author = await createTestUser('MentionPostAuthor', 'mentionpostauthor@example.com');
+    const post = await createTestPost(author.id);
+
+    const mentioned = await createTestUser('alice', 'alice@example.com');
+    await createTestUser('MentionCommenter', 'mentioncommenter@example.com');
+
+    const res = await request(app)
+      .post(`/comments/${post.id}`)
+      .field('content', 'great point @alice!');
+
+    expect(res.status).toBe(201);
+
+    const notif = await waitFor(async () => {
+      const { rows } = await pool.query(
+        `SELECT * FROM "Notifications" WHERE user_id = $1 AND type = 'mention'`,
+        [mentioned.id],
+      );
+      return rows[0];
+    });
+
+    expect(notif.title).toContain('mentioned you in a comment');
+  });
+
+  // Boundary: a user mentioning themselves should not get a notification
+  test('should not notify a user who mentions themselves', async () => {
+    const author = await createTestUser('SelfMentionAuthor', 'selfmentionauthor@example.com');
+    const post = await createTestPost(author.id);
+
+    const commenter = await createTestUser('bob', 'bob@example.com');
+
+    const res = await request(app)
+      .post(`/comments/${post.id}`)
+      .field('content', 'note to self @bob remember this');
+
+    expect(res.status).toBe(201);
+
+    await new Promise((r) => setTimeout(r, 300));
+
+    const { rows } = await pool.query(
+      `SELECT * FROM "Notifications" WHERE user_id = $1 AND type = 'mention'`,
+      [commenter.id],
+    );
+    expect(rows).toHaveLength(0);
   });
 });
