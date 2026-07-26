@@ -68,17 +68,53 @@ module.exports.getAllItemsById = async function getAllItemsById(id) {
   return rows[0];
 };
 
-// Save uploaded image paths against a listing, preserving upload order
+// Save uploaded image paths against a listing, preserving upload order.
+// Continues sort_order from whatever the item already has, so calling this
+// more than once (e.g. adding photos to a listing that already has some,
+// which happens in edit mode) doesn't collide sort_order values with the
+// existing rows — that would make the "first" image ambiguous.
 module.exports.addImagesToItem = async function addImagesToItem(itemId, imagePaths) {
+  const { rows: maxRows } = await pool.query(
+    'SELECT COALESCE(MAX("sort_order"), -1) AS "maxOrder" FROM "ListingImages" WHERE "item_id" = $1',
+    [itemId],
+  );
+  const startOrder = Number(maxRows[0].maxOrder) + 1;
+
   const inserted = [];
   for (let i = 0; i < imagePaths.length; i++) {
     const { rows } = await pool.query(
       'INSERT INTO "ListingImages" ("item_id", "image_url", "sort_order") VALUES ($1, $2, $3) RETURNING "id", "image_url", "sort_order"',
-      [itemId, imagePaths[i], i],
+      [itemId, imagePaths[i], startOrder + i],
     );
     inserted.push(rows[0]);
   }
   return inserted;
+};
+
+// Makes the given image the "cover" (i.e. the one used as the thumbnail,
+// which is always whichever image has the lowest sort_order) by re-sequencing
+// every image on the item so the chosen one becomes sort_order 0 and the
+// rest keep their relative order after it.
+module.exports.setCoverImage = async function setCoverImage(itemId, imageId) {
+  const { rows } = await pool.query(
+    'SELECT "id" FROM "ListingImages" WHERE "item_id" = $1 ORDER BY "sort_order"',
+    [itemId],
+  );
+  const ids = rows.map((r) => r.id);
+  const targetIndex = ids.findIndex((id) => id === Number(imageId));
+  if (targetIndex === -1) return null;
+
+  // Move the target id to the front, keep everything else in order
+  const reordered = [ids[targetIndex], ...ids.filter((_, i) => i !== targetIndex)];
+
+  for (let i = 0; i < reordered.length; i++) {
+    await pool.query('UPDATE "ListingImages" SET "sort_order" = $1 WHERE "id" = $2', [
+      i,
+      reordered[i],
+    ]);
+  }
+
+  return { itemId: Number(itemId), coverImageId: Number(imageId) };
 };
 
 // Remove a single image from a listing
@@ -94,6 +130,22 @@ module.exports.updateItem = async function updateItem(id, data) {
   const { rows } = await pool.query(
     'UPDATE "MarketplaceItems" SET "name" = $1, "price" = $2, "description" = $3, "quality" = $4, "meetup" = $5 WHERE "id" = $6 RETURNING *',
     [data.name, data.price, data.description, data.quality, data.meetup, id],
+  );
+  return rows[0];
+};
+
+// Change only the status of a listing (active / sold). Kept separate from
+// updateItem so a status change never accidentally touches name/price/etc,
+// and so the edit form's submit can't accidentally reset status back to
+// active just because it doesn't send a status field.
+module.exports.setItemStatus = async function setItemStatus(id, status) {
+  const allowed = ['active', 'sold'];
+  if (!allowed.includes(status)) {
+    throw new Error(`Invalid status "${status}". Must be one of: ${allowed.join(', ')}`);
+  }
+  const { rows } = await pool.query(
+    'UPDATE "MarketplaceItems" SET "status" = $1 WHERE "id" = $2 RETURNING *',
+    [status, id],
   );
   return rows[0];
 };
