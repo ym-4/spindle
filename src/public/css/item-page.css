@@ -1,0 +1,345 @@
+/* Spindle item detail page — Shopee/Lazada-style product view */
+
+.item-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+  font-family: 'Inter', sans-serif;
+  color: var(--sp-text, var(--text));
+}
+
+.item-breadcrumb {
+  font-size: 0.8rem;
+  color: var(--sp-muted, var(--text-secondary));
+  margin-bottom: 16px;
+}
+
+.item-breadcrumb a {
+  color: var(--sp-muted, var(--text-secondary));
+  text-decoration: none;
+}
+
+.item-breadcrumb a:hover {
+  color: var(--sp-accent, var(--accent));
+}
+
+.item-layout {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 32px;
+}
+
+@media (max-width: 860px) {
+  .item-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.item-media {
+  position: relative;
+  border: 1px solid var(--sp-border, var(--border));
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background: var(--sp-bg, var(--bg));
+}
+
+.item-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#itemImageCarousel,
+#itemImageCarousel .carousel-inner,
+#itemImageCarousel .carousel-item {
+  width: 100%;
+  height: 100%;
+}
+
+#itemImageCarousel .carousel-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#itemImageCarousel .carousel-indicators {
+  margin-bottom: 8px;
+}
+
+#itemImageCarousel .carousel-control-prev,
+#itemImageCarousel .carousel-control-next {
+  width: 40px;
+}
+
+#itemImageCarousel .carousel-control-prev-icon,
+#itemImageCarousel .carousel-control-next-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: rgba(0, 0, 0, 0.35);
+  border-radius: 50%;
+  padding: 4px;
+}
+
+.item-details h1 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.quality-pill {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-inverse);
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.quality-pill--new {
+  background: var(--sp-quality-new, #1d4ed8);
+}
+.quality-pill--likenew {
+  background: var(--sp-quality-likenew, #2e7d32);
+}
+.quality-pill--good {
+  background: var(--sp-quality-good, #b7791f);
+}
+.quality-pill--fair {
+  background: var(--sp-quality-fair, #9d4b16);
+}
+.quality-pill--default {
+  background: var(--sp-quality-default, #4b5563);
+}
+
+.item-price {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--sp-accent, #ee4d2d);
+  margin: 0 0 12px;
+}
+
+.item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 20px;
+}
+
+.item-tag-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sp-muted, #6b7280);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+/* Signature element: a torn meet-up "ticket" — the one thing that makes
+   this different from a generic shipped-item storefront: you meet on campus. */
+.meetup-ticket {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--sp-navy, #14213d);
+  color: var(--text-inverse);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 22px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 6px,
+    rgba(255, 255, 255, 0.35) 6px,
+    rgba(255, 255, 255, 0.35) 10px
+  );
+  background-size: 3px 100%;
+  background-repeat: no-repeat;
+  background-position: 62px 0;
+}
+
+.meetup-ticket .meetup-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--sp-accent, var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.meetup-ticket .meetup-copy {
+  padding-left: 20px;
+}
+
+.meetup-ticket .meetup-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+  margin: 0 0 2px;
+}
+
+.meetup-ticket .meetup-value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.seller-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--sp-border, var(--border));
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 22px;
+}
+
+.seller-card i {
+  font-size: 1.6rem;
+  color: var(--sp-navy, #14213d);
+}
+
+.seller-card .seller-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.seller-card .seller-tag {
+  font-size: 0.72rem;
+  color: var(--sp-muted, var(--text-secondary));
+  margin: 0;
+}
+
+.seller-card > div {
+  flex: 1 1 auto;
+}
+
+.btn-chat-seller {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  color: var(--sp-navy, #14213d);
+  border: 1px solid var(--sp-border, #e8e8ed);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-chat-seller:hover {
+  border-color: var(--sp-accent, #ee4d2d);
+  color: var(--sp-accent, #ee4d2d);
+}
+
+.item-purchase-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.item-qty {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--sp-border, var(--border));
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.item-qty button {
+  background: var(--sp-bg, var(--bg));
+  border: none;
+  width: 36px;
+  height: 40px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.item-qty input {
+  width: 48px;
+  height: 40px;
+  text-align: center;
+  border: none;
+  border-left: 1px solid var(--sp-border, var(--border));
+  border-right: 1px solid var(--sp-border, var(--border));
+}
+
+.item-add-btn {
+  background: var(--sp-accent, var(--accent));
+  color: var(--text-inverse);
+  border: none;
+  border-radius: 8px;
+  padding: 0 24px;
+  height: 44px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.item-add-btn:hover {
+  background: var(--sp-accent-dark, var(--accent-hover));
+}
+
+.item-description-section {
+  margin-top: 40px;
+  border-top: 1px solid var(--sp-border, var(--border));
+  padding-top: 24px;
+}
+
+.item-description-section h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.item-description-section p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--sp-text, var(--text));
+  white-space: pre-wrap;
+}
+
+.item-not-found {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--sp-muted, var(--text-secondary));
+}
+
+.item-not-found i {
+  font-size: 2.6rem;
+  color: var(--sp-border, var(--border));
+  margin-bottom: 14px;
+}
+
+.recommended-section {
+  margin-top: 40px;
+  border-top: 1px solid var(--sp-border, #e8e8ed);
+  padding-top: 24px;
+}
+
+.recommended-section h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 16px;
+}

@@ -1,193 +1,318 @@
 function applyTheme(theme) {
-  document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = theme || 'light';
+  localStorage.setItem('spindle-theme', theme || 'light');
 }
 
-function openSettingsPane(id) {
-  document.getElementById('settingsMenuView').classList.add('is-hidden');
-  document.getElementById('settingsDetailView').classList.remove('is-hidden');
-  document.querySelectorAll('.settings-pane').forEach((p) => p.classList.add('is-hidden'));
-  document.getElementById(`pane-${id}`)?.classList.remove('is-hidden');
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str || ''));
+  return div.innerHTML;
 }
 
-function closeSettingsPane() {
-  document.getElementById('settingsMenuView').classList.remove('is-hidden');
-  document.getElementById('settingsDetailView').classList.add('is-hidden');
+function showToast(msg, isError) {
+  var toast = document.getElementById('settingsToast');
+  var body = document.getElementById('settingsToastBody');
+  if (!toast || !body) return;
+  body.textContent = msg;
+  toast.className =
+    'toast align-items-center text-white border-0 ' + (isError ? 'bg-danger' : 'bg-success');
+  var bs = bootstrap?.Toast || window.Toast;
+  if (bs) {
+    var t = new bs(toast);
+    t.show();
+  }
+}
+
+function saveFeedback(id) {
+  var el = document.getElementById(id);
+  if (el) {
+    el.style.display = 'block';
+    setTimeout(function () {
+      el.style.display = 'none';
+    }, 2500);
+  }
+}
+
+document.addEventListener('click', function (e) {
+  var btn = e.target.closest('.set-accordion-header');
+  if (!btn) return;
+  var targetId = btn.getAttribute('data-target');
+  var body = document.getElementById(targetId);
+  if (!body) return;
+  var expanded = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', !expanded);
+  body.classList.toggle('open');
+});
+
+function showConfirmModal(title, bodyText, onOk) {
+  document.getElementById('confirmModalTitle').textContent = title;
+  document.getElementById('confirmModalBody').textContent = bodyText;
+  document.getElementById('confirmModal').classList.remove('hidden');
+  var okBtn = document.getElementById('confirmModalOk');
+  var cancelBtn = document.getElementById('confirmModalCancel');
+  var okHandler = function () {
+    document.getElementById('confirmModal').classList.add('hidden');
+    okBtn.removeEventListener('click', okHandler);
+    cancelBtn.removeEventListener('click', cancelHandler);
+    onOk();
+  };
+  var cancelHandler = function () {
+    document.getElementById('confirmModal').classList.add('hidden');
+    okBtn.removeEventListener('click', okHandler);
+    cancelBtn.removeEventListener('click', cancelHandler);
+  };
+  okBtn.addEventListener('click', okHandler);
+  cancelBtn.addEventListener('click', cancelHandler);
 }
 
 async function loadSettings() {
-  const { settings } = await authFetch('/profile/settings');
-  document.getElementById('accDisplayName').value = settings.display_name || settings.name || '';
-  document.getElementById('accEmail').value = settings.email || '';
-  const bioEl = document.getElementById('accBio');
-  if (bioEl) bioEl.value = settings.bio || '';
-  document.getElementById('accLanguage').value = settings.language || 'en';
-  document.getElementById('accTimezone').value = settings.timezone || 'Asia/Singapore';
-  document.getElementById('sec2fa').checked = !!settings.two_factor_enabled;
-  document.getElementById('secLoginNotify').checked = settings.login_notifications !== false;
-  document.getElementById('appTheme').value = settings.theme || 'dark';
-  document.getElementById('appCompact').checked = !!settings.compact_mode;
-  document.getElementById('appFontSize').value = settings.font_size || 'medium';
-  document.getElementById('privPublic').checked = settings.public_profile !== false;
-  document.getElementById('privTracking').checked = settings.activity_tracking !== false;
-  document.getElementById('paymentBillingName').value = settings.billing_name || '';
-  document.getElementById('paymentMethod').value = settings.payment_method || '';
-  if (settings.card_last4) {
-    document.getElementById('paymentCardInput').placeholder = `•••• •••• •••• ${settings.card_last4}`;
-  }
-  applyTheme(settings.theme);
-  const preview = document.getElementById('avatarPreview');
-  if (preview) {
-    if (settings.profile_image) {
-      preview.innerHTML = `<img src="${mediaUrl(settings.profile_image)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`;
-    } else {
-      preview.textContent = (settings.name || '?').slice(0, 2).toUpperCase();
-    }
-  }
-  loadSessions();
-}
-
-async function autoSaveToggle(el) {
-  const body = { [el.dataset.field]: el.type === 'checkbox' ? el.checked : el.value };
   try {
-    await authFetch(`/profile/settings/${el.dataset.autosave}`, { method: 'PUT', body: JSON.stringify(body) });
-    if (el.dataset.field === 'theme') applyTheme(el.value);
-    showToast('Saved');
-  } catch (err) {
-    showToast(err.message, true);
+    var data = await authFetch('/profile/settings');
+    var s = data.settings || {};
+    document.getElementById('accDisplayName').value = s.display_name || s.name || '';
+    document.getElementById('accEmail').value = s.email || '';
+    var phoneEl = document.getElementById('accPhone');
+    if (phoneEl) phoneEl.value = s.phone || '';
+    document.getElementById('accLanguage').value = s.language || 'en';
+    document.getElementById('accTimezone').value = s.timezone || 'Asia/Singapore';
+    document.getElementById('sec2fa').checked = !!s.two_factor_enabled;
+    document.getElementById('secLoginNotify').checked = s.login_notifications !== false;
+    document.getElementById('appTheme').value = s.theme || 'light';
+    document.getElementById('appCompact').checked = !!s.compact_mode;
+    document.getElementById('appFontSize').value = s.font_size || 'medium';
+    document.getElementById('privPublic').checked = s.public_profile !== false;
+    document.getElementById('privTracking').checked = s.activity_tracking !== false;
+    document.getElementById('paymentBillingName').value = s.billing_name || '';
+    document.getElementById('paymentMethod').value = s.payment_method || '';
+    if (s.card_last4) {
+      document.getElementById('paymentCardInput').placeholder =
+        '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 ' +
+        s.card_last4;
+    }
+    applyTheme(s.theme);
+
+    var ntfEmail = document.getElementById('ntfEmail');
+    if (ntfEmail) ntfEmail.checked = s.notify_email !== false;
+    var ntfProduct = document.getElementById('ntfProduct');
+    if (ntfProduct) ntfProduct.checked = s.notify_product !== false;
+    var ntfSecurity = document.getElementById('ntfSecurity');
+    if (ntfSecurity) ntfSecurity.checked = s.notify_security !== false;
+    var ntfFreq = document.getElementById('ntfFrequency');
+    if (ntfFreq) ntfFreq.value = s.notify_frequency || 'instant';
+
+    if (s.last_display_name_change) {
+      var daysSince = (Date.now() - new Date(s.last_display_name_change).getTime()) / 86400000;
+      if (daysSince < 7) {
+        var nextDate = new Date(s.last_display_name_change);
+        nextDate.setDate(nextDate.getDate() + 7);
+        var el = document.getElementById('displayNameLimitMsg');
+        el.textContent =
+          'You can change your display name again on ' + nextDate.toLocaleDateString();
+        el.style.display = 'block';
+        document.getElementById('accDisplayName').disabled = true;
+      }
+    }
+
+    loadSessions();
+  } catch (e) {
+    showToast(e.message, true);
   }
 }
 
 async function loadSessions() {
-  const list = document.getElementById('sessionsList');
+  var list = document.getElementById('sessionsList');
   if (!list) return;
-  const { sessions } = await authFetch('/profile/settings/sessions');
-  list.innerHTML =
-    sessions.length === 0
-      ? '<li class="wa-list-empty">No linked devices</li>'
-      : sessions
-          .map(
-            (s) => `
-      <li class="wa-list-item">
-        <div class="wa-list-body"><strong>${s.device_label || 'Device'}</strong><span>${new Date(s.last_active).toLocaleString()}</span></div>
-        <button type="button" class="wa-btn wa-btn--ghost wa-btn--small" data-revoke="${s.id}">Revoke</button>
-      </li>`,
-          )
-          .join('');
-  list.querySelectorAll('[data-revoke]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      try {
-        await authFetch(`/profile/settings/sessions/${btn.dataset.revoke}`, { method: 'DELETE' });
-        showToast('Device revoked');
-        let sid = getStoredUser()?.sessionId;
-        if (!sid && getToken()) {
-          try {
-            sid = JSON.parse(atob(getToken().split('.')[1])).sessionId;
-          } catch {
-            /* ignore */
+  try {
+    var data = await authFetch('/profile/settings/sessions');
+    var sessions = data.sessions || [];
+    list.innerHTML =
+      sessions.length === 0
+        ? '<li class="list-group-item text-muted small">No linked devices</li>'
+        : sessions
+            .map(function (s) {
+              return (
+                '<li class="list-group-item d-flex justify-content-between align-items-center py-2"><span><strong>' +
+                (s.device_label || 'Device') +
+                '</strong><br /><small class="text-muted">' +
+                new Date(s.last_active).toLocaleString() +
+                '</small></span><button type="button" class="btn btn-outline-danger btn-sm" data-revoke="' +
+                s.id +
+                '">Revoke</button></li>'
+              );
+            })
+            .join('');
+    list.querySelectorAll('[data-revoke]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        try {
+          await authFetch('/profile/settings/sessions/' + btn.dataset.revoke, { method: 'DELETE' });
+          showToast('Device revoked');
+          var sid = getStoredUser()?.sessionId;
+          if (!sid && getToken()) {
+            try {
+              sid = JSON.parse(atob(getToken().split('.')[1])).sessionId;
+            } catch {}
           }
+          if (String(btn.dataset.revoke) === String(sid)) {
+            handleLogout();
+            return;
+          }
+          loadSessions();
+        } catch (err) {
+          showToast(err.message, true);
         }
-        if (String(btn.dataset.revoke) === String(sid)) {
-          handleLogout();
-          return;
-        }
-        loadSessions();
-      } catch (err) {
-        showToast(err.message, true);
-      }
+      });
     });
-  });
+  } catch (e) {
+    showToast(e.message, true);
+  }
 }
 
 function bindSettings() {
-  document.querySelectorAll('[data-open]').forEach((btn) => {
-    btn.addEventListener('click', () => openSettingsPane(btn.dataset.open));
-  });
-  document.getElementById('settingsBack')?.addEventListener('click', closeSettingsPane);
+  // Account save — show password confirmation first
+  var accountChanges = {};
 
-  document.getElementById('avatarFile')?.addEventListener('change', async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const fd = new FormData();
-    fd.append('avatar', file);
-    const res = await fetch(`${API_BASE}/auth/avatar`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${getToken()}` },
-      body: fd,
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) return showToast(data.error || 'Upload failed', true);
-    showToast('Photo updated');
-    loadSettings();
+  document.getElementById('btnSaveAccount').addEventListener('click', function () {
+    accountChanges = {
+      display_name: document.getElementById('accDisplayName').value,
+      email: document.getElementById('accEmail').value,
+      phone: document.getElementById('accPhone').value,
+      language: document.getElementById('accLanguage').value,
+      timezone: document.getElementById('accTimezone').value,
+    };
+    document.getElementById('accPasswordConfirm').style.display = 'block';
+    document.getElementById('accConfirmPassword').value = '';
+    document.getElementById('accConfirmPassword').focus();
   });
 
-  document.getElementById('btnSaveBio')?.addEventListener('click', async () => {
-    await authFetch('/profile/settings/account', {
-      method: 'PUT',
-      body: JSON.stringify({ bio: document.getElementById('accBio').value }),
-    });
-    showToast('Bio saved');
+  document.getElementById('btnSaveAccountCancel').addEventListener('click', function () {
+    document.getElementById('accPasswordConfirm').style.display = 'none';
   });
 
-  document.getElementById('accountForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    try {
-      await authFetch('/profile/settings/account', {
-        method: 'PUT',
-        body: JSON.stringify({
-          display_name: document.getElementById('accDisplayName').value,
-          email: document.getElementById('accEmail').value,
-          language: document.getElementById('accLanguage').value,
-          timezone: document.getElementById('accTimezone').value,
-        }),
-      });
-      showToast('Account saved');
-    } catch (err) {
-      showToast(err.message, true);
-    }
-  });
-
-  document.querySelectorAll('[data-autosave]').forEach((el) => {
-    el.addEventListener('change', () => autoSaveToggle(el));
-  });
-
-  document.getElementById('btnRequestPwdCode')?.addEventListener('click', async () => {
-    try {
-      const data = await authFetch('/profile/settings/password/request-code', { method: 'POST' });
-      const hint = data.previewCode ? ` Code: ${data.previewCode}` : '';
-      showToast(`2FA code sent to your email.${hint}`);
-    } catch (err) {
-      showToast(err.message, true);
-    }
-  });
-
-  document.getElementById('passwordForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const newPw = document.getElementById('newPassword').value;
-    const confirmPw = document.getElementById('newPasswordConfirm').value;
-    if (newPw !== confirmPw) {
-      showToast('New passwords do not match', true);
+  document.getElementById('btnSaveAccountConfirm').addEventListener('click', async function () {
+    var pw = document.getElementById('accConfirmPassword').value;
+    if (!pw) {
+      showToast('Please enter your current password.', true);
       return;
     }
     try {
-      await authFetch('/profile/settings/password', {
+      await authFetch('/profile/settings/account', {
         method: 'PUT',
-        body: JSON.stringify({
-          current_password: document.getElementById('curPassword').value,
-          new_password: newPw,
-          new_password_confirm: confirmPw,
-          code: document.getElementById('pwd2faCode').value.trim(),
-        }),
+        body: JSON.stringify(Object.assign({ current_password: pw }, accountChanges)),
       });
-      showToast('Password updated');
-      e.target.reset();
+      document.getElementById('accPasswordConfirm').style.display = 'none';
+      saveFeedback('accSaveFeedback');
     } catch (err) {
       showToast(err.message, true);
     }
   });
 
-  document.getElementById('paymentForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const cardRaw = document.getElementById('paymentCardInput').value.replace(/\D/g, '');
+  // Change email button
+  document.getElementById('btnChangeEmail')?.addEventListener('click', function () {
+    var inp = document.getElementById('accEmail');
+    inp.readOnly = !inp.readOnly;
+    if (!inp.readOnly) inp.focus();
+    this.textContent = inp.readOnly ? 'Change' : 'Done';
+  });
+
+  // Theme
+  document.getElementById('appTheme').addEventListener('change', function () {
+    applyTheme(this.value);
+    authFetch('/profile/settings/appearance', {
+      method: 'PUT',
+      body: JSON.stringify({ theme: this.value }),
+    }).catch(function () {});
+  });
+  document.getElementById('appFontSize').addEventListener('change', function () {
+    authFetch('/profile/settings/appearance', {
+      method: 'PUT',
+      body: JSON.stringify({ font_size: this.value }),
+    }).catch(function () {});
+  });
+  document.getElementById('appCompact').addEventListener('change', function () {
+    authFetch('/profile/settings/appearance', {
+      method: 'PUT',
+      body: JSON.stringify({ compact_mode: this.checked }),
+    }).catch(function () {});
+  });
+
+  // 2FA / login notify
+  document.getElementById('sec2fa').addEventListener('change', function () {
+    authFetch('/profile/settings/security', {
+      method: 'PUT',
+      body: JSON.stringify({ two_factor_enabled: this.checked }),
+    }).catch(function () {});
+  });
+  document.getElementById('secLoginNotify').addEventListener('change', function () {
+    authFetch('/profile/settings/security', {
+      method: 'PUT',
+      body: JSON.stringify({ login_notifications: this.checked }),
+    }).catch(function () {});
+  });
+
+  // Privacy
+  document.getElementById('privPublic').addEventListener('change', function () {
+    authFetch('/profile/settings/privacy', {
+      method: 'PUT',
+      body: JSON.stringify({ public_profile: this.checked }),
+    }).catch(function () {});
+  });
+  document.getElementById('privTracking').addEventListener('change', function () {
+    authFetch('/profile/settings/privacy', {
+      method: 'PUT',
+      body: JSON.stringify({ activity_tracking: this.checked }),
+    }).catch(function () {});
+  });
+
+  // Password
+  document.getElementById('btnRequestPwdCode').addEventListener('click', async function () {
+    try {
+      var data = await authFetch('/profile/settings/password/request-code', { method: 'POST' });
+      showToast('Code sent' + (data.previewCode ? ' (dev: ' + data.previewCode + ')' : ''));
+    } catch (err) {
+      showToast(err.message, true);
+    }
+  });
+
+  document.getElementById('btnUpdatePassword').addEventListener('click', function () {
+    var newPw = document.getElementById('newPassword').value;
+    var confirmPw = document.getElementById('newPasswordConfirm').value;
+    if (!newPw || !confirmPw) {
+      showToast('Please fill in new password fields.', true);
+      return;
+    }
+    if (newPw !== confirmPw) {
+      showToast('Passwords do not match', true);
+      return;
+    }
+    showConfirmModal(
+      'Change password?',
+      'Are you sure you want to change your password?',
+      async function () {
+        try {
+          await authFetch('/profile/settings/password', {
+            method: 'PUT',
+            body: JSON.stringify({
+              current_password: document.getElementById('curPassword').value,
+              new_password: newPw,
+              new_password_confirm: confirmPw,
+              code: document.getElementById('pwd2faCode').value.trim(),
+            }),
+          });
+          showToast('Password updated');
+          document.getElementById('curPassword').value = '';
+          document.getElementById('newPassword').value = '';
+          document.getElementById('newPasswordConfirm').value = '';
+          document.getElementById('pwd2faCode').value = '';
+        } catch (err) {
+          showToast(err.message, true);
+        }
+      },
+    );
+  });
+
+  // Payment
+  document.getElementById('btnSavePayment').addEventListener('click', async function () {
+    var cardRaw = document.getElementById('paymentCardInput').value.replace(/\D/g, '');
     try {
       await authFetch('/profile/payment', {
         method: 'PUT',
@@ -203,59 +328,92 @@ function bindSettings() {
     }
   });
 
-  let dangerAction = null;
-
-  function showDangerModal({ title, bullets, extra, onConfirm }) {
-    document.getElementById('dangerModalTitle').textContent = title;
-    document.getElementById('dangerModalList').innerHTML = bullets.map((b) => `<li>${b}</li>`).join('');
-    document.getElementById('dangerModalExtra').textContent = extra || '';
-    dangerAction = onConfirm;
-    document.getElementById('dangerModal').classList.remove('hidden');
+  // Notifications save
+  var ntfBtn = document.getElementById('btnSaveNotifications');
+  if (ntfBtn) {
+    ntfBtn.addEventListener('click', async function () {
+      try {
+        await authFetch('/profile/settings/notifications', {
+          method: 'PUT',
+          body: JSON.stringify({
+            notify_email: document.getElementById('ntfEmail').checked,
+            notify_product: document.getElementById('ntfProduct').checked,
+            notify_security: document.getElementById('ntfSecurity').checked,
+            notify_frequency: document.getElementById('ntfFrequency').value,
+          }),
+        });
+        showToast('Notification settings saved');
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
   }
 
-  document.getElementById('dangerModalCancel')?.addEventListener('click', () => {
+  // Blocked users — load when section header is clicked
+  var blockHeader = document.querySelector('[data-target="blockBody"]');
+  if (blockHeader) {
+    blockHeader.addEventListener('click', function () {
+      if (!this._loaded) {
+        this._loaded = true;
+        loadBlockedUsers();
+      }
+    });
+  }
+
+  // Danger modal
+  var dangerAction = null;
+  function showDangerModal(opts) {
+    document.getElementById('dangerModalTitle').textContent = opts.title;
+    document.getElementById('dangerModalList').innerHTML = opts.bullets
+      .map(function (b) {
+        return '<li>' + b + '</li>';
+      })
+      .join('');
+    document.getElementById('dangerModalExtra').textContent = opts.extra || '';
+    dangerAction = opts.onConfirm;
+    document.getElementById('dangerModal').classList.remove('hidden');
+  }
+  document.getElementById('dangerModalCancel').addEventListener('click', function () {
     document.getElementById('dangerModal').classList.add('hidden');
     dangerAction = null;
   });
-
-  document.getElementById('dangerModalConfirm')?.addEventListener('click', async () => {
-    const fn = dangerAction;
+  document.getElementById('dangerModalConfirm').addEventListener('click', async function () {
+    var fn = dangerAction;
     document.getElementById('dangerModal').classList.add('hidden');
     dangerAction = null;
     if (fn) await fn();
   });
 
-  document.getElementById('btnDeactivate')?.addEventListener('click', () => {
+  document.getElementById('btnDeactivate').addEventListener('click', function () {
     showDangerModal({
       title: 'Deactivate your account?',
       bullets: [
-        'You will be logged out immediately on all devices.',
-        'Friends cannot message or call you until you reactivate.',
-        'Your chats and profile are hidden, not erased.',
-        'Support or an admin can restore your account later.',
+        'You will be logged out on all devices.',
+        'Friends cannot message you until you reactivate.',
+        'Your profile is hidden, not erased.',
+        'An admin can restore your account.',
       ],
-      extra: 'This is reversible. You can ask to reactivate your account.',
-      onConfirm: async () => {
+      extra: 'This is reversible.',
+      onConfirm: async function () {
         await authFetch('/profile/settings/deactivate', { method: 'POST' });
         handleLogout();
       },
     });
   });
 
-  document.getElementById('btnDeleteAccount')?.addEventListener('click', () => {
+  document.getElementById('btnDeleteAccount').addEventListener('click', function () {
     showDangerModal({
       title: 'Permanently delete your account?',
       bullets: [
-        'All personal messages, call history, and friend links are removed.',
-        'Your profile photo, bio, and settings cannot be recovered.',
-        'Group memberships and marketplace listings tied to you may be lost.',
-        'This action cannot be undone — there is no trash folder.',
+        'All messages, calls, and friend links are removed.',
+        'Your profile cannot be recovered.',
+        'This cannot be undone.',
       ],
-      extra: 'Type DELETE in the next step to proceed. Only continue if you are absolutely sure.',
-      onConfirm: async () => {
-        const typed = prompt('Type DELETE in capital letters to permanently delete your account:');
+      extra: 'Type DELETE in the next prompt to confirm.',
+      onConfirm: async function () {
+        var typed = prompt('Type DELETE to permanently delete your account:');
         if (typed !== 'DELETE') {
-          showToast('Deletion cancelled — you must type DELETE exactly.', true);
+          showToast('Deletion cancelled.', true);
           return;
         }
         await authFetch('/profile/settings/delete', {
@@ -267,17 +425,68 @@ function bindSettings() {
     });
   });
 
-  document.getElementById('btnExportData')?.addEventListener('click', async () => {
-    const data = await authFetch('/profile/settings/export');
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)]));
-    a.download = 'my-data.json';
-    a.click();
-    showToast('Download started');
+  document.getElementById('btnExportData').addEventListener('click', async function () {
+    try {
+      var data = await authFetch('/profile/settings/export');
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)]));
+      a.download = 'my-data.json';
+      a.click();
+      showToast('Download started');
+    } catch (err) {
+      showToast(err.message, true);
+    }
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+async function loadBlockedUsers() {
+  var list = document.getElementById('blockedUsersList');
+  if (!list) return;
+  try {
+    var users = await authFetch('/block/list');
+    if (users.length === 0) {
+      list.innerHTML = '';
+      document.getElementById('blockedUsersEmpty').style.display = 'block';
+      return;
+    }
+    document.getElementById('blockedUsersEmpty').style.display = 'none';
+    list.innerHTML = users
+      .map(function (u) {
+        return (
+          '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+          '<span><strong>' +
+          escapeHtml(u.name) +
+          '</strong><br /><small class="text-muted">' +
+          escapeHtml(u.email) +
+          '</small></span>' +
+          '<button type="button" class="btn btn-outline-secondary btn-sm unblock-btn" data-id="' +
+          u.blocked_id +
+          '">Unblock</button></li>'
+        );
+      })
+      .join('');
+    list.querySelectorAll('.unblock-btn').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        try {
+          await authFetch('/block/' + btn.dataset.id, { method: 'DELETE' });
+          showToast('Unblocked');
+          loadBlockedUsers();
+        } catch (err) {
+          showToast(err.message, true);
+        }
+      });
+    });
+  } catch (e) {
+    showToast(e.message, true);
+  }
+}
+
+function handleLogout() {
+  clearAuth();
+  window.location.href = 'home.html';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
   if (!isLoggedIn()) {
     redirectToLogin('settings.html');
     return;

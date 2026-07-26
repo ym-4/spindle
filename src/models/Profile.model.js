@@ -15,11 +15,15 @@ async function ensurePaymentRow(userId) {
 }
 
 module.exports.getAllSettings = async function getAllSettings(userId) {
+  await pool.query(
+    `ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS last_display_name_change TIMESTAMP`,
+  );
   await ensureSettingsRow(userId);
   await ensurePaymentRow(userId);
   const { rows } = await pool.query(
     `SELECT p.id, p.name, p.email, p.display_name, p.avatar, p.profile_image, p.cover_image, p.bio,
             p.headline, p.location, p.skills, p.link_portfolio, p.link_github, p.link_linkedin,
+            p.last_display_name_change,
             s.phone, s.campus, s.language, s.timezone,
             s.two_factor_enabled, s.login_notifications,
             s.notify_email, s.notify_product, s.notify_security, s.notify_frequency,
@@ -38,11 +42,51 @@ module.exports.getAllSettings = async function getAllSettings(userId) {
 module.exports.getSettings = module.exports.getAllSettings;
 
 module.exports.updateAccountSettings = async function updateAccountSettings(userId, data) {
-  if (data.display_name !== undefined) {
-    await pool.query(`UPDATE "Person" SET display_name = $1 WHERE id = $2`, [
-      data.display_name?.trim() || null,
+  await pool.query(
+    `ALTER TABLE "Person" ADD COLUMN IF NOT EXISTS last_display_name_change TIMESTAMP`,
+  );
+
+  if (data.current_password) {
+    const { rows } = await pool.query(`SELECT hashed_password FROM "Person" WHERE id = $1`, [
       userId,
     ]);
+    const Auth = require('./Auth.model');
+    if (!Auth.verifyPassword(data.current_password, rows[0]?.hashed_password || '')) {
+      const err = new Error('Current password is incorrect.');
+      err.status = 401;
+      throw err;
+    }
+  }
+
+  if (data.display_name !== undefined) {
+    const { rows: existing } = await pool.query(
+      `SELECT display_name, last_display_name_change FROM "Person" WHERE id = $1`,
+      [userId],
+    );
+    const row = existing[0];
+    if (row && row.display_name && row.display_name !== data.display_name?.trim()) {
+      if (row.last_display_name_change) {
+        const daysSince =
+          (Date.now() - new Date(row.last_display_name_change).getTime()) / 86400000;
+        if (daysSince < 7) {
+          const err = new Error(
+            'You can change your display name again on ' +
+              new Date(row.last_display_name_change.getTime() + 7 * 86400000).toLocaleDateString(),
+          );
+          err.status = 429;
+          throw err;
+        }
+      }
+      await pool.query(
+        `UPDATE "Person" SET display_name = $1, last_display_name_change = NOW() WHERE id = $2`,
+        [data.display_name?.trim() || null, userId],
+      );
+    } else if (row && !row.display_name) {
+      await pool.query(
+        `UPDATE "Person" SET display_name = $1, last_display_name_change = NOW() WHERE id = $2`,
+        [data.display_name?.trim() || null, userId],
+      );
+    }
   }
   if (data.email?.trim()) {
     await pool.query(`UPDATE "Person" SET email = $1 WHERE id = $2`, [data.email.trim(), userId]);
@@ -58,7 +102,11 @@ module.exports.updateAccountSettings = async function updateAccountSettings(user
      WHERE user_id = $5`,
     [data.phone ?? null, data.campus ?? null, data.language ?? null, data.timezone ?? null, userId],
   );
-  return module.exports.getAllSettings(userId);
+  const result = await module.exports.getAllSettings(userId);
+  result.last_display_name_change =
+    (await pool.query(`SELECT last_display_name_change FROM "Person" WHERE id = $1`, [userId]))
+      .rows[0]?.last_display_name_change || null;
+  return result;
 };
 
 module.exports.updateSecuritySettings = async function updateSecuritySettings(userId, data) {
@@ -73,7 +121,10 @@ module.exports.updateSecuritySettings = async function updateSecuritySettings(us
   return module.exports.getAllSettings(userId);
 };
 
-module.exports.updateNotificationSettings = async function updateNotificationSettings(userId, data) {
+module.exports.updateNotificationSettings = async function updateNotificationSettings(
+  userId,
+  data,
+) {
   await ensureSettingsRow(userId);
   await pool.query(
     `UPDATE "UserSettings"
@@ -113,7 +164,12 @@ module.exports.updatePrivacySettings = async function updatePrivacySettings(user
          activity_tracking = COALESCE($2, activity_tracking),
          cookie_preferences = COALESCE($3, cookie_preferences)
      WHERE user_id = $4`,
-    [data.public_profile ?? null, data.activity_tracking ?? null, data.cookie_preferences ?? null, userId],
+    [
+      data.public_profile ?? null,
+      data.activity_tracking ?? null,
+      data.cookie_preferences ?? null,
+      userId,
+    ],
   );
   return module.exports.getAllSettings(userId);
 };
@@ -228,10 +284,7 @@ module.exports.listJoinedGroups = async function listJoinedGroups(userId) {
 };
 
 module.exports.findPersonById = async function findPersonById(userId) {
-  const { rows } = await pool.query(
-    `SELECT id, name, role FROM "Person" WHERE id = $1`,
-    [userId],
-  );
+  const { rows } = await pool.query(`SELECT id, name, role FROM "Person" WHERE id = $1`, [userId]);
   return rows[0] ?? null;
 };
 

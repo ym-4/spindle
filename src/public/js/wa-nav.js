@@ -1,7 +1,87 @@
+/* global clearAuth, handleLogout, isLoggedIn */
+
 function esc(t) {
   const d = document.createElement('div');
   d.textContent = t ?? '';
   return d.innerHTML;
+}
+
+function handleNavbarLogout(event) {
+  event.preventDefault();
+  if (typeof handleLogout === 'function') {
+    handleLogout();
+    return;
+  }
+  clearAuth?.();
+  window.location.href = 'home.html';
+}
+
+function ensureAuthButtons() {
+  const target = document.querySelector('.navbar-right');
+  if (!target) return;
+
+  const page = window.location.pathname.split('/').pop() || 'index.html';
+  const returnPath = encodeURIComponent(page === 'home.html' ? 'index.html' : page);
+
+  if (!document.getElementById('loginButton')) {
+    const loginButton = document.createElement('a');
+    loginButton.id = 'loginButton';
+    loginButton.href = `home.html?login=1&tab=login&return=${returnPath}`;
+    loginButton.className = 'btn-navbar-login';
+    loginButton.textContent = 'Log In';
+    target.prepend(loginButton);
+  }
+
+  if (!document.getElementById('registerButton')) {
+    const registerButton = document.createElement('a');
+    registerButton.id = 'registerButton';
+    registerButton.href = `home.html?login=1&tab=register&return=${returnPath}`;
+    registerButton.className = 'btn-navbar-signup';
+    registerButton.textContent = 'Sign Up';
+    target.prepend(registerButton);
+  }
+}
+
+function syncLegacyNavbar() {
+  ensureAuthButtons();
+
+  const loggedIn =
+    typeof isLoggedIn === 'function'
+      ? isLoggedIn()
+      : !!(localStorage.getItem('token') || localStorage.getItem('pineappleToken'));
+  const loginButton = document.getElementById('loginButton');
+  const registerButton = document.getElementById('registerButton');
+  const profileButton = document.getElementById('profileButton');
+  const logoutButton = document.getElementById('logoutButton');
+  const guestActions = document.getElementById('navGuest');
+  const userActions = document.getElementById('navUser');
+
+  [loginButton, registerButton].forEach((button) => {
+    if (!button) return;
+    button.classList.toggle('d-none', loggedIn);
+    button.classList.toggle('hidden', loggedIn);
+    button.style.display = loggedIn ? 'none' : '';
+  });
+
+  [profileButton, logoutButton].forEach((button) => {
+    if (!button) return;
+    button.classList.toggle('d-none', !loggedIn);
+    button.classList.toggle('hidden', !loggedIn);
+    button.style.display = loggedIn ? '' : 'none';
+  });
+
+  if (guestActions && userActions) {
+    guestActions.classList.toggle('hidden', loggedIn);
+    guestActions.style.display = loggedIn ? 'none' : '';
+    userActions.classList.toggle('hidden', !loggedIn);
+    userActions.style.display = loggedIn ? '' : 'none';
+  }
+
+  if (logoutButton) {
+    logoutButton.onclick = handleNavbarLogout;
+    logoutButton.removeEventListener('click', handleNavbarLogout);
+    logoutButton.addEventListener('click', handleNavbarLogout);
+  }
 }
 
 function renderWaNav(active) {
@@ -26,7 +106,8 @@ function injectWaNav(active) {
 
 function renderNotifBell() {
   const unread = window.__notifUnread || 0;
-  const badge = unread > 0 ? `<span class="wa-bell-badge">${unread > 99 ? '99+' : unread}</span>` : '';
+  const badge =
+    unread > 0 ? `<span class="wa-bell-badge">${unread > 99 ? '99+' : unread}</span>` : '';
   const spindle = document.querySelector('#spindleNotifSlot, .spindle-notif-slot');
   const icon = spindle ? '<i class="fas fa-bell"></i>' : '🔔';
   return `
@@ -45,12 +126,19 @@ function renderNotifBell() {
 function injectHeaderActions(slotId = 'waHeaderSlot') {
   const slot = document.getElementById(slotId);
   if (!slot || !isLoggedIn()) return;
+
   slot.innerHTML = `${renderNotifBell()}<button type="button" class="wa-btn wa-btn--ghost wa-btn--small" id="waHeaderLogout">Log out</button>`;
+
   bindNotificationBell();
   refreshNotifBadge();
-  document.getElementById('waHeaderLogout')?.addEventListener('click', () => {
-    if (typeof handleLogout === 'function') handleLogout();
-  });
+
+  const logoutBtn = document.getElementById('waHeaderLogout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleLogout();
+    });
+  }
 }
 
 /** Spindle navbar — notifications only (profile/logout stay in navbar). */
@@ -69,26 +157,90 @@ function injectNotificationsOnly(slotId = 'spindleNotifSlot') {
 
 function injectWaHeader(title, opts = {}) {
   const slot = document.getElementById('waHeaderSlot');
-  if (!slot) return;
-  if (opts.actionsOnly) {
-    injectHeaderActions('waHeaderSlot');
+  if (!slot) {
+    console.warn('Header slot not found, skipping injection.');
     return;
   }
-  const user = getStoredUser();
-  const bell = user && opts.bell !== false ? renderNotifBell() : '';
-  const logout = user
-    ? `<button type="button" class="wa-btn wa-btn--ghost wa-btn--small" id="waHeaderLogout">Log out</button>`
-    : '';
+
+  const loggedIn = !!localStorage.getItem('token');
+
+  let actionsHTML;
+  if (loggedIn) {
+    const bell = opts.bell !== false ? renderNotifBell() : '';
+    actionsHTML = `
+            ${bell}
+            <a href="chat.html" class="wa-btn wa-btn--ghost" id="navMessages"><i class="fas fa-envelope"></i></a>
+            <button type="button" class="wa-btn wa-btn--ghost" id="waHeaderLogout">Log Out</button>
+            <a href="profile.html" class="wa-btn">Profile</a>
+        `;
+  } else {
+    actionsHTML = `
+            <a href="home.html" class="wa-btn wa-btn--ghost">Log In</a>
+            <a href="home.html?login=1" class="wa-btn">Sign Up</a>
+        `;
+  }
+
   slot.innerHTML = `
-    <header class="wa-topbar">
-      <h1>${esc(title)}</h1>
-      <div class="wa-topbar-actions">${bell}${logout}</div>
-    </header>`;
-  if (user && opts.bell !== false) bindNotificationBell();
-  document.getElementById('waHeaderLogout')?.addEventListener('click', () => {
-    if (typeof handleLogout === 'function') handleLogout();
-  });
+        <header class="wa-topbar">
+            <h1>${esc(title)}</h1>
+            <div class="wa-topbar-actions">${actionsHTML}</div>
+        </header>
+    `;
+
+  const logoutBtn = document.getElementById('logoutButton');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          await fetch('/auth/logout', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+      } catch (err) {
+        console.error('Logout request failed, proceeding to clear local data...');
+      }
+
+      clearAuth();
+      window.location.href = 'register.html';
+    });
+  }
+
+  if (loggedIn) {
+    if (opts.bell !== false) bindNotificationBell();
+    document.getElementById('waHeaderLogout')?.addEventListener('click', performSpindleLogout);
+  }
 }
+
+async function performSpindleLogout() {
+  const token = localStorage.getItem('token');
+  try {
+    if (token) {
+      await fetch('/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      });
+    }
+  } catch (err) {
+    console.warn('Logout error:', err);
+  }
+
+  const keys = ['token', 'loggedInUserId', 'pineappleUser', 'pineappleToken', 'displayName'];
+  keys.forEach((k) => localStorage.removeItem(k));
+
+  window.location.href = 'login.html';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  syncLegacyNavbar();
+});
+
+window.addEventListener('storage', syncLegacyNavbar);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) syncLegacyNavbar();
+});
 
 function showToast(text, isError = false) {
   let t = document.getElementById('waToast');

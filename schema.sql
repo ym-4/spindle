@@ -84,7 +84,8 @@ CREATE TABLE "UserSessions" (
 --                                  POSTS
 -- -------------------------------------------------------------------------------------
 
-CREATE TYPE post_categories AS ENUM ('confession', 'qna', 'general');
+CREATE TYPE post_categories AS ENUM ('confession', 'qna', 'general', 'ABE', 'SB', 'CLS', 
+  'SOC', 'EEE', 'MAD', 'MAE', 'SMA', 'internship', 'cca', 'events', 'news');
 
 CREATE TABLE "Posts" (
   "id" SERIAL NOT NULL,
@@ -95,7 +96,10 @@ CREATE TABLE "Posts" (
   "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "content" TEXT NOT NULL,
   "attachment_url" TEXT,
+  "gif_url" TEXT,
   "is_anonymous" BOOLEAN DEFAULT FALSE,
+  "visibility" TEXT DEFAULT 'everyone',
+  "pinned" BOOLEAN DEFAULT FALSE,
   CONSTRAINT "Posts_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
@@ -114,6 +118,37 @@ BEFORE UPDATE ON "Posts"
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
+-- POST: POLLS
+CREATE TABLE "PostPolls" (
+  "id" SERIAL NOT NULL,
+  "post_id" INT NOT NULL,
+  "question" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "PostPolls_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("post_id") REFERENCES "Posts"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "PollOptions" (
+  "id" SERIAL NOT NULL,
+  "poll_id" INT NOT NULL,
+  "option_text" TEXT NOT NULL,
+  "vote_count" INT DEFAULT 0,
+  CONSTRAINT "PollOptions_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("poll_id") REFERENCES "PostPolls"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "PollVotes" (
+  "id" SERIAL NOT NULL,
+  "poll_id" INT NOT NULL,
+  "option_id" INT NOT NULL,
+  "user_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "PollVotes_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("poll_id") REFERENCES "PostPolls"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("option_id") REFERENCES "PollOptions"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  UNIQUE ("poll_id", "user_id")
+);
 
 CREATE TABLE "PostComments" (
   "id" SERIAL NOT NULL, 
@@ -142,6 +177,18 @@ CREATE TABLE "PostReactions" (
   UNIQUE ("post_id", "user_id")
 );
 
+CREATE TABLE "CommentReactions" (
+  "id" SERIAL NOT NULL,
+  "comment_id" INT NOT NULL,
+  "user_id" INT NOT NULL,
+  "reaction_type" reaction_types NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY ("comment_id") REFERENCES "PostComments"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  CONSTRAINT "CommentReactions_pkey" PRIMARY KEY ("id"),
+  UNIQUE ("comment_id", "user_id")
+);
+
 CREATE TABLE "SavedPosts" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
@@ -153,11 +200,24 @@ CREATE TABLE "SavedPosts" (
   UNIQUE(user_id, post_id)
 );
 
+CREATE TABLE "SavedComments" (
+  "id" SERIAL NOT NULL,
+  "user_id" INT NOT NULL,
+  "comment_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("comment_id") REFERENCES "PostComments"("id") ON DELETE CASCADE,
+  CONSTRAINT "SavedComments_pkey" PRIMARY KEY ("id"),
+  UNIQUE("user_id", "comment_id")
+);
+
 CREATE TABLE "Reports" (
   "id"        SERIAL PRIMARY KEY,
   "post_id"   INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
   "user_id"   INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
   "reason"    VARCHAR(100) NOT NULL,
+  "description" TEXT DEFAULT '',
+  "dismissed" BOOLEAN DEFAULT FALSE,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE ("post_id", "user_id")
 );
@@ -220,16 +280,163 @@ CREATE TABLE "GroupDiscussions" (
 CREATE TABLE "GroupFiles" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
-  "message" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "group_id" INT NOT NULL,
-  "description" TEXT NOT NULL,
   "file_path" TEXT NOT NULL,
+  "folder_name" TEXT NOT NULL,
   CONSTRAINT "GroupFiles_pkey" PRIMARY KEY ("id"), 
+  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "GroupFolders" (
+  "id" SERIAL PRIMARY KEY,
+  "group_id" INT NOT NULL,
+  "name" TEXT NOT NULL,
+  "created_by" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (group_id) REFERENCES "Groups"(id) ON DELETE CASCADE, 
+  UNIQUE(group_id, name)
+);
+
+CREATE TABLE "GroupAnnouncements" (
+  "announcement_id" SERIAL NOT NULL,
+  "user_id" INT NOT NULL,
+  "group_id" INT NOT NULL,
+  "text" TEXT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "GroupAnnouncements_pkey" PRIMARY KEY ("announcement_id"), 
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
 );
 
----------------------------------------------------------------------------------------
+CREATE TYPE task_status AS ENUM (
+  'todo',
+  'in_progress',
+  'done'
+);
+
+CREATE TABLE "GroupTasks" (
+  "id" SERIAL PRIMARY KEY,
+  "group_id" INT NOT NULL,
+  "creator_id" INT NOT NULL,
+  "assignee_id" INT,
+  "title" TEXT NOT NULL,
+  "description" TEXT DEFAULT '',
+  "status" task_status NOT NULL DEFAULT 'todo',
+  "due_date" TIMESTAMP,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY ("group_id")
+    REFERENCES "Groups"("id") ON DELETE CASCADE,
+
+  FOREIGN KEY ("creator_id")
+    REFERENCES "Person"("id") ON DELETE CASCADE,
+
+  FOREIGN KEY ("assignee_id")
+    REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "GroupTaskItems" (
+  "id" SERIAL PRIMARY KEY,
+  "task_id" INT NOT NULL,
+  "text" TEXT NOT NULL,
+  "completed" BOOLEAN DEFAULT FALSE,
+  "completed_by" INT,
+  "completed_at" TIMESTAMP,
+
+  FOREIGN KEY ("task_id")
+    REFERENCES "GroupTasks"("id") ON DELETE CASCADE,
+
+  FOREIGN KEY ("completed_by")
+    REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TYPE modes AS ENUM (
+  'whiteboard',
+  'pixel'
+);
+
+CREATE TABLE "WhiteboardDrawings" (
+    "id" SERIAL PRIMARY KEY,
+    "user_id" INT NOT NULL,
+    "group_id" INT, 
+    "title" VARCHAR(100) NOT NULL,
+    "mode" modes NOT NULL,
+    "drawing_data" JSONB NOT NULL,
+    "image" TEXT,
+    "created_at" TIMESTAMP DEFAULT NOW(),
+    "updated_at" TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY ("user_id")
+      REFERENCES "Person"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("group_id")
+      REFERENCES "Groups"("id") ON DELETE CASCADE
+);
+
+-- Updates the whiteboard timestamp for updated_at
+CREATE TRIGGER update_whiteboard_timestamp
+BEFORE UPDATE
+ON "WhiteboardDrawings"
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE "NoteFolders" (
+  "id" SERIAL PRIMARY KEY,
+  "group_id" INT,
+  "name" TEXT NOT NULL,
+  "color" VARCHAR(20) DEFAULT '#ffffff',
+  "icon" VARCHAR(50) DEFAULT 'folder',
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY ("group_id")
+    REFERENCES "Groups"("id") ON DELETE CASCADE,
+  UNIQUE ("group_id", "name")
+);
+
+CREATE TABLE "Notes" (
+  "id" SERIAL PRIMARY KEY,
+  "user_id" INT NOT NULL,
+  "group_id" INT,
+  "folder_id" INT,
+  "title" TEXT NOT NULL,
+  "content" TEXT NOT NULL DEFAULT '',
+  "template" TEXT DEFAULT NULL,
+  "is_pinned" BOOLEAN DEFAULT FALSE,
+  "is_archived" BOOLEAN DEFAULT FALSE,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY ("user_id")
+    REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("group_id")
+    REFERENCES "Groups"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("folder_id")
+    REFERENCES "NoteFolders"("id") ON DELETE SET NULL,
+  UNIQUE ("group_id", "title")
+);
+
+-- Updates notes updated at
+CREATE TRIGGER update_notes_updated_at
+BEFORE UPDATE
+ON "Notes"
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE "NoteLinks" (
+  "source_note_id" INT NOT NULL,
+  "target_note_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY ("source_note_id", "target_note_id"),
+  FOREIGN KEY ("source_note_id")
+    REFERENCES "Notes"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("target_note_id")
+    REFERENCES "Notes"("id") ON DELETE CASCADE, 
+  UNIQUE ("source_note_id", "target_note_id")
+);
+
+----------------------------------------------------------------------------------------
 --                                  USER
 -- -------------------------------------------------------------------------------------
 
@@ -247,7 +454,7 @@ CREATE TABLE "UserSettings" (
   "notify_product" BOOLEAN DEFAULT FALSE,
   "notify_security" BOOLEAN DEFAULT TRUE,
   "notify_frequency" TEXT DEFAULT 'weekly',
-  "theme" TEXT DEFAULT 'dark',
+  "theme" TEXT DEFAULT 'light',
   "compact_mode" BOOLEAN DEFAULT FALSE,
   "font_size" TEXT DEFAULT 'medium',
   "public_profile" BOOLEAN DEFAULT TRUE,
@@ -291,6 +498,9 @@ CREATE TABLE "MarketplaceItems" (
   "name" TEXT NOT NULL,
   "description" TEXT NOT NULL,
   "price" NUMERIC(10, 2) NOT NULL,
+  "quality" TEXT NOT NULL,
+  "meetup" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'active',
   CONSTRAINT "MarketplaceItems_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("seller_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
@@ -301,11 +511,55 @@ CREATE TABLE "UserCart" (
   "user_id" INT NOT NULL,
   "item_id" INT NOT NULL,
   "amount" INT NOT NULL,
-  CONSTRAINT "UserCart_pkey" PRIMARY KEY ("id"), 
+  CONSTRAINT "UserCart_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT unique_user_item UNIQUE (user_id, item_id),
   FOREIGN KEY ("seller_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("item_id") REFERENCES "MarketplaceItems"("id") ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS "Tags" (
+  "id" SERIAL PRIMARY KEY,
+  "name" VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "ItemTags" (
+  "item_id" INTEGER NOT NULL REFERENCES "MarketplaceItems"("id") ON DELETE CASCADE,
+  "tag_id" INTEGER NOT NULL REFERENCES "Tags"("id") ON DELETE CASCADE,
+  CONSTRAINT "ItemTags_pkey" PRIMARY KEY ("item_id", "tag_id")
+);
+
+CREATE INDEX IF NOT EXISTS idx_item_tags_tag_id ON "ItemTags"("tag_id");
+
+CREATE TABLE IF NOT EXISTS "ListingImages" (
+  "id" SERIAL PRIMARY KEY,
+  "item_id" INTEGER NOT NULL REFERENCES "MarketplaceItems"("id") ON DELETE CASCADE,
+  "image_url" TEXT NOT NULL,
+  "sort_order" INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_listing_images_item_id ON "ListingImages"("item_id");
+CREATE TYPE order_status AS ENUM ('pending', 'paid', 'failed');
+
+CREATE TABLE IF NOT EXISTS "Orders" (
+  "id" SERIAL PRIMARY KEY,
+  "buyer_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "total_amount" NUMERIC(10,2) NOT NULL,
+  "status" order_status NOT NULL DEFAULT 'pending',
+  "payment_ref" TEXT,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS "OrderItems" (
+  "id" SERIAL PRIMARY KEY,
+  "order_id" INT NOT NULL REFERENCES "Orders"("id") ON DELETE CASCADE,
+  "item_id" INT NOT NULL REFERENCES "MarketplaceItems"("id"),
+  "seller_id" INT NOT NULL REFERENCES "Person"("id"),
+  "quantity" INT NOT NULL,
+  "price_at_purchase" NUMERIC(10,2) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON "OrderItems"("order_id");
 
 -- -------------------------------------------------------------------------------------
 --                                  Chatroom
@@ -516,4 +770,3 @@ CREATE INDEX ON "PostComments"("post_id");
 CREATE INDEX ON "GroupDiscussions"("group_id");
 CREATE INDEX ON "MarketplaceItems"("seller_id");
 CREATE INDEX ON "ChatroomMessages"("chatroom_id");
-

@@ -1,4 +1,3 @@
-/** Unified Spindle sidebar — same links on every page. Only replaces `<aside class="sidebar">` inner nav. */
 (function () {
   const LINKS = [
     { href: 'index.html', page: 'home', icon: 'fa-home', label: 'Home' },
@@ -21,27 +20,89 @@
 
   window.renderSpindleSidebar = function renderSpindleSidebar(activePage) {
     const page = activePage || document.body.dataset.page || '';
+
     return (
       LINKS.map((l) => item(l, page)).join('') +
       '<div class="sidebar-divider"></div>' +
       LINKS2.map((l) => item(l, page)).join('') +
-      `<div class="sidebar-divider"></div>
-      <h6 class="px-3 mt-3 mb-2 text-muted" style="font-size:0.85rem;font-weight:600;">YOUR GROUPS</h6>
-      <a href="groups_feed.html" class="sidebar-item" data-group-id="1"><i class="fas fa-circle" style="font-size:0.5rem;color:#42b72a;"></i><span>CS101 Study Group</span></a>
-      <a href="groups_feed.html" class="sidebar-item" data-group-id="2"><i class="fas fa-circle" style="font-size:0.5rem;color:#1877f2;"></i><span>Math Assignment Help</span></a>
-      <a href="groups.html" class="sidebar-item"><i class="fas fa-plus-circle"></i><span>See all groups</span></a>`
+      `<div class="sidebar-divider" id="yourGroupsDivider" style="display:none;"></div>
+      <div id="yourGroupsSection" style="display:none;">
+        <h6 class="px-3 mt-3 mb-2 text-muted" style="font-size:0.85rem;font-weight:600;">YOUR GROUPS</h6>
+        <div id="yourGroupsContainer"></div>
+      </div>`
     );
   };
 
-  document.addEventListener('DOMContentLoaded', () => {
+  window.loadYourGroups = function loadYourGroups() {
+    const token = getToken ? getToken() : localStorage.getItem('token');
+    const section = document.getElementById('yourGroupsSection');
+    const divider = document.getElementById('yourGroupsDivider');
+    if (!token) return;
+    if (section) section.style.display = 'block';
+    if (divider) divider.style.display = 'block';
+    const container = document.getElementById('yourGroupsContainer');
+    if (!container) return;
+
+    const base =
+      typeof currentUrl !== 'undefined' && currentUrl
+        ? currentUrl
+        : (typeof getApiBase === 'function' && getApiBase()) || window.location.origin || '';
+
+    fetch(base + '/groups/joined_groups', {
+      headers: { Authorization: 'Bearer ' + token },
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error('Failed');
+        return r.json();
+      })
+      .then((data) => {
+        container.innerHTML = '';
+        const groups = Array.isArray(data) ? data : data.groups || [];
+        if (!groups.length) {
+          const empty = document.createElement('a');
+          empty.href = 'groups.html';
+          empty.className = 'sidebar-item d-flex align-items-center text-decoration-none';
+          empty.style.cssText =
+            'border:1.5px dashed #ccc;border-radius:10px;margin:0.25rem 0.5rem;color:#666;transition:border-color 0.2s,color 0.2s;';
+          empty.innerHTML =
+            '<i class="fas fa-plus-circle me-2" style="font-size:1.2rem;color:#1877f2;"></i><span style="font-size:0.9rem;font-weight:600;">Join study groups</span>';
+          empty.addEventListener('mouseenter', () => {
+            empty.style.borderColor = '#1877f2';
+            empty.style.color = '#1877f2';
+          });
+          empty.addEventListener('mouseleave', () => {
+            empty.style.borderColor = '#ccc';
+            empty.style.color = '#666';
+          });
+          container.appendChild(empty);
+          return;
+        }
+        groups.forEach(function (g) {
+          const item = document.createElement('a');
+          item.href = 'groups_feed.html';
+          item.className = 'sidebar-item';
+          item.innerHTML =
+            '<i class="fas fa-circle" style="font-size:0.5rem;color:#42b72a;"></i><span>' +
+            (g.name || g.group_name || 'Group') +
+            '</span>';
+          item.addEventListener('click', function (e) {
+            e.preventDefault();
+            localStorage.setItem('groupId', g.id || g.group_id);
+            window.location.href = 'groups_feed.html';
+          });
+          container.appendChild(item);
+        });
+      })
+      .catch(function () {
+        /* silently ignore */
+      });
+  };
+
+  document.addEventListener('DOMContentLoaded', function () {
     const aside = document.querySelector('aside.sidebar');
     if (!aside || aside.dataset.spindleKeep) return;
-    aside.innerHTML = renderSpindleSidebar(document.body.dataset.page);
 
-    aside.querySelectorAll('[data-group-id]').forEach((link) => {
-      link.addEventListener('click', () => {
-        localStorage.setItem('groupId', link.dataset.groupId);
-      });
-    });
+    aside.innerHTML = renderSpindleSidebar(document.body.dataset.page);
+    loadYourGroups();
   });
 })();

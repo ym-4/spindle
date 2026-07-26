@@ -2,7 +2,7 @@ const express = require('express');
 const createError = require('http-errors');
 const Profile = require('../models/Profile.model');
 const Auth = require('../models/Auth.model');
-const { authenticateJWT } = require('../middleware/auth.middleware');
+const { authenticateJWT } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 router.use(authenticateJWT);
@@ -19,6 +19,14 @@ router.get('/settings', async (req, res, next) => {
 
 router.put('/settings/account', async (req, res, next) => {
   try {
+    const { current_password, email, phone, display_name } = req.body ?? {};
+    if (email !== undefined || phone !== undefined || display_name !== undefined) {
+      if (!current_password) {
+        return res
+          .status(400)
+          .json({ error: 'Current password is required to change account settings.' });
+      }
+    }
     const settings = await Profile.updateAccountSettings(req.user.id, req.body ?? {});
     res.status(200).json({ settings });
   } catch (err) {
@@ -81,7 +89,9 @@ router.put('/settings/password', async (req, res, next) => {
   try {
     const { current_password, new_password, new_password_confirm, code } = req.body ?? {};
     if (!current_password || !new_password || !code?.trim()) {
-      return res.status(400).json({ error: 'Current password, new password, and 2FA code required.' });
+      return res
+        .status(400)
+        .json({ error: 'Current password, new password, and 2FA code required.' });
     }
     if (new_password.length < 4) {
       return res.status(400).json({ error: 'New password must be at least 4 characters.' });

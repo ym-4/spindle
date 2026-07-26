@@ -6,14 +6,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const file = window.location.pathname.split('/').pop() || 'index.html';
-  const isPublicFeed = file === 'index.html';
+  const isPublicFeed = file === 'index.html' || file === 'home.html';
 
   if (!isPublicFeed && typeof isLoggedIn === 'function' && !isLoggedIn()) {
-    redirectToLogin(file + window.location.search);
+    redirectToLogin(file);
     return;
   }
 
-  if (typeof isLoggedIn === 'function' && isLoggedIn() && typeof injectNotificationsOnly === 'function') {
+  if (
+    typeof isLoggedIn === 'function' &&
+    isLoggedIn() &&
+    typeof injectNotificationsOnly === 'function'
+  ) {
     injectNotificationsOnly('spindleNotifSlot');
+  }
+
+  // Skip theme on auth pages (home/login/register) — they have their own design
+  var isAuth = file === 'home.html' || file === 'login.html' || file === 'register.html';
+  if (!isAuth) {
+    var savedTheme = localStorage.getItem('spindle-theme');
+    document.documentElement.dataset.theme = savedTheme || 'light';
   }
 });

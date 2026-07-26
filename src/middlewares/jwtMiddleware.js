@@ -1,17 +1,17 @@
 //////////////////////////////////////////////////////
 // REQUIRE DOTENV MODULE
 //////////////////////////////////////////////////////
-require("dotenv").config();
+require('dotenv').config();
 
 //////////////////////////////////////////////////////
 // REQUIRE JWT MODULE
 //////////////////////////////////////////////////////
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 //////////////////////////////////////////////////////
 // SET JWT CONFIGURATION
 //////////////////////////////////////////////////////
-const secretKey = process.env.JWT_SECRET_KEY;
+const secretKey = process.env.JWT_SECRET_KEY || 'dev-jwt-secret-change-me';
 const tokenDuration = process.env.JWT_EXPIRES_IN;
 const tokenAlgorithm = process.env.JWT_ALGORITHM;
 
@@ -22,7 +22,7 @@ module.exports.generateToken = (req, res, next) => {
   const payload = {
     username: req.body.username,
     userId: res.locals.userId,
-    timestamp: new Date()
+    timestamp: new Date(),
   };
 
   const options = {
@@ -32,7 +32,7 @@ module.exports.generateToken = (req, res, next) => {
 
   const callback = (err, token) => {
     if (err) {
-      console.error("Error jwt:", err);
+      console.error('Error jwt:', err);
       res.status(500).json(err);
     } else {
       res.locals.token = token;
@@ -40,7 +40,7 @@ module.exports.generateToken = (req, res, next) => {
     }
   };
 
-  const token = jwt.sign(payload, secretKey, options, callback); // generate token
+  jwt.sign(payload, secretKey, options, callback); // generate token
 };
 
 //////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ module.exports.sendToken = (req, res, next) => {
   res.status(200).json({
     message: res.locals.message,
     token: res.locals.token,
-    userId: res.locals.userId
+    userId: res.locals.userId,
   });
 };
 
@@ -67,18 +67,18 @@ module.exports.verifyToken = (req, res, next) => {
   const token = authHeader.substring(7);
 
   if (!token) {
-    return res.status(401).json({ error: "No token provided" });
+    return res.status(401).json({ error: 'No token provided' });
   }
 
   const callback = (err, decoded) => {
     if (err) {
-        console.log("RAW AUTH HEADER:", req.headers.authorization);
-         console.log("JWT ERROR:", err.message); 
-      return res.status(401).json({ error: "Invalid token" });
+      console.log('RAW AUTH HEADER:', req.headers.authorization);
+      console.log('JWT ERROR:', err.message);
+      return res.status(401).json({ error: 'Invalid token' });
     }
 
     res.locals.userId = decoded.userId;
-    res.locals.tokenTimestamp = decoded.timestamp;
+    res.locals.tokenTimestamp = decoded.timestamp || decoded.iat;
 
     next();
   };

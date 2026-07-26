@@ -1,3 +1,5 @@
+/* global authFetch */
+
 let currentUserId = null;
 let selectedContactId = null;
 let selectedContactName = '';
@@ -100,7 +102,8 @@ async function selectContact(userId, name) {
     const data = await fetchConversation(userId);
     appendMessages(data.messages, true);
   } catch (err) {
-    document.getElementById('chatMessages').innerHTML = `<p class="chat-error">${escapeHtml(err.message)}</p>`;
+    document.getElementById('chatMessages').innerHTML =
+      `<p class="chat-error">${escapeHtml(err.message)}</p>`;
   }
 }
 
@@ -167,7 +170,8 @@ function setupChatForm() {
       appendMessages(data.messages);
       input.focus();
     } catch (err) {
-      document.getElementById('chatMessages').innerHTML = `<p class="chat-error">${escapeHtml(err.message)}</p>`;
+      document.getElementById('chatMessages').innerHTML =
+        `<p class="chat-error">${escapeHtml(err.message)}</p>`;
     }
   });
 }
@@ -197,7 +201,8 @@ async function initPersonalChat(userId) {
   try {
     await loadContacts();
   } catch (err) {
-    document.getElementById('chatContactList').innerHTML = `<li class="chat-error">${escapeHtml(err.message)}</li>`;
+    document.getElementById('chatContactList').innerHTML =
+      `<li class="chat-error">${escapeHtml(err.message)}</li>`;
   }
 }
 
