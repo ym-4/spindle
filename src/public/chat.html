@@ -66,17 +66,94 @@
             </div>
             <div id="chatActive" class="wa-chat-active">
               <div class="wa-chat-header">
-                <div id="chatHeaderAvatar" class="wa-avatar"></div>
-                <div class="wa-chat-header__name"><strong id="chatHeaderName"></strong></div>
+                <button
+                  type="button"
+                  class="wa-icon-btn wa-back-btn"
+                  id="btnBackToContacts"
+                  title="Back"
+                >
+                  <i class="fas fa-arrow-left"></i>
+                </button>
+                <div id="chatHeaderAvatar" class="wa-avatar" style="cursor: pointer"></div>
+                <div class="wa-chat-header__name" style="cursor: pointer" id="chatHeaderNameWrap">
+                  <strong id="chatHeaderName"></strong>
+                  <span id="chatHeaderStatus" class="wa-header-status"></span>
+                </div>
+                <div id="chatSearchBar" class="wa-header-search d-none">
+                  <input
+                    type="text"
+                    id="chatSearchInput"
+                    placeholder="Search messages…"
+                    autocomplete="off"
+                  />
+                  <span id="chatSearchCount" class="wa-header-search-count"></span>
+                  <button
+                    type="button"
+                    class="wa-icon-btn"
+                    id="btnCloseSearch"
+                    title="Close search"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <button type="button" class="wa-icon-btn" id="btnToggleSearch" title="Search">
+                  <i class="fas fa-search"></i>
+                </button>
                 <button type="button" class="wa-icon-btn" id="btnVoiceCall" title="Voice call">
-                  📞
+                  <i class="fas fa-phone"></i>
                 </button>
                 <button type="button" class="wa-icon-btn" id="btnVideoCall" title="Video call">
-                  📹
+                  <i class="fas fa-video"></i>
+                </button>
+                <div class="wa-header-menu-wrap">
+                  <button type="button" class="wa-icon-btn" id="btnChatMenu" title="More">
+                    <i class="fas fa-ellipsis-v"></i>
+                  </button>
+                  <div id="chatDropdownMenu" class="wa-dropdown-menu hidden">
+                    <button type="button" data-action="mute">
+                      <i class="fas fa-bell-slash"></i> Mute
+                    </button>
+                    <button type="button" data-action="unmute" class="hidden">
+                      <i class="fas fa-bell"></i> Unmute
+                    </button>
+                    <button type="button" data-action="pin">
+                      <i class="fas fa-thumbtack"></i> Pin chat
+                    </button>
+                    <button type="button" data-action="unpin" class="hidden">
+                      <i class="fas fa-thumbtack"></i> Unpin chat
+                    </button>
+                    <button type="button" data-action="wallpaper">
+                      <i class="fas fa-image"></i> Chat wallpaper
+                    </button>
+                    <button type="button" data-action="block">
+                      <i class="fas fa-ban"></i> Block
+                    </button>
+                    <button type="button" data-action="clear" class="text-danger">
+                      <i class="fas fa-trash"></i> Clear chat
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div id="chatTypingIndicator" class="wa-typing-indicator hidden">
+                <span id="typingName"></span> is typing<span class="wa-typing-dots"
+                  ><span>.</span><span>.</span><span>.</span></span
+                >
+              </div>
+              <div id="replyPreview" class="wa-reply-preview hidden">
+                <div class="wa-reply-preview__body">
+                  <strong>Replying</strong>
+                  <span id="replyPreviewText"></span>
+                </div>
+                <button type="button" class="wa-icon-btn" id="cancelReply" title="Cancel reply">
+                  <i class="fas fa-times"></i>
                 </button>
               </div>
               <div id="chatMessages" class="wa-messages"></div>
               <form id="chatForm" class="wa-compose">
+                <label for="chatImageInput" class="wa-attach-btn" title="Attach image">
+                  <i class="fas fa-paperclip"></i>
+                </label>
+                <input type="file" id="chatImageInput" accept="image/*" style="display: none" />
                 <input
                   type="text"
                   id="chatInput"
@@ -84,8 +161,16 @@
                   maxlength="2000"
                   autocomplete="off"
                 />
-                <button type="submit" class="wa-btn">Send</button>
+                <button type="submit" class="wa-send-btn" id="btnSend" title="Send">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
               </form>
+              <div id="chatImagePreview" class="wa-image-preview hidden">
+                <img id="chatImagePreviewImg" alt="Preview" />
+                <button type="button" class="wa-icon-btn" id="cancelImagePreview" title="Remove">
+                  <i class="fas fa-times-circle"></i>
+                </button>
+              </div>
             </div>
           </section>
         </div>
@@ -99,6 +184,7 @@
         <div id="callVideoWrap" class="wa-call-videos hidden">
           <video id="localVideo" autoplay muted playsinline class="wa-call-local"></video>
           <video id="remoteVideo" autoplay playsinline class="wa-call-remote"></video>
+          <video id="screenShareVideo" autoplay playsinline class="wa-call-remote hidden"></video>
         </div>
         <div id="callIncomingActions" class="wa-call-actions hidden">
           <button
@@ -121,6 +207,9 @@
         <div id="callActiveControls" class="wa-call-controls hidden">
           <button type="button" class="wa-call-ctrl" id="btnMute" title="Mute">🎤</button>
           <button type="button" class="wa-call-ctrl" id="btnToggleVideo" title="Camera">📹</button>
+          <button type="button" class="wa-call-ctrl" id="btnScreenShare" title="Share screen">
+            🖥️
+          </button>
           <button type="button" class="wa-call-ctrl wa-call-ctrl--end" id="btnEndCall" title="End">
             📵
           </button>
@@ -132,6 +221,52 @@
         <button type="button" class="wa-btn wa-btn--ghost hidden" id="btnCancelRinging">
           Cancel
         </button>
+      </div>
+    </div>
+
+    <div id="wallpaperPicker" class="wa-wallpaper-picker hidden">
+      <div class="wa-wallpaper-picker__backdrop"></div>
+      <div class="wa-wallpaper-picker__panel">
+        <h5>Chat Wallpaper</h5>
+        <div class="wa-wallpaper-grid">
+          <button
+            class="wa-wallpaper-opt"
+            data-wallpaper="default"
+            title="Default pattern"
+            style="background: var(--wa-bg); background-image: var(--wa-bg-pattern)"
+          ></button>
+          <button
+            class="wa-wallpaper-opt"
+            data-wallpaper="solid-light"
+            title="Solid light"
+            style="background: #e8e4db"
+          ></button>
+          <button
+            class="wa-wallpaper-opt"
+            data-wallpaper="solid-dark"
+            title="Solid dark"
+            style="background: #0b141a"
+          ></button>
+          <button
+            class="wa-wallpaper-opt"
+            data-wallpaper="leaves"
+            title="Leaves"
+            style="background: #1a3a2a"
+          ></button>
+          <button
+            class="wa-wallpaper-opt"
+            data-wallpaper="ocean"
+            title="Ocean"
+            style="background: #0a2e4a"
+          ></button>
+          <button
+            class="wa-wallpaper-opt"
+            data-wallpaper="sunset"
+            title="Sunset"
+            style="background: #3a1a1a"
+          ></button>
+        </div>
+        <button class="wa-btn wa-btn--ghost" id="wallpaperPickerClose">Close</button>
       </div>
     </div>
 

@@ -40,6 +40,9 @@ const {
   deleteGroupJoinRequest,
   getGroupJoinRequestByGroupAndUser,
   getGroupJoinRequestByUser,
+  getGroupDeadlines,
+  insertGroupDeadline,
+  deleteGroupDeadline,
 } = require('../models/Groups.model');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
@@ -1120,5 +1123,62 @@ router.delete(
       .catch(next);
   },
 );
+
+// ------------------------------------------------------------------
+// 							Group Deadlines
+// ------------------------------------------------------------------
+
+// GET deadlines for a group
+router.get('/deadlines/:group_id', authenticateJWT, (req, res, next) => {
+  const data = { group_id: req.params.group_id };
+  getGroupDeadlines(data)
+    .then((deadlines) => res.status(200).json(deadlines))
+    .catch(next);
+});
+
+// POST create a deadline (group member only)
+router.post('/deadlines/:group_id', authenticateJWT, (req, res, next) => {
+  if (!req.body?.title || !req.body?.deadline_date) {
+    return res.status(400).json({ message: 'title and deadline_date are required' });
+  }
+  const data = {
+    group_id: req.params.group_id,
+    title: req.body.title,
+    deadline_date: req.body.deadline_date,
+    created_by: req.user.id,
+  };
+  getGroupMemberByGroupID(data)
+    .then((members) => {
+      if (!members.find((m) => m.user_id == data.created_by)) {
+        return res.status(403).json({ message: 'You are not a member of this group' });
+      }
+      insertGroupDeadline(data)
+        .then((result) => res.status(201).json(result))
+        .catch(next);
+    })
+    .catch(next);
+});
+
+// DELETE a deadline (creator or group admin only)
+router.delete('/deadlines/:group_id/:deadline_id', authenticateJWT, (req, res, next) => {
+  const data = {
+    id: req.params.deadline_id,
+    group_id: req.params.group_id,
+    user_id: req.user.id,
+  };
+  getAllGroupAdmin(data)
+    .then((admins) => {
+      if (!admins.find((a) => a.user_id == data.user_id)) {
+        return res.status(403).json({ message: 'Only admins can delete deadlines' });
+      }
+      deleteGroupDeadline(data)
+        .then((result) => {
+          if (result.length === 0) return res.status(404).json({ message: 'Deadline not found' });
+          res.status(204).send();
+        })
+        .catch(next);
+    })
+    .catch(next);
+});
 
 module.exports = router;

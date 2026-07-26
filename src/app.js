@@ -26,6 +26,7 @@ const paymentsRouter = require('./routers/Payments.router');
 const giphyRouter = require('./routers/Giphy.router');
 const blockRouter = require('./routers/BlockedUsers.router');
 const somethingRouter = require('./routers/Something.router');
+const sessionsRouter = require('./routers/Sessions.router');
 
 const app = express();
 app.use(cors()); // Might remove later
@@ -76,6 +77,7 @@ app.use('/tags', tagsRouter);
 app.use('/payments', paymentsRouter);
 app.use('/block', blockRouter);
 app.use('/somethings', somethingRouter);
+app.use('/sessions', sessionsRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use('/giphy', giphyRouter);

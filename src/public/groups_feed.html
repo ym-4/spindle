@@ -144,6 +144,25 @@
                 </div>
               </div>
 
+              <!-- Deadline Countdown Widget -->
+              <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-calendar-event"></i> Deadlines</h6>
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      id="addDeadlineBtn"
+                      title="Add deadline"
+                    >
+                      <i class="bi bi-plus"></i>
+                    </button>
+                  </div>
+                  <div id="deadlineList" class="small">
+                    <p class="text-muted mb-0">No deadlines yet.</p>
+                  </div>
+                </div>
+              </div>
+
               <!-- Files -->
               <!-- <div class="card shadow-sm">
                             <div class="card-body">
@@ -582,6 +601,92 @@
             input.focus();
           });
         });
+
+        // Deadline Countdown Widget
+        function esc(t) {
+          var d = document.createElement('div');
+          d.textContent = t ?? '';
+          return d.innerHTML;
+        }
+        var deadlineTimer = null;
+
+        function formatCountdown(dateStr) {
+          var now = new Date();
+          var deadline = new Date(dateStr);
+          var diff = deadline - now;
+          if (diff <= 0) return '<span class="text-danger fw-bold">Past due!</span>';
+          var days = Math.floor(diff / 86400000);
+          var hours = Math.floor((diff % 86400000) / 3600000);
+          if (days > 0) return days + 'd ' + hours + 'h';
+          var mins = Math.floor((diff % 3600000) / 60000);
+          if (hours > 0) return hours + 'h ' + mins + 'm';
+          return '<span class="text-danger fw-bold">' + mins + 'm left!</span>';
+        }
+
+        function loadDeadlines() {
+          var groupId = new URLSearchParams(window.location.search).get('group_id');
+          if (!groupId) return;
+          var list = document.getElementById('deadlineList');
+          if (!list) return;
+          authFetch('/groups/deadlines/' + groupId)
+            .then(function (deadlines) {
+              if (!deadlines || deadlines.length === 0) {
+                list.innerHTML = '<p class="text-muted mb-0">No deadlines yet.</p>';
+                return;
+              }
+              list.innerHTML = deadlines
+                .map(function (d) {
+                  var countdown = formatCountdown(d.deadline_date);
+                  return (
+                    '<div class="d-flex justify-content-between align-items-start py-1 border-bottom">' +
+                    '<div><strong>' +
+                    esc(d.title) +
+                    '</strong><br><span class="text-muted" style="font-size:0.75rem">' +
+                    countdown +
+                    ' \u00B7 ' +
+                    new Date(d.deadline_date).toLocaleDateString() +
+                    '</span></div>' +
+                    '<button class="btn btn-sm btn-outline-danger py-0 px-1" data-del-deadline="' +
+                    d.id +
+                    '" title="Remove"><i class="bi bi-x"></i></button>' +
+                    '</div>'
+                  );
+                })
+                .join('');
+              list.querySelectorAll('[data-del-deadline]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                  authFetch('/groups/deadlines/' + groupId + '/' + btn.dataset.delDeadline, {
+                    method: 'DELETE',
+                  })
+                    .then(loadDeadlines)
+                    .catch(function () {});
+                });
+              });
+            })
+            .catch(function () {});
+        }
+
+        document.getElementById('addDeadlineBtn')?.addEventListener('click', function () {
+          var title = prompt('Deadline title:');
+          if (!title) return;
+          var dateStr = prompt('Deadline date (YYYY-MM-DD HH:MM):');
+          if (!dateStr) return;
+          var groupId = new URLSearchParams(window.location.search).get('group_id');
+          authFetch('/groups/deadlines/' + groupId, {
+            method: 'POST',
+            body: JSON.stringify({ title: title, deadline_date: new Date(dateStr).toISOString() }),
+          })
+            .then(loadDeadlines)
+            .catch(function (err) {
+              alert(err.message);
+            });
+        });
+
+        var groupId = new URLSearchParams(window.location.search).get('group_id');
+        if (groupId) {
+          loadDeadlines();
+          deadlineTimer = setInterval(loadDeadlines, 60000);
+        }
       });
     </script>
   </body>

@@ -7,24 +7,19 @@ const pool = require('../../src/models/db');
 // which runs scripts/reset.js before any test file executes.
 
 beforeEach(async () => {
-  // Clean slate for every test
-  await pool.query('DELETE FROM "PollVotes"');
-  await pool.query('DELETE FROM "PollOptions"');
-  await pool.query('DELETE FROM "PostPolls"');
-  await pool.query('DELETE FROM "PostReactions"');
-  await pool.query('DELETE FROM "SavedPosts"');
-  await pool.query('DELETE FROM "Posts"');
-  await pool.query('DELETE FROM "Person"');
+  // Clean slate for every test — truncate ALL tables in public schema with CASCADE
+  await pool.query(`
+    DO $$ DECLARE
+      r RECORD;
+    BEGIN
+      FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';
+      END LOOP;
+    END $$;
+  `);
 });
 
 afterAll(async () => {
-  await pool.query('DELETE FROM "PollVotes"');
-  await pool.query('DELETE FROM "PollOptions"');
-  await pool.query('DELETE FROM "PostPolls"');
-  await pool.query('DELETE FROM "PostReactions"');
-  await pool.query('DELETE FROM "SavedPosts"');
-  await pool.query('DELETE FROM "Posts"');
-  await pool.query('DELETE FROM "Person"');
   await pool.end();
 });
 

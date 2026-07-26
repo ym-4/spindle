@@ -19,7 +19,6 @@ router.get('/search', async (req, res, next) => {
   }
 });
 
-/** @deprecated use GET /friends/search */
 router.get('/users/search', async (req, res, next) => {
   try {
     const q = req.query.q?.trim();
@@ -47,7 +46,8 @@ router.get('/users/:userId/profile', async (req, res, next) => {
 
 router.get('/', async (req, res, next) => {
   try {
-    const friends = await Friends.listFriends(req.user.id);
+    const sort = req.query.sort || '';
+    const friends = await Friends.listFriends(req.user.id, sort);
     res.status(200).json({ friends });
   } catch (err) {
     next(err);
@@ -70,7 +70,8 @@ router.post('/request', async (req, res, next) => {
     if (Number.isNaN(receiverId)) {
       return res.status(400).json({ error: 'receiver_id is required.' });
     }
-    await Friends.sendRequest(req.user.id, receiverId);
+    const message = req.body?.message || '';
+    await Friends.sendRequest(req.user.id, receiverId, message);
     try {
       const { sendToUser } = require('../realtime/wsHub');
       sendToUser(receiverId, { type: 'friend:refresh' });
@@ -126,6 +127,40 @@ router.delete('/:friendId', async (req, res, next) => {
     await Friends.unfriend(req.user.id, friendId);
     res.status(200).json({ message: 'Unfriended.' });
   } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/suggested', async (req, res, next) => {
+  try {
+    const users = await Friends.suggestedFriends(req.user.id);
+    res.status(200).json({ users });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/mutual/:userId', async (req, res, next) => {
+  try {
+    const otherId = Number.parseInt(req.params.userId, 10);
+    if (Number.isNaN(otherId)) return next(createError(400, 'Invalid user id.'));
+    const users = await Friends.mutualFriendsList(req.user.id, otherId);
+    res.status(200).json({ users });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/favorite', async (req, res, next) => {
+  try {
+    const friendId = Number.parseInt(req.body?.friend_id ?? req.body?.friendId, 10);
+    if (Number.isNaN(friendId)) {
+      return res.status(400).json({ error: 'friend_id is required.' });
+    }
+    const isFavorite = await Friends.toggleFavorite(req.user.id, friendId);
+    res.status(200).json({ is_favorite: isFavorite });
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message });
     next(err);
   }
 });

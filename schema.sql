@@ -300,6 +300,18 @@ CREATE TABLE "GroupAnnouncements" (
   FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
 );
 
+CREATE TABLE "GroupDeadlines" (
+  "id" SERIAL NOT NULL,
+  "group_id" INT NOT NULL,
+  "title" TEXT NOT NULL,
+  "deadline_date" TIMESTAMPTZ NOT NULL,
+  "created_by" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "GroupDeadlines_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("created_by") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
 ---------------------------------------------------------------------------------------
 --                                  USER
 -- -------------------------------------------------------------------------------------
@@ -335,6 +347,7 @@ CREATE TABLE "FriendRequests" (
   "sender_id" INT NOT NULL,
   "receiver_id" INT NOT NULL,
   "status" friend_request_status NOT NULL DEFAULT 'pending',
+  "message" TEXT DEFAULT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "FriendRequests_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("sender_id") REFERENCES "Person"("id") ON DELETE CASCADE,
@@ -454,6 +467,7 @@ CREATE TABLE "UserFriends" (
   "user_id" INT NOT NULL,
   "friend_id" INT NOT NULL,
   "status" TEXT DEFAULT 'pending',
+  "is_favorite" BOOLEAN DEFAULT FALSE,
   CONSTRAINT "UserFriends_pkey" PRIMARY KEY ("user_id", "friend_id"),
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("friend_id") REFERENCES "Person"("id") ON DELETE CASCADE
@@ -464,13 +478,16 @@ CREATE TABLE "PersonalMessages" (
   "id" SERIAL NOT NULL,
   "sender_id" INT NOT NULL,
   "recipient_id" INT NOT NULL,
-  "body" TEXT NOT NULL,
+  "body" TEXT DEFAULT '',
+  "image_url" TEXT,
+  "reply_to_id" INT,
   "edited_at" TIMESTAMP,
   "deleted_at" TIMESTAMP,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "PersonalMessages_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("sender_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   FOREIGN KEY ("recipient_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("reply_to_id") REFERENCES "PersonalMessages"("id") ON DELETE SET NULL,
   CHECK ("sender_id" <> "recipient_id")
 );
 
@@ -496,6 +513,24 @@ CREATE TABLE "MessageReactions" (
   CONSTRAINT "MessageReactions_message_user_key" UNIQUE ("message_id", "user_id"),
   FOREIGN KEY ("message_id") REFERENCES "PersonalMessages"("id") ON DELETE CASCADE,
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "ChatMute" (
+  "user_id" INT NOT NULL,
+  "peer_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "ChatMute_pkey" PRIMARY KEY ("user_id", "peer_id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("peer_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "ChatPin" (
+  "user_id" INT NOT NULL,
+  "peer_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "ChatPin_pkey" PRIMARY KEY ("user_id", "peer_id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("peer_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 CREATE TABLE "CallLogs" (
@@ -624,6 +659,55 @@ CREATE TABLE "QuizAttempts" (
   CONSTRAINT "QuizAttempts_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("quiz_id") REFERENCES "Quizzes"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+-- Study Sessions (CA3 complex feature)
+CREATE TABLE IF NOT EXISTS "StudySessions" (
+  "id" SERIAL NOT NULL,
+  "host_id" INT NOT NULL,
+  "title" TEXT NOT NULL DEFAULT '',
+  "description" TEXT DEFAULT '',
+  "scheduled_at" TIMESTAMP NOT NULL,
+  "status" VARCHAR(20) NOT NULL DEFAULT 'scheduled',
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "StudySessions_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("host_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "SessionParticipants" (
+  "id" SERIAL NOT NULL,
+  "session_id" INT NOT NULL,
+  "user_id" INT NOT NULL,
+  "status" VARCHAR(20) NOT NULL DEFAULT 'invited',
+  "joined_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "SessionParticipants_pkey" PRIMARY KEY ("id"),
+  UNIQUE ("session_id", "user_id"),
+  FOREIGN KEY ("session_id") REFERENCES "StudySessions"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "SessionTasks" (
+  "id" SERIAL NOT NULL,
+  "session_id" INT NOT NULL,
+  "text" TEXT NOT NULL DEFAULT '',
+  "is_done" BOOLEAN NOT NULL DEFAULT FALSE,
+  "created_by" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "SessionTasks_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("session_id") REFERENCES "StudySessions"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("created_by") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "SessionRecordings" (
+  "id" SERIAL NOT NULL,
+  "session_id" INT NOT NULL,
+  "uploaded_by" INT NOT NULL,
+  "file_path" TEXT NOT NULL DEFAULT '',
+  "duration_sec" INT DEFAULT 0,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "SessionRecordings_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("session_id") REFERENCES "StudySessions"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("uploaded_by") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 -- Indexes

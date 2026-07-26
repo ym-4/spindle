@@ -154,6 +154,116 @@ function attachWebSocket(server) {
         if (msg.type === 'friend:refresh' && msg.toUserId) {
           sendToUser(Number(msg.toUserId), { type: 'friend:refresh' });
         }
+
+        if (msg.type === 'typing' && msg.toUserId) {
+          sendToUser(Number(msg.toUserId), {
+            type: 'typing',
+            fromUserId: userId,
+          });
+        }
+
+        // --- Study Session events ---
+        if (msg.type === 'session:task_added' && msg.sessionId) {
+          const participants = await (async () => {
+            try {
+              const Sessions = require('../models/Sessions.model');
+              return await Sessions.listParticipants(msg.sessionId);
+            } catch {
+              return [];
+            }
+          })();
+          participants.forEach((p) => {
+            if (p.user_id !== userId) {
+              sendToUser(p.user_id, {
+                type: 'session:task_added',
+                sessionId: msg.sessionId,
+                task: msg.task,
+              });
+            }
+          });
+        }
+
+        if (msg.type === 'session:task_toggled' && msg.sessionId) {
+          const participants = await (async () => {
+            try {
+              const Sessions = require('../models/Sessions.model');
+              return await Sessions.listParticipants(msg.sessionId);
+            } catch {
+              return [];
+            }
+          })();
+          participants.forEach((p) => {
+            if (p.user_id !== userId) {
+              sendToUser(p.user_id, {
+                type: 'session:task_toggled',
+                sessionId: msg.sessionId,
+                task: msg.task,
+              });
+            }
+          });
+        }
+
+        if (msg.type === 'session:screenshare_started' && msg.sessionId) {
+          const participants = await (async () => {
+            try {
+              const Sessions = require('../models/Sessions.model');
+              return await Sessions.listParticipants(msg.sessionId);
+            } catch {
+              return [];
+            }
+          })();
+          participants.forEach((p) => {
+            if (p.user_id !== userId) {
+              sendToUser(p.user_id, {
+                type: 'session:screenshare_started',
+                sessionId: msg.sessionId,
+                fromUserId: userId,
+              });
+            }
+          });
+        }
+
+        if (msg.type === 'session:screenshare_stopped' && msg.sessionId) {
+          const participants = await (async () => {
+            try {
+              const Sessions = require('../models/Sessions.model');
+              return await Sessions.listParticipants(msg.sessionId);
+            } catch {
+              return [];
+            }
+          })();
+          participants.forEach((p) => {
+            if (p.user_id !== userId) {
+              sendToUser(p.user_id, {
+                type: 'session:screenshare_stopped',
+                sessionId: msg.sessionId,
+                fromUserId: userId,
+              });
+            }
+          });
+        }
+
+        if (msg.type === 'session:call_signal' && msg.sessionId) {
+          const participants = await (async () => {
+            try {
+              const Sessions = require('../models/Sessions.model');
+              return await Sessions.listParticipants(msg.sessionId);
+            } catch {
+              return [];
+            }
+          })();
+          participants.forEach((p) => {
+            if (p.user_id !== userId) {
+              sendToUser(p.user_id, {
+                type: 'session:call_signal',
+                sessionId: msg.sessionId,
+                fromUserId: userId,
+                signal: msg.signal,
+                callType: msg.callType || 'voice',
+              });
+            }
+          });
+        }
       } catch (err) {
         ws.send(JSON.stringify({ type: 'error', error: err.message || 'Failed' }));
       }

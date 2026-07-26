@@ -410,6 +410,42 @@ module.exports.updateGroupJoinRequest = async function updateGroupJoinRequest(da
   return rows;
 };
 
+// -----------------------------------------------------------------------------------------------------
+//                          GroupDeadlines Table
+// -----------------------------------------------------------------------------------------------------
+
+module.exports.getGroupDeadlines = async function getGroupDeadlines(data) {
+  const VALUES = [data.group_id];
+  const { rows } = await pool.query(
+    `SELECT gd.*, p.name AS created_by_name
+     FROM "GroupDeadlines" gd
+     JOIN "Person" p ON p.id = gd.created_by
+     WHERE gd.group_id = $1
+     ORDER BY gd.deadline_date ASC`,
+    VALUES,
+  );
+  return rows;
+};
+
+module.exports.insertGroupDeadline = async function insertGroupDeadline(data) {
+  const VALUES = [data.group_id, data.title, data.deadline_date, data.created_by];
+  const { rows } = await pool.query(
+    `INSERT INTO "GroupDeadlines" (group_id, title, deadline_date, created_by)
+     VALUES ($1, $2, $3, $4) RETURNING *`,
+    VALUES,
+  );
+  return rows;
+};
+
+module.exports.deleteGroupDeadline = async function deleteGroupDeadline(data) {
+  const VALUES = [data.id, data.group_id];
+  const { rows } = await pool.query(
+    `DELETE FROM "GroupDeadlines" WHERE id = $1 AND group_id = $2 RETURNING *`,
+    VALUES,
+  );
+  return rows;
+};
+
 // DELETE join requests by group id and user id
 module.exports.deleteGroupJoinRequest = async function updateGroupJoinRequest(data) {
   const VALUES = [data.group_id, data.user_id];
