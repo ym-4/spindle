@@ -210,6 +210,21 @@ async function loadListings() {
       });
       nextItem.before(li);
     }
+
+    document.getElementById('prev-page-btn').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        container.innerHTML = '';
+        loadListings();
+      }
+    });
+    document.getElementById('next-page-btn').addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        container.innerHTML = '';
+        loadListings();
+      }
+    });
   });
 
   // Fetch and Load Listings
@@ -228,17 +243,7 @@ async function loadListings() {
           i++
         ) {
           if (!data[i]) continue;
-          addListing(
-            data[i].seller_id,
-            data[i].id,
-            data[i].name,
-            data[i].description,
-            data[i].price,
-            data[i].quality,
-            data[i].meetup,
-            data[i].images,
-            data[i].tags,
-          );
+          addListing({ ...data[i], mode: 'browse' });
         }
       }
     } else {
@@ -274,6 +279,21 @@ async function loadUserListings() {
       });
       nextItem.before(li);
     }
+
+    document.getElementById('prev-page-btn').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        container.innerHTML = '';
+        loadListings();
+      }
+    });
+    document.getElementById('next-page-btn').addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        container.innerHTML = '';
+        loadListings();
+      }
+    });
   });
 
   // Fetch and Load Listings
@@ -427,32 +447,5 @@ if (document.title == 'Marketplace') {
 } else if (document.title == 'Cart') {
   loadCart();
 } else if (document.title == 'Marketplace - Your Listings') {
-  document.getElementById('prev-page-btn').addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      container.innerHTML = '';
-      loadListings();
-    }
-  });
-  document.getElementById('next-page-btn').addEventListener('click', () => {
-    currentPage++;
-    container.innerHTML = '';
-    loadListings();
-  });
-
-    document.getElementById('prev-page-btn').addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
-    document.getElementById('next-page-btn').addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
-  });
+  loadUserListings();
 }
