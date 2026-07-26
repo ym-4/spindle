@@ -185,3 +185,29 @@ module.exports.deleteCommentByPostOwner = async function deleteCommentByPostOwne
   );
   return rows[0] || null;
 };
+
+// reporting a comment
+module.exports.insertCommentReport = async function insertCommentReport(data) {
+  const VALUES = [data.comment_id, data.user_id, data.reason, data.description || ''];
+  const { rows } = await pool.query(
+    'INSERT INTO "CommentReports" (comment_id, user_id, reason, description) VALUES ($1, $2, $3, $4) RETURNING *',
+    VALUES,
+  );
+  return rows[0];
+};
+
+module.exports.getAllCommentReports = async function getAllCommentReports(includeDismissed) {
+  const { rows } = await pool.query(
+    `SELECT cr.id, cr.comment_id, cr.reason, cr.description, cr.created_at, cr.dismissed,
+            u.id AS reporter_id, u.name AS reporter_name, u.email AS reporter_email,
+            pc.content AS comment_content, pc.post_id AS post_id, pc.user_id AS comment_author_id,
+            ca.name AS comment_author_name
+     FROM "CommentReports" cr
+     JOIN "Person" u ON cr.user_id = u.id
+     JOIN "PostComments" pc ON cr.comment_id = pc.id
+     LEFT JOIN "Person" ca ON pc.user_id = ca.id
+     ${includeDismissed ? '' : 'WHERE (cr.dismissed IS NULL OR cr.dismissed = FALSE)'}
+     ORDER BY cr.created_at DESC`,
+  );
+  return rows;
+};

@@ -159,7 +159,6 @@ body {
   background: var(--hover-bg);
   color: var(--text-primary);
   border-radius: 999px;
-  padding: 0.48rem 1rem;
   font-weight: 600;
   font-size: 0.9rem;
   text-decoration: none;
@@ -179,21 +178,61 @@ body {
   color: var(--primary-color);
 }
 
+#profileButton .navbar-avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary-color, #e02020), #ff7474);
+  border: 1px solid #d8f1ef;
+  box-shadow:
+    0 0 0 3px rgba(108, 193, 189, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+#profileButton:hover .navbar-avatar {
+  transform: scale(1.06);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
 .btn-navbar-logout {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: #fff5f5;
+  border-color: #f1bcbc;
+  color: #c13737;
+  font-size: 0.88rem;
   font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: 10px;
   cursor: pointer;
-  padding: 0.48rem 0.9rem;
-  border-radius: 999px;
-  transition: all 0.2s ease;
 }
 
 .btn-navbar-logout:hover {
-  background: #fff0f0;
-  color: var(--danger-color);
+  border: 1px solid #e4e6eb;
+  background: #f7f8fa;
+  color: var(--text-secondary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(214, 69, 69, 0.12);
+}
+
+.btn-navbar-logout:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 /*  Layout  */
@@ -1264,26 +1303,28 @@ body {
 .post-tag {
   display: inline-flex;
   align-items: center;
-  padding: 0.18rem 0.6rem;
-  background: var(--hover-bg);
-  border: 1px solid var(--border-color);
+  padding: 0.2rem 0.65rem;
+  background: rgba(224, 32, 32, 0.07);
+  border: 1px solid rgba(224, 32, 32, 0.22);
   border-radius: 10px;
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--primary-hover);
   cursor: pointer;
   transition:
     background 0.15s,
     color 0.15s,
-    border-color 0.15s;
+    border-color 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 
 .post-tag:hover {
   transform: translateY(-1px) scale(1.04);
-  background: #f4ecff;
-  color: #8b5cf6;
-  border-color: #b794f6;
-  box-shadow: 0 6px 14px rgba(139, 92, 246, 0.18);
+  background: rgba(224, 32, 32, 0.14);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 6px 14px rgba(224, 32, 32, 0.18);
 }
 
 .post-tag:active {
@@ -1307,7 +1348,7 @@ body {
 
 .tag-input-wrapper:focus-within {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 0.15rem rgba(24, 119, 242, 0.1);
+  box-shadow: 0 0 0 0.15rem rgba(224, 32, 32, 0.1);
 }
 
 .tag-chip {
@@ -1315,7 +1356,7 @@ body {
   align-items: center;
   gap: 0.3rem;
   padding: 0.18rem 0.55rem;
-  background: #e7f3ff;
+  background: #fdeaea;
   border: 1px solid var(--primary-color);
   border-radius: 20px;
   font-size: 0.8rem;
@@ -1328,7 +1369,7 @@ body {
 
 .tag-chip:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(24, 119, 242, 0.15);
+  box-shadow: 0 4px 10px rgba(224, 32, 32, 0.15);
 }
 
 .tag-chip-remove {
@@ -1468,29 +1509,134 @@ body {
   font-size: 15px;
 }
 
+/* Edit mode: Attachment/GIF  */
+.mb-3:has(#editAttachment) {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--background-color);
+}
+
+#currentAttachmentPreview:not(:empty) {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--card-background);
+  width: fit-content;
+}
+
+#currentAttachmentPreview img,
+#currentAttachmentPreview video {
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  display: block;
+}
+
+#editAttachment {
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--card-background);
+  font-size: 0.85rem;
+  padding: 0.4rem 0.7rem 0.4rem 0.4rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+#editAttachment:hover {
+  border-color: var(--primary-color);
+}
+
+#editAttachment:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(224, 32, 32, 0.1);
+}
+
+#editAttachment::file-selector-button {
+  border: none;
+  border-radius: 7px;
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.85rem;
+  margin-right: 0.75rem;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+#editAttachment::file-selector-button:hover {
+  background: #fdeaea;
+  color: var(--primary-color);
+}
+
 #openEditGifPicker {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
   border: none;
-  border-radius: 45%;
-  background: linear-gradient(135deg, #676767, #1d1d1d);
+  border-radius: 999px;
+  padding: 0.45rem 1.1rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
   color: #fff;
-  font-size: 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
   cursor: pointer;
 }
 
-#openEditGifPicker:hover {
-  transform: translateY(-1px) scale(1.04);
-}
-
-#openEditGifPicker:active {
-  transform: scale(0.5);
+#openEditGifPicker::before {
+  content: '\f03e';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  font-size: 0.8rem;
 }
 
 /* Comment gif panel */
 #commentGifPanel {
   margin-bottom: 0.5rem;
+}
+
+/* reply box mode */
+.reply-gif-btn,
+.comment-edit-gif-btn,
+label:has(> .reply-attachment-input),
+label:has(> .comment-edit-attachment-input) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  margin-bottom: 0 !important;
+  border: 1.5px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--card-background);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.reply-gif-btn i,
+.comment-edit-gif-btn i,
+label:has(> .reply-attachment-input) i,
+label:has(> .comment-edit-attachment-input) i {
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.reply-gif-panel .form-control,
+.comment-edit-gif-panel .form-control {
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color);
+  font-size: 0.85rem;
 }
 
 /* Comment attachment preview */

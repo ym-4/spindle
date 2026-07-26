@@ -1336,5 +1336,3 @@ describe('Posts.model - updateReaction', () => {
     ).rejects.toThrow('connection lost');
   });
 });
-
-// reports model wip

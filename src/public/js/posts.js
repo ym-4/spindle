@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const REACTIONS_BASE = `${currentUrl}/posts`;
+let currentPostOwnerId = null;
 let currentReaction = null;
 let commentReactions = new Map();
 let openReplyThreads = new Set();
@@ -676,6 +677,7 @@ function renderPost(post) {
   const isLoggedIn = !!localStorage.getItem('token');
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
   const isOwner = loggedInUserId && parseInt(post.user_id) === loggedInUserId;
+  currentPostOwnerId = parseInt(post.user_id) || null;
   const isSaved = savedPostIds.has(parseInt(post.id));
 
   const ownerOptions = isOwner
@@ -1054,6 +1056,7 @@ function renderPostEditMode(post) {
   setupRemoveAttachmentButton(post);
   setupEditPollSection(post);
   setupEditTagSection(post);
+  loadRelatedPosts(post.id, post.category);
 
   document.getElementById('cancelEditBtn').addEventListener('click', () => {
     const url = new URL(window.location.href);
@@ -1108,6 +1111,13 @@ function renderPostEditMode(post) {
 function setupEditPollSection(post) {
   const section = document.getElementById('editPollSection');
   if (!section) return;
+
+  if (!post.poll_id) {
+    // No poll on this post
+    section.innerHTML = '';
+    section.dataset.hasPoll = '';
+    return;
+  }
 
   const token = localStorage.getItem('token');
 
@@ -1802,6 +1812,7 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
 
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
   const isLoggedIn = !!localStorage.getItem('token');
+  const isPostOwner = isLoggedIn && currentPostOwnerId && loggedInUserId === currentPostOwnerId;
   const isOwner = isLoggedIn && parseInt(comment.user_id) === loggedInUserId;
 
   const menuOptions = `
@@ -1831,7 +1842,12 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
         <button class="dropdown-item edit-comment-btn">
           <i class="fas fa-pen me-2"></i>Edit
         </button>
-      </li>
+      </li>`
+        : ''
+    }
+    ${
+      isOwner || isPostOwner
+        ? `
       <li>
         <button class="dropdown-item text-danger delete-comment-btn">
           <i class="fas fa-trash-alt me-2"></i>Delete
@@ -2005,16 +2021,18 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
       enterEditMode(el, comment),
     );
 
-    el.querySelector('.delete-comment-btn').addEventListener('click', () => {
-      showConfirm('Delete comment?', 'This will permanently remove your comment.', () =>
-        deleteComment(comment.id, el, postId),
-      );
-    });
-
     el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
     el.querySelector('.save-edit-comment-btn').addEventListener('click', () =>
       saveCommentEdit(comment.id, el, postId),
     );
+  }
+
+  if (isOwner || isPostOwner) {
+    el.querySelector('.delete-comment-btn').addEventListener('click', () => {
+      showConfirm('Delete comment?', 'This will permanently remove this comment.', () =>
+        deleteComment(comment.id, el, postId),
+      );
+    });
   }
 
   // Comment reactions
@@ -3306,7 +3324,7 @@ function closeShareDropdown() {
 }
 
 // Report modal
-function openReportModal(postId) {
+function openReportModal(id, type = 'post') {
   const existing = document.getElementById('reportModalOverlay');
   if (existing) existing.remove();
 
@@ -3319,14 +3337,21 @@ function openReportModal(postId) {
     { icon: 'fas fa-flag', label: 'Other' },
   ];
 
+  const label = type === 'comment' ? 'comment' : 'post';
+  const endpoint =
+    type === 'comment'
+      ? `${feedApiBase()}/comments/${id}/report`
+      : `${feedApiBase()}/posts/${id}/report`;
+
   const overlay = document.createElement('div');
   overlay.className = 'report-modal-overlay';
   overlay.id = 'reportModalOverlay';
 
   overlay.innerHTML = `
     <div class="report-modal-card">
-      <h5>Report post</h5>
-      <p class="report-modal-sub">Why are you reporting this post?</p>
+      <h5>Report ${label}</h5>
+      <p class="report-modal-sub">Why are you reporting this ${label}?</p>
+
       <div id="reportReasonsContainer">
         ${reasons
           .map(
@@ -3338,8 +3363,18 @@ function openReportModal(postId) {
           )
           .join('')}
       </div>
+
+      <div id="reportDescriptionStep" style="display:none;">
+        <textarea id="reportDescriptionInput" class="form-control form-control-sm" rows="3" placeholder="Tell us more..."></textarea>
+        <div class="report-modal-actions mt-2">
+          <button class="btn btn-outline-secondary btn-sm" id="reportBackBtn">Back</button>
+          <button class="btn btn-primary btn-sm" id="reportSubmitDescBtn">Submit</button>
+        </div>
+      </div>
+
       <div id="reportThanks" style="display:none; text-align:center; padding:1rem 0;"></div>
-      <div class="report-modal-actions">
+
+      <div class="report-modal-actions" id="reportMainActions">
         <button class="btn btn-outline-secondary btn-sm" id="reportCancelBtn">Cancel</button>
       </div>
     </div>
@@ -3348,46 +3383,69 @@ function openReportModal(postId) {
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
 
-  overlay.querySelectorAll('.report-reason-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const token = localStorage.getItem('token');
-      const user_id = localStorage.getItem('loggedInUserId');
+  const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
+  const descStep = overlay.querySelector('#reportDescriptionStep');
+  const thanksEl = overlay.querySelector('#reportThanks');
+  const mainActions = overlay.querySelector('#reportMainActions');
+  const cancelBtn = overlay.querySelector('#reportCancelBtn');
 
-      fetchMethod(
-        `${feedApiBase()}/posts/${postId}/report`,
-        (status, data) => {
-          const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
-          const thanksEl = overlay.querySelector('#reportThanks');
-          const cancelBtn = overlay.querySelector('#reportCancelBtn');
+  function submitReport(reason, description) {
+    const token = localStorage.getItem('token');
+    const user_id = localStorage.getItem('loggedInUserId');
 
-          reasonsContainer.style.display = 'none';
-          cancelBtn.textContent = 'Close';
+    fetchMethod(
+      endpoint,
+      (status, data) => {
+        reasonsContainer.style.display = 'none';
+        descStep.style.display = 'none';
+        cancelBtn.textContent = 'Close';
 
-          if (status === 409) {
-            thanksEl.innerHTML = `
+        if (status === 409) {
+          thanksEl.innerHTML = `
             <i class="fas fa-info-circle fa-2x mb-2 d-block" style="color:var(--primary-color);"></i>
             <div class="fw-bold">Already reported</div>
-            <div class="text-muted small mt-1">You've already submitted a report for this post.</div>
+            <div class="text-muted small mt-1">You've already submitted a report for this ${label}.</div>
           `;
-          } else {
-            thanksEl.innerHTML = `
+        } else {
+          thanksEl.innerHTML = `
             <i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i>
             <div class="fw-bold">Thanks for your report</div>
-            <div class="text-muted small mt-1">We'll review this post and take action if needed.</div>
+            <div class="text-muted small mt-1">We'll review this ${label} and take action if needed.</div>
           `;
-          }
+        }
 
-          thanksEl.style.display = 'block';
-          setTimeout(() => closeReportModal(), 2500);
-        },
-        'POST',
-        { user_id, reason: btn.dataset.reason },
-        token,
-      );
+        thanksEl.style.display = 'block';
+        setTimeout(() => closeReportModal(), 2500);
+      },
+      'POST',
+      { user_id, reason, description },
+      token,
+    );
+  }
+
+  overlay.querySelectorAll('.report-reason-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.reason === 'Other') {
+        reasonsContainer.style.display = 'none';
+        descStep.style.display = 'block';
+        overlay.querySelector('#reportDescriptionInput').value = '';
+      } else {
+        submitReport(btn.dataset.reason, '');
+      }
     });
   });
 
-  overlay.querySelector('#reportCancelBtn').addEventListener('click', closeReportModal);
+  overlay.querySelector('#reportSubmitDescBtn').addEventListener('click', () => {
+    const description = overlay.querySelector('#reportDescriptionInput').value.trim();
+    submitReport('Other', description);
+  });
+
+  overlay.querySelector('#reportBackBtn').addEventListener('click', () => {
+    descStep.style.display = 'none';
+    reasonsContainer.style.display = '';
+  });
+
+  cancelBtn.addEventListener('click', closeReportModal);
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeReportModal();
   });

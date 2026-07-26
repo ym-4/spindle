@@ -654,7 +654,7 @@ module.exports.deleteReaction = async function deleteReaction(data) {
 module.exports.insertReport = async function insertReport(data) {
   const VALUES = [data.post_id, data.user_id, data.reason, data.description || ''];
   const { rows } = await pool.query(
-    'INSERT INTO "Reports" (post_id, user_id, reason, description) VALUES ($1, $2, $3, $4) RETURNING *',
+    'INSERT INTO "PostReports" (post_id, user_id, reason, description) VALUES ($1, $2, $3, $4) RETURNING *',
     VALUES,
   );
   return rows[0];
@@ -666,7 +666,7 @@ module.exports.getAllReports = async function getAllReports(includeDismissed) {
             u.id AS reporter_id, u.name AS reporter_name, u.email AS reporter_email,
             p.title AS post_title, p.user_id AS post_author_id,
             pa.name AS post_author_name
-     FROM "Reports" r
+     FROM "PostReports" r
      JOIN "Person" u ON r.user_id = u.id
      JOIN "Posts" p ON r.post_id = p.id
      LEFT JOIN "Person" pa ON p.user_id = pa.id

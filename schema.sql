@@ -224,7 +224,7 @@ CREATE TABLE "SavedComments" (
   UNIQUE("user_id", "comment_id")
 );
 
-CREATE TABLE "Reports" (
+CREATE TABLE "PostReports" (
   "id" SERIAL PRIMARY KEY,
   "post_id" INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
   "user_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
@@ -233,6 +233,17 @@ CREATE TABLE "Reports" (
   "dismissed" BOOLEAN DEFAULT FALSE,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE ("post_id", "user_id")
+);
+
+CREATE TABLE "CommentReports" (
+  "id" SERIAL PRIMARY KEY,
+  "comment_id" INT NOT NULL REFERENCES "PostComments"("id") ON DELETE CASCADE,
+  "user_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "reason" VARCHAR(100) NOT NULL,
+  "description" TEXT DEFAULT '',
+  "dismissed" BOOLEAN DEFAULT FALSE,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE ("comment_id", "user_id")
 );
 
 CREATE TABLE "SnakeScores" (

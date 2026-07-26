@@ -42,6 +42,7 @@ const {
   deleteCommentReaction,
   deleteCommentByPostOwner,
   insertCommentReport,
+  getAllCommentReports,
 } = require('../models/PostComments.model');
 
 const router = express.Router();
@@ -420,6 +421,41 @@ router.delete('/:id', authenticateJWT, (req, res) => {
     .catch((error) => {
       console.error('Error deleteCommentsByID: ' + error);
       res.status(500).json(error);
+    });
+});
+
+// Get all comment reports (admin only)
+router.get('/reports', authenticateJWT, async (req, res, next) => {
+  try {
+    const includeDismissed = req.query.includeDismissed === 'true';
+    const reports = await getAllCommentReports(includeDismissed);
+    res.status(200).json(reports);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Report a comment
+router.post('/:id/report', (req, res) => {
+  if (!req.body.user_id || !req.body.reason) {
+    return res.status(400).json({ message: 'user_id and reason not found.' });
+  }
+
+  const data = {
+    comment_id: req.params.id,
+    user_id: req.body.user_id,
+    reason: req.body.reason,
+    description: req.body.description || '',
+  };
+
+  insertCommentReport(data)
+    .then((result) => res.status(201).json(result))
+    .catch((error) => {
+      if (error.code === '23505') {
+        return res.status(409).json({ message: 'You have already reported this comment.' });
+      }
+      console.error('Error insertCommentReport:', error);
+      res.status(500).json({ message: 'Failed to submit report.' });
     });
 });
 

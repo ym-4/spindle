@@ -526,6 +526,11 @@ function buildSavedCommentCard(item, token) {
               <i class="fas fa-bookmark me-2"></i>Unsave
             </button>
           </li>
+           <li>
+            <button class="dropdown-item report-comment-btn">
+              <i class="fas fa-flag me-2"></i>Report
+            </button>
+          </li>
         </ul>
       </div>
     </div>
@@ -579,6 +584,17 @@ function buildSavedCommentCard(item, token) {
       null,
       token,
     );
+  });
+
+  // Report
+  el.querySelector('.report-comment-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showLoginPrompt();
+      return;
+    }
+    openReportModal(item.comment_id, 'comment');
   });
 
   return el;
@@ -905,7 +921,7 @@ function closeShareDropdown() {
 }
 
 // Report modal
-function openReportModal(postId) {
+function openReportModal(id, type = 'post') {
   const existing = document.getElementById('reportModalOverlay');
   if (existing) existing.remove();
 
@@ -918,14 +934,21 @@ function openReportModal(postId) {
     { icon: 'fas fa-flag', label: 'Other' },
   ];
 
+  const label = type === 'comment' ? 'comment' : 'post';
+  const endpoint =
+    type === 'comment'
+      ? `${savedApiBase()}/comments/${id}/report`
+      : `${savedApiBase()}/posts/${id}/report`;
+
   const overlay = document.createElement('div');
   overlay.className = 'report-modal-overlay';
   overlay.id = 'reportModalOverlay';
 
   overlay.innerHTML = `
     <div class="report-modal-card">
-      <h5>Report post</h5>
-      <p class="report-modal-sub">Why are you reporting this post?</p>
+      <h5>Report ${label}</h5>
+      <p class="report-modal-sub">Why are you reporting this ${label}?</p>
+
       <div id="reportReasonsContainer">
         ${reasons
           .map(
@@ -937,8 +960,18 @@ function openReportModal(postId) {
           )
           .join('')}
       </div>
+
+      <div id="reportDescriptionStep" style="display:none;">
+        <textarea id="reportDescriptionInput" class="form-control form-control-sm" rows="3" placeholder="Tell us more..."></textarea>
+        <div class="report-modal-actions mt-2">
+          <button class="btn btn-outline-secondary btn-sm" id="reportBackBtn">Back</button>
+          <button class="btn btn-primary btn-sm" id="reportSubmitDescBtn">Submit</button>
+        </div>
+      </div>
+
       <div id="reportThanks" style="display:none; text-align:center; padding:1rem 0;"></div>
-      <div class="report-modal-actions">
+
+      <div class="report-modal-actions" id="reportMainActions">
         <button class="btn btn-outline-secondary btn-sm" id="reportCancelBtn">Cancel</button>
       </div>
     </div>
@@ -947,46 +980,68 @@ function openReportModal(postId) {
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
 
-  overlay.querySelectorAll('.report-reason-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const token = localStorage.getItem('token');
-      const user_id = localStorage.getItem('loggedInUserId');
+  const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
+  const descStep = overlay.querySelector('#reportDescriptionStep');
+  const thanksEl = overlay.querySelector('#reportThanks');
+  const cancelBtn = overlay.querySelector('#reportCancelBtn');
 
-      fetchMethod(
-        `${savedApiBase()}/posts/${postId}/report`,
-        (status) => {
-          const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
-          const thanksEl = overlay.querySelector('#reportThanks');
-          const cancelBtn = overlay.querySelector('#reportCancelBtn');
+  function submitReport(reason, description) {
+    const token = localStorage.getItem('token');
+    const user_id = localStorage.getItem('loggedInUserId');
 
-          reasonsContainer.style.display = 'none';
-          cancelBtn.textContent = 'Close';
+    fetchMethod(
+      endpoint,
+      (status) => {
+        reasonsContainer.style.display = 'none';
+        descStep.style.display = 'none';
+        cancelBtn.textContent = 'Close';
 
-          if (status === 409) {
-            thanksEl.innerHTML = `
+        if (status === 409) {
+          thanksEl.innerHTML = `
             <i class="fas fa-info-circle fa-2x mb-2 d-block" style="color:var(--primary-color);"></i>
             <div class="fw-bold">Already reported</div>
-            <div class="text-muted small mt-1">You've already submitted a report for this post.</div>
+            <div class="text-muted small mt-1">You've already submitted a report for this ${label}.</div>
           `;
-          } else {
-            thanksEl.innerHTML = `
+        } else {
+          thanksEl.innerHTML = `
             <i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i>
             <div class="fw-bold">Thanks for your report</div>
-            <div class="text-muted small mt-1">We'll review this post and take action if needed.</div>
+            <div class="text-muted small mt-1">We'll review this ${label} and take action if needed.</div>
           `;
-          }
+        }
 
-          thanksEl.style.display = 'block';
-          setTimeout(() => closeReportModal(), 2500);
-        },
-        'POST',
-        { user_id, reason: btn.dataset.reason },
-        token,
-      );
+        thanksEl.style.display = 'block';
+        setTimeout(() => closeReportModal(), 2500);
+      },
+      'POST',
+      { user_id, reason, description },
+      token,
+    );
+  }
+
+  overlay.querySelectorAll('.report-reason-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.reason === 'Other') {
+        reasonsContainer.style.display = 'none';
+        descStep.style.display = 'block';
+        overlay.querySelector('#reportDescriptionInput').value = '';
+      } else {
+        submitReport(btn.dataset.reason, '');
+      }
     });
   });
 
-  overlay.querySelector('#reportCancelBtn').addEventListener('click', closeReportModal);
+  overlay.querySelector('#reportSubmitDescBtn').addEventListener('click', () => {
+    const description = overlay.querySelector('#reportDescriptionInput').value.trim();
+    submitReport('Other', description);
+  });
+
+  overlay.querySelector('#reportBackBtn').addEventListener('click', () => {
+    descStep.style.display = 'none';
+    reasonsContainer.style.display = '';
+  });
+
+  cancelBtn.addEventListener('click', closeReportModal);
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeReportModal();
   });

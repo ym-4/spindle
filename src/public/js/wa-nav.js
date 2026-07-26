@@ -42,6 +42,53 @@ function ensureAuthButtons() {
   }
 }
 
+function getStoredProfile() {
+  if (typeof getStoredUser === 'function') {
+    const user = getStoredUser();
+    if (user) return user;
+  }
+  try {
+    return JSON.parse(localStorage.getItem('pineappleUser') || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function applyNavbarProfileAvatar(loggedIn) {
+  const link = document.getElementById('profileButton');
+  if (!link) return;
+
+  const user = loggedIn ? getStoredProfile() : null;
+  const profileImage = user?.profile_image || user?.avatar || null;
+  const name = user?.display_name || user?.name || '';
+  const initial = name ? name.charAt(0).toUpperCase() : 'U';
+
+  const icon = link.querySelector('i');
+  const existing = link.querySelector('.navbar-avatar');
+  if (existing) existing.remove();
+
+  if (!user) {
+    if (icon) icon.style.display = '';
+    return;
+  }
+
+  const avatarEl = document.createElement(profileImage ? 'img' : 'span');
+  avatarEl.className = 'navbar-avatar';
+  if (profileImage) {
+    avatarEl.src = profileImage;
+    avatarEl.alt = name || 'Profile';
+  } else {
+    avatarEl.textContent = initial;
+  }
+
+  if (icon) {
+    icon.style.display = 'none';
+    icon.insertAdjacentElement('afterend', avatarEl);
+  } else {
+    link.prepend(avatarEl);
+  }
+}
+
 function syncLegacyNavbar() {
   ensureAuthButtons();
 
@@ -49,6 +96,9 @@ function syncLegacyNavbar() {
     typeof isLoggedIn === 'function'
       ? isLoggedIn()
       : !!(localStorage.getItem('token') || localStorage.getItem('pineappleToken'));
+
+  applyNavbarProfileAvatar(loggedIn);
+
   const loginButton = document.getElementById('loginButton');
   const registerButton = document.getElementById('registerButton');
   const profileButton = document.getElementById('profileButton');
