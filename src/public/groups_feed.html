@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="css/theme.css" />
+    <!-- Affecting my css (looks funny) -->
+    <!-- <link rel="stylesheet" href="css/theme.css" /> -->
 
     <!-- CSS Files -->
     <link rel="stylesheet" href="css/posts.css" />
@@ -11,9 +12,11 @@
     <link rel="stylesheet" href="css/groups_feed.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
     <link rel="stylesheet" href="css/profile-page.css" />
-    <script src="js/api.js"></script>
-    <script src="js/groupsSharedFunctions.js" defer></script>
 
+    <link rel="stylesheet" href="css/navbarFix.css" />
+
+    <!-- Dragging -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
     <!-- Bootstrap CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
@@ -28,6 +31,14 @@
       integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
       crossorigin="anonymous"
     ></script>
+
+    <!-- Quill -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+
+    <!-- Cytoscape -->
+    <script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
 
     <!-- Font Awesome -->
     <link
@@ -65,7 +76,7 @@
         <div class="navbar-right">
           <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
           <a href="profile.html" class="btn-navbar-profile" id="profileButton">
-            <i class="fas fa-user-circle"></i> Profile
+            <i class="fas fa-user-circle" id="profileBtn1"></i> Profile
           </a>
           <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
         </div>
@@ -119,284 +130,1131 @@
             </div>
           </div>
 
-          <!-- MAIN GRID -->
-          <div class="row g-3">
-            <!-- LEFT PANEL: INFO + FILES -->
-            <div class="col-lg-3">
-              <!-- Group Info Card -->
-              <div class="card shadow-sm mb-3">
-                <div class="card-body">
-                  <h6 class="fw-bold">Group Info</h6>
-                  <p class="text-muted small mb-2" id="groupInfoDescription">
-                    A group for SOC students to share notes, ask questions and revise.
-                  </p>
+          <!-- Tab content -->
+          <div class="tab-content">
+            <!-- Chat tab-->
+            <div class="tab-pane fade show active" id="chatTab">
+              <div class="row g-3">
+                <!-- Right sidebar -->
+                <div class="col-lg-3">
+                  <!-- Group Info Card -->
+                  <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                      <h6 class="fw-bold">Group Info</h6>
+                      <p class="text-muted small mb-2" id="groupInfoDescription">
+                        A group for SOC students to share notes, ask questions and revise.
+                      </p>
 
-                  <div class="small">
-                    <div><i class="bi bi-book"></i> <span id="groupInfoModule">CS1010</span></div>
-                    <div>
-                      <i class="bi bi-people"></i>
-                      <span id="groupInfoMemberCount">120</span> Members
+                      <div class="small">
+                        <div>
+                          <i class="bi bi-book"></i> <span id="groupInfoModule">CS1010</span>
+                        </div>
+                        <div>
+                          <i class="bi bi-people"></i>
+                          <span id="groupInfoMemberCount">120</span> Members
+                        </div>
+                        <div>
+                          <i class="bi bi-globe"></i>
+                          <span id="groupInfoPublicity">Public</span> Group
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <i class="bi bi-globe"></i> <span id="groupInfoPublicity">Public</span> Group
+                  </div>
+                  <!-- Annoucements -->
+                  <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                      <h6 class="fw-bold"><i class="bi bi-megaphone me-2"></i>Announcements</h6>
+
+                      <div id="announcementContainer">
+                        <div class="alert p-2 small mb-2 announcement-color">
+                          Assignment 1 Released
+                        </div>
+
+                        <div class="alert p-2 small announcement-color">CA2 DUE NEXT WEEK</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Admins -->
+                  <div class="card shadow-sm">
+                    <div class="card-body">
+                      <h6 class="fw-bold">Admins</h6>
+                      <div id="adminContainer">
+                        <div class="d-flex align-items-center mb-2">
+                          <img
+                            src="images/Groups_profile_2.png"
+                            class="rounded-circle me-2"
+                            width="30"
+                            height="30"
+                          />
+                          <span>Alex</span>
+                        </div>
+
+                        <div class="d-flex align-items-center mb-2">
+                          <img
+                            src="images/Groups_profile_2.png"
+                            class="rounded-circle me-2"
+                            width="30"
+                            height="30"
+                          />
+                          <span>Jamie</span>
+                        </div>
+
+                        <div class="d-flex align-items-center">
+                          <img
+                            src="images/Groups_profile_1.png"
+                            class="rounded-circle me-2"
+                            width="30"
+                            height="30"
+                          />
+                          <span>You</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Deadline Countdown Widget -->
+                <div class="card shadow-sm mb-3">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h6 class="fw-bold mb-0"><i class="bi bi-calendar-event"></i> Deadlines</h6>
+                      <button
+                        class="btn btn-sm btn-outline-primary"
+                        id="addDeadlineBtn"
+                        title="Add deadline"
+                      >
+                        <i class="bi bi-plus"></i>
+                      </button>
+                    </div>
+                    <div id="deadlineList" class="small">
+                      <p class="text-muted mb-0">No deadlines yet.</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Deadline Countdown Widget -->
-              <div class="card shadow-sm mb-3">
-                <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold mb-0"><i class="bi bi-calendar-event"></i> Deadlines</h6>
+              <!-- Main chat -->
+              <div class="col-lg-6 d-flex flex-column">
+
+                  <!-- TAB BUTTONS -->
+                  <div class="btn-group w-100 mb-3 custom-tabs" role="tablist" id="tabButtons">
                     <button
-                      class="btn btn-sm btn-outline-primary"
-                      id="addDeadlineBtn"
-                      title="Add deadline"
+                      class="btn btn-outline-secondary active flex-fill"
+                      data-bs-toggle="tab"
+                      data-bs-target="#chatTab"
+                      id="chatBtn"
                     >
-                      <i class="bi bi-plus"></i>
+                      Chat
+                    </button>
+
+                    <button
+                      class="btn btn-outline-secondary flex-fill"
+                      data-bs-toggle="tab"
+                      data-bs-target="#filesTab"
+                      id="filesBtn"
+                    >
+                      Files
+                    </button>
+
+                    <button
+                      class="btn btn-outline-secondary flex-fill"
+                      data-bs-toggle="tab"
+                      data-bs-target="#wikiTab"
+                      id="wikiBtn"
+                    >
+                      Wiki
+                    </button>
+
+                    <button
+                      class="btn btn-outline-secondary flex-fill"
+                      data-bs-toggle="tab"
+                      data-bs-target="#tasksTab"
+                      id="tasksBtn"
+                    >
+                      Tasks
                     </button>
                   </div>
-                  <div id="deadlineList" class="small">
-                    <p class="text-muted mb-0">No deadlines yet.</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Files -->
-              <!-- <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h6 class="fw-bold">Files</h6>
-
-                                <ul class="list-group list-group-flush">
-                                    <li class="list-group-item small">
-                                        <i class="bi bi-file-earmark-pdf"></i> lecture1.pdf
-                                    </li>
-                                    <li class="list-group-item small">
-                                        <i class="bi bi-file-earmark"></i> notes.docx
-                                    </li>
-                                    <li class="list-group-item small">
-                                        <i class="bi bi-image"></i> diagram.png
-                                    </li>
-                                </ul>
-
-                                <button class="btn btn-outline-primary btn-sm w-100 mt-2">
-                                    View all
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="card shadow-sm mb-3">
-                            <div class="card-body">
-                                <h6 class="fw-bold">Files</h6>
-
-                                <div class="small text-muted mb-2">Recent uploads</div>
-
-                                <ul class="list-group list-group-flush">
-                                    <li class="list-group-item d-flex justify-content-between">
-                                        <span>lecture1.pdf</span>
-                                        <i class="bi bi-download"></i>
-                                    </li>
-
-                                    <li class="list-group-item d-flex justify-content-between">
-                                        <span>notes.docx</span>
-                                        <i class="bi bi-download"></i>
-                                    </li>
-                                </ul>
-
-                                <button class="btn btn-outline-primary btn-sm w-100 mt-2">
-                                    View all files
-                                </button>
-                            </div>
-                        </div>
-                        -->
-
-              <!-- Annoucements -->
-              <div class="card shadow-sm mb-3">
-                <div class="card-body">
-                  <h6 class="fw-bold"><i class="bi bi-megaphone me-2"></i>Announcements</h6>
-
-                  <div id="announcementContainer">
-                    <div class="alert p-2 small mb-2 announcement-color">Assignment 1 Released</div>
-
-                    <div class="alert p-2 small announcement-color">CA2 DUE NEXT WEEK</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Members -->
-              <div class="card shadow-sm">
-                <div class="card-body">
-                  <h6 class="fw-bold">Admins</h6>
-                  <div id="adminContainer">
-                    <div class="d-flex align-items-center mb-2">
-                      <img
-                        src="images/Groups_profile_2.png"
-                        class="rounded-circle me-2"
-                        width="30"
-                        height="30"
-                      />
-                      <span>Alex</span>
+                  <!-- CHAT CARD -->
+                  <div class="card shadow-sm d-flex flex-column flex-grow-1">
+                    <!-- CHAT HEADER -->
+                    <div class="card-header chat-header">
+                      <strong id="channelHeader"># general</strong>
                     </div>
 
-                    <div class="d-flex align-items-center mb-2">
-                      <img
-                        src="images/Groups_profile_2.png"
-                        class="rounded-circle me-2"
-                        width="30"
-                        height="30"
-                      />
-                      <span>Jamie</span>
+                    <!-- MESSAGES -->
+                    <div class="card-body flex-grow-1 overflow-auto" style="height: 0">
+                      <!-- messages -->
+                      <div class="chat-messages" id="message-container">
+                        <div class="chat-divider"><span> 20 May 2026 </span></div>
+
+                        <div class="msg msg-left">
+                          <div class="meta">
+                            <b class="name">Beni</b>
+                            <small>20/5/2026 18:54 AM</small>
+                          </div>
+
+                          <div class="bubble">When is the CA2 due?</div>
+                        </div>
+
+                        <div class="msg msg-left">
+                          <div class="meta">
+                            <b class="name">Emataso</b>
+                            <small>20/5/2026 20:49 AM</small>
+                          </div>
+
+                          <div class="bubble">Next week</div>
+                        </div>
+
+                        <div class="msg msg-left">
+                          <div class="meta">
+                            <b class="name">Beni</b>
+                            <small>20/5/2026 23:19 AM</small>
+                          </div>
+
+                          <div class="bubble">😭</div>
+                        </div>
+
+                        <div class="chat-divider"><span> Today </span></div>
+
+                        <div class="msg msg-left">
+                          <div class="meta">
+                            <b class="name">Hinano</b>
+                            <small>23/5/2026 10:32 AM</small>
+                          </div>
+
+                          <div class="bubble">Hey, did you finish the assignment?</div>
+                        </div>
+
+                        <div class="msg msg-right">
+                          <div class="meta">
+                            <b class="name">You</b>
+                            <small>23/5/2026 10:33 AM</small>
+                          </div>
+
+                          <div class="bubble">Yeah, I just submitted it 👍</div>
+                        </div>
+                      </div>
                     </div>
 
-                    <div class="d-flex align-items-center">
-                      <img
-                        src="images/Groups_profile_1.png"
-                        class="rounded-circle me-2"
-                        width="30"
-                        height="30"
-                      />
-                      <span>You</span>
+                    <!-- INPUT -->
+                    <div class="card-footer bg-white">
+                      <div class="input-group" id="messageDiv">
+                        <input type="text" class="form-control" placeholder="Message #general..." />
+                        <button class="btn" id="sendChatBtn">
+                          <i class="bi bi-send"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Left sidebar channel -->
+                <div class="col-lg-3">
+                  <div class="card shadow-sm">
+                    <div class="card-body">
+                      <h6 class="fw-bold mb-3">Channels</h6>
+
+                      <!-- CHANNEL LIST -->
+                      <div class="list-group list-group-flush" id="channel-container">
+                        <a
+                          href="#"
+                          class="list-group-item list-group-item-action active d-flex align-items-center channel-color"
+                          id="generalChannel"
+                        >
+                          <span class="me-2">#</span> general
+                        </a>
+
+                        <a
+                          href="#"
+                          class="list-group-item list-group-item-action d-flex align-items-center channel-color"
+                          id="assignmentChannel"
+                        >
+                          <span class="me-2">#</span> assignment-help
+                        </a>
+
+                        <a
+                          href="#"
+                          class="list-group-item list-group-item-action d-flex align-items-center channel-color"
+                          id="examChannel"
+                        >
+                          <span class="me-2">#</span> exam-prep
+                        </a>
+
+                        <a
+                          href="#"
+                          class="list-group-item list-group-item-action d-flex align-items-center channel-color"
+                          id="randomChannel"
+                        >
+                          <span class="me-2">#</span> random
+                        </a>
+                      </div>
+
+                      <hr />
+
+                      <!-- ADMINS ONLY -->
+                      <button class="btn btn-sm w-100 mt-2" id="createChannelBtn">
+                        + Create Channel
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- CENTER: CHAT -->
-            <div class="col-lg-6 d-flex flex-column">
-              <!-- TABS -->
-              <div class="btn-group w-100 mb-2 custom-tabs">
-                <button class="btn btn-outline-secondary active flex-fill" id="chatBtn">
-                  Chat
-                </button>
-                <button class="btn btn-outline-secondary flex-fill" id="filesBtn">Files</button>
-                <button class="btn btn-outline-secondary flex-fill" id="wikiBtn">Wiki</button>
-                <!-- OR change to calendar-->
-                <button class="btn btn-outline-secondary flex-fill" id="tasksBtn">Tasks</button>
-              </div>
+            <!-- Files tab -->
+            <div class="tab-pane fade" id="filesTab">
+              <div class="row g-3">
+                <!-- Left sidebar -->
+                <!-- Left Sidebar -->
+                <div class="col-lg-3">
+                  <div class="card files-sidebar border-0 shadow-sm rounded-4">
+                    <!-- Header -->
+                    <div class="files-sidebar-header">
+                      <h6 class="fw-bold mb-0">
+                        <i class="bi bi-folder2-open me-2"></i>
+                        Folders
+                      </h6>
 
-              <!-- CHAT CARD -->
-              <div class="card shadow-sm d-flex flex-column flex-grow-1">
-                <!-- CHAT HEADER -->
-                <div class="card-header chat-header">
-                  <strong id="channelHeader"># general</strong>
-                </div>
-
-                <!-- MESSAGES -->
-                <div class="card-body flex-grow-1 overflow-auto" style="height: 0">
-                  <!-- messages -->
-                  <div class="chat-messages" id="message-container">
-                    <div class="chat-divider"><span> 20 May 2026 </span></div>
-
-                    <div class="msg msg-left">
-                      <div class="meta">
-                        <b class="name">Beni</b>
-                        <small>20/5/2026 18:54 AM</small>
-                      </div>
-
-                      <div class="bubble">When is the CA2 due?</div>
+                      <!-- <button class="btn btn-primary btn-sm rounded-circle">
+                        <i class="bi bi-plus-lg"></i>
+                      </button> -->
                     </div>
 
-                    <div class="msg msg-left">
-                      <div class="meta">
-                        <b class="name">Emataso</b>
-                        <small>20/5/2026 20:49 AM</small>
+                    <!-- Folder List -->
+                    <div class="folder-list" id="folderList">
+                      <div class="folder-item active">
+                        <div class="folder-icon">
+                          <i class="bi bi-folder-fill"></i>
+                        </div>
+
+                        <span> Lecture Notes </span>
+
+                        <small> 3 </small>
                       </div>
 
-                      <div class="bubble">Next week</div>
+                      <div class="folder-item">
+                        <div class="folder-icon">
+                          <i class="bi bi-folder-fill"></i>
+                        </div>
+
+                        <span> Assignments </span>
+
+                        <small> 12 </small>
+                      </div>
+
+                      <div class="folder-item">
+                        <div class="folder-icon">
+                          <i class="bi bi-folder-fill"></i>
+                        </div>
+
+                        <span> Exams </span>
+
+                        <small> 8 </small>
+                      </div>
+
+                      <div class="folder-item">
+                        <div class="folder-icon">
+                          <i class="bi bi-folder-fill"></i>
+                        </div>
+
+                        <span> Shared Resources </span>
+
+                        <small> 42 </small>
+                      </div>
                     </div>
 
-                    <div class="msg msg-left">
-                      <div class="meta">
-                        <b class="name">Beni</b>
-                        <small>20/5/2026 23:19 AM</small>
-                      </div>
+                    <!-- Bottom Quick Actions -->
+                    <div class="quick-actions">
+                      <input type="file" id="fileInput" hidden />
+                      <button class="btn btn-light w-100 mb-2" id="uploadGroupFileBtn">
+                        <i class="bi bi-cloud-upload me-2"></i>
+                        Upload File
+                      </button>
 
-                      <div class="bubble">😭</div>
-                    </div>
-
-                    <div class="chat-divider"><span> Today </span></div>
-
-                    <div class="msg msg-left">
-                      <div class="meta">
-                        <b class="name">Hinano</b>
-                        <small>23/5/2026 10:32 AM</small>
-                      </div>
-
-                      <div class="bubble">Hey, did you finish the assignment?</div>
-                    </div>
-
-                    <div class="msg msg-right">
-                      <div class="meta">
-                        <b class="name">You</b>
-                        <small>23/5/2026 10:33 AM</small>
-                      </div>
-
-                      <div class="bubble">Yeah, I just submitted it 👍</div>
+                      <button class="btn btn-light w-100" id="newFolderBtn">
+                        <i class="bi bi-folder-plus me-2"></i>
+                        New Folder
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                <!-- INPUT -->
-                <div class="card-footer bg-white">
-                  <div class="input-group" id="messageDiv">
-                    <input type="text" class="form-control" placeholder="Message #general..." />
-                    <button class="btn" id="sendChatBtn">
-                      <i class="bi bi-send"></i>
+                <div class="col-lg-6">
+                  <!-- TAB BUTTONS -->
+                  <div class="tab-buttons-placeholder"></div>
+
+                  <div class="card shadow-sm border-0 rounded-4">
+                    <div
+                      class="card-header bg-white d-flex justify-content-between align-items-center"
+                    >
+                      <h5 class="mb-0">
+                        <i class="bi bi-folder-fill text-warning me-2"></i>
+                        <span id="fileListHeader">Lecture Notes</span>
+                      </h5>
+                    </div>
+
+                    <div class="list-group list-group-flush" id="fileList">
+                      <a
+                        href="#"
+                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                      >
+                        <div>
+                          <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>
+                          lecture1.pdf
+                          <div class="small text-muted">Uploaded by Alex • 2.4 MB</div>
+                        </div>
+
+                        <i class="bi bi-download"></i>
+                      </a>
+
+                      <a
+                        href="#"
+                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                      >
+                        <div>
+                          <i class="bi bi-file-earmark-word-fill text-primary me-2"></i>
+                          tutorial2.docx
+                          <div class="small text-muted">Uploaded by Jamie • 1.1 MB</div>
+                        </div>
+
+                        <i class="bi bi-download"></i>
+                      </a>
+
+                      <a
+                        href="#"
+                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                      >
+                        <div>
+                          <i class="bi bi-file-earmark-image-fill text-success me-2"></i>
+                          cheatsheet.png
+                          <div class="small text-muted">Uploaded by You • 980 KB</div>
+                        </div>
+
+                        <i class="bi bi-download"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right sidebar -->
+                <!-- <div class="col-lg-3">
+                  <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-header bg-white fw-bold">
+                      <i class="bi bi-clock-history me-2"></i>
+                      Recent Uploads
+                    </div>
+
+                    <div class="card-body">
+                      <div class="d-flex mb-3">
+                        <img
+                          src="images/Groups_profile_2.png"
+                          class="rounded-circle me-3"
+                          width="40"
+                        />
+
+                        <div>
+                          <strong>Alex</strong><br />
+                          <small class="text-muted"> uploaded lecture1.pdf </small>
+                        </div>
+                      </div>
+
+                      <div class="d-flex mb-3">
+                        <img
+                          src="images/Groups_profile_1.png"
+                          class="rounded-circle me-3"
+                          width="40"
+                        />
+
+                        <div>
+                          <strong>You</strong><br />
+                          <small class="text-muted"> uploaded cheatsheet.png </small>
+                        </div>
+                      </div>
+
+                      <div class="d-flex">
+                        <img
+                          src="images/Groups_profile_2.png"
+                          class="rounded-circle me-3"
+                          width="40"
+                        />
+
+                        <div>
+                          <strong>Jamie</strong><br />
+                          <small class="text-muted"> uploaded tutorial2.docx </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div> -->
+              </div>
+            </div>
+
+            <!-- Wiki tab -->
+            <div class="tab-pane fade" id="wikiTab">
+              <div class="row g-3" id="wikiNormalView">
+                <!-- Right sidebar -->
+                <div class="col-lg-3">
+                  <div class="card shadow-sm border-0 wiki-sidebar">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                      <strong><i class="bi bi-journal-text me-2"></i>Notes</strong>
+
+                      <div class="d-flex align-items-center">
+                        <div class="d-flex gap-1">
+                          <!-- Graph button -->
+                          <button class="btn btn-light" id="graphViewBtn">
+                            <i class="bi bi-diagram-3"></i>
+                          </button>
+
+                          <div class="dropdown">
+                            <button class="btn btn-light" data-bs-toggle="dropdown">
+                              <i class="bi bi-plus-lg"></i>
+                            </button>
+
+                            <ul class="dropdown-menu">
+                              <li>
+                                <a class="dropdown-item" id="createNoteBtn">
+                                  <i class="bi bi-file-earmark-text me-2"></i>
+                                  New Note
+                                </a>
+                              </li>
+
+                              <li>
+                                <a class="dropdown-item" id="createNoteFolderBtn">
+                                  <i class="bi bi-folder-plus me-2"></i>
+                                  New Folder
+                                </a>
+                              </li>
+
+                              <li>
+                                <a class="dropdown-item" id="createWhiteboardBtn">
+                                  <i class="bi bi-easel2 me-2"></i>
+                                  New Whiteboard
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Folder structure -->
+                    <div class="card-body p-2" id="folderStructure">
+                      <div class="folder">
+                        <div class="folder-header">
+                          <i class="bi bi-chevron-down"></i>
+                          <i class="bi bi-folder-fill text-warning"></i>
+                          Home
+                        </div>
+
+                        <div class="folder-items">
+                          <a class="wiki-file">
+                            <i class="bi bi-file-earmark-text"></i>
+                            Welcome
+                          </a>
+
+                          <a class="wiki-file">
+                            <i class="bi bi-file-earmark-text"></i>
+                            Course Info
+                          </a>
+                        </div>
+                      </div>
+
+                      <div class="folder">
+                        <div class="folder-header">
+                          <i class="bi bi-chevron-down"></i>
+                          <i class="bi bi-folder-fill text-warning"></i>
+                          Revision
+                        </div>
+
+                        <div class="folder-items">
+                          <a class="wiki-file active">
+                            <i class="bi bi-file-earmark-text-fill"></i>
+                            Week 8 Revision
+                          </a>
+
+                          <a class="wiki-file">
+                            <i class="bi bi-file-earmark-text"></i>
+                            BST Notes
+                          </a>
+
+                          <a class="wiki-file">
+                            <i class="bi bi-file-earmark-text"></i>
+                            Sorting
+                          </a>
+                        </div>
+                      </div>
+
+                      <div class="folder">
+                        <div class="folder-header">
+                          <i class="bi bi-chevron-down"></i>
+                          <i class="bi bi-folder-fill text-warning"></i>
+                          Whiteboards
+                        </div>
+
+                        <div class="folder-items" id="whiteboardList">
+                          <a class="wiki-file whiteboard-item">
+                            <i class="bi bi-easel2"></i>
+                            Revision Mindmap
+                          </a>
+
+                          <a class="wiki-file whiteboard-item">
+                            <i class="bi bi-easel2"></i>
+                            Assignment Planning
+                          </a>
+                        </div>
+                      </div>
+
+                      <div class="folder">
+                        <div class="folder-header">
+                          <i class="bi bi-chevron-right"></i>
+                          <i class="bi bi-folder-fill text-warning"></i>
+                          Assignments
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Main -->
+                <div class="col-lg-6">
+                  <!-- TAB BUTTONS -->
+                  <div class="tab-buttons-placeholder"></div>
+
+                  <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-header bg-white d-flex justify-content-between">
+                      <div>
+                        <h5 class="mb-0" id="noteTitle">Week 8 Revision</h5>
+                        <input id="noteTitleInput" class="form-control d-none" type="text" />
+
+                        <small class="text-muted" id="noteLastEdited">
+                          Last edited 2 hours ago
+                        </small>
+                      </div>
+                      <div class="d-flex align-items-center gap-2">
+                        <!-- Edit button -->
+                        <button class="btn btn-outline-secondary" id="editNoteBtn">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+
+                        <!-- Folder dropdown -->
+                        <div class="dropdown d-none" id="noteFolderDropdown">
+                          <button
+                            class="btn btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            id="noteFolderDropdownBtn"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            Unfiled
+                          </button>
+
+                          <ul class="dropdown-menu" id="noteFolderDropdownMenu">
+                            <li>
+                              <button class="dropdown-item" type="button" data-folder-id="">
+                                Unfiled
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+
+                        <!-- Save button -->
+                        <button class="btn btn-success d-none" id="saveNoteBtn">Save</button>
+                      </div>
+                    </div>
+
+                    <div class="card-body" id="noteContent">
+                      <h3>Binary Search Trees</h3>
+
+                      <p>
+                        A BST is a binary tree where every left child is smaller than the parent and
+                        every right child is larger.
+                      </p>
+
+                      <h5>Properties</h5>
+
+                      <ul>
+                        <li>Insertion: O(log n)</li>
+
+                        <li>Deletion: O(log n)</li>
+
+                        <li>Search: O(log n)</li>
+                      </ul>
+
+                      <div class="alert alert-warning">
+                        ⭐ Remember: Worst case becomes O(n) if the tree is unbalanced.
+                      </div>
+                    </div>
+
+                    <div id="noteEditorContainer">
+                      <div id="noteEditor"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Editor -->
+                <div class="col-lg-3">
+                  <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-header bg-white fw-bold">
+                      <i class="bi bi-pencil-square me-2"></i>
+                      Editor
+                    </div>
+
+                    <div class="card-body">
+                      <!-- Style -->
+                      <div class="dropdown mb-3">
+                        <button
+                          class="btn btn-light border w-100 d-flex justify-content-between align-items-center"
+                          data-bs-toggle="dropdown"
+                        >
+                          Normal
+                          <i class="bi bi-chevron-down"></i>
+                        </button>
+
+                        <ul class="dropdown-menu w-100">
+                          <li><a class="dropdown-item" href="#" id="normalText">Normal</a></li>
+                          <li><a class="dropdown-item" href="#" id="heading1">Heading 1</a></li>
+                          <li><a class="dropdown-item" href="#" id="heading2">Heading 2</a></li>
+                          <li><a class="dropdown-item" href="#" id="heading3">Heading 3</a></li>
+                        </ul>
+                      </div>
+
+                      <!-- Font Size -->
+                      <label class="form-label small fw-semibold">Font Size</label>
+
+                      <div class="dropdown mb-3">
+                        <button
+                          class="btn btn-light border rounded-3 w-100 d-flex justify-content-between align-items-center"
+                          data-bs-toggle="dropdown"
+                        >
+                          16
+                          <i class="bi bi-chevron-down"></i>
+                        </button>
+
+                        <ul class="dropdown-menu w-100 shadow-sm">
+                          <li><a class="dropdown-item" href="#" id="fontSize12">12</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize14">14</a></li>
+                          <li><a class="dropdown-item active" href="#" id="fontSize16">16</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize18">18</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize20">20</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize24">24</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize28">28</a></li>
+                          <li><a class="dropdown-item" href="#" id="fontSize32">32</a></li>
+                        </ul>
+                      </div>
+
+                      <!-- Formatting -->
+                      <label class="form-label small fw-semibold">Formatting</label>
+
+                      <div class="btn-group w-100 mb-3">
+                        <button class="btn btn-outline-secondary" id="boldBtn"><b>B</b></button>
+                        <button class="btn btn-outline-secondary" id="italicBtn"><i>I</i></button>
+                        <button class="btn btn-outline-secondary" id="underlineBtn">
+                          <u>U</u>
+                        </button>
+                        <button class="btn btn-outline-secondary" id="strikethroughBtn">
+                          <s>S</s>
+                        </button>
+                        <button class="btn btn-outline-secondary" id="highlighterBtn">
+                          <i class="bi bi-highlighter"></i>
+                        </button>
+                      </div>
+
+                      <!-- Lists -->
+                      <label class="form-label small fw-semibold">Lists</label>
+
+                      <div class="dropdown mb-3">
+                        <button
+                          class="btn btn-light border rounded-3 w-100 d-flex justify-content-between align-items-center"
+                          data-bs-toggle="dropdown"
+                        >
+                          None
+                          <i class="bi bi-chevron-down"></i>
+                        </button>
+
+                        <ul class="dropdown-menu w-100 shadow-sm">
+                          <li>
+                            <a class="dropdown-item" href="#" id="noneList"
+                              ><i class="bi bi-x-lg me-2"></i>None</a
+                            >
+                          </li>
+                          <li>
+                            <a class="dropdown-item" href="#" id="bulletList"
+                              ><i class="bi bi-list-ul me-2"></i>Bullet List</a
+                            >
+                          </li>
+                          <li>
+                            <a class="dropdown-item" href="#" id="numberList"
+                              ><i class="bi bi-list-ol me-2"></i>Numbered List</a
+                            >
+                          </li>
+                          <!-- Doesn't work -->
+                          <!-- <li>
+                            <a class="dropdown-item" href="#" id="checkList"
+                              ><i class="bi bi-check2-square me-2"></i>Checklist</a
+                            >
+                          </li> -->
+                        </ul>
+                      </div>
+
+                      <!-- Insert -->
+                      <label class="form-label small fw-semibold">Insert</label>
+
+                      <div class="dropdown mb-3">
+                        <button
+                          class="btn btn-light border rounded-3 w-100 d-flex justify-content-between align-items-center"
+                          data-bs-toggle="dropdown"
+                        >
+                          Insert
+                          <i class="bi bi-chevron-down"></i>
+                        </button>
+
+                        <ul class="dropdown-menu w-100 shadow-sm">
+                          <!-- Not working -->
+                          <!-- <li>
+                            <a class="dropdown-item" href="#" id="insertImageBtn"
+                              ><i class="bi bi-image me-2"></i>Image</a
+                            >
+                          </li> -->
+                          <!-- <li>
+                            <a class="dropdown-item" href="#" id="insertTableBtn"
+                              ><i class="bi bi-table me-2"></i>Table</a
+                            >
+                          </li> -->
+                          <li>
+                            <a class="dropdown-item" href="#" id="insertLinkBtn"
+                              ><i class="bi bi-link-45deg me-2"></i>Link</a
+                            >
+                          </li>
+                          <!-- <li>
+                            <a class="dropdown-item" href="#" id="insertHorizontalLineBtn"
+                              ><i class="bi bi-dash-lg me-2"></i>Horizontal Line</a
+                            >
+                          </li> -->
+                        </ul>
+                      </div>
+
+                      <!-- Alignment -->
+                      <label class="form-label small fw-semibold">Alignment</label>
+
+                      <div class="btn-group w-100">
+                        <!-- Left align -->
+                        <button class="btn btn-outline-secondary" id="leftAlignBtn">
+                          <i class="bi bi-text-left"></i>
+                        </button>
+
+                        <!-- Center align -->
+                        <button class="btn btn-outline-secondary" id="centerAlignBtn">
+                          <i class="bi bi-text-center"></i>
+                        </button>
+
+                        <!-- Right align -->
+                        <button class="btn btn-outline-secondary" id="rightAlignBtn">
+                          <i class="bi bi-text-right"></i>
+                        </button>
+
+                        <!-- Justify -->
+                        <button class="btn btn-outline-secondary" id="justifyAlignBtn">
+                          <i class="bi bi-justify"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ---------------------------------- -->
+              <!-- GRAPH VIEW                         -->
+              <!-- ---------------------------------- -->
+              <div id="wikiGraphView" class="d-none">
+                <!-- Graph header -->
+                <div class="card shadow-sm border-0 rounded-4">
+                  <div
+                    class="card-header bg-white d-flex justify-content-between align-items-center"
+                  >
+                    <div>
+                      <h5 class="mb-0">
+                        <i class="bi bi-diagram-3 me-2"></i>
+                        Note Graph
+                      </h5>
+
+                      <small class="text-muted"> Explore connections between your notes </small>
+                    </div>
+
+                    <button class="btn btn-outline-secondary" id="closeGraphViewBtn">
+                      <i class="bi bi-arrow-left me-2"></i>
+                      Back to Notes
+                    </button>
+                  </div>
+
+                  <!-- Graph -->
+                  <div id="noteGraph" class="note-graph"></div>
+
+                  <!-- Graph controls -->
+                  <div class="graph-controls">
+                    <button class="btn btn-light shadow-sm" id="zoomInBtn" title="Zoom in">
+                      <i class="bi bi-plus-lg"></i>
+                    </button>
+
+                    <button class="btn btn-light shadow-sm" id="zoomOutBtn" title="Zoom out">
+                      <i class="bi bi-dash-lg"></i>
+                    </button>
+
+                    <button class="btn btn-light shadow-sm" id="fitGraphBtn" title="Fit graph">
+                      <i class="bi bi-arrows-fullscreen"></i>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Right side -->
-            <div class="col-lg-3">
-              <div class="card shadow-sm">
-                <div class="card-body">
-                  <h6 class="fw-bold mb-3">Channels</h6>
+            <!-- Tasks tab -->
+            <div class="tab-pane fade" id="tasksTab">
+              <div class="tab-buttons-placeholder col-lg-6 offset-lg-3"></div>
 
-                  <!-- CHANNEL LIST -->
-                  <div class="list-group list-group-flush" id="channel-container">
-                    <a
-                      href="#"
-                      class="list-group-item list-group-item-action active d-flex align-items-center channel-color"
-                      id="generalChannel"
-                    >
-                      <span class="me-2">#</span> general
-                    </a>
+              <div class="kanban-header">
+                <h4 class="mb-0">
+                  <i class="bi bi-kanban"></i>
+                  Group Task Board
+                </h4>
 
-                    <a
-                      href="#"
-                      class="list-group-item list-group-item-action d-flex align-items-center channel-color"
-                      id="assignmentChannel"
+                <div class="d-flex gap-2">
+                  <div class="dropdown">
+                    <button
+                      class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                      id="filterDropdown"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
                     >
-                      <span class="me-2">#</span> assignment-help
-                    </a>
+                      <i class="bi bi-funnel"></i>
+                      Filter
+                    </button>
 
-                    <a
-                      href="#"
-                      class="list-group-item list-group-item-action d-flex align-items-center channel-color"
-                      id="examChannel"
-                    >
-                      <span class="me-2">#</span> exam-prep
-                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <a class="dropdown-item filter-option active" href="#" data-filter="all">
+                          All Tasks
+                        </a>
+                      </li>
 
-                    <a
-                      href="#"
-                      class="list-group-item list-group-item-action d-flex align-items-center channel-color"
-                      id="randomChannel"
-                    >
-                      <span class="me-2">#</span> random
-                    </a>
+                      <li><hr class="dropdown-divider" /></li>
+
+                      <li>
+                        <a class="dropdown-item filter-option" href="#" data-filter="assigned">
+                          Assigned to Me
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="dropdown-item filter-option" href="#" data-filter="created">
+                          Created by Me
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="dropdown-item filter-option" href="#" data-filter="unassigned">
+                          Unassigned
+                        </a>
+                      </li>
+
+                      <li><hr class="dropdown-divider" /></li>
+
+                      <li>
+                        <a class="dropdown-item filter-option" href="#" data-filter="today">
+                          Due Today
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="dropdown-item filter-option" href="#" data-filter="overdue">
+                          Overdue
+                        </a>
+                      </li>
+                    </ul>
                   </div>
 
-                  <hr />
-
-                  <!-- ADMINS ONLY -->
-                  <button class="btn btn-sm w-100 mt-2" id="createChannelBtn">
-                    + Create Channel
+                  <button
+                    class="btn btn-success btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createTaskModal"
+                  >
+                    <i class="bi bi-plus-lg"></i>
+                    Add Task
                   </button>
+                </div>
+              </div>
+
+              <div class="kanban-board">
+                <!-- TO DO -->
+                <div class="kanban-column">
+                  <div class="column-header todo">
+                    📌 To Do
+                    <span class="badge bg-light text-dark" id="todoNum">2</span>
+                  </div>
+
+                  <div class="task-container" data-status="todo">
+                    <div class="task-card note-yellow" draggable="true" data-id="1">
+                      <h6>Finish Assignment 2</h6>
+
+                      <div class="subtasks">
+                        <div class="subtask" data-id="1">
+                          <i class="bi bi-square subtask-icon me-2"></i>
+                          <span>Research</span>
+                        </div>
+                        <div class="subtask" data-id="2">
+                          <i class="bi bi-square subtask-icon me-2"></i>
+                          <span>Write report</span>
+                        </div>
+                        <div class="subtask" data-id="3">
+                          <i class="bi bi-square subtask-icon me-2"></i>
+                          <span>Submit on Canvas</span>
+                        </div>
+                      </div>
+
+                      <div class="task-footer">
+                        <div class="task-user">
+                          <img
+                            src="images/Groups_profile_1.png"
+                            class="rounded-circle"
+                            width="24"
+                            height="24"
+                          />
+                          <span>You</span>
+                        </div>
+
+                        <div class="task-date"><i class="bi bi-clock"></i> 30 May</div>
+
+                        <span class="badge bg-primary">0%</span>
+                      </div>
+                    </div>
+
+                    <div class="task-card note-yellow" draggable="true" data-id="2">
+                      <h6>Prepare Midterm Cheat Sheet</h6>
+
+                      <div class="subtasks">
+                        <div class="subtask" data-id="4">
+                          <i class="bi bi-square subtask-icon me-2"></i>
+                          <span>Summarise Week 7</span>
+                        </div>
+                        <div class="subtask" data-id="5">
+                          <i class="bi bi-square subtask-icon me-2"></i>
+                          <span>Add BST examples</span>
+                        </div>
+                        <div class="subtask" data-id="6">
+                          <i class="bi bi-square subtask-icon me-2"></i>
+                          <span>Review recursion</span>
+                        </div>
+                      </div>
+
+                      <div class="task-footer">
+                        <div class="task-user">
+                          <img
+                            src="images/Groups_profile_2.png"
+                            class="rounded-circle"
+                            width="24"
+                            height="24"
+                          />
+                          <span>Alex</span>
+                        </div>
+
+                        <div class="task-date">
+                          <i class="bi bi-clock"></i>
+                          Due in 3 days
+                        </div>
+
+                        <span class="badge bg-primary">0%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- IN PROGRESS -->
+                <div class="kanban-column">
+                  <div class="column-header in-progress">
+                    🚧 In Progress
+                    <span class="badge bg-light text-dark" id="inProgressNum">1</span>
+                  </div>
+
+                  <div class="task-container" data-status="in_progress">
+                    <div class="task-card note-blue" draggable="true" data-id="3">
+                      <h6>Complete Tutorial 3</h6>
+
+                      <div class="subtasks">
+                        <div class="subtask" data-id="7">
+                          <i class="bi bi-square subtask-icon me-2"></i>
+                          <span>Finish code</span>
+                        </div>
+                        <div class="subtask" data-id="8">
+                          <i class="bi bi-square subtask-icon me-2"></i>
+                          <span>Write individual report</span>
+                        </div>
+                        <div class="subtask" data-id="9">
+                          <i class="bi bi-square subtask-icon me-2"></i>
+                          <span>Submit on BrightSpace</span>
+                        </div>
+                      </div>
+
+                      <div class="task-footer">
+                        <div class="task-user">
+                          <img
+                            src="images/Groups_profile_1.png"
+                            class="rounded-circle"
+                            width="24"
+                            height="24"
+                          />
+                          <span>You</span>
+                        </div>
+
+                        <div class="task-date"><i class="bi bi-clock"></i> 30 May</div>
+
+                        <span class="badge bg-primary">66%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- DONE -->
+                <div class="kanban-column">
+                  <div class="column-header done">
+                    ✅ Done
+                    <span class="badge bg-light text-dark" id="doneNum">1</span>
+                  </div>
+
+                  <div class="task-container" data-status="done">
+                    <div class="task-card note-green" draggable="true" data-id="4">
+                      <h6>Upload Lecture 6 Notes</h6>
+
+                      <div class="subtasks mb-2">
+                        <div class="subtask" data-id="10">
+                          <i class="bi bi-square subtask-icon me-2"></i>
+                          <span>PDF uploaded</span>
+                        </div>
+                        <div class="subtask" data-id="11">
+                          <i class="bi bi-square subtask-icon me-2"></i>
+                          <span>Shared with group</span>
+                        </div>
+                      </div>
+
+                      <div class="d-flex align-items-center justify-content-between mt-auto">
+                        <div class="d-flex align-items-center">
+                          <img
+                            src="images/Groups_profile_2.png"
+                            class="rounded-circle me-2"
+                            width="28"
+                            height="28"
+                          />
+                          <small>Jamie</small>
+                        </div>
+
+                        <div class="task-date">
+                          <i class="bi bi-clock"></i>
+                          Completed
+                        </div>
+
+                        <span class="badge bg-success">100%</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -518,7 +1376,7 @@
               <button class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">
                 Cancel
               </button>
-              <button class="btn btn-primary rounded-pill px-4" id="saveMessageBtn">
+              <button class="btn btn-success rounded-pill px-4" id="saveMessageBtn">
                 <i class="bi bi-check2 me-1"></i> Save Changes
               </button>
             </div>
@@ -560,7 +1418,372 @@
             <button class="btn btn-light" data-bs-dismiss="modal" id="cancelCreateChannelModal">
               Cancel
             </button>
-            <button class="btn btn-primary px-4" id="createNewChannelBtn">Create Channel</button>
+            <button class="btn btn-success px-4" id="createNewChannelBtn">Create Channel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Task Modal -->
+    <div class="modal fade" id="createTaskModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+          <div class="modal-header border-0">
+            <div>
+              <h5 class="modal-title fw-bold"><i class="bi bi-kanban me-2"></i>Create New Task</h5>
+              <small class="text-muted"> Create a task for your study group </small>
+            </div>
+
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <!-- Task Name -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Task Title</label>
+              <input type="text" class="form-control" id="taskTitleInput" placeholder="Finish..." />
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea
+                class="form-control"
+                rows="3"
+                id="taskDescriptionInput"
+                placeholder="Describe the task..."
+              ></textarea>
+            </div>
+
+            <div class="row">
+              <!-- Assignee -->
+              <div class="col-md-6 mb-3">
+                <label for="taskAssignee" class="form-label">Assign To</label>
+
+                <div class="dropdown" id="taskAssignee">
+                  <button
+                    id="assigneeDropdownBtn"
+                    class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                  >
+                    Select member
+                  </button>
+
+                  <ul class="dropdown-menu w-100" id="dropdownMember">
+                    <li><a class="dropdown-item" href="#">You</a></li>
+                    <li><a class="dropdown-item" href="#">Alex</a></li>
+                    <li><a class="dropdown-item" href="#">Jamie</a></li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Due Date -->
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Due Date</label>
+
+                <input type="date" class="form-control" id="taskDueDateInput" />
+              </div>
+            </div>
+
+            <!-- Subtasks -->
+            <div class="mb-2">
+              <label class="form-label fw-semibold">Subtasks</label>
+
+              <div id="subtaskContainer">
+                <div class="input-group mb-2">
+                  <input type="text" class="form-control subtask-input" placeholder="New subtask" />
+                  <button class="btn btn-outline-danger removeSubtaskBtn" type="button">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button class="btn btn-outline-success btn-sm" type="button" id="addSubtaskBtn">
+                <i class="bi bi-plus-lg"></i>
+                Add Subtask
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-footer border-0">
+            <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-success px-4" id="createTaskBtn">
+              <i class="bi bi-check2 me-1"></i>
+              Create Task
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div class="modal fade" id="editTaskModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+          <div class="modal-header border-0">
+            <div>
+              <h5 class="modal-title">
+                <i class="bi bi-pencil-square me-2"></i>
+                Edit Task
+              </h5>
+              <small class="text-muted"> Update task details </small>
+            </div>
+
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <!-- Title -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Task Title</label>
+              <input id="editTaskTitle" class="form-control" />
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea id="editTaskDescription" rows="3" class="form-control"> </textarea>
+            </div>
+
+            <div class="row">
+              <!-- Assignee -->
+              <div class="col-md-6 mb-3">
+                <label class="form-label"> Assign To </label>
+
+                <div class="dropdown">
+                  <button
+                    id="editAssigneeBtn"
+                    class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                    data-bs-toggle="dropdown"
+                  >
+                    Select member
+                  </button>
+
+                  <ul class="dropdown-menu w-100" id="editDropdownMember"></ul>
+                </div>
+              </div>
+
+              <!-- Due Date -->
+              <div class="col-md-6 mb-3">
+                <label class="form-label"> Due Date </label>
+
+                <input id="editTaskDueDate" type="date" class="form-control" />
+              </div>
+            </div>
+
+            <label class="form-label fw-semibold"> Subtasks </label>
+
+            <div id="editSubtaskContainer"></div>
+
+            <button id="addEditSubtaskBtn" class="btn btn-outline-success btn-sm mt-2">
+              <i class="bi bi-plus"></i>
+              Add Subtask
+            </button>
+          </div>
+
+          <div class="modal-footer justify-content-between">
+            <button id="deleteTaskBtn" class="btn btn-outline-danger">
+              <i class="bi bi-trash"></i>
+              Delete Task
+            </button>
+
+            <div>
+              <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+              <button id="saveTaskBtn" class="btn btn-success">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm delete modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Delete Task</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            Are you sure you want to delete this task? This action cannot be undone.
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Folder modal -->
+    <div class="modal fade" id="newFolderModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-folder-plus me-2"></i>
+              Create Folder
+            </h5>
+
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <label class="form-label">Folder Name</label>
+
+            <input
+              type="text"
+              id="folderNameInput"
+              class="form-control"
+              placeholder="e.g. Lecture Notes"
+              maxlength="40"
+            />
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-success" id="createFolderBtn">Create Folder</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Note Folder modal -->
+    <div class="modal fade" id="newNoteFolderModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-folder-plus me-2"></i>
+              Create Note Folder
+            </h5>
+
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <label class="form-label">Folder Name</label>
+
+            <input
+              type="text"
+              id="noteFolderNameInput"
+              class="form-control"
+              placeholder="e.g. Lecture Notes"
+              maxlength="40"
+            />
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-success" id="newNoteFolderBtn">Create Folder</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Note modal -->
+    <div class="modal fade" id="newNoteModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-file-earmark-text me-2"></i>
+              Create Note
+            </h5>
+
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <label class="form-label">Note Name</label>
+
+            <input
+              type="text"
+              id="noteNameInput"
+              class="form-control"
+              placeholder="e.g. CICD Note 1"
+              maxlength="40"
+            />
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-success" id="newNoteBtn">Create Note</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Move File Modal -->
+    <div class="modal fade" id="moveFileModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Move File</h5>
+
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <label class="form-label"> Destination Folder </label>
+
+            <select class="form-select" id="moveFolderSelect"></select>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+            <button class="btn btn-success" id="moveFileBtn">Move</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insert Link Modal -->
+    <div
+      class="modal fade"
+      id="insertLinkModal"
+      tabindex="-1"
+      aria-labelledby="insertLinkModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="insertLinkModalLabel">Insert Link</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div class="modal-body">
+            <label for="linkUrlInput" class="form-label">URL</label>
+            <input
+              type="url"
+              class="form-control"
+              id="linkUrlInput"
+              placeholder="https://example.com"
+            />
+            <div id="linkUrlError" class="text-danger mt-2 d-none">Please enter a valid URL.</div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-success" id="confirmInsertLinkBtn">
+              Insert Link
+            </button>
           </div>
         </div>
       </div>
@@ -572,11 +1795,14 @@
     <script src="js/queryCmds.js"></script>
     <script src="js/userNavBarToggle.js"></script>
     <script src="js/page-guard.js" data-require-login defer></script>
+    <script src="js/groupsSharedFunctions.js" defer></script>
     <script src="js/groupsFeed.js" defer></script>
+    <script src="js/groupsTasks.js" defer></script>
+    <script src="js/groupsFiles.js" defer></script>
+    <script src="js/groupsNotes.js" defer></script>
     <script src="js/spindle-sidebar.js" defer></script>
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>
-    <script src="js/spindle-sidebar.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         if (typeof injectWaHeader === 'function') {

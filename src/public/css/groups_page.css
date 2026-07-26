@@ -189,8 +189,8 @@ main {
 }
 
 /* ── Dark / Futuristic theme overrides ──────────────────────────── */
-[data-theme='dark'] main,
-[data-theme='futuristic'] main {
+/* [data-theme="dark"] main,
+[data-theme="futuristic"] main {
   background-color: var(--bg);
 }
 
@@ -214,4 +214,4 @@ main {
 [data-theme='dark'] .card-line,
 [data-theme='futuristic'] .card-line {
   background: var(--border);
-}
+} */

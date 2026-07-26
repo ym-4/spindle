@@ -1,3 +1,5 @@
+/* global injectNotificationsOnly, isLoggedIn */
+
 /** index.html — require login, wire notifications */
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof isLoggedIn === 'function' && !isLoggedIn()) {

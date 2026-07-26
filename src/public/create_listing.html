@@ -27,6 +27,7 @@
     />
     <link rel="stylesheet" href="css/marketplace.css" />
     <link rel="stylesheet" href="css/new_listing.css" />
+    <link rel="stylesheet" href="css/spindle-notif.css" />
     <title>Create Listing – Spindle</title>
   </head>
   <body>
@@ -45,6 +46,25 @@
             <i class="fas fa-user-circle"></i> Profile
           </a>
           <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+        </div>
+        <div>
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a
+            href="home.html?login=1&tab=login&return=marketplace.html"
+            class="btn-navbar-login"
+            id="loginButton"
+            >Log In</a
+          >
+          <a
+            href="home.html?login=1&tab=register&return=marketplace.html"
+            class="btn-navbar-signup"
+            id="registerButton"
+            >Sign Up</a
+          >
+          <a href="profile.html" class="btn-navbar-profile d-none" id="profileButton">
+            <i class="fas fa-user-circle"></i> Profile
+          </a>
+          <button class="btn-navbar-logout d-none" id="logoutButton" type="button">Log Out</button>
         </div>
       </div>
     </nav>
@@ -108,8 +128,10 @@
         <header class="bg-dark py-5" id="create-listing-header">
           <div class="container px-4 px-lg-5 my-5">
             <div class="text-center text-white">
-              <h1 class="display-4 fw-bolder">New Listing</h1>
-              <p class="lead fw-normal text-white-50 mb-0">List an item for the SP Marketplace</p>
+              <h1 class="display-4 fw-bolder" id="pageHeaderTitle">New Listing</h1>
+              <p class="lead fw-normal text-white-50 mb-0" id="pageHeaderSubtitle">
+                List an item for the SP Marketplace
+              </p>
             </div>
           </div>
         </header>
@@ -133,7 +155,7 @@
         <section class="py-5">
           <div class="create-listing-wrapper">
             <div class="create-listing-card">
-              <h2>Listing Details</h2>
+              <h2 id="formHeading">Listing Details</h2>
               <p class="subtitle">
                 Fill in the details below. Fields marked <span style="color: #e53e3e">*</span> are
                 required.
@@ -287,8 +309,9 @@
 
                 <!-- Action buttons -->
                 <div class="d-flex align-items-center gap-3 flex-wrap">
-                  <button type="submit" class="btn-create-listing">
-                    <i class="fas fa-tag me-2"></i>Publish Listing
+                  <button type="submit" class="btn-create-listing" id="submitListingBtn">
+                    <i class="fas fa-tag me-2"></i
+                    ><span id="submitListingBtnText">Publish Listing</span>
                   </button>
                   <a href="marketplace.html" class="btn-cancel-listing">Cancel</a>
                 </div>
@@ -364,6 +387,7 @@
     <script src="js/userNavBarToggle.js" type="text/javascript"></script>
     <script src="js/new-listing.js" type="text/javascript"></script>
 
+    <script src="js/api.js"></script>
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>
     <script src="js/spindle-sidebar.js"></script>

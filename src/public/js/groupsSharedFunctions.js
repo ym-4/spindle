@@ -1,3 +1,5 @@
+/* global token, fetchMethod, userId, groupId */
+
 // Shared functions used across multiple groups_XX.js files
 
 // -------------------------------------------------------------------------------------
@@ -469,7 +471,7 @@ async function deleteGroupMembership() {
   });
 }
 
-// Remoeve member
+// Remove member
 async function deleteGroupMember(removedUsedId) {
   return new Promise((resolve, reject) => {
     const url = `http://localhost:3000/groups/kick/${groupId}/${removedUsedId}`;

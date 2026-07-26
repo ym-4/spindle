@@ -1,3 +1,5 @@
+/* global fetchMethod, addToCart */
+
 // item-page.js — loads a single marketplace listing by id (?id=) and renders it
 
 function escapeHtml(str) {
@@ -21,15 +23,55 @@ function qualityMeta(rawQuality) {
   return { className: 'default' };
 }
 
+// Builds the item-media carousel from item.images (already ordered by
+// sort_order, so images[0] is always the cover/first slide). Falls back to
+// the shared placeholder when a listing has no photos, and hides the
+// indicators/arrows entirely when there's only one image.
+function renderImageCarousel(item) {
+  const inner = document.getElementById('itemCarouselInner');
+  const indicators = document.getElementById('itemCarouselIndicators');
+  const prevBtn = document.querySelector('#itemImageCarousel .carousel-control-prev');
+  const nextBtn = document.querySelector('#itemImageCarousel .carousel-control-next');
+
+  const images =
+    item.images && item.images.length > 0
+      ? item.images
+      : [{ id: 'placeholder', image_url: '../uploads/marketplace-uploads/1.png' }];
+
+  inner.innerHTML = images
+    .map(
+      (img, i) => `
+      <div class="carousel-item${i === 0 ? ' active' : ''}">
+        <img src="${escapeHtml(img.image_url)}" alt="${escapeHtml(item.name)}">
+      </div>
+    `,
+    )
+    .join('');
+
+  if (images.length > 1) {
+    indicators.innerHTML = images
+      .map(
+        (_, i) => `
+        <button type="button" data-bs-target="#itemImageCarousel" data-bs-slide-to="${i}"
+          class="${i === 0 ? 'active' : ''}" aria-current="${i === 0 ? 'true' : 'false'}"
+          aria-label="Photo ${i + 1}"></button>
+      `,
+      )
+      .join('');
+    prevBtn.classList.remove('d-none');
+    nextBtn.classList.remove('d-none');
+  } else {
+    indicators.innerHTML = '';
+    prevBtn.classList.add('d-none');
+    nextBtn.classList.add('d-none');
+  }
+}
+
 function renderItem(item) {
   document.getElementById('itemLoaded').classList.remove('d-none');
   document.getElementById('itemNotFound').classList.add('d-none');
 
-  const itemImageEl = document.getElementById('itemImage');
-  itemImageEl.alt = escapeHtml(item.name);
-  if (item.images && item.images.length > 0) {
-    itemImageEl.src = item.images[0].image_url;
-  }
+  renderImageCarousel(item);
   document.getElementById('itemTitle').textContent = item.name;
   document.getElementById('itemPrice').textContent = `$${Number(item.price).toFixed(2)}`;
 
@@ -48,6 +90,14 @@ function renderItem(item) {
   document.getElementById('itemSeller').textContent = `Student #${item.seller_id}`;
   document.getElementById('breadcrumbTitle').textContent = item.name;
   document.title = `${item.name} · Spindle`;
+
+  // "Chat with Seller" hands off to chat.html, which already reads a ?user=
+  // query param to open that conversation (see chat.js) — no chat logic
+  // lives here, this is just the entry point into the real chat feature.
+  const chatBtn = document.getElementById('chatSellerBtn');
+  const isOwnListing = String(item.seller_id) === String(localStorage.loggedInUserId);
+  chatBtn.classList.toggle('d-none', isOwnListing);
+  chatBtn.dataset.sellerId = item.seller_id;
 
   const qualityEl = document.getElementById('itemQuality');
   if (item.quality) {
@@ -278,5 +328,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const amount = qtyInput.value;
     if (!itemId) return;
     addToCart(sellerId, itemId, localStorage.loggedInUserId, amount);
+  });
+
+  document.getElementById('chatSellerBtn').addEventListener('click', (e) => {
+    const sellerId = e.currentTarget.dataset.sellerId;
+    if (!sellerId) return;
+    window.location.href = `chat.html?user=${encodeURIComponent(sellerId)}`;
   });
 });
