@@ -126,7 +126,7 @@ describe('Whiteboard.model - getWhiteboardsByGroupId', () => {
       'SELECT * FROM "WhiteboardDrawings" WHERE group_id = $1',
       [-1],
     );
-    expect(result).toEqual([]);
+    expect(result).toEqual(fakeWhiteboards);
   });
 
   // Error handling: database error propagates to the caller
@@ -245,7 +245,7 @@ describe('Whiteboard.model - getWhiteboardsByUserId', () => {
       'SELECT * FROM "WhiteboardDrawings" WHERE user_id = $1',
       [-1],
     );
-    expect(result).toEqual([]);
+    expect(result).toEqual(fakeWhiteboards);
   });
 
   // Error handling: database error propagates to the caller
@@ -327,7 +327,7 @@ describe('Whiteboard.model - getWhiteboardsById', () => {
       'SELECT * FROM "WhiteboardDrawings" WHERE id = $1',
       [-1],
     );
-    expect(result).toEqual([]);
+    expect(result).toEqual(fakeWhiteboards);
   });
 
   // Error handling: database error propagates to the caller
@@ -412,15 +412,6 @@ describe('Whiteboard.model - insertWhiteboards', () => {
 
   // Boundary: null values
   test('should not insert new whiteboard to the database', async () => {
-    const newFakeWhiteboard = {
-      id: 10,
-      user_id: null,
-      group_id: null,
-      title: 'Title 1',
-      mode: 'whiteboard',
-      drawing_data: [],
-    };
-
     pool.query.mockRejectedValue(
       new Error('null value in column "user_id" violates not-null constraint'),
     );

@@ -42,6 +42,53 @@ function ensureAuthButtons() {
   }
 }
 
+function getStoredProfile() {
+  if (typeof getStoredUser === 'function') {
+    const user = getStoredUser();
+    if (user) return user;
+  }
+  try {
+    return JSON.parse(localStorage.getItem('pineappleUser') || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function applyNavbarProfileAvatar(loggedIn) {
+  const link = document.getElementById('profileButton');
+  if (!link) return;
+
+  const user = loggedIn ? getStoredProfile() : null;
+  const profileImage = user?.profile_image || user?.avatar || null;
+  const name = user?.display_name || user?.name || '';
+  const initial = name ? name.charAt(0).toUpperCase() : 'U';
+
+  const icon = link.querySelector('i');
+  const existing = link.querySelector('.navbar-avatar');
+  if (existing) existing.remove();
+
+  if (!user) {
+    if (icon) icon.style.display = '';
+    return;
+  }
+
+  const avatarEl = document.createElement(profileImage ? 'img' : 'span');
+  avatarEl.className = 'navbar-avatar';
+  if (profileImage) {
+    avatarEl.src = profileImage;
+    avatarEl.alt = name || 'Profile';
+  } else {
+    avatarEl.textContent = initial;
+  }
+
+  if (icon) {
+    icon.style.display = 'none';
+    icon.insertAdjacentElement('afterend', avatarEl);
+  } else {
+    link.prepend(avatarEl);
+  }
+}
+
 function syncLegacyNavbar() {
   ensureAuthButtons();
 
@@ -49,6 +96,9 @@ function syncLegacyNavbar() {
     typeof isLoggedIn === 'function'
       ? isLoggedIn()
       : !!(localStorage.getItem('token') || localStorage.getItem('pineappleToken'));
+
+  applyNavbarProfileAvatar(loggedIn);
+
   const loginButton = document.getElementById('loginButton');
   const registerButton = document.getElementById('registerButton');
   const profileButton = document.getElementById('profileButton');
@@ -151,7 +201,13 @@ function injectNotificationsOnly(slotId = 'spindleNotifSlot') {
   refreshNotifBadge();
   if (typeof connectSocket === 'function') {
     connectSocket();
-    onWs('notification', () => refreshNotifBadge());
+    onWs('notification', (payload) => {
+      const notif = payload?.notification || payload;
+      refreshNotifBadge();
+      if (notif?.type === 'badge_unlocked') {
+        showBadgeUnlockPopup(notif.title, notif.body);
+      }
+    });
   }
 }
 
@@ -302,6 +358,17 @@ async function loadNotifDropdown() {
           window.location.href = `chat.html?user=${btn.dataset.ref}`;
         } else if (btn.dataset.type === 'friend_request') {
           window.location.href = 'friends.html';
+        } else if (
+          (btn.dataset.type === 'mention' ||
+            btn.dataset.type === 'comment' ||
+            btn.dataset.type === 'pandabot' ||
+            btn.dataset.type === 'comment_reaction' ||
+            btn.dataset.type === 'post_reaction') &&
+          btn.dataset.ref
+        ) {
+          window.location.href = `posts.html?id=${btn.dataset.ref}`;
+        } else if (btn.dataset.type === 'badge_unlocked') {
+          window.location.href = 'profile.html';
         } else {
           loadNotifDropdown();
         }
@@ -353,6 +420,52 @@ function bindNotificationBell() {
   });
 }
 
+function showBadgeUnlockPopup(title, description) {
+  document.getElementById('badgeUnlockBackdrop')?.remove();
+  document.getElementById('badgeUnlockPopup')?.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'badgeUnlockBackdrop';
+
+  const popup = document.createElement('div');
+  popup.id = 'badgeUnlockPopup';
+  popup.innerHTML = `
+    <div class="badge-unlock-icon">🏅</div>
+    <div class="badge-unlock-text">
+      <div class="badge-unlock-title">${esc(title)}</div>
+      <div class="badge-unlock-desc">${esc(description)}</div>
+    </div>`;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(popup);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      backdrop.classList.add('badge-unlock--visible');
+      popup.classList.add('badge-unlock--visible');
+    });
+  });
+
+  const dismiss = () => {
+    backdrop.classList.remove('badge-unlock--visible');
+    popup.classList.remove('badge-unlock--visible');
+    setTimeout(() => {
+      backdrop.remove();
+      popup.remove();
+    }, 400);
+  };
+
+  const autoDismiss = setTimeout(dismiss, 4000);
+
+  const dismissNow = () => {
+    clearTimeout(autoDismiss);
+    dismiss();
+  };
+
+  backdrop.addEventListener('click', dismissNow);
+  popup.addEventListener('click', dismissNow);
+}
+
 function initAppShell(pageTitle, pageKey, opts = {}) {
   if (!isLoggedIn()) {
     redirectToLogin(pageKey ? `${pageKey}.html` : 'chat.html');
@@ -363,10 +476,16 @@ function initAppShell(pageTitle, pageKey, opts = {}) {
   if (isLoggedIn()) {
     connectSocket?.();
     refreshNotifBadge();
-    onWs?.('notification', () => {
+    onWs?.('notification', (payload) => {
+      const notif = payload?.notification || payload;
       refreshNotifBadge();
       if (!document.getElementById('waNotifDropdown')?.classList.contains('hidden')) {
         loadNotifDropdown();
+      }
+
+      // badge unlocked pop-up
+      if (notif?.type === 'badge_unlocked') {
+        showBadgeUnlockPopup(notif.title, notif.body);
       }
     });
   }

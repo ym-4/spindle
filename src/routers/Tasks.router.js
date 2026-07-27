@@ -11,7 +11,7 @@ const {
   getAllTaskItems,
   getTaskItemsByID,
   getTaskItemsByTaskID,
-  getTaskItemsByUserAndGroupID,
+  // getTaskItemsByUserAndGroupID,
   insertTaskItems,
   updateTaskItems,
   deleteTaskItems,
@@ -138,7 +138,7 @@ router.delete('/tasks/:id', authenticateJWT, (req, res, next) => {
     .then((tasks) => {
       if (tasks.length > 0) {
         deleteTasks(data)
-          .then((results) => {
+          .then(() => {
             res.status(204).json();
           })
           .catch(next);

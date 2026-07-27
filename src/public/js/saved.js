@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
   loadYourGroups();
   loadHotPosts();
   setupSavedTabs();
+  setupSearch();
+  if (typeof setupSearchDropdown === 'function') setupSearchDropdown();
 
   if (!token || !userId) {
     showLoginPrompt();
@@ -149,26 +151,34 @@ function buildSavedPostCard(post, saveRow) {
       </div>
     </div>
 
-    <span class="post-category ${getCategoryClass(post.category)}">${getCategoryLabel(post.category)}</span>
-    <div class="post-content">${escapeHtml(post.content)}</div>
+    <div class="d-flex gap-1 align-items-center flex-wrap">
+      <span class="post-category ${getCategoryClass(post.category)}">${getCategoryLabel(post.category)}</span>
+      ${post.visibility === 'friends_only' ? '<span class="badge bg-warning text-dark" style="font-size:0.65rem;"><i class="fas fa-user-friends me-1"></i>Friends</span>' : ''}
+      ${post.pinned ? '<span class="badge bg-info text-dark" style="font-size:0.65rem;"><i class="fas fa-thumbtack me-1"></i>Pinned</span>' : ''}
+    </div>
+    <div class="post-content">${DOMPurify.sanitize(post.content)}</div>
+
     ${
-      post.attachment_url
-        ? `
-      <div class="post-attachment mt-2">
-        ${
-          post.attachment_url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
-            ? `
-              <img src="${currentUrl}${post.attachment_url}" alt="Post attachment" class="img-fluid rounded post-image">`
-            : `
-              <video controls class="img-fluid rounded post-video">
-                <source src="${currentUrl}${post.attachment_url}">
-              </video>
-            `
-        }
-      </div>
-    `
+      post.gif_url || post.giphy_url || post.attachment_url
+        ? (() => {
+            const mediaUrl = post.gif_url || post.giphy_url || post.attachment_url;
+            const isRelative = mediaUrl.startsWith('/');
+            const src = isRelative ? `${currentUrl}${mediaUrl}` : mediaUrl;
+            const isVideo = /\.(mp4|webm|mov)$/i.test(mediaUrl);
+            return `
+              <div class="post-attachment mt-2">
+                ${
+                  isVideo
+                    ? `<video controls class="img-fluid rounded post-video"><source src="${src}"></video>`
+                    : `<img src="${src}" alt="Post attachment" class="img-fluid rounded post-image">`
+                }
+              </div>`;
+          })()
         : ''
     }
+
+    ${post.poll_id ? renderPollCard(post, post.id) : ''}
+    <div class="post-tags" id="postTags-${post.id}"></div>
 
     <div class="post-actions">
         <button class="post-action-btn like-btn" data-post-id="${post.id}">
@@ -229,7 +239,180 @@ function buildSavedPostCard(post, saveRow) {
     );
   });
 
+  // Load poll
+  if (post.poll_id) {
+    loadAndRenderPoll(post.id, card);
+  }
+  // Load tags
+  loadPostTags(post.id, card);
+
   return card;
+}
+
+function renderPollCard(post, postId) {
+  return `<div class="poll-container" id="pollContainer-${postId}">
+    <div class="text-muted small text-center py-2">
+      <div class="spinner-border spinner-border-sm" role="status"></div>
+    </div>
+  </div>`;
+}
+
+function loadAndRenderPoll(postId, cardEl) {
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  fetchMethod(`${savedApiBase()}/posts/${postId}/poll`, (status, poll) => {
+    const container =
+      cardEl?.querySelector(`#pollContainer-${postId}`) ||
+      document.getElementById(`pollContainer-${postId}`);
+    if (!container || status !== 200) return;
+
+    const totalVotes = poll.options.reduce((sum, o) => sum + (o.vote_count || 0), 0);
+
+    // Check if user already voted
+    const userVoteCheck =
+      token && userId
+        ? new Promise((resolve) => {
+            fetchMethod(
+              `${savedApiBase()}/posts/${postId}/poll/vote/${userId}`,
+              (vs, vd) => resolve(vs === 200 ? vd.vote : null),
+              'GET',
+              null,
+              token,
+            );
+          })
+        : Promise.resolve(null);
+
+    userVoteCheck.then((userVote) => {
+      const hasVoted = !!userVote;
+
+      const optionsHtml = poll.options
+        .map((opt) => {
+          const pct = totalVotes > 0 ? Math.round((opt.vote_count / totalVotes) * 100) : 0;
+          const isUserChoice = userVote && parseInt(userVote.option_id) === parseInt(opt.id);
+          const votedClass = hasVoted ? 'voted' : '';
+          const choiceClass = isUserChoice ? 'user-voted' : '';
+
+          return [
+            `<div class="poll-option ${votedClass} ${choiceClass}"`,
+            `  data-option-id="${opt.id}"`,
+            `  data-poll-id="${poll.id}"`,
+            `  data-post-id="${postId}">`,
+            `  <div class="poll-option-bar" style="width:${hasVoted ? pct : 0}%"></div>`,
+            `  <span class="poll-option-label">${escapeHtml(opt.option_text)}</span>`,
+            hasVoted ? `<span class="poll-option-pct">${pct}%</span>` : '',
+            `</div>`,
+          ].join('');
+        })
+        .join('');
+
+      const undoHtml = hasVoted
+        ? `<button class="btn btn-link btn-sm p-0 mt-1 undo-vote-btn" style="font-size:0.8rem; color:var(--text-secondary);">
+             <i class="fas fa-times-circle me-1"></i>Remove vote
+           </button>`
+        : '';
+
+      container.innerHTML = [
+        `<div class="poll-question">${escapeHtml(poll.question)}</div>`,
+        optionsHtml,
+        `<div class="poll-meta d-flex align-items-center gap-2">`,
+        `  <span>${totalVotes} vote${totalVotes !== 1 ? 's' : ''}</span>`,
+        undoHtml,
+        `</div>`,
+      ].join('');
+
+      // Vote
+      if (!hasVoted && token) {
+        container.querySelectorAll('.poll-option').forEach((optEl) => {
+          optEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const optionId = optEl.dataset.optionId;
+            const pollId = optEl.dataset.pollId;
+
+            fetchMethod(
+              `${savedApiBase()}/posts/${postId}/poll/vote`,
+              (vs) => {
+                if (vs === 201 || vs === 409) {
+                  loadAndRenderPoll(postId, cardEl);
+                }
+              },
+              'POST',
+              { poll_id: pollId, option_id: optionId },
+              token,
+            );
+          });
+        });
+      }
+
+      // Change vote
+      if (hasVoted && token) {
+        container.querySelectorAll('.poll-option').forEach((optEl) => {
+          if (optEl.classList.contains('user-voted')) return;
+          optEl.style.cursor = 'pointer';
+          optEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const optionId = optEl.dataset.optionId;
+            const pollId = optEl.dataset.pollId;
+
+            // Delete old vote then revote
+            fetchMethod(
+              `${savedApiBase()}/posts/${postId}/poll/vote`,
+              (ds) => {
+                if (ds === 200) {
+                  fetchMethod(
+                    `${savedApiBase()}/posts/${postId}/poll/vote`,
+                    (vs) => {
+                      if (vs === 201 || vs === 409) {
+                        loadAndRenderPoll(postId, cardEl);
+                      }
+                    },
+                    'POST',
+                    { poll_id: pollId, option_id: optionId },
+                    token,
+                  );
+                }
+              },
+              'DELETE',
+              { poll_id: pollId },
+              token,
+            );
+          });
+        });
+      }
+
+      // Remove vote
+      const undoBtn = container.querySelector('.undo-vote-btn');
+      if (undoBtn && token) {
+        undoBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          fetchMethod(
+            `${savedApiBase()}/posts/${postId}/poll/vote`,
+            (ds) => {
+              if (ds === 200) loadAndRenderPoll(postId, cardEl);
+            },
+            'DELETE',
+            { poll_id: poll.id },
+            token,
+          );
+        });
+      }
+    });
+  });
+}
+
+function loadPostTags(postId, cardEl) {
+  fetchMethod(`${savedApiBase()}/posts/${postId}/tags`, (status, tags) => {
+    if (status !== 200 || !Array.isArray(tags) || !tags.length) return;
+
+    const container = cardEl
+      ? cardEl.querySelector(`#postTags-${postId}`)
+      : document.getElementById(`postTags-${postId}`);
+    if (!container) return;
+
+    container.innerHTML = tags
+      .map((tag) => `<span class="post-tag">#${escapeHtml(tag.name)}</span>`)
+      .join('');
+  });
 }
 
 //  DELETE /posts/saved/:id
@@ -343,6 +526,11 @@ function buildSavedCommentCard(item, token) {
               <i class="fas fa-bookmark me-2"></i>Unsave
             </button>
           </li>
+           <li>
+            <button class="dropdown-item report-comment-btn">
+              <i class="fas fa-flag me-2"></i>Report
+            </button>
+          </li>
         </ul>
       </div>
     </div>
@@ -396,6 +584,17 @@ function buildSavedCommentCard(item, token) {
       null,
       token,
     );
+  });
+
+  // Report
+  el.querySelector('.report-comment-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showLoginPrompt();
+      return;
+    }
+    openReportModal(item.comment_id, 'comment');
   });
 
   return el;
@@ -453,14 +652,51 @@ function formatTimestamp(createdAt, updatedAt) {
   return { timeStr, wasEdited: wasEditedResult };
 }
 
-function getCategoryLabel(c) {
-  return { confession: 'Confession', qna: 'Q&A', general: 'General Talk' }[c] || c;
+const CATEGORIES = [
+  // Primary pills
+  { value: 'all', label: 'All', primary: true },
+  { value: 'general', label: 'General', primary: true },
+  { value: 'events', label: 'Events', primary: true },
+  { value: 'news', label: 'News', primary: true },
+  { value: 'cca', label: 'CCA', primary: true },
+  { value: 'internship', label: 'Internship', primary: true },
+  // Secondary shown in "More" dropdown
+  { value: 'confession', label: 'Confession', primary: false },
+  { value: 'qna', label: 'Q&A', primary: false },
+  { value: 'SOC', label: 'SOC', primary: false },
+  { value: 'ABE', label: 'ABE', primary: false },
+  { value: 'SB', label: 'SB', primary: false },
+  { value: 'CLS', label: 'CLS', primary: false },
+  { value: 'EEE', label: 'EEE', primary: false },
+  { value: 'MAD', label: 'MAD', primary: false },
+  { value: 'MAE', label: 'MAE', primary: false },
+  { value: 'SMA', label: 'SMA', primary: false },
+];
+
+function getCategoryLabel(category) {
+  const found = CATEGORIES.find((c) => c.value === category);
+  return found ? found.label : category;
 }
 
-function getCategoryClass(c) {
-  return (
-    { confession: 'category-confession', qna: 'category-qna', general: 'category-general' }[c] || ''
-  );
+function getCategoryClass(category) {
+  const map = {
+    confession: 'category-confession',
+    qna: 'category-qna',
+    general: 'category-general',
+    events: 'category-events',
+    news: 'category-news',
+    internship: 'category-internship',
+    cca: 'category-cca',
+    SOC: 'category-SOC',
+    ABE: 'category-ABE',
+    SB: 'category-SB',
+    CLS: 'category-CLS',
+    EEE: 'category-EEE',
+    MAD: 'category-MAD',
+    MAE: 'category-MAE',
+    SMA: 'category-SMA',
+  };
+  return map[category] || 'category-general';
 }
 
 function getAvatarInitial(post) {
@@ -568,7 +804,7 @@ function renderYourGroups(groups) {
 
 // Hot Posts
 function loadHotPosts() {
-  fetchMethod(`${API_BASE}/posts`, (status, data) => {
+  fetchMethod(`${savedApiBase()}/posts`, (status, data) => {
     const container = document.getElementById('top5Container');
     if (!container) return;
 
@@ -597,6 +833,27 @@ function loadHotPosts() {
       `;
       container.appendChild(item);
     });
+  });
+}
+
+// search
+function setupSearch() {
+  const input = document.getElementById('searchInput');
+  if (!input) return;
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const query = input.value.trim();
+      if (!query) return;
+
+      // query with # > tag search
+      const isTagSearch = query.startsWith('#');
+      const params = new URLSearchParams({ q: query });
+      if (isTagSearch) params.set('type', 'tag');
+
+      window.location.href = `search.html?${params.toString()}`;
+    }
   });
 }
 
@@ -664,7 +921,7 @@ function closeShareDropdown() {
 }
 
 // Report modal
-function openReportModal(postId) {
+function openReportModal(id, type = 'post') {
   const existing = document.getElementById('reportModalOverlay');
   if (existing) existing.remove();
 
@@ -677,14 +934,21 @@ function openReportModal(postId) {
     { icon: 'fas fa-flag', label: 'Other' },
   ];
 
+  const label = type === 'comment' ? 'comment' : 'post';
+  const endpoint =
+    type === 'comment'
+      ? `${savedApiBase()}/comments/${id}/report`
+      : `${savedApiBase()}/posts/${id}/report`;
+
   const overlay = document.createElement('div');
   overlay.className = 'report-modal-overlay';
   overlay.id = 'reportModalOverlay';
 
   overlay.innerHTML = `
     <div class="report-modal-card">
-      <h5>Report post</h5>
-      <p class="report-modal-sub">Why are you reporting this post?</p>
+      <h5>Report ${label}</h5>
+      <p class="report-modal-sub">Why are you reporting this ${label}?</p>
+
       <div id="reportReasonsContainer">
         ${reasons
           .map(
@@ -696,8 +960,18 @@ function openReportModal(postId) {
           )
           .join('')}
       </div>
+
+      <div id="reportDescriptionStep" style="display:none;">
+        <textarea id="reportDescriptionInput" class="form-control form-control-sm" rows="3" placeholder="Tell us more..."></textarea>
+        <div class="report-modal-actions mt-2">
+          <button class="btn btn-outline-secondary btn-sm" id="reportBackBtn">Back</button>
+          <button class="btn btn-primary btn-sm" id="reportSubmitDescBtn">Submit</button>
+        </div>
+      </div>
+
       <div id="reportThanks" style="display:none; text-align:center; padding:1rem 0;"></div>
-      <div class="report-modal-actions">
+
+      <div class="report-modal-actions" id="reportMainActions">
         <button class="btn btn-outline-secondary btn-sm" id="reportCancelBtn">Cancel</button>
       </div>
     </div>
@@ -706,46 +980,68 @@ function openReportModal(postId) {
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
 
-  overlay.querySelectorAll('.report-reason-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const token = localStorage.getItem('token');
-      const user_id = localStorage.getItem('loggedInUserId');
+  const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
+  const descStep = overlay.querySelector('#reportDescriptionStep');
+  const thanksEl = overlay.querySelector('#reportThanks');
+  const cancelBtn = overlay.querySelector('#reportCancelBtn');
 
-      fetchMethod(
-        `${API_BASE}/posts/${postId}/report`,
-        (status) => {
-          const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
-          const thanksEl = overlay.querySelector('#reportThanks');
-          const cancelBtn = overlay.querySelector('#reportCancelBtn');
+  function submitReport(reason, description) {
+    const token = localStorage.getItem('token');
+    const user_id = localStorage.getItem('loggedInUserId');
 
-          reasonsContainer.style.display = 'none';
-          cancelBtn.textContent = 'Close';
+    fetchMethod(
+      endpoint,
+      (status) => {
+        reasonsContainer.style.display = 'none';
+        descStep.style.display = 'none';
+        cancelBtn.textContent = 'Close';
 
-          if (status === 409) {
-            thanksEl.innerHTML = `
+        if (status === 409) {
+          thanksEl.innerHTML = `
             <i class="fas fa-info-circle fa-2x mb-2 d-block" style="color:var(--primary-color);"></i>
             <div class="fw-bold">Already reported</div>
-            <div class="text-muted small mt-1">You've already submitted a report for this post.</div>
+            <div class="text-muted small mt-1">You've already submitted a report for this ${label}.</div>
           `;
-          } else {
-            thanksEl.innerHTML = `
+        } else {
+          thanksEl.innerHTML = `
             <i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i>
             <div class="fw-bold">Thanks for your report</div>
-            <div class="text-muted small mt-1">We'll review this post and take action if needed.</div>
+            <div class="text-muted small mt-1">We'll review this ${label} and take action if needed.</div>
           `;
-          }
+        }
 
-          thanksEl.style.display = 'block';
-          setTimeout(() => closeReportModal(), 2500);
-        },
-        'POST',
-        { user_id, reason: btn.dataset.reason },
-        token,
-      );
+        thanksEl.style.display = 'block';
+        setTimeout(() => closeReportModal(), 2500);
+      },
+      'POST',
+      { user_id, reason, description },
+      token,
+    );
+  }
+
+  overlay.querySelectorAll('.report-reason-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.reason === 'Other') {
+        reasonsContainer.style.display = 'none';
+        descStep.style.display = 'block';
+        overlay.querySelector('#reportDescriptionInput').value = '';
+      } else {
+        submitReport(btn.dataset.reason, '');
+      }
     });
   });
 
-  overlay.querySelector('#reportCancelBtn').addEventListener('click', closeReportModal);
+  overlay.querySelector('#reportSubmitDescBtn').addEventListener('click', () => {
+    const description = overlay.querySelector('#reportDescriptionInput').value.trim();
+    submitReport('Other', description);
+  });
+
+  overlay.querySelector('#reportBackBtn').addEventListener('click', () => {
+    descStep.style.display = 'none';
+    reasonsContainer.style.display = '';
+  });
+
+  cancelBtn.addEventListener('click', closeReportModal);
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeReportModal();
   });
@@ -758,170 +1054,3 @@ function closeReportModal() {
     document.body.style.overflow = '';
   }
 }
-
-// =========================
-// Quick Links
-// =========================
-const helpCenterLink = document.getElementById('helpCenterLink');
-const privacyLink = document.getElementById('privacyLink');
-const guidelinesLink = document.getElementById('guidelinesLink');
-
-const infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
-
-const modalTitle = document.getElementById('infoModalTitle');
-const modalBody = document.getElementById('infoModalBody');
-
-function openInfoModal(title, content) {
-  modalTitle.textContent = title;
-  modalBody.innerHTML = content;
-  infoModal.show();
-}
-
-helpCenterLink?.addEventListener('click', (e) => {
-  e.preventDefault();
-
-  openInfoModal(
-    'Help Center',
-    `
-    <h6>Frequently Asked Questions</h6>
-    <p><strong>How do I create a post?</strong><br>
-    To share your thoughts, click on the "What's on your mind?" field, add your text or media, and then select <em>Post</em>. Your content will appear in the community feed.</p>
-    <p><strong>Can I post anonymously?</strong><br>
-    Yes. Before submitting, enable the <em>Anonymous</em> option. This ensures your identity is hidden from other users, though Spindle may still retain internal records for security purposes.</p>
-    <p><strong>How do I join study groups?</strong><br>
-    Navigate to the <em>Study Groups</em> section from the main menu. Browse available groups and click <em>Join</em> to become a member. Some groups may require approval from moderators.</p>
-    <p><strong>How do I save or bookmark posts?</strong><br>
-    Click the bookmark icon beneath any post to save it. You can access your saved posts later from your profile under the <em>Saved</em> tab.</p>
-    <p><strong>How do I manage my account settings?</strong><br>
-    Go to your profile and select <em>Settings</em>. From there, you can update your email, change your password, adjust privacy preferences, and manage notifications.</p>
-    <p><strong>What happens to deleted posts?</strong><br>
-    When you delete a post, it is removed from public view immediately. However, copies may remain in backup storage for a limited time as part of our security and compliance processes.</p>
-    <p><strong>How do I report inappropriate content?</strong><br>
-    Click the three-dot menu on the post or comment and select <em>Report</em>. Our moderation team will review the report and take appropriate action.</p>
-    <p><strong>Can I deactivate or delete my account?</strong><br>
-    Yes. Visit <em>Settings</em> → <em>Account</em> → <em>Deactivate/Delete</em>. Deactivation allows you to return later, while deletion permanently removes your account and associated data (subject to legal retention requirements).</p>
-
-    <hr>
-    <h6>Getting Started</h6>
-    <p>
-    New to Spindle? Begin by creating your account, customizing your profile, and exploring communities that match your interests. Visit the <em>Quick Start Guide</em> for step-by-step instructions.
-    </p>
-    <h6>Community Guidelines</h6>
-    <p>
-    To keep Spindle safe and welcoming, please follow our <em>Community Rules</em>. Respect others, avoid harmful content, and report inappropriate behavior. Violations may result in warnings or account suspension.
-    </p>
-    <h6>Account & Privacy</h6>
-    <p>
-    You can manage your account settings under <em>Profile → Settings</em>. Options include updating your email, changing your password, adjusting privacy preferences, and controlling notifications. For details on how we protect your data, see our Privacy Policy.
-    </p>
-    <h6>Moderation & Reporting</h6>
-    <p>
-    Our moderation team works to ensure a safe environment. If you encounter harmful or inappropriate content, use the <em>Report</em> option. Reports are reviewed promptly, and appropriate action will be taken.
-    </p>
-    <h6>Technical Support</h6>
-    <p>
-    If you experience technical issues such as login errors, app crashes, or missing features, check the <em>Troubleshooting Guide</em>. If the issue persists, contact our support team.
-    </p>
-    <hr>
-    <p class="text-muted mb-0">
-    Need further assistance? Contact the Spindle Support Team at <a href="mailto:support@spindleapp.com">support@spindleapp.com</a>.
-    </p>
-
-    `,
-  );
-});
-
-privacyLink?.addEventListener('click', (e) => {
-  e.preventDefault();
-
-  openInfoModal(
-    'Privacy Policy',
-    `
-    <p>
-      Spindle values your trust and is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our services.
-    </p>
-    <h5>Information We Collect</h5>
-    <ul>
-      <li><strong>Account Information:</strong> We collect only the information necessary to create and maintain your account, such as your username, email address, and password.</li>
-      <li><strong>Content:</strong> Posts, comments, and files you upload are stored securely and used solely within the platform.</li>
-      <li><strong>Usage Data:</strong> We may collect information about how you interact with Spindle, including log data, device information, and preferences, to improve user experience.</li>
-    </ul>
-    <h5>How We Use Your Information</h5>
-    <ul>
-      <li>To provide, maintain, and improve our services.</li>
-      <li>To protect the security and integrity of the platform.</li>
-      <li>To personalize your experience and deliver relevant content.</li>
-      <li>To comply with legal obligations and enforce our policies.</li>
-    </ul>
-    <h5>Data Protection</h5>
-    <ul>
-      <li><strong>Password Security:</strong> All passwords are encrypted using industry-standard methods.</li>
-      <li><strong>Anonymous Posting:</strong> When you choose to post anonymously, your identity is hidden from other users.</li>
-      <li><strong>File Usage:</strong> Uploaded files are used exclusively within the platform and are not shared externally.</li>
-    </ul>
-    <h5>Data Sharing</h5>
-    <ul>
-      <li>We do not sell or rent your personal information to third parties.</li>
-      <li>We may share limited information with trusted service providers who assist us in operating the platform, subject to strict confidentiality agreements.</li>
-      <li>We may disclose information if required by law or to protect the rights, safety, and security of our users and services.</li>
-    </ul>
-    <h5>Your Rights</h5>
-    <ul>
-      <li>You have the right to access, update, or delete your account information.</li>
-      <li>You may request a copy of the personal data we hold about you.</li>
-      <li>You can adjust your privacy settings within the platform at any time.</li>
-    </ul>
-    <h5>Changes to This Policy</h5>
-    <p>
-      We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. Updates will be posted here, and the "Last Updated" date will be revised accordingly.
-    </p>
-    <p class="text-muted mb-0">
-      Last updated: May 2026
-    </p>
-    `,
-  );
-});
-
-guidelinesLink?.addEventListener('click', (e) => {
-  e.preventDefault();
-
-  openInfoModal(
-    'Community Guidelines',
-    `
-    <p>
-      Spindle is committed to maintaining a safe, respectful, and productive environment for all users. By participating in the platform, you agree to follow these guidelines to help us keep Spindle welcoming and useful for everyone.
-    </p>
-
-    <h5>Respect and Conduct</h5>
-    <ul>
-      <li><strong>Be respectful:</strong> Treat fellow students and community members with courtesy and consideration.</li>
-      <li><strong>No harassment or hate speech:</strong> Harassment, bullying, discrimination, or hate speech of any kind is strictly prohibited.</li>
-      <li><strong>Constructive participation:</strong> Engage in discussions thoughtfully and avoid disruptive behavior.</li>
-    </ul>
-
-    <h5>Content Standards</h5>
-    <ul>
-      <li><strong>No illegal or harmful content:</strong> Do not post content that promotes illegal activity, violence, or harm.</li>
-      <li><strong>Stay relevant:</strong> Keep discussions aligned with the category or group you are posting in.</li>
-      <li><strong>No spam:</strong> Avoid posting advertisements, repetitive content, or duplicate posts.</li>
-      <li><strong>Respect academic integrity:</strong> Do not share or encourage cheating, plagiarism, or violations of school policies.</li>
-    </ul>
-
-    <h5>Privacy and Safety</h5>
-    <ul>
-      <li><strong>Protect personal information:</strong> Do not share sensitive personal details about yourself or others.</li>
-      <li><strong>Anonymous posting:</strong> Use the anonymous option responsibly to contribute without revealing your identity.</li>
-      <li><strong>Reporting issues:</strong> If you encounter harmful or inappropriate content, use the <em>Report</em> feature to notify moderators.</li>
-    </ul>
-
-    <h5>Enforcement</h5>
-    <p>
-      Violations of these guidelines may result in content removal, warnings, temporary restrictions, or permanent account suspension. Enforcement decisions are made at the discretion of the moderation team to protect the integrity of the community.
-    </p>
-
-    <p class="text-muted mb-0">
-      Last updated: May 2026
-    </p>
-    `,
-  );
-});

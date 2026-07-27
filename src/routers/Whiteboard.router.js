@@ -77,16 +77,16 @@ router.post('/', authenticateJWT, (req, res, next) => {
     return;
   }
 
-  if (mode !== 'whiteboard' && mode !== 'pixel') {
-    return res.status(400).json({ message: 'Error: Invalid mode' });
-  }
-
   const data = {
     user_id: req.user.id,
     group_id: req.body.group_id || null,
     title: req.body.title,
     mode: req.body.mode,
   };
+
+  if (data.mode !== 'whiteboard' && data.mode !== 'pixel') {
+    return res.status(400).json({ message: 'Error: Invalid mode' });
+  }
 
   // Check that group with the same name doesn't already exist
   insertWhiteboards(data)

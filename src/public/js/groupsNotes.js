@@ -16,6 +16,9 @@ const newNoteFolderModal = new bootstrap.Modal(document.getElementById('newNoteF
 const newNoteModal = new bootstrap.Modal(document.getElementById('newNoteModal'));
 const insertLinkModal = new bootstrap.Modal(document.getElementById('insertLinkModal'));
 
+const newNoteFolderModal = new bootstrap.Modal(document.getElementById('newNoteFolderModal'));
+const newNoteModal = new bootstrap.Modal(document.getElementById('newNoteModal'));
+
 window.addEventListener('DOMContentLoaded', async () => {
   // Fetch data
   await fetchNoteData();
@@ -1224,7 +1227,7 @@ async function deleteNote(id) {
       }
     };
 
-    fetchMethod(url, callback, 'DELETE', data, token);
+    fetchMethod(url, callback, 'DELETE', null, token);
   });
 }
 
