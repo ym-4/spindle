@@ -9,15 +9,17 @@ const app = express();
 app.use(cors()); // Might remove later
 
 // Session handler for the wordle
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'connect-pg-simple',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 day; games don't need to outlive this yet
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'connect-pg-simple',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 1 day; games don't need to outlive this yet
+  }),
+);
 
 // Parse incoming JSON request bodies (e.g. from POST/PUT requests)
-app.use(express.json({limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files (HTML, CSS, JS, images) from the 'public' folder.
