@@ -19,7 +19,8 @@ const SpindleFilters = {
     const matchesMax = this.maxPrice == null || price <= this.maxPrice;
 
     const itemTagNames = (item.tags || []).map((t) => t.name.toLowerCase());
-    const matchesTags = this.tags.size === 0 || [...this.tags].some((tag) => itemTagNames.includes(tag));
+    const matchesTags =
+      this.tags.size === 0 || [...this.tags].some((tag) => itemTagNames.includes(tag));
 
     const itemStatus = item.status || 'active';
     const matchesStatus = this.status === 'all' || itemStatus === this.status;

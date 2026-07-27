@@ -1272,6 +1272,58 @@ const noteLinks = [
   },
 ];
 
+// Seed data for Study Room characters
+const characters = [
+  {
+    name: 'Gumi',
+    character_key: 'char1-gummy',
+    parts: {
+      body: ['default', 'pink'],
+      arm: ['default', 'heart', 'outstretched'],
+      eye: ['angy'],
+      effect: ['star'],
+      hat: ['beanie', 'bowler', 'crown'],
+      leg: ['default', 'straight'],
+    },
+  },
+  {
+    name: 'Peep',
+    character_key: 'char2-chick',
+    parts: {
+      body: ['default'],
+      eye: ['default', 'angy'],
+      hat: ['bowtie', 'cap', 'clip', 'flower_crown', 'straw'],
+      leg: ['default'],
+      mouth: ['default'],
+    },
+  },
+  {
+    name: 'Puddle',
+    character_key: 'char3-frog',
+    parts: {
+      body: ['default'],
+      eye: ['default', 'shocked'],
+      face: ['blush'],
+      hat: ['crown'],
+      leg: ['default'],
+      accessories: ['lilypad'],
+      mouth: ['default'],
+      effect: ['hearts', 'rain'],
+    },
+  },
+  {
+    name: 'Crisp',
+    character_key: 'char4-apple',
+    parts: {
+      body: ['default', 'blue', 'pink', 'purple', 'red', 'yellow'],
+      eye: ['default', 'angy'],
+      leg: ['default'],
+      blush: ['light', 'dark'],
+      arm: ['default', 'star'],
+    },
+  },
+];
+
 async function seed() {
   console.log('Seeding data...');
 
@@ -1718,6 +1770,27 @@ async function seed() {
   }
 
   console.log(`Inserted ${noteLinks.length} note links.`);
+
+  // -----------------------------------------------------------------------------
+  // Insert Study Room Characters
+  // -----------------------------------------------------------------------------
+
+  for (const character of characters) {
+    await pool.query(
+      `
+    INSERT INTO "StudyRoomCharacters"
+      ("name", "character_key", "parts")
+    VALUES ($1, $2, $3)
+    ON CONFLICT ("character_key")
+    DO UPDATE SET
+      "name" = EXCLUDED."name",
+      "parts" = EXCLUDED."parts"
+    `,
+      [character.name, character.character_key, JSON.stringify(character.parts)],
+    );
+  }
+
+  console.log(`Inserted ${characters.length} Study Room characters.`);
 
   console.log('Seed completed successfully.');
   console.log(

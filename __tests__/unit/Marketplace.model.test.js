@@ -154,7 +154,13 @@ test('updateItem updates the row and returns it', async () => {
   const fakeItem = { id: 1, name: 'New name' };
   pool.query.mockResolvedValueOnce({ rows: [fakeItem] });
 
-  const data = { name: 'New name', price: 15, description: 'd', quality: 'fair', meetup: 'Yishun MRT' };
+  const data = {
+    name: 'New name',
+    price: 15,
+    description: 'd',
+    quality: 'fair',
+    meetup: 'Yishun MRT',
+  };
   const result = await updateItem(1, data);
 
   expect(pool.query.mock.calls[0][1]).toEqual([
@@ -269,11 +275,7 @@ test('getRecommendedItems prioritizes tag-matched items and tops up with random 
   expect(pool.query).toHaveBeenCalledTimes(3);
   const topUpParams = pool.query.mock.calls[2][1];
   expect(topUpParams).toEqual([[1, 2], 2]); // excludes source + already-matched item, needs 2 more
-  expect(result).toEqual([
-    { id: 2, match_count: 1 },
-    { id: 3 },
-    { id: 4 },
-  ]);
+  expect(result).toEqual([{ id: 2, match_count: 1 }, { id: 3 }, { id: 4 }]);
 });
 
 test('getRecommendedItems skips the random top-up query when tag matches already fill the limit', async () => {

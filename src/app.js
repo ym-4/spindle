@@ -30,6 +30,7 @@ const groupFilesRouter = require('./routers/GroupFiles.router');
 const whiteboardRouter = require('./routers/Whiteboard.router');
 const notesRouter = require('./routers/Notes.router');
 const somethingRouter = require('./routers/Something.router');
+const studyRoomRouter = require('./routers/StudyRoom.router');
 
 const app = express();
 app.use(cors()); // Might remove later
@@ -84,6 +85,7 @@ app.use('/groupFiles', groupFilesRouter);
 app.use('/whiteboards', whiteboardRouter);
 app.use('/notes', notesRouter);
 app.use('/somethings', somethingRouter);
+app.use('/study-room', studyRoomRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use('/giphy', giphyRouter);

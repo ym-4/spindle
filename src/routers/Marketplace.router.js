@@ -3,7 +3,20 @@ const router = express.Router();
 const path = require('path');
 const multer = require('multer');
 const upload = require('../middlewares/upload');
-const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage, setItemTags, getItemsByTag, getRecommendedItems, setItemStatus, setCoverImage } = require('../models/Marketplace.model');
+const {
+  createItem,
+  getAllItems,
+  updateItem,
+  deleteItem,
+  getAllItemsById,
+  addImagesToItem,
+  deleteItemImage,
+  setItemTags,
+  getItemsByTag,
+  getRecommendedItems,
+  setItemStatus,
+  setCoverImage,
+} = require('../models/Marketplace.model');
 
 // Local storage config, scoped to marketplace image uploads only
 const listingImageStorage = multer.diskStorage({
