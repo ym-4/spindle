@@ -25,6 +25,7 @@
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/posts.css" />
+    <link rel="stylesheet" href="css/snake.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
     <link rel="stylesheet" href="css/profile-page.css" />
   </head>
@@ -39,20 +40,25 @@
         </a>
 
         <!-- Searchbar-->
-        <div class="navbar-search">
+        <div class="navbar-search position-relative">
           <input
             class="form-control"
             id="searchInput"
             type="search"
-            placeholder="Search posts, groups, items..."
+            placeholder="Search"
             aria-label="Search"
+            autocomplete="off"
           />
+          <span class="search-placeholder-fake" aria-hidden="true"
+            >Search posts, groups, items...</span
+          >
+          <div id="searchDropdown" class="search-dropdown" style="display: none"></div>
         </div>
 
         <div class="navbar-right">
           <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
           <a href="profile.html" class="btn-navbar-profile" id="profileButton">
-            <i class="fas fa-user-circle"></i> Profile
+            <i class="fas fa-user-circle"></i>
           </a>
           <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
         </div>
@@ -132,8 +138,19 @@
         <!-- category tabs -->
         <div class="card mb-3">
           <div class="card-body p-2">
-            <div class="category-pills-wrapper" id="categoryPills">
-              <!-- Pills rendered by home.js -->
+            <div class="d-flex align-items-center gap-2">
+              <div class="category-pills-wrapper flex-grow-1" id="categoryPills"></div>
+              <div class="position-relative flex-shrink-0">
+                <button class="sort-pill" id="sortPillBtn">
+                  <i class="fas fa-arrow-down-wide-short"></i>
+                  <i class="fas fa-chevron-down" style="font-size: 0.65rem"></i>
+                </button>
+                <div
+                  class="sort-dropdown"
+                  id="sortDropdown"
+                  style="display: none; position: absolute; right: 0; top: calc(100% + 6px)"
+                ></div>
+              </div>
             </div>
           </div>
         </div>
@@ -143,6 +160,7 @@
       </main>
 
       <!-- Right sidebar -->
+      <!-- hot posts -->
       <aside class="right-sidebar">
         <div class="card">
           <div class="card-header"><i class="fas fa-fire text-danger me-2"></i>Hot Posts</div>
@@ -153,15 +171,36 @@
           </div>
         </div>
 
-        <div class="card mt-3">
-          <div class="card-header">Suggested Groups</div>
-          <div class="list-group list-group-flush" id="suggestedGroupsContainer">
-            <div class="list-group-item text-muted small text-center py-3">
-              <div class="spinner-border spinner-border-sm" role="status"></div>
+        <!-- Mini game card -->
+        <div class="card mt-3 snake-game-card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-gamepad me-2 text-success"></i>Mini Game</span>
+          </div>
+          <div class="card-body snake-card-body">
+            <p class="snake-card-tagline">Need a quick break?</p>
+            <div class="snake-card-game-row">
+              <span class="snake-card-emoji">🐍</span>
+              <span class="snake-card-name">Snake</span>
             </div>
+            <div class="snake-card-score-row">
+              <span class="snake-card-score-label">High Score</span>
+              <span class="snake-card-score-value" id="snakeHighScoreDisplay">0</span>
+            </div>
+            <button class="btn btn-success btn-sm w-100 mt-2" id="snakePlayBtn">
+              <i class="fas fa-play me-1"></i> Play
+            </button>
           </div>
         </div>
 
+        <!-- recently viewed -->
+        <div class="card mt-3" id="recentlyViewedCard" style="display: none">
+          <div class="card-header">
+            <i class="fas fa-history text-secondary me-2"></i>Recently Viewed
+          </div>
+          <div class="list-group list-group-flush" id="recentlyViewedContainer"></div>
+        </div>
+
+        <!-- quick links-->
         <div class="card mt-3">
           <div class="card-header">Quick Links</div>
           <div class="list-group list-group-flush">
@@ -213,7 +252,7 @@
             <div class="post-meta-section">
               <div class="row g-3">
                 <!-- CATEGORY -->
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <label class="form-label subtle-label"> Category </label>
 
                   <select class="form-select modern-select" id="postCategory">
@@ -235,14 +274,18 @@
                   </select>
                 </div>
 
-                <!-- POST AS -->
-                <div class="col-md-6">
-                  <label class="form-label subtle-label"> Post as </label>
-
-                  <select class="form-select modern-select" id="postAs">
-                    <option value="named">Loading…</option>
-                    <option value="Anonymous">Anonymous</option>
+                <!-- Visibility -->
+                <div class="col-md-4">
+                  <label class="form-label subtle-label">Visibility</label>
+                  <select class="form-select modern-select" id="postVisibility">
+                    <option value="everyone">Everyone</option>
+                    <option value="friends_only">Friends only</option>
                   </select>
+                </div>
+
+                <!-- POST AS -->
+                <div class="col-md-4">
+                  <label class="form-label subtle-label"> Post as </label>
                   <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" id="postAnonymous" />
                     <label class="form-check-label" for="postAnonymous"> Anonymous ☕︎ </label>
@@ -250,14 +293,28 @@
                 </div>
               </div>
 
-              <div class="row g-3 mt-1">
-                <div class="col-md-6">
-                  <label class="form-label subtle-label">Visibility</label>
-                  <select class="form-select modern-select" id="postVisibility">
-                    <option value="everyone">Everyone</option>
-                    <option value="friends_only">Friends only</option>
-                  </select>
+              <!-- TAGS -->
+              <div class="mt-3">
+                <label class="form-label subtle-label"
+                  >Tags
+                  <span class="text-muted" style="font-weight: 400"
+                    >(up to 10, press Enter or comma to add)</span
+                  ></label
+                >
+                <div class="position-relative">
+                  <div class="tag-input-wrapper" id="tagInputWrapper">
+                    <input
+                      type="text"
+                      class="tag-text-input"
+                      id="tagTextInput"
+                      placeholder="#addtag"
+                      autocomplete="off"
+                      maxlength="50"
+                    />
+                  </div>
+                  <div class="tag-autocomplete" id="tagAutocomplete" style="display: none"></div>
                 </div>
+                <div class="tag-count-hint" id="tagCountHint">0 / 10 tags</div>
               </div>
             </div>
           </div>
@@ -360,6 +417,89 @@
       </div>
     </div>
 
+    <!-- Snake Game Modal -->
+    <div id="snakeModalOverlay" class="snake-modal-overlay" style="display: none">
+      <div class="snake-modal">
+        <div class="snake-modal-header">
+          <span class="snake-modal-title">🐍 Snake</span>
+          <div class="snake-modal-stats">
+            <span>Score: <strong id="snakeLiveScore">0</strong></span>
+            <span>Best: <strong id="snakeLiveBest">0</strong></span>
+            <span>Level: <strong id="snakeLiveLevel">1</strong></span>
+          </div>
+          <button class="snake-quit-btn" id="snakeQuitBtn">✕ Quit</button>
+        </div>
+
+        <div class="snake-modal-body">
+          <canvas id="snakeCanvas" width="400" height="400"></canvas>
+
+          <div class="snake-side-panel">
+            <div class="snake-panel-section">
+              <div class="snake-panel-section">
+                <!-- rules -->
+                <div class="snake-panel-label">How to Play</div>
+                <ul class="snake-rules-list">
+                  <li>🍎 Eat the food to grow and score</li>
+                  <li>🧱 Don't hit the walls</li>
+                  <li>🐍 Don't run into your own tail</li>
+                  <li>⚡ Speed increases every 5 points</li>
+                  <li>⏸ Press <kbd>P</kbd> or <kbd>Esc</kbd> to pause</li>
+                </ul>
+              </div>
+              <!-- controls guide -->
+              <div class="snake-panel-label">Controls</div>
+              <div class="snake-controls-grid">
+                <div class="snake-key-wrap">
+                  <kbd>↑</kbd>
+                </div>
+                <div class="snake-key-row"><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></div>
+                <div class="snake-key-wrap"><kbd>P</kbd><span>Pause</span></div>
+                <div class="snake-controls-note">or WASD</div>
+              </div>
+            </div>
+
+            <!-- leaderboard -->
+            <div class="snake-panel-section">
+              <button class="btn btn-sm snake-lb-btn" id="snakeViewLeaderboardBtn">
+                View Leaderboard
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="snakeOverlay" class="snake-in-game-overlay" style="display: none">
+          <div id="snakeOverlayMain" class="snake-overlay-content">
+            <div id="snakeOverlayTitle" class="snake-overlay-title"></div>
+            <div id="snakeOverlayScore" class="snake-overlay-score"></div>
+            <button class="btn btn-success me-2" id="snakeRestartBtn">▶ Play again</button>
+            <button class="btn btn-outline-secondary me-2" id="snakeOverlayQuit">Quit</button>
+            <button class="btn btn-sm snake-lb-btn mt-2" id="snakeOverlayViewLeaderboardBtn">
+              View Leaderboard
+            </button>
+          </div>
+        </div>
+
+        <!-- Leaderboard card -->
+        <div id="snakeLeaderboardView" class="snake-lb-overlay" style="display: none">
+          <div class="snake-lb-panel">
+            <div class="snake-lb-panel-header">
+              <span class="snake-panel-label">Leaderboard</span>
+              <button
+                class="snake-lb-close-btn"
+                id="snakeLeaderboardBackBtn"
+                aria-label="Close leaderboard"
+              >
+                ✕
+              </button>
+            </div>
+            <ol class="snake-leaderboard" id="snakeLeaderboard">
+              <li class="snake-lb-empty">No scores yet</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Report Modal -->
     <div id="reportModalOverlay" class="report-modal-overlay d-none">
       <div class="report-modal-card">
@@ -448,6 +588,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="js/quickLinks.js"></script>
+    <script src="js/snake.js"></script>
 
     <script src="js/api.js"></script>
     <script src="js/wa-nav.js"></script>
@@ -460,6 +602,7 @@
     <script src="js/spindle-page.js"></script>
 
     <script src="js/reactions.js"></script>
+    <script src="/js/search.js"></script>
     <script src="js/indexFeed.js"></script>
 
     <script>

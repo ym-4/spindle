@@ -43,6 +43,7 @@ const {
 } = require('../models/Groups.model');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
+const { checkAndAwardBadges } = require('../services/badgeService');
 
 const router = express.Router();
 
@@ -139,7 +140,8 @@ router.post('/create/:creator_id', authenticateJWT, (req, res, next) => {
 
             // Add group creator to group's member list
             insertGroupMember(data)
-              .then(() => {
+              .then((results) => {
+                checkAndAwardBadges(data.creator_id, ['group_joined']);
                 // Add group creator to admin list
                 updateMemberRoleToAdmin({
                   user_being_promoted_user_id: data.creator_id,
@@ -404,6 +406,7 @@ router.post('/join/:group_id', authenticateJWT, (req, res, next) => {
               // Insert Group Member
               insertGroupMember(data)
                 .then((results) => {
+                  checkAndAwardBadges(data.user_id, ['group_joined']);
                   return res.status(201).json(results);
                 })
                 .catch(next);
@@ -1058,7 +1061,10 @@ router.put(
                 group_id: data.group_id,
                 user_id: data.user_id,
               })
-                .then((results) => res.status(200).json(results))
+                .then((results) => {
+                  checkAndAwardBadges(data.user_id, ['group_joined']);
+                  res.status(200).json(results);
+                })
                 .catch(next);
             })
             .catch(next);
