@@ -85,6 +85,14 @@ router.get('/school/:school_name', (req, res, next) => {
     school: req.params.school_name,
   };
 
+  const validSchools = ['SOC', 'MAD', 'EEE', 'ABE', 'SB', 'SMA', 'MAE', 'CLS'];
+
+  if (!validSchools.includes(data.school)) {
+    return res.status(400).json({
+      message: 'Error: Invalid school',
+    });
+  }
+
   getGroupsBySchool(data)
     .then((groups) => res.status(200).json(groups))
     .catch(next);
@@ -287,11 +295,19 @@ router.put('/module/:group_id', authenticateJWT, (req, res, next) => {
 });
 
 // Delete Group (creator_id) (Can only be done by the group's creator)
-router.delete('/:group_id', authenticateJWT, (req, res, next) => {
+router.delete('/:group_id', authenticateJWT, async (req, res, next) => {
   const data = {
     group_id: req.params.group_id,
     creator_id: req.user.id,
   };
+
+  const group = await getGroupsByGroupID(data);
+
+  if (group.length == 0) {
+    return res.status(404).json({
+      message: 'Group not found',
+    });
+  }
 
   // Get all groups where user is the creator
   getGroupByCreatorID(data)

@@ -1,86 +1,34 @@
-/* global loadListings, addListing, loadUserListings */
+// Wires the text search box into the shared SpindleFilters state (see
+// marketplace-filters.js). Price + tag filters are handled by that same file;
+// this just keeps the search box's own "type to filter by name" behavior,
+// plus the little clear (×) button that shows once there's text.
 
 let searchBar = document.getElementById('marketplaceSearch');
-let listingContainer = document.getElementById('listings-container');
 
-function marketplaceSearch() {
+function marketplaceSearchInput() {
+  const clearBtn = document.getElementById('search-clear-btn');
+
   searchBar.addEventListener('input', () => {
-    listingContainer.innerHTML = '';
-    let searchQuery = searchBar.value.toLowerCase();
+    SpindleFilters.searchQuery = searchBar.value.toLowerCase();
 
-    // If search query is nothing, load listings as usual
-    if (searchQuery == '') {
-      loadListings();
-      return;
+    if (clearBtn) {
+      clearBtn.classList.toggle('d-none', searchBar.value === '');
     }
 
-    fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
-      const emptyState = document.getElementById('no-listings-state');
-
-      if (status === 200) {
-        let nothingFound = true;
-
-        data.forEach((item) => {
-          if (item.name.toLowerCase().includes(searchQuery)) {
-            nothingFound = false;
-            addListing(item.seller_id, item.id, item.name, item.description, item.price);
-          }
-        });
-
-        if (nothingFound) {
-          emptyState.classList.remove('d-none');
-        } else {
-          emptyState.classList.add('d-none');
-        }
-      } else {
-        console.error('Failed to load listings:', status, data);
-      }
-    });
+    refreshFilteredListings();
   });
-}
 
-function yourListingsSearch() {
-  searchBar.addEventListener('input', () => {
-    listingContainer.innerHTML = '';
-    let searchQuery = searchBar.value.toLowerCase();
-
-    // If search query is nothing, load listings as usual
-    if (searchQuery == '') {
-      loadUserListings();
-      return;
-    }
-
-    fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
-      const emptyState = document.getElementById('no-listings-state');
-
-      if (status === 200) {
-        let nothingFound = true;
-
-        data.forEach((item) => {
-          if (
-            item.name.toLowerCase().includes(searchQuery) &&
-            item.seller_id == localStorage.loggedInUserId
-          ) {
-            nothingFound = false;
-            addListing(item.seller_id, item.id, item.name, item.description, item.price);
-          }
-        });
-
-        if (nothingFound) {
-          emptyState.classList.remove('d-none');
-        } else {
-          emptyState.classList.add('d-none');
-        }
-      } else {
-        console.error('Failed to load listings:', status, data);
-      }
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      searchBar.value = '';
+      SpindleFilters.searchQuery = '';
+      clearBtn.classList.add('d-none');
+      refreshFilteredListings();
     });
-  });
+  }
 }
 
 // Insert the correct items based on the name of the document ;-D
-if (document.title == 'Marketplace') {
-  marketplaceSearch();
-} else if (document.title == 'Marketplace - Your Listings') {
-  yourListingsSearch();
+if (document.title == 'Marketplace' || document.title == 'Marketplace - Your Listings') {
+  marketplaceSearchInput();
 }

@@ -399,6 +399,14 @@ body {
   background: linear-gradient(135deg, #fff0d6, #ffe0b3);
   color: #7a4000;
 }
+.category-qna {
+  background-color: var(--bg-hover);
+  color: var(--primary-color);
+}
+.category-general {
+  background-color: var(--bg-input);
+  color: var(--text-secondary);
+}
 
 .category-qna {
   background-color: var(--bg-hover);

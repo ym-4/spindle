@@ -957,6 +957,25 @@
           </table>
         </div>
       </div>
+      <div id="postsLoading" class="text-center py-4 text-muted">
+        <i class="fas fa-spinner fa-spin me-2"></i>Loading posts...
+      </div>
+      <div id="postsError" class="alert alert-danger hidden"></div>
+      <div id="postsPanel" class="hidden">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Category</th>
+              <th>Date</th>
+              <th style="width: 80px">Action</th>
+            </tr>
+          </thead>
+          <tbody id="adminPostsBody"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- ===== REPORTS TAB ===== -->
@@ -1038,6 +1057,23 @@
             <tbody id="appealsBody"></tbody>
           </table>
         </div>
+      </div>
+      <div id="appealsError" class="alert alert-danger hidden"></div>
+      <div id="appealsPanel" class="hidden">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Ban Reason</th>
+              <th>Duration</th>
+              <th>Appeal Message</th>
+              <th>Submitted</th>
+              <th style="width: 180px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="appealsBody"></tbody>
+        </table>
       </div>
     </div>
 

@@ -105,6 +105,13 @@ module.exports.getTaskItemsByTaskID = async function getTaskItemsByTaskID(data) 
   return rows;
 };
 
+// GET task items by id
+module.exports.getTaskItemsByID = async function getTaskItemsByID(data) {
+  const VALUES = [data.id];
+  const { rows } = await pool.query('SELECT * FROM "GroupTaskItems" WHERE id = $1', VALUES);
+  return rows;
+};
+
 // GET task items by group and user id
 module.exports.getTaskItemsByUserAndGroupID = async function getTaskItemsByUserAndGroupID(data) {
   const VALUES = [data.user_id, data.group_id];
