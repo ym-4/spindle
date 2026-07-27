@@ -349,7 +349,7 @@ function addCartItem(seller_id, id, name, description, price, quantity, images) 
 
     // Save button handler
     modal.querySelector('#editSaveBtn').onclick = () => {
-      let newQuantity = parseInt(modal.querySelector('#editQuantity').value);
+      const newQuantity = parseInt(modal.querySelector('#editQuantity').value);
       if (newQuantity < 1) {
         newQuantity = 1;
       }

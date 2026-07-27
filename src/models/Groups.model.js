@@ -314,8 +314,8 @@ module.exports.getGroupAnnouncementsByGroupID = async function getGroupAnnouncem
   return rows;
 };
 
-// GET all group announcements
-module.exports.getGroupAnnouncements = async function getGroupAnnouncements() {
+// GET all group announcements by group_id
+module.exports.getGroupAnnouncements = async function getGroupAnnouncements(data) {
   await ensureGroupAnnouncementsTable();
   const { rows } = await pool.query('SELECT * FROM "GroupAnnouncements"');
   return rows;

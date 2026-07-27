@@ -46,7 +46,6 @@ const {
 } = require('../models/Groups.model');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
-const { checkAndAwardBadges } = require('../services/badgeService');
 
 const router = express.Router();
 
@@ -144,13 +143,12 @@ router.post('/create/:creator_id', authenticateJWT, (req, res, next) => {
             // Add group creator to group's member list
             insertGroupMember(data)
               .then((results) => {
-                checkAndAwardBadges(data.creator_id, ['group_joined']);
                 // Add group creator to admin list
                 updateMemberRoleToAdmin({
                   user_being_promoted_user_id: data.creator_id,
                   group_id: group.id,
                 })
-                  .then(() => res.status(201).json(group))
+                  .then((results) => res.status(201).json(group))
                   .catch(next);
               })
               .catch(next);
@@ -409,7 +407,6 @@ router.post('/join/:group_id', authenticateJWT, (req, res, next) => {
               // Insert Group Member
               insertGroupMember(data)
                 .then((results) => {
-                  checkAndAwardBadges(data.user_id, ['group_joined']);
                   return res.status(201).json(results);
                 })
                 .catch(next);
@@ -445,7 +442,7 @@ router.delete('/leave/:group_id', authenticateJWT, (req, res, next) => {
         } else {
           // Let user leave
           deleteGroupMemberByUserId(data)
-            .then(() => {
+            .then((results) => {
               res.status(204).send();
             })
             .catch(next);
@@ -483,7 +480,7 @@ router.delete('/kick/:group_id/:removed_user_id', authenticateJWT, (req, res, ne
             } else {
               // Let user leave
               deleteGroupMemberByUserId({ group_id: data.group_id, user_id: data.removed_user_id })
-                .then(() => {
+                .then((results) => {
                   res.status(204).send();
                 })
                 .catch(next);
@@ -784,7 +781,7 @@ router.delete('/messages/delete/:user_id', authenticateJWT, (req, res, next) => 
       if (match.length > 0) {
         // Delete message
         deleteGroupDiscussionByID(data)
-          .then(() => {
+          .then((results) => {
             return res.status(204).send();
           })
           .catch(next);
@@ -1064,10 +1061,7 @@ router.put(
                 group_id: data.group_id,
                 user_id: data.user_id,
               })
-                .then((results) => {
-                  checkAndAwardBadges(data.user_id, ['group_joined']);
-                  res.status(200).json(results);
-                })
+                .then((results) => res.status(200).json(results))
                 .catch(next);
             })
             .catch(next);

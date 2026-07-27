@@ -2,7 +2,6 @@ const express = require('express');
 const createError = require('http-errors');
 const Friends = require('../models/Friends.model');
 const { authenticateJWT } = require('../middlewares/auth.middleware');
-const { checkAndAwardBadges } = require('../services/badgeService');
 
 const router = express.Router();
 router.use(authenticateJWT);
@@ -100,8 +99,6 @@ router.post('/accept', async (req, res, next) => {
     } catch {
       /* optional */
     }
-    checkAndAwardBadges(reqRow.sender_id, ['friend_added']);
-    checkAndAwardBadges(reqRow.receiver_id, ['friend_added']);
     res.status(200).json({ message: 'Friend request accepted.' });
   } catch (err) {
     if (err.status) return res.status(err.status).json({ error: err.message });

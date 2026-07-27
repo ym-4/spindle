@@ -2,10 +2,6 @@ const express = require('express');
 const upload = require('../middlewares/upload');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
-const { checkAndAwardBadges } = require('../services/badgeService');
-
-const Notification = require('../models/Notification.model');
-const pool = require('../models/db');
 
 const fs = require('fs');
 const path = require('path');
@@ -15,8 +11,6 @@ const {
   getPostByID,
   getPostByCategory,
   getRelatedPosts,
-  getHotPosts,
-  getPostsByUserID,
   insertPost,
   updatePostByID,
   deletePostByID,
@@ -24,7 +18,6 @@ const {
   insertSaved,
   deleteSavedByID,
   getReactionByUserID,
-  getLikedPostsByUserID,
   insertLike,
   updateReaction,
   deleteReaction,
@@ -40,53 +33,9 @@ const {
   deleteUserPollVote,
   updatePollQuestion,
   deletePollByPostID,
-  upsertTag,
-  insertPostTags,
-  getTagsByPostID,
-  deletePostTags,
-  searchTags,
-  getSortedPosts,
-  incrementPostView,
-  getPostAnalytics,
-  getPostEngagementOverTime,
-  getUserPostsAnalytics,
 } = require('../models/Posts.model');
 
 const router = express.Router();
-
-// notifications
-async function notifyPostMentions(content, senderUserId, postId) {
-  const mentions = [...(content || '').matchAll(/@([a-zA-Z0-9_]+)/g)].map((m) =>
-    m[1].toLowerCase(),
-  );
-
-  if (!mentions.length) return;
-
-  const { rows: mentionedUsers } = await pool.query(
-    `SELECT id FROM "Person"
-     WHERE LOWER(name) = ANY($1) AND id != $2`,
-    [mentions, senderUserId],
-  );
-
-  if (!mentionedUsers.length) return;
-
-  const { rows: senderRows } = await pool.query(
-    `SELECT display_name, name FROM "Person" WHERE id = $1`,
-    [senderUserId],
-  );
-  const senderName = senderRows[0]?.display_name || senderRows[0]?.name || 'Someone';
-
-  await Promise.all(
-    mentionedUsers.map((user) =>
-      Notification.create(user.id, {
-        type: 'mention',
-        title: `${senderName} tagged you in a post: `,
-        body: (content || '').slice(0, 120),
-        ref_id: postId,
-      }),
-    ),
-  );
-}
 
 // Get all post
 router.get('/', (req, res, next) => {
@@ -142,39 +91,6 @@ router.get('/related/:category/:id', (req, res, next) => {
   };
 
   getRelatedPosts(data)
-    .then((posts) => res.status(200).json(posts))
-    .catch(next);
-});
-
-// GET top 3 hot posts for sidebar
-router.get('/hot', (req, res, next) => {
-  getHotPosts()
-    .then((posts) => res.status(200).json(posts))
-    .catch(next);
-});
-
-// get posts by user ID (for profile page)
-router.get('/user/:user_id', (req, res, next) => {
-  getPostsByUserID({ user_id: req.params.user_id })
-    .then((posts) => res.status(200).json(posts))
-    .catch(next);
-});
-
-// GET posts liked by a user (for profile page)
-router.get('/liked/:user_id', authenticateJWT, (req, res, next) => {
-  getLikedPostsByUserID({ user_id: req.params.user_id })
-    .then((posts) => res.status(200).json(posts))
-    .catch(next);
-});
-
-// Get posts sorted
-router.get('/sorted', (req, res, next) => {
-  const data = {
-    sort: req.query.sort || 'newest',
-    timeframe: req.query.timeframe || 'all',
-    category: req.query.category || null,
-  };
-  getSortedPosts(data)
     .then((posts) => res.status(200).json(posts))
     .catch(next);
 });
@@ -323,95 +239,7 @@ router.delete('/:id/poll/vote', authenticateJWT, (req, res, next) => {
     .catch(next);
 });
 
-// ======================== TAGGING SYSTEM ===========================
-// GET tags for a post
-router.get('/:id/tags', (req, res, next) => {
-  const data = {
-    post_id: req.params.id,
-  };
-
-  getTagsByPostID(data)
-    .then((tags) => res.status(200).json(tags))
-    .catch(next);
-});
-
-// Search existing tags by prefix
-router.get('/tags/search', (req, res, next) => {
-  const data = {
-    query: (req.query.q || '').trim(),
-  };
-
-  if (!data.query) return res.status(200).json([]);
-
-  searchTags(data)
-    .then((tags) => res.status(200).json(tags))
-    .catch(next);
-});
-
-// Replace all tags for a post (owner only)
-router.put('/:id/tags', authenticateJWT, async (req, res, next) => {
-  const { tag_names } = req.body;
-
-  if (!Array.isArray(tag_names)) {
-    return res.status(400).json({ message: 'tag_names must be an array of strings.' });
-  }
-  if (tag_names.length > 10) {
-    return res.status(400).json({ message: 'A post can have a maximum of 10 tags.' });
-  }
-
-  try {
-    const tagRows = await Promise.all(tag_names.map((name) => upsertTag({ name })));
-    const tag_ids = tagRows.map((t) => t.id);
-
-    await deletePostTags({ post_id: req.params.id });
-    await insertPostTags({ post_id: req.params.id, tag_ids });
-
-    const updatedTags = await getTagsByPostID({ post_id: req.params.id });
-    res.status(200).json(updatedTags);
-  } catch (err) {
-    console.error('Error updating post tags:', err);
-    next(err);
-  }
-});
-
-//=========================== ANALYTICS ===============================
-// Increment view count (when post page loads)
-router.post('/:id/view', (req, res, next) => {
-  incrementPostView(req.params.id)
-    .then((viewCount) => res.status(200).json({ view_count: viewCount }))
-    .catch(next);
-});
-
-// Get single post analytics (owner only)
-router.get('/:id/analytics', authenticateJWT, (req, res, next) => {
-  getPostAnalytics({ post_id: req.params.id, user_id: req.user.id })
-    .then((data) => {
-      if (!data) return res.status(404).json({ message: 'Post not found or not yours.' });
-      res.status(200).json(data);
-    })
-    .catch(next);
-});
-
-// GET likes/dislikes/saves over time for a single post
-router.get('/:id/analytics/engagement-over-time', authenticateJWT, (req, res, next) => {
-  const data = {
-    post_id: req.params.id,
-    user_id: req.user.id,
-  };
-  getPostEngagementOverTime(data)
-    .then((rows) => res.status(200).json(rows))
-    .catch(next);
-});
-
-// Get all posts analytics for logged in user
-router.get('/analytics/all', authenticateJWT, (req, res, next) => {
-  getUserPostsAnalytics({ user_id: req.user.id })
-    .then((data) => res.status(200).json(data))
-    .catch(next);
-});
-
-//========================= basic posts ==============================
-
+//================================================
 // Get post by ID
 router.get('/:id', (req, res, next) => {
   const data = {
@@ -431,7 +259,7 @@ router.get('/:id', (req, res, next) => {
 });
 
 // Creates new post
-router.post('/', upload.single('attachment'), (req, res) => {
+router.post('/', upload.single('attachment'), (req, res, next) => {
   if (
     req.body == undefined ||
     req.body.user_id == undefined ||
@@ -446,7 +274,7 @@ router.post('/', upload.single('attachment'), (req, res) => {
   const attachmentUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
   const data = {
-    user_id: Number(req.body.user_id),
+    user_id: Number.parseInt(req.body.user_id, 10),
     title: req.body.title,
     category: req.body.category,
     content: req.body.content || '',
@@ -457,22 +285,7 @@ router.post('/', upload.single('attachment'), (req, res) => {
   };
 
   insertPost(data)
-    .then(async (results) => {
-      // Save tags if provided
-      const rawTags = req.body.tags;
-      if (rawTags) {
-        try {
-          const tagNames = JSON.parse(rawTags);
-          if (Array.isArray(tagNames) && tagNames.length > 0) {
-            const tagRows = await Promise.all(
-              tagNames.slice(0, 10).map((name) => upsertTag({ name })),
-            );
-            await insertPostTags({ post_id: results.id, tag_ids: tagRows.map((t) => t.id) });
-          }
-        } catch (e) {
-          console.warn('Tag save warning:', e.message);
-        }
-      }
+    .then((results) =>
       res.status(201).json({
         id: results.id,
         user_id: data.user_id,
@@ -481,27 +294,8 @@ router.post('/', upload.single('attachment'), (req, res) => {
         content: data.content,
         attachment_url: data.attachment_url,
         gif_url: data.gif_url,
-      });
-
-      try {
-        await checkAndAwardBadges(parseInt(data.user_id), ['post_created']);
-      } catch (e) {
-        console.warn('Badge check error:', e.message);
-      }
-
-      // Notify @mentioned users (skip if anonymous)
-      if (!data.is_anonymous) {
-        try {
-          await notifyPostMentions(
-            `${data.title || ''} ${data.content || ''}`,
-            data.user_id,
-            results.id,
-          );
-        } catch (e) {
-          console.warn('Post mention notify error:', e.message);
-        }
-      }
-    })
+      }),
+    )
     .catch((error) => {
       console.error('Error insertPost:', error);
       res.status(500).json(error);
@@ -509,7 +303,7 @@ router.post('/', upload.single('attachment'), (req, res) => {
 });
 
 // Update post (owner only)
-router.put('/:id', upload.single('attachment'), (req, res) => {
+router.put('/:id', upload.single('attachment'), (req, res, next) => {
   let attachmentUrl = req.body.attachment_url || null;
   let gifUrl = req.body.gif_url || null;
 
@@ -582,7 +376,7 @@ router.put('/:id', upload.single('attachment'), (req, res) => {
 });
 
 // delete post (owner only)
-router.delete('/:id', authenticateJWT, (req, res) => {
+router.delete('/:id', authenticateJWT, (req, res, next) => {
   const postId = req.params.id;
   // Check if user is admin or post owner
   getPostByID({ id: postId })
@@ -610,7 +404,7 @@ router.delete('/:id', authenticateJWT, (req, res) => {
 //==================== post interactions (saves, likes, etc) ============================
 //saves
 // adds new save to saved posts
-router.post('/saved', authenticateJWT, (req, res) => {
+router.post('/saved', authenticateJWT, (req, res, next) => {
   if (!req.body?.post_id) {
     return res.status(400).json({ message: 'Error: post_id is undefined' });
   }
@@ -629,16 +423,13 @@ router.post('/saved', authenticateJWT, (req, res) => {
       }),
     )
     .catch((error) => {
-      if (error.code === '23505') {
-        return res.status(409).json({ message: 'You have already saved this post.' });
-      }
       console.error('Error insertSaved: ' + error);
       res.status(500).json(error);
     });
 });
 
 // remove a save
-router.delete('/saved/:id', (req, res) => {
+router.delete('/saved/:id', (req, res, next) => {
   const data = {
     id: req.params.id,
   };
@@ -655,7 +446,7 @@ router.delete('/saved/:id', (req, res) => {
     });
 });
 
-// ===================== likes n dislikes =======================
+// likes n dislikes
 // creates like for a post
 router.post('/like', authenticateJWT, (req, res, next) => {
   if (!req.body?.post_id) {
@@ -667,55 +458,24 @@ router.post('/like', authenticateJWT, (req, res, next) => {
     reaction_type: req.body.reaction_type,
   };
 
+  // likes a post_id
   insertLike(data)
-    .then(async (results) => {
+    .then((results) =>
       res.status(201).json({
         id: results.id,
         post_id: data.post_id,
         user_id: data.user_id,
         reaction_type: data.reaction_type,
-      });
-
-      // Notify post owner
-      let post;
-      try {
-        post = await getPostByID({ id: data.post_id });
-        if (!post) return;
-        if (parseInt(post.user_id) === parseInt(data.user_id)) return;
-
-        const { rows: reactorRows } = await pool.query(
-          `SELECT display_name, name FROM "Person" WHERE id = $1`,
-          [data.user_id],
-        );
-        const reactorName = reactorRows[0]?.display_name || reactorRows[0]?.name || 'Someone';
-        const emoji = data.reaction_type === 'like' ? '👍' : '👎';
-
-        await Notification.create(parseInt(post.user_id), {
-          type: 'post_reaction',
-          title: `${reactorName} reacted ${emoji} to your post`,
-          body: (post.title || '').slice(0, 120),
-          ref_id: data.post_id,
-        });
-      } catch (e) {
-        console.warn('Post like notify error:', e.message);
-      }
-      if (post) {
-        checkAndAwardBadges(parseInt(post.user_id), ['post_liked'], {
-          postId: data.post_id,
-        });
-      }
-    })
+      }),
+    )
     .catch((error) => {
-      if (error.code === '23505') {
-        return res.status(409).json({ message: 'You have already reacted to this post.' });
-      }
       console.error('Error insertLike: ' + error);
       res.status(500).json(error);
     });
 });
 
 // Update reaction type
-router.put('/reaction/:id', (req, res) => {
+router.put('/reaction/:id', (req, res, next) => {
   const data = {
     id: req.params.id,
     user_id: req.body.user_id,
@@ -736,7 +496,7 @@ router.put('/reaction/:id', (req, res) => {
 });
 
 // remove a like or dislike
-router.delete('/reaction/:id', (req, res) => {
+router.delete('/reaction/:id', (req, res, next) => {
   const data = {
     id: req.params.id,
     user_id: req.body.user_id,
@@ -768,7 +528,7 @@ router.post('/:id/pin', authenticateJWT, async (req, res, next) => {
 });
 
 // Report a post
-router.post('/:id/report', (req, res) => {
+router.post('/:id/report', (req, res, next) => {
   if (!req.body.user_id || !req.body.reason) {
     return res.status(400).json({ message: 'user_id and reason not found.' });
   }

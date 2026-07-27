@@ -19,17 +19,6 @@ const COMMENTS_BASE = `${currentUrl}/comments`;
 document.addEventListener('DOMContentLoaded', () => {
   loadYourGroups();
   setupCommentSortUI();
-  setupSearch();
-  if (typeof setupSearchDropdown === 'function') setupSearchDropdown();
-  // Close any other open Bootstrap dropdown when a new one opens
-  document.addEventListener('show.bs.dropdown', (event) => {
-    document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
-      const toggle = menu.previousElementSibling;
-      if (toggle && toggle !== event.target) {
-        bootstrap.Dropdown.getInstance(toggle)?.hide();
-      }
-    });
-  });
 
   const params = new URLSearchParams(window.location.search);
   const postId = params.get('id');
@@ -44,40 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPost(postId, editMode);
   });
 
-  // If URL has #comment, scroll to that comment after load
-  const hashMatch = window.location.hash.match(/^#comment-(\d+)$/);
-  if (hashMatch) {
-    const targetCommentId = hashMatch[1];
-
-    let attempts = 0;
-    const scrollInterval = setInterval(() => {
-      const commentEl = document.querySelector(`[data-comment-id="${targetCommentId}"]`);
-
-      if (commentEl) {
-        clearInterval(scrollInterval);
-
-        // open comment reply
-        const repliesWrapper = commentEl.closest('.replies-wrapper');
-        if (repliesWrapper && repliesWrapper.style.display === 'none') {
-          const group = repliesWrapper.parentElement;
-          const toggleBtn = group?.querySelector('.show-replies-btn');
-          if (toggleBtn) toggleBtn.click();
-        }
-
-        setTimeout(() => {
-          commentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          commentEl.style.transition = 'background-color 0.4s ease';
-          commentEl.style.backgroundColor = '#fffbcc';
-          setTimeout(() => {
-            commentEl.style.backgroundColor = '';
-          }, 2000);
-        }, 150);
-      }
-
-      if (++attempts > 200) clearInterval(scrollInterval);
-    }, 50);
-  }
-
   const commentInput = document.getElementById('commentInput');
   if (commentInput) {
     commentInput.addEventListener('focus', () => {
@@ -90,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const REACTIONS_BASE = `${currentUrl}/posts`;
-let currentPostOwnerId = null;
 let currentReaction = null;
 let commentReactions = new Map();
 let openReplyThreads = new Set();
@@ -101,8 +55,6 @@ let activeCommentPostId = null;
 let activeCommentsData = [];
 let pendingEditGifUrl = null;
 let removeCurrentAttachment = false;
-let commentAttachmentFile = null;
-let commentGifUrl = null;
 
 // Load saved IDs
 function loadSavedIds() {
@@ -401,221 +353,6 @@ async function searchEditGifs(query, post, gifModal) {
   }
 }
 
-// TAGS
-function loadPostTagsOnPostPage(postId) {
-  fetchMethod(`${currentUrl}/posts/${postId}/tags`, (status, tags) => {
-    const container = document.getElementById(`postTags-${postId}`);
-    if (!container || status !== 200 || !Array.isArray(tags) || !tags.length) return;
-
-    container.innerHTML = '';
-    tags.forEach((tag) => {
-      const span = document.createElement('span');
-      span.className = 'post-tag';
-      span.textContent = `#${tag.name}`;
-      span.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.location.href = `search.html?q=${encodeURIComponent('#' + tag.name)}&type=tag`;
-      });
-      container.appendChild(span);
-    });
-  });
-}
-
-function setupEditTagSection(post) {
-  const section = document.getElementById('editTagSection');
-  if (!section) return;
-
-  const token = localStorage.getItem('token');
-  let editTags = [];
-
-  // Load existing tags for this post
-  fetchMethod(`${currentUrl}/posts/${post.id}/tags`, (status, tags) => {
-    editTags = status === 200 && Array.isArray(tags) ? tags.map((t) => t.name) : [];
-    renderEditTagSection();
-  });
-
-  function renderEditTagSection() {
-    section.innerHTML = `
-      <div class="p-3 border rounded" style="border-radius:10px; background:var(--background-color);">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="subtle-label mb-0">TAGS</span>
-          <span class="tag-count-hint" id="editTagCountHint">${editTags.length} / 10</span>
-        </div>
-
-        <div class="position-relative">
-          <div class="tag-input-wrapper" id="editTagInputWrapper">
-            <input
-              type="text"
-              class="tag-text-input"
-              id="editTagTextInput"
-              placeholder="#addtag"
-              autocomplete="off"
-              maxlength="50"
-            >
-          </div>
-          <div class="tag-autocomplete" id="editTagAutocomplete" style="display:none;"></div>
-        </div>
-
-        <div class="mt-2">
-          <button type="button" class="btn btn-sm btn-outline-primary" id="saveTagsBtn">
-            <i class="fas fa-tags me-1"></i>Save tags
-          </button>
-        </div>
-        <div id="tagEditMsg" class="mt-2" style="font-size:0.85rem;"></div>
-      </div>
-    `;
-
-    // Render tags
-    renderEditTagChips();
-    setupEditTagInput();
-
-    // Save tags button
-    document.getElementById('saveTagsBtn').addEventListener('click', () => {
-      const msgEl = document.getElementById('tagEditMsg');
-      msgEl.innerHTML = '';
-
-      fetchMethod(
-        `${currentUrl}/posts/${post.id}/tags`,
-        (s, data) => {
-          if (s === 200) {
-            msgEl.innerHTML = `<span class="text-success"><i class="fas fa-check me-1"></i>Tags saved.</span>`;
-            setTimeout(() => {
-              msgEl.innerHTML = '';
-            }, 2000);
-          } else {
-            msgEl.innerHTML = `<span class="text-danger">${data?.message || 'Failed to save tags.'}</span>`;
-          }
-        },
-        'PUT',
-        { tag_names: editTags },
-        token,
-      );
-    });
-  }
-
-  function renderEditTagChips() {
-    const wrapper = document.getElementById('editTagInputWrapper');
-    const input = document.getElementById('editTagTextInput');
-    if (!wrapper || !input) return;
-
-    wrapper.querySelectorAll('.tag-chip').forEach((el) => el.remove());
-
-    editTags.forEach((name) => {
-      const chip = document.createElement('div');
-      chip.className = 'tag-chip';
-      chip.innerHTML = `
-        #${escapeHtml(name)}
-        <button type="button" class="tag-chip-remove" title="Remove">
-          <i class="fas fa-times"></i>
-        </button>
-      `;
-      chip.querySelector('.tag-chip-remove').addEventListener('click', (e) => {
-        e.stopPropagation();
-        editTags = editTags.filter((t) => t !== name);
-        renderEditTagChips();
-        updateEditTagHint();
-      });
-      wrapper.insertBefore(chip, input);
-    });
-  }
-
-  function setupEditTagInput() {
-    const wrapper = document.getElementById('editTagInputWrapper');
-    const input = document.getElementById('editTagTextInput');
-    const autocomplete = document.getElementById('editTagAutocomplete');
-    if (!wrapper || !input || !autocomplete) return;
-
-    let debounce;
-
-    wrapper.addEventListener('click', () => input.focus());
-
-    input.addEventListener('input', () => {
-      const query = input.value.replace(/^#/, '').trim();
-      if (!query) {
-        autocomplete.style.display = 'none';
-        return;
-      }
-
-      clearTimeout(debounce);
-      debounce = setTimeout(() => {
-        fetchMethod(
-          `${currentUrl}/posts/tags/search?q=${encodeURIComponent(query)}`,
-          (status, data) => {
-            if (status !== 200 || !data.length) {
-              autocomplete.style.display = 'none';
-              return;
-            }
-            renderEditAutocomplete(data, query);
-          },
-        );
-      }, 250);
-    });
-
-    input.addEventListener('keydown', (e) => {
-      if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
-        e.preventDefault();
-        addEditTag(input.value.replace(/^#/, '').trim());
-      }
-      if (e.key === 'Backspace' && !input.value && editTags.length) {
-        editTags.pop();
-        renderEditTagChips();
-        updateEditTagHint();
-      }
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!wrapper.contains(e.target)) autocomplete.style.display = 'none';
-    });
-
-    function renderEditAutocomplete(tags, query) {
-      autocomplete.innerHTML = '';
-      const exactMatch = tags.some((t) => t.name === query.toLowerCase());
-
-      if (!exactMatch) {
-        const createItem = document.createElement('div');
-        createItem.className = 'tag-autocomplete-item';
-        createItem.innerHTML = `<span>Create <strong>#${escapeHtml(query)}</strong></span>`;
-        createItem.addEventListener('click', () => {
-          addEditTag(query);
-          autocomplete.style.display = 'none';
-        });
-        autocomplete.appendChild(createItem);
-      }
-
-      tags.forEach((tag) => {
-        const item = document.createElement('div');
-        item.className = 'tag-autocomplete-item';
-        item.innerHTML = `
-          <span>#${escapeHtml(tag.name)}</span>
-          <span class="tag-usage">${tag.usage_count} post${tag.usage_count !== 1 ? 's' : ''}</span>
-        `;
-        item.addEventListener('click', () => {
-          addEditTag(tag.name);
-          autocomplete.style.display = 'none';
-        });
-        autocomplete.appendChild(item);
-      });
-
-      autocomplete.style.display = 'block';
-    }
-
-    function addEditTag(name) {
-      const clean = name.toLowerCase().trim().replace(/\s+/g, '');
-      if (!clean || editTags.includes(clean) || editTags.length >= 10) return;
-      editTags.push(clean);
-      renderEditTagChips();
-      input.value = '';
-      autocomplete.style.display = 'none';
-      updateEditTagHint();
-    }
-  }
-
-  function updateEditTagHint() {
-    const hint = document.getElementById('editTagCountHint');
-    if (hint) hint.textContent = `${editTags.length} / 10`;
-  }
-}
-
 //Load post
 function loadPost(postId, editMode = false) {
   const token = localStorage.getItem('token');
@@ -649,10 +386,7 @@ function loadPost(postId, editMode = false) {
     fetchMethod(`${currentUrl}/posts/${postId}`, (status, data) => {
       if (status === 200 && data) {
         if (editMode) renderPostEditMode(data);
-        else {
-          renderPost(data);
-          fetchMethod(`${feedApiBase()}/posts/${postId}/view`, () => {}, 'POST', null, null);
-        }
+        else renderPost(data);
         document.getElementById('commentsSection').style.display = 'block';
         loadComments(postId);
         setupCommentSubmit(postId);
@@ -670,14 +404,12 @@ function renderPost(post) {
   const { timeStr, wasEdited } = formatTimestamp(post.created_at, post.updated_at);
   const categoryLabel = getCategoryLabel(post.category);
   const categoryClass = getCategoryClass(post.category);
-  const avatarContent = getAvatarContent(post);
+  const initial = getAvatarInitial(post);
   const authorName = getAuthorName(post);
-  const canViewProfile = !post.is_anonymous && post.user_id;
 
   const isLoggedIn = !!localStorage.getItem('token');
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
   const isOwner = loggedInUserId && parseInt(post.user_id) === loggedInUserId;
-  currentPostOwnerId = parseInt(post.user_id) || null;
   const isSaved = savedPostIds.has(parseInt(post.id));
 
   const ownerOptions = isOwner
@@ -689,9 +421,6 @@ function renderPost(post) {
     <li><button class="dropdown-item edit-post-btn">
       <i class="fas fa-pen me-2"></i>Edit post
     </button></li>
-    <li><button class="dropdown-item insights-post-btn">
-      <i class="fas fa-chart-bar me-2"></i>View Insights
-    </button></li>
     <li><button class="dropdown-item text-danger delete-post-btn">
       <i class="fas fa-trash-alt me-2"></i>Delete post
     </button></li>`
@@ -700,9 +429,9 @@ function renderPost(post) {
   document.getElementById('postDetailContainer').innerHTML = `
     <div class="post-card" data-post-id="${post.id}" style="cursor: default;">
       <div class="post-header">
-        <div class="post-avatar${canViewProfile ? ' post-owner-link' : ''}">${avatarContent}</div>
+        <div class="post-avatar">${initial}</div>
         <div class="post-author">
-          <div class="post-author-name${canViewProfile ? ' post-owner-link' : ''}">${authorName}</div>
+          <div class="post-author-name">${authorName}</div>
           <div class="post-timestamp">
             ${timeStr}
             ${wasEdited ? `<span class="post-edited-tag text-muted">·&nbsp;&nbsp;edited</span>` : ''}
@@ -746,9 +475,7 @@ function renderPost(post) {
       ${post.title ? `<div class="fw-bold mt-2 mb-1" style="font-size:1.05rem;">${escapeHtml(post.title)}</div>` : ''}
       <div class="post-content ql-editor" style="padding:0; font-size:inherit; line-height:1.5;">${post.content || ''}</div>
       ${renderPostAttachment(post)}
-
-      ${post.poll_id ? `<div id="pollContainer-${post.id}"></div>` : ''}
-      <div class="post-tags" id="postTags-${post.id}"></div>
+      <div id="pollContainer-${post.id}"></div>
 
       <div class="post-actions">
         <button 
@@ -777,20 +504,7 @@ function renderPost(post) {
 
   setupReactionButtons(post.id);
   loadRelatedPosts(post.id, post.category);
-
-  if (canViewProfile) {
-    document.querySelectorAll('#postDetailContainer .post-owner-link').forEach((el) => {
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.location.href = `profile.html?id=${post.user_id}`;
-      });
-    });
-  }
-
-  if (post.poll_id) {
-    loadAndRenderPollOnPostPage(post.id);
-  }
-  loadPostTagsOnPostPage(post.id);
+  loadAndRenderPollOnPostPage(post.id);
 
   // Share button
   document.querySelector('.share-btn')?.addEventListener('click', (e) => {
@@ -838,10 +552,6 @@ function renderPost(post) {
 
     document.querySelector('.edit-post-btn').addEventListener('click', () => {
       renderPostEditMode(post);
-    });
-
-    document.querySelector('.insights-post-btn').addEventListener('click', () => {
-      window.location.href = `postAnalytics.html?id=${post.id}`;
     });
 
     document.querySelector('.delete-post-btn').addEventListener('click', () => {
@@ -950,7 +660,7 @@ function renderPostEditMode(post) {
   document.getElementById('postDetailContainer').innerHTML = `
     <div class="post-card" style="cursor: default;">
       <div class="post-header">
-        <div class="post-avatar">${getAvatarContent(post)}</div>
+        <div class="post-avatar">${getAvatarInitial(post)}</div>
         <div class="post-author">
           <div class="post-author-name">${getAuthorName(post)}</div>
           <div class="post-timestamp text-muted" style="font-size:0.8rem;">Editing post</div>
@@ -988,7 +698,6 @@ function renderPostEditMode(post) {
       </div>
 
       <div id="editPollSection" class="mb-3"></div>
-      <div id="editTagSection" class="mb-3"></div>
 
       <div class="mb-3">
         <label class="form-label fw-semibold">
@@ -1055,8 +764,6 @@ function renderPostEditMode(post) {
   setupEditGifPicker(post);
   setupRemoveAttachmentButton(post);
   setupEditPollSection(post);
-  setupEditTagSection(post);
-  loadRelatedPosts(post.id, post.category);
 
   document.getElementById('cancelEditBtn').addEventListener('click', () => {
     const url = new URL(window.location.href);
@@ -1111,13 +818,6 @@ function renderPostEditMode(post) {
 function setupEditPollSection(post) {
   const section = document.getElementById('editPollSection');
   if (!section) return;
-
-  if (!post.poll_id) {
-    // No poll on this post
-    section.innerHTML = '';
-    section.dataset.hasPoll = '';
-    return;
-  }
 
   const token = localStorage.getItem('token');
 
@@ -1409,9 +1109,10 @@ function sortCommentsForDisplay(comments, sortType, allComments = comments) {
 
     if (sortType === 'oldest') return getCreatedAt(a) - getCreatedAt(b);
 
+    //WIP: to change to like count
     if (sortType === 'top') {
-      const likeDiff = (b.like_count || 0) - (a.like_count || 0);
-      if (likeDiff !== 0) return likeDiff;
+      const replyDiff = getReplyCount(b) - getReplyCount(a);
+      if (replyDiff !== 0) return replyDiff;
     }
     return getCreatedAt(b) - getCreatedAt(a);
   });
@@ -1478,9 +1179,6 @@ function loadComments(postId) {
 function setupCommentSubmit(postId) {
   const commentInput = document.getElementById('commentInput');
   const submitBtn = document.getElementById('submitCommentBtn');
-  submitBtn.disabled = true;
-  commentInput.addEventListener('input', updateCommentSubmitState);
-
   const authOverlay = document.getElementById('authOverlay');
   const closeAuthPopup = document.getElementById('closeAuthPopup');
 
@@ -1504,59 +1202,6 @@ function setupCommentSubmit(postId) {
     }
   });
 
-  // Attachment file input
-  const attachmentInput = document.getElementById('commentAttachmentInput');
-  if (attachmentInput) {
-    attachmentInput.addEventListener('change', () => {
-      const file = attachmentInput.files[0];
-      if (!file) return;
-      if (file.size > 8 * 1024 * 1024) {
-        alert('File too large. Max 8MB.');
-        attachmentInput.value = '';
-        return;
-      }
-      commentAttachmentFile = file;
-      commentGifUrl = null;
-      renderCommentMediaPreview();
-      updateCommentSubmitState();
-    });
-  }
-
-  // GIF toggle button
-  const gifToggleBtn = document.getElementById('commentGifToggleBtn');
-  const gifPanel = document.getElementById('commentGifPanel');
-  if (gifToggleBtn && gifPanel) {
-    gifToggleBtn.addEventListener('click', () => {
-      const isOpen = gifPanel.classList.contains('open');
-      gifPanel.classList.toggle('open', !isOpen);
-      if (!isOpen) {
-        document.getElementById('commentGifSearchInput')?.focus();
-        const resultsEl = document.getElementById('commentGifResults');
-        if (resultsEl && !resultsEl.innerHTML.trim()) {
-          resultsEl.innerHTML =
-            '<div class="gif-grid-empty"><i class="fas fa-search mb-2 d-block" style="font-size:1.2rem;"></i>Search GIFs</div>';
-        }
-      }
-    });
-  }
-
-  // GIF search
-  const gifSearchInput = document.getElementById('commentGifSearchInput');
-  if (gifSearchInput) {
-    let debounce;
-    gifSearchInput.addEventListener('input', () => {
-      clearTimeout(debounce);
-      const query = gifSearchInput.value.trim();
-      if (!query) {
-        document.getElementById('commentGifResults').innerHTML =
-          '<div class="gif-grid-empty"><i class="fas fa-search mb-2 d-block" style="font-size:1.2rem;"></i>Search GIFs</div>';
-        return;
-      }
-      debounce = setTimeout(() => searchCommentGifs(query), 300);
-    });
-  }
-
-  // Submit
   submitBtn.addEventListener('click', () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -1565,170 +1210,27 @@ function setupCommentSubmit(postId) {
     }
 
     const content = commentInput.value.trim();
-    if (!content && !commentAttachmentFile && !commentGifUrl) return;
+    if (!content) return;
 
     const user_id = localStorage.getItem('loggedInUserId');
     submitBtn.disabled = true;
 
-    const formData = new FormData();
-    formData.append('user_id', user_id);
-    formData.append('content', content || ' ');
-
-    if (commentAttachmentFile) {
-      formData.append('attachment', commentAttachmentFile);
-    } else if (commentGifUrl) {
-      formData.append('attachment_url', commentGifUrl);
-    }
-
-    fetch(`${COMMENTS_BASE}/${postId}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    })
-      .then(async (res) => {
-        const data = await res.json();
+    fetchMethod(
+      `${COMMENTS_BASE}/${postId}`,
+      (status, data) => {
         submitBtn.disabled = false;
-        if (res.status === 200 || res.status === 201) {
+        if (status === 200 || status === 201) {
           commentInput.value = '';
-          commentAttachmentFile = null;
-          commentGifUrl = null;
-          clearCommentMediaPreview();
-          if (gifPanel) gifPanel.classList.remove('open');
-          if (gifSearchInput) gifSearchInput.value = '';
-          document.getElementById('commentGifResults').innerHTML =
-            '<div class="gif-grid-empty"><i class="fas fa-search mb-2 d-block" style="font-size:1.2rem;"></i>Search GIFs</div>';
-
-          // @pandabot mentioned
           loadComments(postId);
-
-          // refresh
-          const mentionedBot = /\@pandabot/i.test(content || '');
-          if (mentionedBot) {
-            let attempts = 0;
-            const poll = setInterval(() => {
-              attempts++;
-              fetchMethod(
-                `${COMMENTS_BASE}/${postId}`,
-                (s, d) => {
-                  if (s !== 200) return;
-                  const allComments = Array.isArray(d) ? d : d.rows || [];
-                  const botReplied = allComments.some(
-                    (c) => c.author_name?.toLowerCase() === 'pandabot',
-                  );
-                  if (botReplied || attempts >= 15) {
-                    clearInterval(poll);
-                    if (botReplied) loadComments(postId);
-                  }
-                },
-                'GET',
-                null,
-                localStorage.getItem('token'),
-              );
-            }, 1000);
-          }
         } else {
           alert(data.error || data.message || 'Failed to post comment.');
         }
-      })
-      .catch((err) => {
-        submitBtn.disabled = false;
-        console.error(err);
-        alert('Failed to post comment.');
-      });
+      },
+      'POST',
+      { user_id, content },
+      token,
+    );
   });
-}
-
-function updateCommentSubmitState() {
-  const commentInput = document.getElementById('commentInput');
-  const submitBtn = document.getElementById('submitCommentBtn');
-  if (!commentInput || !submitBtn) return;
-
-  const hasContent = commentInput.value.trim().length > 0;
-  const hasMedia = !!commentAttachmentFile || !!commentGifUrl;
-  submitBtn.disabled = !(hasContent || hasMedia);
-}
-
-function renderCommentMediaPreview() {
-  const preview = document.getElementById('commentAttachmentPreview');
-  if (!preview) return;
-
-  const src = commentAttachmentFile ? URL.createObjectURL(commentAttachmentFile) : commentGifUrl;
-
-  if (!src) {
-    preview.innerHTML = '';
-    return;
-  }
-
-  preview.innerHTML = `
-    <div class="position-relative d-inline-block">
-      <img src="${src}" alt="Comment attachment">
-      <button type="button" class="remove-comment-media-btn" title="Remove">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>`;
-
-  preview.querySelector('.remove-comment-media-btn').addEventListener('click', () => {
-    clearCommentMediaPreview();
-  });
-}
-
-function clearCommentMediaPreview() {
-  commentAttachmentFile = null;
-  commentGifUrl = null;
-  const preview = document.getElementById('commentAttachmentPreview');
-  if (preview) preview.innerHTML = '';
-  const input = document.getElementById('commentAttachmentInput');
-  if (input) input.value = '';
-  updateCommentSubmitState();
-}
-
-async function searchCommentGifs(query) {
-  const container = document.getElementById('commentGifResults');
-  if (!container) return;
-  container.innerHTML = '<div class="gif-grid-empty">Searching...</div>';
-
-  try {
-    const res = await fetch(`/giphy/search?q=${encodeURIComponent(query)}`);
-    const gifs = await res.json();
-    container.innerHTML = '';
-
-    if (!Array.isArray(gifs) || !gifs.length) {
-      container.innerHTML = '<div class="gif-grid-empty">No GIFs found.</div>';
-      return;
-    }
-
-    gifs.forEach((gif) => {
-      const previewUrl = gif?.images?.fixed_height_small?.url || gif?.images?.original?.url;
-      const fullUrl = gif?.images?.original?.url || previewUrl;
-      if (!previewUrl) return;
-
-      const img = document.createElement('img');
-      img.src = previewUrl;
-      img.loading = 'lazy';
-      img.alt = 'GIF';
-
-      img.addEventListener('click', () => {
-        commentGifUrl = fullUrl;
-        commentAttachmentFile = null;
-        renderCommentMediaPreview();
-        updateCommentSubmitState();
-
-        // Close panel
-        document.getElementById('commentGifPanel')?.classList.remove('open');
-        document.getElementById('commentGifSearchInput').value = '';
-        container.innerHTML = '';
-
-        // Clear file input
-        const fileInput = document.getElementById('commentAttachmentInput');
-        if (fileInput) fileInput.value = '';
-      });
-
-      container.appendChild(img);
-    });
-  } catch (err) {
-    console.error(err);
-    container.innerHTML = '<div class="gif-grid-empty">Failed to load GIFs.</div>';
-  }
 }
 
 //  Build comment thread
@@ -1755,10 +1257,7 @@ function appendCommentToDOM(comment, postId, allComments) {
   // replies wrapper
   const repliesWrapper = document.createElement('div');
   repliesWrapper.className = 'replies-wrapper';
-
-  // open for reply from PandaBot
-  const hasBotReply = replies.some((r) => r.author_name?.toLowerCase() === 'pandabot');
-  const wasOpen = openReplyThreads.has(parseInt(comment.id)) || hasBotReply;
+  const wasOpen = openReplyThreads.has(parseInt(comment.id));
   repliesWrapper.style.display = wasOpen ? 'block' : 'none';
 
   replies.forEach((reply) => {
@@ -1803,16 +1302,9 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
       ? String(comment.user_id).charAt(0)
       : 'U';
   const authorDisplay = comment.author_name || `User ${comment.user_id}`;
-  const isPandabot = comment.author_name?.toLowerCase() === 'pandabot';
-  const commentAvatarContent = isPandabot
-    ? '🐼'
-    : comment.author_avatar
-      ? `<img src="${comment.author_avatar}" class="avatar-img" alt="${escapeHtml(authorDisplay)}">`
-      : initial;
 
   const loggedInUserId = parseInt(localStorage.getItem('loggedInUserId'));
   const isLoggedIn = !!localStorage.getItem('token');
-  const isPostOwner = isLoggedIn && currentPostOwnerId && loggedInUserId === currentPostOwnerId;
   const isOwner = isLoggedIn && parseInt(comment.user_id) === loggedInUserId;
 
   const menuOptions = `
@@ -1842,12 +1334,7 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
         <button class="dropdown-item edit-comment-btn">
           <i class="fas fa-pen me-2"></i>Edit
         </button>
-      </li>`
-        : ''
-    }
-    ${
-      isOwner || isPostOwner
-        ? `
+      </li>
       <li>
         <button class="dropdown-item text-danger delete-comment-btn">
           <i class="fas fa-trash-alt me-2"></i>Delete
@@ -1857,23 +1344,16 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
     }`;
 
   const el = document.createElement('div');
-  el.className =
-    (isReply ? 'comment-item comment-reply' : 'comment-item') +
-    (isPandabot ? ' pandabot-comment' : '');
+  el.className = isReply ? 'comment-item comment-reply' : 'comment-item';
   el.dataset.commentId = comment.id;
 
   el.innerHTML = `
     <div class="d-flex">
-      <div class="comment-avatar${isPandabot ? ' pandabot-avatar' : ''}">
-        ${commentAvatarContent}
-      </div>
+      <div class="comment-avatar">${initial}</div>
       <div class="flex-grow-1">
         <div class="comment-content">
           <div class="d-flex align-items-start justify-content-between">
-            <div class="comment-author${isPandabot ? ' pandabot-name' : ''}">
-            ${escapeHtml(authorDisplay)}
-            ${isPandabot ? `<span class="bot-badge ms-1">Generated by PandaBot</span>` : ''}
-          </div>
+            <div class="comment-author">${escapeHtml(authorDisplay)}</div>
             <div class="dropdown ms-2">
               <button class="btn btn-sm p-0 px-1 comment-menu-btn"
                 data-bs-toggle="dropdown" style="line-height:1;">
@@ -1883,41 +1363,10 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
               <ul class="dropdown-menu dropdown-menu-end">${menuOptions}</ul>
             </div>
           </div>
-          <div class="comment-text-display">${linkifyPandaBotMentions(escapeHtml(comment.content))}</div>
-          ${
-            comment.attachment_url
-              ? `
-          <div class="comment-attachment mt-1">
-            <img
-              src="${comment.attachment_url}"
-              alt="Comment attachment"
-              class="img-fluid rounded"
-              style="max-height:200px; max-width:100%; object-fit:cover; cursor:pointer;"
-              onclick="window.open('${comment.attachment_url}', '_blank')"
-            >
-          </div>`
-              : ''
-          }
+          <div class="comment-text-display">${escapeHtml(comment.content)}</div>
           <div class="comment-edit-form" style="display:none;">
             <textarea class="form-control form-control-sm comment-edit-input"
               rows="2">${escapeHtml(comment.content)}</textarea>
-
-            <div class="comment-edit-attachment-preview"></div>
-
-            <div class="d-flex align-items-center gap-2 mt-2">
-              <label class="btn btn-outline-secondary btn-sm mb-0" title="Attach image">
-                <i class="fas fa-paperclip"></i>
-                <input type="file" class="comment-edit-attachment-input" accept="image/*,.gif" style="display:none;">
-              </label>
-              <button type="button" class="btn btn-outline-secondary btn-sm comment-edit-gif-btn">
-                <i class="fas fa-images me-1"></i>GIF
-              </button>
-            </div>
-            <div class="comment-edit-gif-panel" style="display:none;">
-              <input type="text" class="form-control form-control-sm mt-2 comment-edit-gif-search" placeholder="Search GIFs...">
-              <div class="gif-grid comment-edit-gif-results mt-2"></div>
-            </div>
-
             <div class="mt-2 d-flex gap-2">
               <button class="btn btn-sm btn-outline-secondary cancel-edit-comment-btn">Cancel</button>
               <button class="btn btn-sm btn-primary save-edit-comment-btn">Save</button>
@@ -1926,11 +1375,11 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
           <div class="comment-actions">
             <button class="comment-like-btn" data-comment-id="${comment.id}">
               <i class="far fa-thumbs-up"></i>
-              <span class="comment-like-count">${comment.like_count || 0}</span>
+              <span class="comment-like-count">0</span>
             </button>
             <button class="comment-dislike-btn" data-comment-id="${comment.id}">
               <i class="far fa-thumbs-down"></i>
-              <span class="comment-dislike-count">${comment.dislike_count || 0}</span>
+              <span class="comment-dislike-count">0</span>
             </button>
             <button class="comment-action-link reply-btn" data-comment-id="${comment.id}" data-author="${escapeHtml(authorDisplay)}">Reply</button>
             <span class="comment-timestamp">${timeStr}</span>
@@ -2015,24 +1464,18 @@ function buildCommentEl(comment, postId, isReply = false, rootParentId = null) {
   }
 
   if (isOwner) {
-    setupCommentEditAttachment(el, comment);
+    el.querySelector('.edit-comment-btn').addEventListener('click', () => enterEditMode(el));
 
-    el.querySelector('.edit-comment-btn').addEventListener('click', () =>
-      enterEditMode(el, comment),
-    );
-
-    el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
-    el.querySelector('.save-edit-comment-btn').addEventListener('click', () =>
-      saveCommentEdit(comment.id, el, postId),
-    );
-  }
-
-  if (isOwner || isPostOwner) {
     el.querySelector('.delete-comment-btn').addEventListener('click', () => {
-      showConfirm('Delete comment?', 'This will permanently remove this comment.', () =>
+      showConfirm('Delete comment?', 'This will permanently remove your comment.', () =>
         deleteComment(comment.id, el, postId),
       );
     });
+
+    el.querySelector('.cancel-edit-comment-btn').addEventListener('click', () => exitEditMode(el));
+    el.querySelector('.save-edit-comment-btn').addEventListener('click', () =>
+      saveCommentEdit(comment.id, el),
+    );
   }
 
   // Comment reactions
@@ -2084,20 +1527,6 @@ function toggleReplyBox(commentEl, comment, postId, rootParentId) {
         <button class="btn btn-primary btn-sm submit-reply-btn">Reply</button>
         <button class="btn btn-outline-secondary btn-sm cancel-reply-btn">Cancel</button>
       </div>
-    </div>
-    <div class="reply-attachment-preview mt-2"></div>
-    <div class="d-flex align-items-center gap-2 mt-2">
-      <label class="btn btn-outline-secondary btn-sm mb-0" title="Attach image">
-        <i class="fas fa-paperclip"></i>
-        <input type="file" class="reply-attachment-input" accept="image/*,.gif" style="display:none;">
-      </label>
-      <button type="button" class="btn btn-outline-secondary btn-sm reply-gif-btn">
-        <i class="fas fa-images me-1"></i>GIF
-      </button>
-    </div>
-    <div class="reply-gif-panel" style="display:none;">
-      <input type="text" class="form-control form-control-sm mt-2 reply-gif-search" placeholder="Search GIFs...">
-      <div class="gif-grid reply-gif-results mt-2"></div>
     </div>`;
 
   const actionsEl = commentEl.querySelector('.comment-actions');
@@ -2110,119 +1539,12 @@ function toggleReplyBox(commentEl, comment, postId, rootParentId) {
 
   replyBox.querySelector('.cancel-reply-btn').addEventListener('click', () => replyBox.remove());
 
-  // Attachment/GIF picker
-  const replyFileInput = replyBox.querySelector('.reply-attachment-input');
-  const replyGifBtn = replyBox.querySelector('.reply-gif-btn');
-  const replyGifPanel = replyBox.querySelector('.reply-gif-panel');
-  const replyGifSearchInput = replyBox.querySelector('.reply-gif-search');
-  const replyGifResults = replyBox.querySelector('.reply-gif-results');
-  const replyAttachmentPreview = replyBox.querySelector('.reply-attachment-preview');
-
-  function renderReplyAttachmentPreview() {
-    const src = replyBox._attachmentFile
-      ? URL.createObjectURL(replyBox._attachmentFile)
-      : replyBox._gifUrl;
-    if (!src) {
-      replyAttachmentPreview.innerHTML = '';
-      return;
-    }
-    replyAttachmentPreview.innerHTML = `
-      <div class="position-relative d-inline-block">
-        <img src="${src}" alt="Attachment" style="max-height:150px; max-width:100%; border-radius:8px;">
-        <button type="button" class="remove-reply-attachment-btn" title="Remove"
-          style="position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; border:none; background:rgba(0,0,0,0.6); color:#fff; line-height:1;">
-          <i class="fas fa-times" style="font-size:0.65rem;"></i>
-        </button>
-      </div>`;
-    replyAttachmentPreview
-      .querySelector('.remove-reply-attachment-btn')
-      .addEventListener('click', () => {
-        replyBox._attachmentFile = null;
-        replyBox._gifUrl = null;
-        if (replyFileInput) replyFileInput.value = '';
-        renderReplyAttachmentPreview();
-      });
-  }
-
-  if (replyFileInput) {
-    replyFileInput.addEventListener('change', () => {
-      const file = replyFileInput.files[0];
-      if (!file) return;
-      if (file.size > 8 * 1024 * 1024) {
-        alert('File too large. Max 8MB.');
-        replyFileInput.value = '';
-        return;
-      }
-      replyBox._attachmentFile = file;
-      replyBox._gifUrl = null;
-      renderReplyAttachmentPreview();
-    });
-  }
-
-  if (replyGifBtn && replyGifPanel) {
-    replyGifBtn.addEventListener('click', () => {
-      replyGifPanel.style.display = replyGifPanel.style.display === 'none' ? 'block' : 'none';
-    });
-  }
-
-  if (replyGifSearchInput) {
-    let debounce;
-    replyGifSearchInput.addEventListener('input', () => {
-      clearTimeout(debounce);
-      const query = replyGifSearchInput.value.trim();
-      if (!query) {
-        replyGifResults.innerHTML = '';
-        return;
-      }
-      debounce = setTimeout(() => {
-        replyGifResults.innerHTML = '<div class="gif-grid-empty">Searching...</div>';
-        fetch(`/giphy/search?q=${encodeURIComponent(query)}`)
-          .then((res) => res.json())
-          .then((gifs) => {
-            replyGifResults.innerHTML = '';
-            if (!Array.isArray(gifs) || !gifs.length) {
-              replyGifResults.innerHTML = '<div class="gif-grid-empty">No GIFs found.</div>';
-              return;
-            }
-            gifs.forEach((gif) => {
-              const previewUrl = gif?.images?.fixed_height_small?.url || gif?.images?.original?.url;
-              const fullUrl = gif?.images?.original?.url || previewUrl;
-              if (!previewUrl) return;
-
-              const img = document.createElement('img');
-              img.src = previewUrl;
-              img.loading = 'lazy';
-              img.alt = 'GIF';
-              img.addEventListener('click', () => {
-                replyBox._gifUrl = fullUrl;
-                replyBox._attachmentFile = null;
-                renderReplyAttachmentPreview();
-                replyGifPanel.style.display = 'none';
-                replyGifSearchInput.value = '';
-                replyGifResults.innerHTML = '';
-                if (replyFileInput) replyFileInput.value = '';
-              });
-              replyGifResults.appendChild(img);
-            });
-          })
-          .catch((err) => {
-            console.error(err);
-            replyGifResults.innerHTML = '<div class="gif-grid-empty">Failed to load GIFs.</div>';
-          });
-      }, 300);
-    });
-  }
-
   replyBox.querySelector('.submit-reply-btn').addEventListener('click', () => {
     const rawContent = textarea.value.trim();
-    if (!rawContent && !replyBox._attachmentFile && !replyBox._gifUrl) return;
+    if (!rawContent) return;
 
     const mention = `@${replyingToName} `;
-    const content = rawContent
-      ? rawContent.startsWith('@')
-        ? rawContent
-        : mention + rawContent
-      : mention.trim();
+    const content = rawContent.startsWith('@') ? rawContent : mention + rawContent;
 
     const submitBtn = replyBox.querySelector('.submit-reply-btn');
     submitBtn.disabled = true;
@@ -2230,221 +1552,31 @@ function toggleReplyBox(commentEl, comment, postId, rootParentId) {
 
     openReplyThreads.add(parseInt(parentCommentId));
 
-    const existingBotReplyIds = new Set(
-      (activeCommentsData || [])
-        .filter(
-          (c) =>
-            c.author_name?.toLowerCase() === 'pandabot' &&
-            parseInt(c.parent_comment_id) === parseInt(parentCommentId),
-        )
-        .map((c) => parseInt(c.id)),
-    );
-
-    const formData = new FormData();
-    formData.append('content', content);
-    formData.append('parent_comment_id', parentCommentId);
-    if (replyBox._attachmentFile) {
-      formData.append('attachment', replyBox._attachmentFile);
-    } else if (replyBox._gifUrl) {
-      formData.append('attachment_url', replyBox._gifUrl);
-    }
-
-    fetch(`${COMMENTS_BASE}/${postId}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    })
-      .then(async (res) => {
-        const data = await res.json();
+    fetchMethod(
+      `${COMMENTS_BASE}/${postId}`,
+      (status, data) => {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Reply';
 
-        if (res.status === 201 || res.status === 200) {
+        if (status === 201 || status === 200) {
           replyBox.remove();
           loadComments(postId);
-
-          // PandaBot mentioned
-          const mentionedBot =
-            /\@pandabot/i.test(content || '') || comment.author_name?.toLowerCase() === 'pandabot';
-
-          if (mentionedBot) {
-            let attempts = 0;
-            const poll = setInterval(() => {
-              attempts++;
-              fetchMethod(
-                `${COMMENTS_BASE}/${postId}`,
-                (s, d) => {
-                  if (s !== 200) return;
-                  const allComments = Array.isArray(d) ? d : d.rows || [];
-                  const botReplied = allComments.some(
-                    (c) =>
-                      c.author_name?.toLowerCase() === 'pandabot' &&
-                      parseInt(c.parent_comment_id) === parseInt(parentCommentId) &&
-                      !existingBotReplyIds.has(parseInt(c.id)),
-                  );
-                  if (botReplied || attempts >= 15) {
-                    clearInterval(poll);
-                    if (botReplied) loadComments(postId);
-                  }
-                },
-                'GET',
-                null,
-                token,
-              );
-            }, 1000);
-          }
         } else {
           alert(data.message || 'Failed to post reply.');
         }
-      })
-      .catch((err) => {
-        console.error(err);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Reply';
-        alert('Failed to post reply.');
-      });
-  });
-}
-
-// Attach file/GIF picker
-function setupCommentEditAttachment(el, comment) {
-  const fileInput = el.querySelector('.comment-edit-attachment-input');
-  const gifBtn = el.querySelector('.comment-edit-gif-btn');
-  const gifPanel = el.querySelector('.comment-edit-gif-panel');
-  const gifSearchInput = el.querySelector('.comment-edit-gif-search');
-  const gifResults = el.querySelector('.comment-edit-gif-results');
-
-  if (fileInput) {
-    fileInput.addEventListener('change', () => {
-      const file = fileInput.files[0];
-      if (!file) return;
-      if (file.size > 8 * 1024 * 1024) {
-        alert('File too large. Max 8MB.');
-        fileInput.value = '';
-        return;
-      }
-      el._editAttachmentFile = file;
-      el._editGifUrl = null;
-      el._editRemoveAttachment = false;
-      renderCommentEditAttachmentPreview(el);
-    });
-  }
-
-  if (gifBtn && gifPanel) {
-    gifBtn.addEventListener('click', () => {
-      gifPanel.style.display = gifPanel.style.display === 'none' ? 'block' : 'none';
-    });
-  }
-
-  if (gifSearchInput) {
-    let debounce;
-    gifSearchInput.addEventListener('input', () => {
-      clearTimeout(debounce);
-      const query = gifSearchInput.value.trim();
-      if (!query) {
-        gifResults.innerHTML = '';
-        return;
-      }
-      debounce = setTimeout(
-        () => searchCommentEditGifs(query, el, gifResults, gifPanel, gifSearchInput),
-        300,
-      );
-    });
-  }
-}
-
-function searchCommentEditGifs(query, el, container, gifPanel, gifSearchInput) {
-  container.innerHTML = '<div class="gif-grid-empty">Searching...</div>';
-
-  fetch(`/giphy/search?q=${encodeURIComponent(query)}`)
-    .then((res) => res.json())
-    .then((gifs) => {
-      container.innerHTML = '';
-      if (!Array.isArray(gifs) || !gifs.length) {
-        container.innerHTML = '<div class="gif-grid-empty">No GIFs found.</div>';
-        return;
-      }
-      gifs.forEach((gif) => {
-        const previewUrl = gif?.images?.fixed_height_small?.url || gif?.images?.original?.url;
-        const fullUrl = gif?.images?.original?.url || previewUrl;
-        if (!previewUrl) return;
-
-        const img = document.createElement('img');
-        img.src = previewUrl;
-        img.loading = 'lazy';
-        img.alt = 'GIF';
-        img.addEventListener('click', () => {
-          el._editGifUrl = fullUrl;
-          el._editAttachmentFile = null;
-          el._editRemoveAttachment = false;
-          renderCommentEditAttachmentPreview(el);
-          gifPanel.style.display = 'none';
-          gifSearchInput.value = '';
-          container.innerHTML = '';
-          const fileInput = el.querySelector('.comment-edit-attachment-input');
-          if (fileInput) fileInput.value = '';
-        });
-        container.appendChild(img);
-      });
-    })
-    .catch((err) => {
-      console.error(err);
-      container.innerHTML = '<div class="gif-grid-empty">Failed to load GIFs.</div>';
-    });
-}
-
-function renderCommentEditAttachmentPreview(el) {
-  const preview = el.querySelector('.comment-edit-attachment-preview');
-  if (!preview) return;
-
-  let src = null;
-  if (el._editAttachmentFile) {
-    src = URL.createObjectURL(el._editAttachmentFile);
-  } else if (el._editGifUrl) {
-    src = el._editGifUrl;
-  } else if (!el._editRemoveAttachment && el._editOriginalAttachmentUrl) {
-    src = el._editOriginalAttachmentUrl;
-  }
-
-  if (!src) {
-    preview.innerHTML = '';
-    return;
-  }
-
-  preview.innerHTML = `
-    <div class="position-relative d-inline-block mt-2">
-      <img src="${src}" alt="Attachment" style="max-height:150px; max-width:100%; border-radius:8px;">
-      <button type="button" class="remove-comment-edit-attachment-btn" title="Remove"
-        style="position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; border:none; background:rgba(0,0,0,0.6); color:#fff; line-height:1;">
-        <i class="fas fa-times" style="font-size:0.65rem;"></i>
-      </button>
-    </div>`;
-
-  preview.querySelector('.remove-comment-edit-attachment-btn').addEventListener('click', () => {
-    el._editAttachmentFile = null;
-    el._editGifUrl = null;
-    el._editRemoveAttachment = true;
-    const fileInput = el.querySelector('.comment-edit-attachment-input');
-    if (fileInput) fileInput.value = '';
-    renderCommentEditAttachmentPreview(el);
+      },
+      'POST',
+      { content, parent_comment_id: parentCommentId },
+      token,
+    );
   });
 }
 
 // Enter edit mode for comment
-function enterEditMode(commentEl, comment) {
-  commentEl._editOriginalAttachmentUrl = comment.attachment_url || null;
-  commentEl._editAttachmentFile = null;
-  commentEl._editGifUrl = null;
-  commentEl._editRemoveAttachment = false;
-  renderCommentEditAttachmentPreview(commentEl);
-
+function enterEditMode(commentEl) {
   commentEl.querySelector('.comment-text-display').style.display = 'none';
   commentEl.querySelector('.comment-edit-form').style.display = 'block';
   commentEl.querySelector('.comment-actions').style.display = 'none';
-
-  const staticAttachment = commentEl.querySelector('.comment-attachment');
-  if (staticAttachment) staticAttachment.style.display = 'none';
-
   commentEl.querySelector('.comment-edit-input').focus();
 }
 
@@ -2453,13 +1585,10 @@ function exitEditMode(commentEl) {
   commentEl.querySelector('.comment-text-display').style.display = 'block';
   commentEl.querySelector('.comment-edit-form').style.display = 'none';
   commentEl.querySelector('.comment-actions').style.display = 'flex';
-
-  const staticAttachment = commentEl.querySelector('.comment-attachment');
-  if (staticAttachment) staticAttachment.style.display = 'block';
 }
 
 // Save edited comment - PUT /comments/:id
-function saveCommentEdit(commentId, commentEl, postId) {
+function saveCommentEdit(commentId, commentEl) {
   const input = commentEl.querySelector('.comment-edit-input');
   const newContent = input.value.trim();
 
@@ -2474,41 +1603,24 @@ function saveCommentEdit(commentId, commentEl, postId) {
   saveBtn.disabled = true;
   saveBtn.textContent = 'Saving...';
 
-  const formData = new FormData();
-  formData.append('content', newContent);
-
-  if (commentEl._editAttachmentFile) {
-    formData.append('attachment', commentEl._editAttachmentFile);
-  } else if (commentEl._editGifUrl) {
-    formData.append('attachment_url', commentEl._editGifUrl);
-  } else if (commentEl._editRemoveAttachment) {
-    formData.append('remove_attachment', 'true');
-  } else if (commentEl._editOriginalAttachmentUrl) {
-    formData.append('attachment_url', commentEl._editOriginalAttachmentUrl);
-  }
-
-  fetch(`${currentUrl}/comments/${commentId}`, {
-    method: 'PUT',
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
-  })
-    .then(async (res) => {
-      const data = await res.json();
+  fetchMethod(
+    `${currentUrl}/comments/${commentId}`,
+    (status, data) => {
       saveBtn.disabled = false;
       saveBtn.textContent = 'Save';
 
-      if (res.ok) {
-        loadComments(postId);
+      if (status === 200) {
+        // Update the displayed text
+        commentEl.querySelector('.comment-text-display').textContent = newContent;
+        exitEditMode(commentEl);
       } else {
         alert(data.message || 'Failed to update comment.');
       }
-    })
-    .catch((err) => {
-      console.error(err);
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save';
-      alert('Failed to update comment.');
-    });
+    },
+    'PUT',
+    { content: newContent },
+    token,
+  );
 }
 
 //  Delete comment
@@ -2534,7 +1646,7 @@ function showNoComments() {
   document.getElementById('commentsContainer').innerHTML = `
     <div class="text-muted text-center py-3" id="commentsPlaceholder">
       <i class="fas fa-comments fa-2x mb-2 d-block"></i>
-      No comments yet. Be the first to comment!
+      No comments yet. Be the first!
     </div>`;
 }
 
@@ -2632,31 +1744,10 @@ function updateCommentReactionCount(likeBtn, dislikeBtn, oldType, newType) {
   dislikeCountEl.textContent = dislikes;
 }
 
-// SEARCHBAR
-function setupSearch() {
-  const input = document.getElementById('searchInput');
-  if (!input) return;
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const query = input.value.trim();
-      if (!query) return;
-
-      // query with # > tag search
-      const isTagSearch = query.startsWith('#');
-      const params = new URLSearchParams({ q: query });
-      if (isTagSearch) params.set('type', 'tag');
-
-      window.location.href = `search.html?${params.toString()}`;
-    }
-  });
-}
-
 function formatTimestamp(createdAt, updatedAt) {
   const created = new Date(createdAt);
   const updated = updatedAt ? new Date(updatedAt) : null;
-  const wasEdited = updated && updated.getTime() !== created.getTime();
+  const wasEdited = updated && Math.abs(updated - created) > 5000;
 
   const now = new Date();
   const diffMs = now - created;
@@ -2736,14 +1827,6 @@ function getAvatarInitial(post) {
   return 'U';
 }
 
-// profile pic
-function getAvatarContent(post) {
-  if (!post.is_anonymous && post.author_avatar) {
-    return `<img src="${post.author_avatar}" class="avatar-img" alt="${escapeHtml(post.author_name || 'User')}">`;
-  }
-  return getAvatarInitial(post);
-}
-
 function getAuthorName(post) {
   if (post.is_anonymous) {
     return 'Anonymous';
@@ -2759,14 +1842,6 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
-}
-
-function linkifyPandaBotMentions(escapedText) {
-  return escapedText.replace(
-    /@pandabot/gi,
-    (match) =>
-      `<span class="pandabot-mention" data-tooltip="Need help? Summon @pandabot ʕ•ﻌ•ʔ for help, ideas, explanations, and more!">${match}</span>`,
-  );
 }
 
 function renderPostAttachment(post) {
@@ -3324,7 +2399,7 @@ function closeShareDropdown() {
 }
 
 // Report modal
-function openReportModal(id, type = 'post') {
+function openReportModal(postId) {
   const existing = document.getElementById('reportModalOverlay');
   if (existing) existing.remove();
 
@@ -3337,21 +2412,14 @@ function openReportModal(id, type = 'post') {
     { icon: 'fas fa-flag', label: 'Other' },
   ];
 
-  const label = type === 'comment' ? 'comment' : 'post';
-  const endpoint =
-    type === 'comment'
-      ? `${feedApiBase()}/comments/${id}/report`
-      : `${feedApiBase()}/posts/${id}/report`;
-
   const overlay = document.createElement('div');
   overlay.className = 'report-modal-overlay';
   overlay.id = 'reportModalOverlay';
 
   overlay.innerHTML = `
     <div class="report-modal-card">
-      <h5>Report ${label}</h5>
-      <p class="report-modal-sub">Why are you reporting this ${label}?</p>
-
+      <h5>Report post</h5>
+      <p class="report-modal-sub">Why are you reporting this post?</p>
       <div id="reportReasonsContainer">
         ${reasons
           .map(
@@ -3363,18 +2431,8 @@ function openReportModal(id, type = 'post') {
           )
           .join('')}
       </div>
-
-      <div id="reportDescriptionStep" style="display:none;">
-        <textarea id="reportDescriptionInput" class="form-control form-control-sm" rows="3" placeholder="Tell us more..."></textarea>
-        <div class="report-modal-actions mt-2">
-          <button class="btn btn-outline-secondary btn-sm" id="reportBackBtn">Back</button>
-          <button class="btn btn-primary btn-sm" id="reportSubmitDescBtn">Submit</button>
-        </div>
-      </div>
-
       <div id="reportThanks" style="display:none; text-align:center; padding:1rem 0;"></div>
-
-      <div class="report-modal-actions" id="reportMainActions">
+      <div class="report-modal-actions">
         <button class="btn btn-outline-secondary btn-sm" id="reportCancelBtn">Cancel</button>
       </div>
     </div>
@@ -3383,69 +2441,46 @@ function openReportModal(id, type = 'post') {
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
 
-  const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
-  const descStep = overlay.querySelector('#reportDescriptionStep');
-  const thanksEl = overlay.querySelector('#reportThanks');
-  const mainActions = overlay.querySelector('#reportMainActions');
-  const cancelBtn = overlay.querySelector('#reportCancelBtn');
-
-  function submitReport(reason, description) {
-    const token = localStorage.getItem('token');
-    const user_id = localStorage.getItem('loggedInUserId');
-
-    fetchMethod(
-      endpoint,
-      (status, data) => {
-        reasonsContainer.style.display = 'none';
-        descStep.style.display = 'none';
-        cancelBtn.textContent = 'Close';
-
-        if (status === 409) {
-          thanksEl.innerHTML = `
-            <i class="fas fa-info-circle fa-2x mb-2 d-block" style="color:var(--primary-color);"></i>
-            <div class="fw-bold">Already reported</div>
-            <div class="text-muted small mt-1">You've already submitted a report for this ${label}.</div>
-          `;
-        } else {
-          thanksEl.innerHTML = `
-            <i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i>
-            <div class="fw-bold">Thanks for your report</div>
-            <div class="text-muted small mt-1">We'll review this ${label} and take action if needed.</div>
-          `;
-        }
-
-        thanksEl.style.display = 'block';
-        setTimeout(() => closeReportModal(), 2500);
-      },
-      'POST',
-      { user_id, reason, description },
-      token,
-    );
-  }
-
   overlay.querySelectorAll('.report-reason-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      if (btn.dataset.reason === 'Other') {
-        reasonsContainer.style.display = 'none';
-        descStep.style.display = 'block';
-        overlay.querySelector('#reportDescriptionInput').value = '';
-      } else {
-        submitReport(btn.dataset.reason, '');
-      }
+      const token = localStorage.getItem('token');
+      const user_id = localStorage.getItem('loggedInUserId');
+
+      fetchMethod(
+        `${feedApiBase()}/posts/${postId}/report`,
+        (status, data) => {
+          const reasonsContainer = overlay.querySelector('#reportReasonsContainer');
+          const thanksEl = overlay.querySelector('#reportThanks');
+          const cancelBtn = overlay.querySelector('#reportCancelBtn');
+
+          reasonsContainer.style.display = 'none';
+          cancelBtn.textContent = 'Close';
+
+          if (status === 409) {
+            thanksEl.innerHTML = `
+            <i class="fas fa-info-circle fa-2x mb-2 d-block" style="color:var(--primary-color);"></i>
+            <div class="fw-bold">Already reported</div>
+            <div class="text-muted small mt-1">You've already submitted a report for this post.</div>
+          `;
+          } else {
+            thanksEl.innerHTML = `
+            <i class="fas fa-check-circle fa-2x mb-2 d-block" style="color:var(--secondary-color);"></i>
+            <div class="fw-bold">Thanks for your report</div>
+            <div class="text-muted small mt-1">We'll review this post and take action if needed.</div>
+          `;
+          }
+
+          thanksEl.style.display = 'block';
+          setTimeout(() => closeReportModal(), 2500);
+        },
+        'POST',
+        { user_id, reason: btn.dataset.reason },
+        token,
+      );
     });
   });
 
-  overlay.querySelector('#reportSubmitDescBtn').addEventListener('click', () => {
-    const description = overlay.querySelector('#reportDescriptionInput').value.trim();
-    submitReport('Other', description);
-  });
-
-  overlay.querySelector('#reportBackBtn').addEventListener('click', () => {
-    descStep.style.display = 'none';
-    reasonsContainer.style.display = '';
-  });
-
-  cancelBtn.addEventListener('click', closeReportModal);
+  overlay.querySelector('#reportCancelBtn').addEventListener('click', closeReportModal);
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeReportModal();
   });
