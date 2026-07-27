@@ -25,7 +25,6 @@ jest.mock('../../src/services/pandabot', () => ({
   PANDABOT_EMAIL: 'pandabot@spindle.internal',
 }));
 
-
 const app = require('../../src/app');
 const pool = require('../../src/models/db');
 

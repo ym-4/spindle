@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadYourGroups();
   loadHotPosts();
   setupSavedTabs();
-  setupSearch();
   if (typeof setupSearchDropdown === 'function') setupSearchDropdown();
 
   if (!token || !userId) {
@@ -409,9 +408,17 @@ function loadPostTags(postId, cardEl) {
       : document.getElementById(`postTags-${postId}`);
     if (!container) return;
 
-    container.innerHTML = tags
-      .map((tag) => `<span class="post-tag">#${escapeHtml(tag.name)}</span>`)
-      .join('');
+    container.innerHTML = '';
+    tags.forEach((tag) => {
+      const span = document.createElement('span');
+      span.className = 'post-tag';
+      span.textContent = `#${tag.name}`;
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `search.html?q=${encodeURIComponent('#' + tag.name)}&type=tag`;
+      });
+      container.appendChild(span);
+    });
   });
 }
 
@@ -833,27 +840,6 @@ function loadHotPosts() {
       `;
       container.appendChild(item);
     });
-  });
-}
-
-// search
-function setupSearch() {
-  const input = document.getElementById('searchInput');
-  if (!input) return;
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const query = input.value.trim();
-      if (!query) return;
-
-      // query with # > tag search
-      const isTagSearch = query.startsWith('#');
-      const params = new URLSearchParams({ q: query });
-      if (isTagSearch) params.set('type', 'tag');
-
-      window.location.href = `search.html?${params.toString()}`;
-    }
   });
 }
 

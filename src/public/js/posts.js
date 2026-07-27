@@ -19,7 +19,6 @@ const COMMENTS_BASE = `${currentUrl}/comments`;
 document.addEventListener('DOMContentLoaded', () => {
   loadYourGroups();
   setupCommentSortUI();
-  setupSearch();
   if (typeof setupSearchDropdown === 'function') setupSearchDropdown();
   // Close any other open Bootstrap dropdown when a new one opens
   document.addEventListener('show.bs.dropdown', (event) => {
@@ -2630,27 +2629,6 @@ function updateCommentReactionCount(likeBtn, dislikeBtn, oldType, newType) {
 
   likeCountEl.textContent = likes;
   dislikeCountEl.textContent = dislikes;
-}
-
-// SEARCHBAR
-function setupSearch() {
-  const input = document.getElementById('searchInput');
-  if (!input) return;
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const query = input.value.trim();
-      if (!query) return;
-
-      // query with # > tag search
-      const isTagSearch = query.startsWith('#');
-      const params = new URLSearchParams({ q: query });
-      if (isTagSearch) params.set('type', 'tag');
-
-      window.location.href = `search.html?${params.toString()}`;
-    }
-  });
 }
 
 function formatTimestamp(createdAt, updatedAt) {

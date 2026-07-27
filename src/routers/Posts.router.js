@@ -81,7 +81,7 @@ async function notifyPostMentions(content, senderUserId, postId) {
       Notification.create(user.id, {
         type: 'mention',
         title: `${senderName} tagged you in a post: `,
-        body: (content || '').slice(0, 120),
+        body: (content || '').replace(/<[^>]*>/g, '').slice(0, 120),
         ref_id: postId,
       }),
     ),

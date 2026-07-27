@@ -25,7 +25,7 @@ function postCards(page) {
 }
 
 // Waits for the feed's initial fetch to complete
- 
+
 async function waitForFeedLoaded(page) {
   await expect(page.locator('#postsContainer .spinner-border')).toHaveCount(0, { timeout: 15000 });
 }
@@ -137,8 +137,10 @@ test.describe('New Post', () => {
 
 // ── Delete Post ──────────────────────────────────────────
 test.describe('Delete Post', () => {
-  // Valid partition: deleting a post removes it from the feed while other posts remain 
-  test('should allow me to delete a post I created, leaving other posts intact', async ({ page }) => {
+  // Valid partition: deleting a post removes it from the feed while other posts remain
+  test('should allow me to delete a post I created, leaving other posts intact', async ({
+    page,
+  }) => {
     await addPost(page, NEW_POSTS[5]);
     await addPost(page, NEW_POSTS[2]);
 
@@ -163,7 +165,10 @@ test.describe('Delete Post', () => {
 
   // Error handling: cancelling the confirm-delete modal should discard the action
   test('cancelling the delete confirmation should keep the post', async ({ page }) => {
-    const original = { title: 'E2E Cancel Delete Check', content: 'This post should survive a cancel.' };
+    const original = {
+      title: 'E2E Cancel Delete Check',
+      content: 'This post should survive a cancel.',
+    };
     await addPost(page, original);
 
     const card = postCards(page).filter({ hasText: original.title });
