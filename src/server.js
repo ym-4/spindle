@@ -3,7 +3,12 @@ const { attachWebSocket } = require('./realtime/wsHub');
 
 const port = process.env.PORT || 3000;
 
-const server = app.listen(port, () => {
+// const server = app.listen(port, () => {
+//   console.log(`App listening on port ${port}`);
+//   console.log(`WebSocket: ws://localhost:${port}/ws`);
+// });
+
+const server = app.listen(port, '0.0.0.0', () => {
   console.log(`App listening on port ${port}`);
   console.log(`WebSocket: ws://localhost:${port}/ws`);
 });
