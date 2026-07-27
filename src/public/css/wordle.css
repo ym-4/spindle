@@ -91,15 +91,35 @@
 }
 
 @keyframes tile-flip {
-  0%   { transform: rotateX(0deg); }
-  50%  { transform: rotateX(90deg); }
-  51%  { transform: rotateX(90deg); }
-  100% { transform: rotateX(0deg); }
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  51% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
 }
 
-.wordle-tile.correct { background: var(--wordle-correct); border-color: var(--wordle-correct); color: var(--text-inverse); }
-.wordle-tile.present { background: var(--wordle-present); border-color: var(--wordle-present); color: var(--text-inverse); }
-.wordle-tile.absent  { background: var(--wordle-absent);  border-color: var(--wordle-absent);  color: var(--wordle-absent-text); }
+.wordle-tile.correct {
+  background: var(--wordle-correct);
+  border-color: var(--wordle-correct);
+  color: var(--text-inverse);
+}
+.wordle-tile.present {
+  background: var(--wordle-present);
+  border-color: var(--wordle-present);
+  color: var(--text-inverse);
+}
+.wordle-tile.absent {
+  background: var(--wordle-absent);
+  border-color: var(--wordle-absent);
+  color: var(--wordle-absent-text);
+}
 
 /* ---------- Keyboard ---------- */
 
@@ -132,21 +152,36 @@
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: filter 0.15s ease, transform 0.1s ease;
+  transition:
+    filter 0.15s ease,
+    transform 0.1s ease;
   text-transform: uppercase;
 }
 
-.key:active { transform: scale(0.94); }
-.key:hover { filter: brightness(0.95); }
+.key:active {
+  transform: scale(0.94);
+}
+.key:hover {
+  filter: brightness(0.95);
+}
 
 .key.key-wide {
   max-width: 64px;
   font-size: 0.65rem;
 }
 
-.key.correct { background: var(--wordle-correct); color: var(--text-inverse); }
-.key.present { background: var(--wordle-present); color: var(--text-inverse); }
-.key.absent  { background: var(--wordle-absent);  color: var(--wordle-absent-text); }
+.key.correct {
+  background: var(--wordle-correct);
+  color: var(--text-inverse);
+}
+.key.present {
+  background: var(--wordle-present);
+  color: var(--text-inverse);
+}
+.key.absent {
+  background: var(--wordle-absent);
+  color: var(--wordle-absent-text);
+}
 
 /* ---------- Reward strip ---------- */
 
@@ -169,7 +204,10 @@
 /* .modal-content / .modal-header / .modal-footer are themed globally in
    theme.css, so no page-specific overrides are needed here. */
 
-.result-icon { font-size: 2.4rem; margin-bottom: 6px; }
+.result-icon {
+  font-size: 2.4rem;
+  margin-bottom: 6px;
+}
 
 .result-title {
   font-family: 'Poppins', sans-serif;
@@ -187,10 +225,19 @@
 /* ---------- Small screens ---------- */
 
 @media (max-width: 380px) {
-  .wordle-tile { width: 48px; height: 48px; font-size: 1.3rem; }
-  .key { height: 44px; font-size: 0.78rem; }
+  .wordle-tile {
+    width: 48px;
+    height: 48px;
+    font-size: 1.3rem;
+  }
+  .key {
+    height: 44px;
+    font-size: 0.78rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wordle-tile.flip { animation: none; }
+  .wordle-tile.flip {
+    animation: none;
+  }
 }

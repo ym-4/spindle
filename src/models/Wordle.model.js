@@ -36,10 +36,7 @@ function isValidWord(word) {
 }
 
 function countOccurrences(str, char) {
-  return [...str].reduce(
-    (count, currentChar) => (currentChar === char ? count + 1 : count),
-    0
-  );
+  return [...str].reduce((count, currentChar) => (currentChar === char ? count + 1 : count), 0);
 }
 
 /**
