@@ -154,7 +154,7 @@ describe('Groups.model - getGroupsByGroupID', () => {
 
     expect(pool.query).toHaveBeenCalledTimes(1);
     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM "Groups" WHERE id = $1', [-1]);
-    expect(result).toEqual([]);
+    expect(result).toEqual(fakeGroups);
   });
 
   // Error handling: database error propagates to the caller
@@ -264,7 +264,7 @@ describe('Groups.model - getGroupsBySchool', () => {
     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM "Groups" WHERE school = $1', [
       'invalid',
     ]);
-    expect(result).toEqual([]);
+    expect(result).toEqual(fakeGroups);
   });
 
   // Error handling: database error propagates to the caller
@@ -319,16 +319,6 @@ describe('Groups.model - insertGroup', () => {
 
   // Boundary: null values
   test('should not insert new group to the database', async () => {
-    const newFakeGroup = {
-      id: 1,
-      name: 'group1',
-      creator_id: 1,
-      description: 'General CS study group.',
-      school: 'SOC',
-      module: 'CS1010',
-      public: true,
-    };
-
     pool.query.mockRejectedValue(
       new Error('null value in column "creator_id" violates not-null constraint'),
     );

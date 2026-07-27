@@ -79,7 +79,7 @@ router.put('/files/:id', authenticateJWT, (req, res, next) => {
         return res.status(403).json({ message: 'You did not upload this file' });
       }
     })
-    .then((results) => {
+    .then(() => {
       updateGroupFileFolderByID(data)
         .then((results) => {
           if (results.length === 0) {
@@ -119,7 +119,7 @@ router.delete('/files/:id', authenticateJWT, (req, res, next) => {
       const filePath = path.join(__dirname, '../uploads/group_files', results[0].file_path);
 
       return deleteGroupFilesByID(data).then(() => {
-        fs.unlink(filePath, (err) => {
+        fs.unlink(filePath, () => {
           // Ignore if file already doesn't exist
         });
 

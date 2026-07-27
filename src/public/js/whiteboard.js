@@ -1,4 +1,4 @@
-/* global fetchMethod, groupId, token:writable */
+/* global fetchMethod, groupId, token:writable, userWhiteboards:writable */
 
 // --------------------------------------------------
 //                 GLOBAL VARIABLES
