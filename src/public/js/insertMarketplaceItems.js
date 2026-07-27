@@ -440,19 +440,18 @@ if (document.title == 'Marketplace') {
     loadListings();
   });
 
-    document.getElementById('prev-page-btn').addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
-    document.getElementById('next-page-btn').addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
+  document.getElementById('prev-page-btn').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      container.innerHTML = '';
+      loadListings();
+    }
+  });
+  document.getElementById('next-page-btn').addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      container.innerHTML = '';
+      loadListings();
+    }
   });
 }

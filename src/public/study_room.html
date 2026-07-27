@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Study Room</title>
+
+    <!-- Specific files -->
+    <link rel="stylesheet" href="css/study-room.css" />
+    <script src="js/studyRoom.js" defer></script>
+
+    <script src="js/groupsSharedFunctions.js"></script>
+
+    <!-- CSS files -->
+    <link rel="stylesheet" href="css/theme.css" />
+
+    <link rel="stylesheet" href="css/posts.css" />
+    <link rel="stylesheet" href="css/spindle-notif.css" />
+    <link rel="stylesheet" href="css/profile-page.css" />
+
+    <script src="js/api.js"></script>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- JS files -->
+    <script src="js/queryCmds.js"></script>
+    <script src="js/getCurrentURL.js"></script>
+    <script src="/js/userNavBarToggle.js"></script>
+  </head>
+
+  <body>
+    <!---Navbar-->
+    <nav class="navbar">
+      <div class="container-fluid px-4 d-flex align-items-center">
+        <!-- Brand (left) -->
+        <a class="navbar-brand" href="index.html">
+          <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
+          <span class="brand-name">spindle</span>
+        </a>
+
+        <!-- Searchbar-->
+        <div class="navbar-search">
+          <input
+            class="form-control"
+            id="searchInput"
+            type="search"
+            placeholder="Search posts, groups, items..."
+            aria-label="Search"
+          />
+        </div>
+
+        <div class="navbar-right">
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a href="profile.html" class="btn-navbar-profile" id="profileButton">
+            <i class="fas fa-user-circle"></i> Profile
+          </a>
+          <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+      <!-- Left Sidebar -->
+      <aside class="sidebar"></aside>
+      <main id="content-area">
+        <a href="groups_feed.html" class="text-decoration-none back-btn"
+          ><i class="fas fa-arrow-left"></i> Back</a
+        >
+
+        <div class="page-heading">
+          <span class="page-eyebrow">Study Room</span>
+          <h1>Choose Your Study Buddy</h1>
+          <p>Pick a character and customise them before joining the room.</p>
+        </div>
+
+        <!-- ================================= -->
+        <!-- LEFT: CHARACTER PREVIEW -->
+        <!-- ================================= -->
+        <div class="creator-layout">
+          <div class="preview-panel">
+            <div class="character-stage">
+              <div class="character-container">
+                <img id="body" class="character-layer" />
+
+                <img id="eye" class="character-layer" />
+
+                <img id="face" class="character-layer" />
+
+                <img id="mouth" class="character-layer" />
+
+                <img id="hat" class="character-layer" />
+
+                <img id="arm" class="character-layer" />
+
+                <img id="hand" class="character-layer" />
+
+                <img id="leg" class="character-layer" />
+
+                <img id="accessories" class="character-layer" />
+
+                <img id="blush" class="character-layer" />
+
+                <img id="effect" class="character-layer" />
+              </div>
+            </div>
+
+            <button class="enter-room-btn" onclick="enterStudyRoom()">Enter Study Room</button>
+          </div>
+
+          <!-- ================================= -->
+          <!-- RIGHT: CUSTOMIZATION -->
+          <!-- ================================= -->
+
+          <div class="controls">
+            <section class="customizer-section">
+              <h2>Choose Character</h2>
+
+              <div class="option-grid" id="character-options">
+                <!-- JavaScript generates characters here -->
+              </div>
+            </section>
+
+            <div id="customization-options">
+              <!-- JavaScript generates eyes, legs, arms, etc. here -->
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer">
+      <div
+        id="groupsFeedToast"
+        class="toast app-toast align-items-center text-white border-0"
+        role="alert"
+      >
+        <div class="d-flex">
+          <div class="toast-body d-flex align-items-center gap-2" id="toastBody"></div>
+          <button
+            type="button"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/wa-nav.js"></script>
+    <script src="js/socket-client.js"></script>
+    <script src="js/spindle-sidebar.js"></script>
+    <script src="js/spindle-page.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof injectWaHeader === 'function') {
+          injectWaHeader('Study Groups page');
+        }
+        if (typeof injectNotificationsOnly === 'function') {
+          injectNotificationsOnly('spindleNotifSlot');
+        }
+      });
+    </script>
+  </body>
+</html>
