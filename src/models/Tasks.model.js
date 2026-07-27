@@ -1,4 +1,3 @@
-const { group } = require('node:console');
 const pool = require('./db');
 
 // -----------------------------------------------------------------------------------------------------
@@ -103,6 +102,13 @@ module.exports.getAllTaskItems = async function getAllTaskItems() {
 module.exports.getTaskItemsByTaskID = async function getTaskItemsByTaskID(data) {
   const VALUES = [data.task_id];
   const { rows } = await pool.query('SELECT * FROM "GroupTaskItems" WHERE task_id = $1', VALUES);
+  return rows;
+};
+
+// GET task items by id
+module.exports.getTaskItemsByID = async function getTaskItemsByID(data) {
+  const VALUES = [data.id];
+  const { rows } = await pool.query('SELECT * FROM "GroupTaskItems" WHERE id = $1', VALUES);
   return rows;
 };
 

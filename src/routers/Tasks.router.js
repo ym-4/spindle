@@ -9,8 +9,9 @@ const {
   updateTasks,
   deleteTasks,
   getAllTaskItems,
+  getTaskItemsByID,
   getTaskItemsByTaskID,
-  getTaskItemsByUserAndGroupID,
+  // getTaskItemsByUserAndGroupID,
   insertTaskItems,
   updateTaskItems,
   deleteTaskItems,
@@ -137,7 +138,7 @@ router.delete('/tasks/:id', authenticateJWT, (req, res, next) => {
     .then((tasks) => {
       if (tasks.length > 0) {
         deleteTasks(data)
-          .then((results) => {
+          .then(() => {
             res.status(204).json();
           })
           .catch(next);
@@ -238,6 +239,32 @@ router.put('/taskItems/:taskId/:id', authenticateJWT, (req, res, next) => {
     .catch(next);
 });
 
+// // DELETE task item
+// router.delete('/taskItems/:id', authenticateJWT, (req, res, next) => {
+//   const data = {
+//     id: req.params.id,
+//     creator_id: req.user.id,
+//   };
+
+//   // Check that user created the task
+//   getTaskItemsByID(data)
+//     .then((results) => {
+//       getTasksByTaskID(results.task_id);
+//     })
+//     .then((tasks) => {
+//       if (tasks.length > 0) {
+//         deleteTaskItems(data)
+//           .then((results) => {
+//             res.status(204).json();
+//           })
+//           .catch(next);
+//       } else {
+//         res.status(403).json({ message: 'You did not create this task' });
+//       }
+//     })
+//     .catch(next);
+// });
+
 // DELETE task item
 router.delete('/taskItems/:id', authenticateJWT, (req, res, next) => {
   const data = {
@@ -245,18 +272,47 @@ router.delete('/taskItems/:id', authenticateJWT, (req, res, next) => {
     creator_id: req.user.id,
   };
 
-  // Check that user created the task
-  getTasksByUserID(data)
-    .then((tasks) => {
-      if (tasks.length > 0) {
-        deleteTaskItems(data)
-          .then((results) => {
-            res.status(204).json();
-          })
-          .catch(next);
-      } else {
-        res.status(403).json({ message: 'You did not create this task' });
+  getTaskItemsByID({ id: data.id })
+    .then((item) => {
+      // Task item does not exist
+      if (item.length === 0) {
+        return res.status(404).json({
+          message: 'Task item not found',
+        });
       }
+
+      // Get the parent task
+      return getTasksByTaskID({
+        id: item[0].task_id,
+      });
+    })
+    .then((task) => {
+      // Parent task does not exist
+      if (task.length === 0) {
+        return res.status(404).json({
+          message: 'Task not found',
+        });
+      }
+
+      // User did not create the parent task
+      if (task[0].creator_id !== data.creator_id) {
+        return res.status(403).json({
+          message: 'You did not create this task',
+        });
+      }
+
+      // Delete the task item
+      return deleteTaskItems({
+        id: data.id,
+      });
+    })
+    .then((result) => {
+      // If a response has already been sent, don't send another one
+      if (res.headersSent) {
+        return;
+      }
+
+      return res.status(204).send();
     })
     .catch(next);
 });

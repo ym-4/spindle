@@ -572,6 +572,15 @@ body {
   background: #e7f3ff !important;
 }
 
+.category-qna {
+  background-color: var(--bg-hover);
+  color: var(--primary-color);
+}
+.category-general {
+  background-color: var(--bg-input);
+  color: var(--text-secondary);
+}
+
 .post-content {
   margin-bottom: 0.75rem;
   line-height: 1.5;

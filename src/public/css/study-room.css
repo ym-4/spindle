@@ -1,0 +1,407 @@
+/* =================================
+   STUDY ROOM CHARACTER CREATOR
+================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+}
+
+/* =================================
+   BACK BUTTON
+================================= */
+
+.back-btn {
+  font-size: 24px;
+  padding: 0px 12px;
+  color: rgb(10, 149, 241);
+}
+
+/* =================================
+   PAGE HEADING
+================================= */
+
+.page-heading {
+  text-align: center;
+
+  margin-bottom: 20px;
+}
+
+.page-eyebrow,
+.section-eyebrow,
+.preview-label {
+  display: block;
+
+  font-size: 12px;
+
+  font-weight: bold;
+
+  letter-spacing: 2px;
+
+  text-transform: uppercase;
+
+  color: #888;
+
+  margin-bottom: 8px;
+}
+
+.page-heading h1 {
+  margin: 0;
+
+  font-size: 32px;
+}
+
+.page-heading p {
+  margin-top: 10px;
+
+  color: #777;
+}
+
+/* =================================
+   MAIN LAYOUT
+================================= */
+
+.creator-layout {
+  display: grid;
+
+  grid-template-columns:
+    400px
+    600px;
+
+  gap: 25px;
+
+  max-width: 1025px;
+
+  margin: 0 auto;
+
+  align-items: start;
+}
+
+/* =================================
+   CHARACTER PREVIEW
+================================= */
+
+.preview-panel {
+  position: sticky;
+
+  top: 30px;
+
+  min-height: 550px;
+
+  padding: 30px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  background: white;
+
+  border-radius: 24px;
+
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* =================================
+   PREVIEW HEADER
+================================= */
+
+.preview-header {
+  width: 100%;
+
+  text-align: center;
+}
+
+.preview-header h2 {
+  margin: 0;
+
+  font-size: 24px;
+}
+
+/* =================================
+   CHARACTER STAGE
+================================= */
+
+.character-stage {
+  position: relative;
+
+  width: 380px;
+
+  height: 380px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+/* =================================
+   CHARACTER
+================================= */
+
+.character-container {
+  position: absolute;
+
+  width: 32px;
+
+  height: 32px;
+
+  left: 50%;
+
+  top: 50%;
+
+  /*
+    32 × 10 = 320px
+
+    Smaller than your previous
+    32 × 16 = 512px
+  */
+
+  transform: translate(-50%, -50%) scale(10);
+
+  transform-origin: center;
+}
+
+/* =================================
+   CHARACTER LAYERS
+================================= */
+
+.character-layer {
+  position: absolute;
+
+  width: 32px;
+
+  height: 32px;
+
+  left: 0;
+
+  top: 0;
+
+  image-rendering: pixelated;
+
+  display: block;
+
+  pointer-events: none;
+}
+
+/* =================================
+   ENTER STUDY ROOM
+================================= */
+
+.enter-room-btn {
+  width: 100%;
+
+  padding: 14px 20px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #333;
+
+  color: white;
+
+  font-size: 16px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.enter-room-btn:hover {
+  transform: translateY(-2px);
+
+  background: #222;
+}
+
+/* =================================
+   CUSTOMISATION PANEL
+================================= */
+
+.controls {
+  padding: 30px;
+
+  background: white;
+
+  border-radius: 24px;
+
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+}
+
+.controls-header {
+  margin-bottom: 30px;
+}
+
+.controls-header h2 {
+  margin: 0;
+
+  font-size: 24px;
+}
+
+.controls-header p {
+  margin-top: 8px;
+
+  color: #777;
+}
+
+/* =================================
+   CUSTOMIZER SECTION
+================================= */
+
+.customizer-section {
+  padding-bottom: 30px;
+
+  margin-bottom: 30px;
+
+  border-bottom: 1px solid #eee;
+}
+
+.customizer-section:last-child {
+  border-bottom: none;
+}
+
+.customizer-section h3 {
+  margin-top: 0;
+
+  margin-bottom: 18px;
+
+  font-size: 18px;
+}
+
+/* =================================
+   OPTION GRID
+================================= */
+
+.option-grid {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 12px;
+}
+
+/* =================================
+   OPTION CARD
+================================= */
+
+.option-card {
+  width: 105px;
+
+  height: 135px;
+
+  padding: 8px;
+
+  background: white;
+
+  border: 2px solid #e1e1e1;
+
+  border-radius: 14px;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.option-card:hover {
+  transform: translateY(-3px);
+
+  border-color: #aaa;
+}
+
+.option-card.selected {
+  border-color: #333;
+
+  box-shadow: 0 0 0 2px #333;
+}
+
+/* =================================
+   OPTION PREVIEW
+================================= */
+
+.option-preview {
+  width: 85px;
+
+  height: 90px;
+
+  margin: 0 auto 8px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: #f4f4f4;
+
+  border-radius: 10px;
+
+  overflow: hidden;
+}
+
+.option-preview img {
+  width: 72px;
+
+  height: 72px;
+
+  object-fit: contain;
+
+  image-rendering: pixelated;
+}
+
+/* =================================
+   OPTION LABEL
+================================= */
+
+.option-card span {
+  display: block;
+
+  font-size: 13px;
+
+  font-weight: bold;
+}
+
+/* =================================
+   MOBILE
+================================= */
+
+@media (max-width: 900px) {
+  .creator-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-panel {
+    position: relative;
+
+    top: 0;
+
+    min-height: 450px;
+  }
+
+  .character-stage {
+    width: 320px;
+
+    height: 320px;
+  }
+
+  .character-container {
+    transform: translate(-50%, -50%) scale(9);
+  }
+}
+
+#toastBody {
+  color: white;
+}

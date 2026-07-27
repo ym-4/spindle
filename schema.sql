@@ -466,6 +466,44 @@ CREATE TABLE "NoteLinks" (
   UNIQUE ("source_note_id", "target_note_id")
 );
 
+-- Stores all available study room characters
+CREATE TABLE "StudyRoomCharacters" (
+  "id" SERIAL PRIMARY KEY,
+  "name" TEXT NOT NULL,
+  "character_key" TEXT NOT NULL UNIQUE,
+  "parts" JSONB NOT NULL DEFAULT '{}'::jsonb
+);
+
+
+-- Stores which character each user has selected
+CREATE TABLE "UserCharacters" (
+  "user_id" INT PRIMARY KEY,
+  "character_id" INT NOT NULL,
+
+  FOREIGN KEY ("user_id")
+    REFERENCES "Person"("id")
+    ON DELETE CASCADE,
+
+  FOREIGN KEY ("character_id")
+    REFERENCES "StudyRoomCharacters"("id")
+    ON DELETE CASCADE
+);
+
+-- Stores the custom parts selected by each user
+-- part    = "hat"
+-- option  = "crown"
+CREATE TABLE "UserCharacterParts" (
+  "user_id" INT NOT NULL,
+  "part" TEXT NOT NULL,
+  "option" TEXT,
+
+  PRIMARY KEY ("user_id", "part"),
+
+  FOREIGN KEY ("user_id")
+    REFERENCES "UserCharacters"("user_id")
+    ON DELETE CASCADE
+);
+
 ----------------------------------------------------------------------------------------
 --                                  USER
 -- -------------------------------------------------------------------------------------
