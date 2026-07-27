@@ -242,8 +242,8 @@ async function loadListings() {
           i < LISTINGS_PER_PAGE * currentPage;
           i++
         ) {
-          if (!data[i]) continue;
-          addListing({ ...data[i], mode: 'browse' });
+          if (!filtered[i]) continue;
+          addListing({ ...filtered[i], mode: 'browse' });
         }
       }
     } else {

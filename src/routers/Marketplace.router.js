@@ -2,20 +2,46 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const multer = require('multer');
-const upload = require('../middlewares/upload');
-const { createItem, getAllItems, updateItem, deleteItem, getAllItemsById, addImagesToItem, deleteItemImage, setItemTags, getItemsByTag, getRecommendedItems, setItemStatus, setCoverImage } = require('../models/Marketplace.model');
+const {
+  createItem,
+  getAllItems,
+  updateItem,
+  deleteItem,
+  getAllItemsById,
+  addImagesToItem,
+  deleteItemImage,
+  setItemTags,
+  getItemsByTag,
+  getRecommendedItems,
+  setItemStatus,
+  setCoverImage,
+} = require('../models/Marketplace.model');
 
 // Local storage config, scoped to marketplace image uploads only
 const listingImageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../public/uploads/marketplace-uploads')); // change this path
+    cb(null, path.join(__dirname, '../public/uploads/marketplace-uploads'));
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);
   },
 });
 
-const listingUpload = multer({ storage: listingImageStorage });
+// Only allow real images, and cap size — same rules as middlewares/upload.js
+const listingImageFilter = (req, file, cb) => {
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files allowed'));
+  }
+};
+
+const listingUpload = multer({
+  storage: listingImageStorage,
+  fileFilter: listingImageFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 // Create a new item
 router.post('/', (req, res, next) => {

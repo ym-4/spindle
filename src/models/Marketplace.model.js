@@ -141,7 +141,9 @@ module.exports.updateItem = async function updateItem(id, data) {
 module.exports.setItemStatus = async function setItemStatus(id, status) {
   const allowed = ['active', 'sold'];
   if (!allowed.includes(status)) {
-    throw new Error(`Invalid status "${status}". Must be one of: ${allowed.join(', ')}`);
+    const err = new Error(`Invalid status "${status}". Must be one of: ${allowed.join(', ')}`);
+    err.status = 400;
+    throw err;
   }
   const { rows } = await pool.query(
     'UPDATE "MarketplaceItems" SET "status" = $1 WHERE "id" = $2 RETURNING *',
@@ -162,13 +164,17 @@ module.exports.setItemTags = async function setItemTags(itemId, tagNames) {
   await pool.query('DELETE FROM "ItemTags" WHERE "item_id" = $1', [itemId]);
 
   const attached = [];
+  const seenIds = new Set();
   for (const rawName of tagNames) {
     const tag = await findOrCreateTag(rawName);
     await pool.query(
       'INSERT INTO "ItemTags" ("item_id", "tag_id") VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [itemId, tag.id],
     );
-    attached.push(tag);
+    if (!seenIds.has(tag.id)) {
+      seenIds.add(tag.id);
+      attached.push(tag);
+    }
   }
   return attached;
 };

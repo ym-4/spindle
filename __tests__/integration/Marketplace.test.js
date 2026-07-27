@@ -154,11 +154,7 @@ describe('PATCH /marketplace/:id/status (mark sold / relist)', () => {
       status: 'deleted',
     });
 
-    // The model throws on an invalid status and the route has no
-    // dedicated 4xx handling for it, so it currently falls through to the
-    // generic error handler (500). If you tighten this to a 400 later,
-    // update this expectation to match.
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(400);
   });
 });
 
@@ -199,15 +195,9 @@ describe('tags: PUT /marketplace/:id/tags and GET /marketplace/by-tag/:tagName',
       .send({ tags: ['Textbooks', 'MATH', 'textbooks'] });
 
     expect(res.status).toBe(200);
-    // NOTE: setItemTags pushes one entry per input name onto its response
-    // array even when two names normalize to the same tag, so a duplicate
-    // input currently comes back twice here even though only one ItemTags
-    // row is ever inserted (ON CONFLICT DO NOTHING). If you dedupe the
-    // response in Marketplace.model.js, tighten this to ['math', 'textbooks'].
     const tagNames = res.body.tags.map((t) => t.name).sort();
-    expect(tagNames).toEqual(['math', 'textbooks', 'textbooks']);
+    expect(tagNames).toEqual(['math', 'textbooks']);
 
-    // What's actually persisted should have no duplicates, though.
     const listing = await request(app).get(`/marketplace/${created.body.id}`);
     expect(listing.body.tags.map((t) => t.name).sort()).toEqual(['math', 'textbooks']);
   });
