@@ -56,9 +56,6 @@ const SnakeRouter = require('./routers/Snake.router');
 const somethingRouter = require('./routers/Something.router');
 const studyRoomRouter = require('./routers/StudyRoom.router');
 
-const app = express();
-app.use(cors()); // Might remove later
-
 // Allow Live Server / local dev frontends to call the API on another port
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -73,10 +70,6 @@ app.use((req, res, next) => {
   }
   next();
 });
-
-// Parse incoming JSON request bodies (e.g. from POST/PUT requests)
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files (HTML, CSS, JS, images) from the 'public' folder.
 // e.g. src/public/index.html is accessible at http://localhost:<port>/
