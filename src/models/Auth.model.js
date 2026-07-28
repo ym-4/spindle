@@ -72,12 +72,17 @@ module.exports.findByName = async function findByName(name) {
   return rows[0] ?? null;
 };
 
-module.exports.findByEmail = async function findByEmail(email) {
+module.exports.findByEmail = async function (email) {
   const { rows } = await pool.query(
-    `SELECT id FROM "Person" WHERE email = $1 AND deleted_at IS NULL`,
+    `
+        SELECT *
+        FROM "Person"
+        WHERE email=$1
+        AND deleted_at IS NULL
+    `,
     [email],
   );
-  return rows[0] ?? null;
+  return rows[0] || null;
 };
 
 module.exports.createUser = async function createUser({
@@ -357,7 +362,7 @@ module.exports.getAdminStats = async function getAdminStats() {
     `SELECT COUNT(*)::int AS count FROM "Person" WHERE deleted_at IS NULL`,
   );
   const { rows: postRows } = await pool.query(`SELECT COUNT(*)::int AS count FROM "Posts"`);
-  const { rows: reportRows } = await pool.query(`SELECT COUNT(*)::int AS count FROM "Reports"`);
+  const { rows: reportRows } = await pool.query(`SELECT COUNT(*)::int AS count FROM "PostReports"`);
   const { rows: suspendedRows } = await pool.query(
     `SELECT COUNT(*)::int AS count FROM "Person" WHERE suspended_until IS NOT NULL AND suspended_until > NOW()`,
   );
@@ -495,7 +500,7 @@ module.exports.getDismissedReports = async function getDismissedReports() {
 
 module.exports.getReportById = async function getReportById(reportId) {
   const { rows } = await pool.query(
-    `SELECT r.*, p.display_name AS reporter_name, p.name AS reporter_username FROM "Reports" r LEFT JOIN "Person" p ON p.id = r.user_id WHERE r.id = $1`,
+    `SELECT r.*, p.display_name AS reporter_name, p.name AS reporter_username FROM "PostReports" r LEFT JOIN "Person" p ON p.id = r.user_id WHERE r.id = $1`,
     [reportId],
   );
   return rows[0];
@@ -504,10 +509,10 @@ module.exports.getReportById = async function getReportById(reportId) {
 module.exports.dismissReport = async function dismissReport(reportId) {
   try {
     await pool.query(
-      `ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`,
+      `ALTER TABLE "PostReports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`,
     );
   } catch {}
-  await pool.query(`UPDATE "Reports" SET dismissed = true WHERE id = $1`, [reportId]);
+  await pool.query(`UPDATE "PostReports" SET dismissed = true WHERE id = $1`, [reportId]);
 };
 
 module.exports.searchUsers = async function searchUsers(term) {
@@ -526,7 +531,7 @@ module.exports.getTrendStats = async function getTrendStats() {
     `SELECT
       (SELECT COUNT(*) FROM "Person" WHERE created_at > NOW() - INTERVAL '7 days') AS users_7d,
       (SELECT COUNT(*) FROM "Posts" WHERE created_at > NOW() - INTERVAL '7 days') AS posts_7d,
-      (SELECT COUNT(*) FROM "Reports" WHERE created_at > NOW() - INTERVAL '7 days') AS reports_7d`,
+      (SELECT COUNT(*) FROM "PostReports" WHERE created_at > NOW() - INTERVAL '7 days') AS reports_7d`,
   );
   return rows[0];
 };
@@ -534,7 +539,7 @@ module.exports.getTrendStats = async function getTrendStats() {
 module.exports.globalSearch = async function globalSearch(term) {
   try {
     await pool.query(
-      `ALTER TABLE "Reports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`,
+      `ALTER TABLE "PostReports" ADD COLUMN IF NOT EXISTS dismissed BOOLEAN DEFAULT FALSE`,
     );
   } catch {}
 
@@ -563,7 +568,7 @@ module.exports.globalSearch = async function globalSearch(term) {
     `SELECT r.id, r.post_id, r.reason,
             (SELECT display_name FROM "Person" WHERE id = r.user_id) AS reporter_name,
             r.created_at
-     FROM "Reports" r
+     FROM "PostReports" r
      WHERE r.reason ILIKE $1
      LIMIT 10`,
     [like],
@@ -594,7 +599,7 @@ module.exports.getUserActivity = async function getUserActivity(userId) {
 
   const reportsAgainstPromise = pool.query(
     `SELECT r.id, r.reason, r.created_at, r.dismissed
-     FROM "Reports" r
+     FROM "PostReports" r
      JOIN "Posts" p ON p.id = r.post_id
      WHERE p.user_id = $1
      ORDER BY r.created_at DESC`,

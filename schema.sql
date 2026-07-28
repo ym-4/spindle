@@ -100,6 +100,7 @@ CREATE TABLE "Posts" (
   "is_anonymous" BOOLEAN DEFAULT FALSE,
   "visibility" TEXT DEFAULT 'everyone',
   "pinned" BOOLEAN DEFAULT FALSE,
+  "view_count" INT DEFAULT 0,
   CONSTRAINT "Posts_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
@@ -150,12 +151,24 @@ CREATE TABLE "PollVotes" (
   UNIQUE ("poll_id", "user_id")
 );
 
+CREATE TABLE "Tags" (
+  "id" SERIAL PRIMARY KEY,
+  "name" VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE "PostTags" (
+  "post_id" INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
+  "tag_id"  INT NOT NULL REFERENCES "Tags"("id")  ON DELETE CASCADE,
+  PRIMARY KEY ("post_id", "tag_id")
+);
+
 CREATE TABLE "PostComments" (
   "id" SERIAL NOT NULL, 
   "user_id" INT NOT NULL,
   "post_id" INT NOT NULL,
   "parent_comment_id" INT NULL,
   "content" TEXT NOT NULL,
+  "attachment_url" TEXT,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "PostComments_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
@@ -211,15 +224,32 @@ CREATE TABLE "SavedComments" (
   UNIQUE("user_id", "comment_id")
 );
 
-CREATE TABLE "Reports" (
-  "id"        SERIAL PRIMARY KEY,
-  "post_id"   INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
-  "user_id"   INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
-  "reason"    VARCHAR(100) NOT NULL,
+CREATE TABLE "PostReports" (
+  "id" SERIAL PRIMARY KEY,
+  "post_id" INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
+  "user_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "reason" VARCHAR(100) NOT NULL,
   "description" TEXT DEFAULT '',
   "dismissed" BOOLEAN DEFAULT FALSE,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE ("post_id", "user_id")
+);
+
+CREATE TABLE "CommentReports" (
+  "id" SERIAL PRIMARY KEY,
+  "comment_id" INT NOT NULL REFERENCES "PostComments"("id") ON DELETE CASCADE,
+  "user_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "reason" VARCHAR(100) NOT NULL,
+  "description" TEXT DEFAULT '',
+  "dismissed" BOOLEAN DEFAULT FALSE,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE ("comment_id", "user_id")
+);
+
+CREATE TABLE "SnakeScores" (
+  "user_id" INT PRIMARY KEY REFERENCES "Person"("id") ON DELETE CASCADE,
+  "best_score" INT NOT NULL DEFAULT 0,
+  "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 -- -------------------------------------------------------------------------------------
 --                                  GROUPS
@@ -436,10 +466,62 @@ CREATE TABLE "NoteLinks" (
   UNIQUE ("source_note_id", "target_note_id")
 );
 
+-- Stores all available study room characters
+CREATE TABLE "StudyRoomCharacters" (
+  "id" SERIAL PRIMARY KEY,
+  "name" TEXT NOT NULL,
+  "character_key" TEXT NOT NULL UNIQUE,
+  "parts" JSONB NOT NULL DEFAULT '{}'::jsonb
+);
+
+
+-- Stores which character each user has selected
+CREATE TABLE "UserCharacters" (
+  "user_id" INT PRIMARY KEY,
+  "character_id" INT NOT NULL,
+
+  FOREIGN KEY ("user_id")
+    REFERENCES "Person"("id")
+    ON DELETE CASCADE,
+
+  FOREIGN KEY ("character_id")
+    REFERENCES "StudyRoomCharacters"("id")
+    ON DELETE CASCADE
+);
+
+-- Stores the custom parts selected by each user
+-- part    = "hat"
+-- option  = "crown"
+CREATE TABLE "UserCharacterParts" (
+  "user_id" INT NOT NULL,
+  "part" TEXT NOT NULL,
+  "option" TEXT,
+
+  PRIMARY KEY ("user_id", "part"),
+
+  FOREIGN KEY ("user_id")
+    REFERENCES "UserCharacters"("user_id")
+    ON DELETE CASCADE
+);
+
 ----------------------------------------------------------------------------------------
 --                                  USER
 -- -------------------------------------------------------------------------------------
+CREATE TABLE "Badges" (
+  "id" SERIAL PRIMARY KEY,
+  "key" TEXT NOT NULL UNIQUE,  
+  "name" TEXT NOT NULL,
+  "description" TEXT NOT NULL,
+  "image_url" TEXT NOT NULL       
+);
 
+CREATE TABLE "UserBadges" (
+  "id" SERIAL PRIMARY KEY,
+  "user_id" INT  NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "badge_id" INT  NOT NULL REFERENCES "Badges"("id") ON DELETE CASCADE,
+  "awarded_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE ("user_id", "badge_id")
+);
 
 CREATE TABLE "UserSettings" (
   "user_id" INT NOT NULL,

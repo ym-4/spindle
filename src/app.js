@@ -39,16 +39,20 @@ const searchRouter = require('./routers/Search.router');
 const groupRouter = require('./routers/Groups.router');
 const marketplaceRouter = require('./routers/Marketplace.router');
 const cartRouter = require('./routers/Cart.router');
+const wordleRouter = require('./routers/wordle.router');
 const tagsRouter = require('./routers/Tags.router');
 const paymentsRouter = require('./routers/Payments.router');
 const giphyRouter = require('./routers/Giphy.router');
 const blockRouter = require('./routers/BlockedUsers.router');
+const badgeRouter = require('./routers/Badge.router');
 const tasksRouter = require('./routers/Tasks.router');
 const groupFilesRouter = require('./routers/GroupFiles.router');
 const whiteboardRouter = require('./routers/Whiteboard.router');
 const notesRouter = require('./routers/Notes.router');
+const SnakeRouter = require('./routers/Snake.router');
 const somethingRouter = require('./routers/Something.router');
 const wordleRouter = require('./routers/wordle.router');
+const studyRoomRouter = require('./routers/StudyRoom.router');
 
 // Allow Live Server / local dev frontends to call the API on another port
 app.use((req, res, next) => {
@@ -65,13 +69,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Parse incoming JSON request bodies (e.g. from POST/PUT requests)
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
 // Serve static files (HTML, CSS, JS, images) from the 'public' folder.
 // e.g. src/public/index.html is accessible at http://localhost:<port>/
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // Browsers automatically request /favicon.ico — return 204 (no content) to avoid 404 noise.
 app.get('/', (req, res) => res.redirect('/home.html'));
@@ -92,15 +92,19 @@ app.use('/search', searchRouter);
 app.use('/groups', groupRouter);
 app.use('/marketplace', marketplaceRouter);
 app.use('/cart', cartRouter);
+app.use('/wordle', wordleRouter);
 app.use('/tags', tagsRouter);
 app.use('/payments', paymentsRouter);
 app.use('/block', blockRouter);
+app.use('/badges', badgeRouter);
 app.use('/groupTasks', tasksRouter);
 app.use('/groupFiles', groupFilesRouter);
 app.use('/whiteboards', whiteboardRouter);
 app.use('/notes', notesRouter);
+app.use('/snake', SnakeRouter);
 app.use('/somethings', somethingRouter);
 app.use('/wordle', wordleRouter);
+app.use('/study-room', studyRoomRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use('/giphy', giphyRouter);
@@ -115,7 +119,7 @@ app.use((req, res, next) => {
 // Sends a consistent JSON response instead of Express's default HTML error page.
 // NOTE: Express requires exactly 4 parameters (error, req, res, next) to recognize
 // this as an error handler. 'next' is not used here, so we disable the ESLint rule.
-// eslint-disable-next-line no-unused-vars
+
 app.use((error, req, res, next) => {
   console.error(error);
   const status = error.status || 500;
