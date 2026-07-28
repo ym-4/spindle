@@ -44,15 +44,13 @@ const tagsRouter = require('./routers/Tags.router');
 const paymentsRouter = require('./routers/Payments.router');
 const giphyRouter = require('./routers/Giphy.router');
 const blockRouter = require('./routers/BlockedUsers.router');
-const badgeRouter = require('./routers/Badge.router');
 const tasksRouter = require('./routers/Tasks.router');
 const groupFilesRouter = require('./routers/GroupFiles.router');
 const whiteboardRouter = require('./routers/Whiteboard.router');
 const notesRouter = require('./routers/Notes.router');
-const SnakeRouter = require('./routers/Snake.router');
 const somethingRouter = require('./routers/Something.router');
-const wordleRouter = require('./routers/wordle.router');
 const studyRoomRouter = require('./routers/StudyRoom.router');
+const sessionsRouter = require('./routers/Sessions.router');
 
 // Allow Live Server / local dev frontends to call the API on another port
 app.use((req, res, next) => {
@@ -94,16 +92,14 @@ app.use('/marketplace', marketplaceRouter);
 app.use('/cart', cartRouter);
 app.use('/wordle', wordleRouter);
 app.use('/tags', tagsRouter);
+app.use('/sessions', sessionsRouter);
 app.use('/payments', paymentsRouter);
 app.use('/block', blockRouter);
-app.use('/badges', badgeRouter);
 app.use('/groupTasks', tasksRouter);
 app.use('/groupFiles', groupFilesRouter);
 app.use('/whiteboards', whiteboardRouter);
 app.use('/notes', notesRouter);
-app.use('/snake', SnakeRouter);
 app.use('/somethings', somethingRouter);
-app.use('/wordle', wordleRouter);
 app.use('/study-room', studyRoomRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
