@@ -103,7 +103,6 @@ app.use('/whiteboards', whiteboardRouter);
 app.use('/notes', notesRouter);
 app.use('/snake', SnakeRouter);
 app.use('/somethings', somethingRouter);
-app.use('/wordle', wordleRouter);
 app.use('/study-room', studyRoomRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
