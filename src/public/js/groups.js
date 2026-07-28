@@ -66,7 +66,7 @@ let currentJoinedPage = 1;
 
 // Only runs in groups_page.html
 const currentURL = window.location.href;
-if (currentURL == `${getCurrentUrl}/groups_page.html`) {
+if (currentURL == `${currentUrl}/groups_page.html`) {
   window.addEventListener('DOMContentLoaded', async () => {
     // Get stored school
     const school = localStorage.getItem('school');
@@ -740,7 +740,7 @@ function displayToast(type, message) {
 
 function fetchGroupsBySchool(school) {
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/groups/school/${school.toUpperCase()}`;
+    const url = `${currentUrl}/groups/school/${school.toUpperCase()}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupsBySchool', responseData);
@@ -763,7 +763,7 @@ function fetchGroupsBySchool(school) {
 
 function fetchJoinedGroups() {
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/groups/joined_groups`;
+    const url = `${currentUrl}/groups/joined_groups`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchJoinedGroups', responseData);
@@ -784,7 +784,7 @@ function fetchJoinedGroups() {
 
 function fetchGroupMembers(groupId) {
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/groups/joined/${groupId}`;
+    const url = `${currentUrl}/groups/joined/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupMembers', responseData);
@@ -806,7 +806,7 @@ function fetchGroupMembers(groupId) {
 
 async function fetchGroupJoinRequestsByUser() {
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/groups/join-requests/user`;
+    const url = `${currentUrl}/groups/join-requests/user`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupJoinRequests', responseData);
@@ -836,7 +836,7 @@ function createGroup(data) {
   const user_id = localStorage.getItem('loggedInUserId');
 
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/groups/create/${user_id}`;
+    const url = `${currentUrl}/groups/create/${user_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('createGroup', responseData);
@@ -884,7 +884,7 @@ function createMember(data) {
   };
 
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/groups/join/${requestData.group_id}`;
+    const url = `${currentUrl}/groups/join/${requestData.group_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('createMember', responseData);
@@ -926,7 +926,7 @@ function createMember(data) {
 
 function createGeneralChannel(groupId) {
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/groups/messages/send/${user_id}`;
+    const url = `${currentUrl}/groups/messages/send/${user_id}`;
 
     const data = {
       group_id: groupId,
@@ -969,7 +969,7 @@ function createGeneralChannel(groupId) {
 
 async function createJoinRequest(groupId) {
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/groups/join-requests/${groupId}`;
+    const url = `${currentUrl}/groups/join-requests/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('createJoinRequest', responseData);
@@ -1019,7 +1019,7 @@ function deleteMember(data) {
   };
 
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/groups/leave/${requestData.group_id}`;
+    const url = `${currentUrl}/groups/leave/${requestData.group_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteMember', responseData);
