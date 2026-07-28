@@ -582,7 +582,7 @@ init();
 // Fetch whiteboard by user id
 async function fetchUserWhiteboards() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/whiteboards/user`;
+    const url = `${currentUrl}/whiteboards/user`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchUserWhiteboards', responseData);
@@ -605,7 +605,7 @@ async function fetchUserWhiteboards() {
 // Fetch whiteboard by group id
 async function fetchGroupWhiteboards() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/whiteboards/group/${groupId}`;
+    const url = `${currentUrl}/whiteboards/group/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupWhiteboards', responseData);
@@ -628,7 +628,7 @@ async function fetchGroupWhiteboards() {
 // Fetch whiteboard by user and group id
 async function fetchGroupAndUserWhiteboards() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/whiteboards/user/${groupId}`;
+    const url = `${currentUrl}/whiteboards/user/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupAndUserWhiteboards', responseData);
@@ -651,7 +651,7 @@ async function fetchGroupAndUserWhiteboards() {
 // Fetch whiteboard by id
 async function fetchWhiteboardByID(id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/whiteboards/${id}`;
+    const url = `${currentUrl}/whiteboards/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchWhiteboardByID', responseData);
@@ -679,7 +679,7 @@ async function fetchWhiteboardByID(id) {
 // Request body: group_id (optional), title, mode
 async function createWhiteboard(data) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/whiteboards`;
+    const url = `${currentUrl}/whiteboards`;
 
     const callback = (responseStatus, responseData) => {
       console.log('createWhiteboard', responseData);
@@ -710,7 +710,7 @@ async function createWhiteboard(data) {
 // Data has drawing data and id
 async function updateWhiteboardDrawingData(data) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/whiteboards/${data.id}/drawing_data`;
+    const url = `${currentUrl}/whiteboards/${data.id}/drawing_data`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateWhiteboardDrawingData', responseData);
@@ -754,7 +754,7 @@ async function updateWhiteboardDrawingData(data) {
 // Data has title and id
 async function updateWhiteboardTitle(data) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/whiteboards/${data.id}/title`;
+    const url = `${currentUrl}/whiteboards/${data.id}/title`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateWhiteboardTitle', responseData);
@@ -797,7 +797,7 @@ async function updateWhiteboardTitle(data) {
 // Delete whiteboard
 async function deleteWhiteboard(id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/whiteboards/${id}`;
+    const url = `${currentUrl}/whiteboards/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteWhiteboard', responseData);

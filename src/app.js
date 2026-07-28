@@ -1,12 +1,9 @@
-const cors = require('cors'); // Might remove later
 const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
 const session = require('express-session');
 
 const app = express();
-
-app.use(cors()); // Might remove later
 
 // Session handler for the wordle
 app.use(
@@ -54,6 +51,7 @@ const whiteboardRouter = require('./routers/Whiteboard.router');
 const notesRouter = require('./routers/Notes.router');
 const SnakeRouter = require('./routers/Snake.router');
 const somethingRouter = require('./routers/Something.router');
+const wordleRouter = require('./routers/wordle.router');
 const studyRoomRouter = require('./routers/StudyRoom.router');
 
 // Allow Live Server / local dev frontends to call the API on another port
@@ -105,6 +103,7 @@ app.use('/whiteboards', whiteboardRouter);
 app.use('/notes', notesRouter);
 app.use('/snake', SnakeRouter);
 app.use('/somethings', somethingRouter);
+app.use('/wordle', wordleRouter);
 app.use('/study-room', studyRoomRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
