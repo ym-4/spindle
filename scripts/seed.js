@@ -1327,6 +1327,8 @@ async function seed() {
 
   // Ensure Person table is clean regardless of DROP SCHEMA behavior in Neon
   await pool.query(`TRUNCATE "Person" CASCADE`);
+  const preAliceRes = await pool.query(`SELECT id, email FROM "Person"`);
+  console.log(`[DEBUG] Person rows after TRUNCATE: ${preAliceRes.rows.length}`);
   // Insert persons
   for (const person of persons) {
     const hashedPassword = await bcrypt.hash(
@@ -1340,6 +1342,10 @@ async function seed() {
     );
   }
   console.log(`Inserted ${persons.length} persons.`);
+  const postAliceRes = await pool.query(
+    `SELECT id, email FROM "Person" WHERE email = 'alice@example.com'`,
+  );
+  console.log(`[DEBUG] Alice after insert: id=${postAliceRes.rows[0]?.id}`);
 
   // Insert somethings (batch)
   if (somethings.length > 0) {
@@ -1473,11 +1479,13 @@ async function seed() {
   console.log(`Inserted ${savedPosts.length} saved posts.`);
 
   // Insert marketplace items
-  const sellerRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+  const sellerRes = await pool.query(`SELECT id, email FROM "Person" WHERE email = $1`, [
     'alice@example.com',
   ]);
+  console.log(`[DEBUG] sellerRes rows: ${sellerRes.rows.length}, id: ${sellerRes.rows[0]?.id}`);
   if (sellerRes.rows.length > 0) {
     const sellerId = sellerRes.rows[0].id;
+    console.log(`[DEBUG] Using sellerId=${sellerId} for marketplace items`);
     for (const item of marketplaceItems) {
       await pool.query(
         `INSERT INTO "MarketplaceItems" ("seller_id", "name", "description", "price", "quality",  "meetup")
