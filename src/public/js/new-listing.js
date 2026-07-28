@@ -237,7 +237,7 @@ function qualityToConditionValue(quality) {
 
 // ── Edit mode: prefill from the existing listing ──
 async function loadItemForEditing() {
-  fetchMethod(`http://localhost:3000/marketplace/${editingItemId}`, (status, item) => {
+  fetchMethod(`${getCurrentUrl}/marketplace/${editingItemId}`, (status, item) => {
     if (status !== 200 || !item || !item.id) {
       console.error('Failed to load listing for editing:', status, item);
       alert("Couldn't load that listing to edit it.");
@@ -327,7 +327,7 @@ form.addEventListener('submit', (e) => {
 
 function submitCreate(data) {
   fetchMethod(
-    `http://localhost:3000/marketplace/`,
+    `${getCurrentUrl}/marketplace/`,
     async (status, responseData) => {
       if (status < 200 || status >= 300 || !responseData?.id) {
         console.error('Listing creation failed', status, responseData);
@@ -362,7 +362,7 @@ function submitCreate(data) {
 
 function submitEdit(data) {
   fetchMethod(
-    `http://localhost:3000/marketplace/${editingItemId}`,
+    `${getCurrentUrl}/marketplace/${editingItemId}`,
     async (status, responseData) => {
       if (status < 200 || status >= 300) {
         console.error('Listing update failed', status, responseData);
@@ -413,7 +413,7 @@ function uploadImages(itemId, files) {
   const formData = new FormData();
   files.forEach((file) => formData.append('images', file));
 
-  return fetch(`http://localhost:3000/marketplace/${itemId}/images`, {
+  return fetch(`${getCurrentUrl}/marketplace/${itemId}/images`, {
     method: 'POST',
     body: formData, // no Content-Type header — browser sets the multipart boundary
   })
@@ -432,19 +432,19 @@ function uploadImages(itemId, files) {
 }
 
 function deleteImage(itemId, imageId) {
-  return fetch(`http://localhost:3000/marketplace/${itemId}/images/${imageId}`, {
+  return fetch(`${getCurrentUrl}/marketplace/${itemId}/images/${imageId}`, {
     method: 'DELETE',
   }).catch((err) => console.error('Image delete error:', err));
 }
 
 function setCover(itemId, imageId) {
-  return fetch(`http://localhost:3000/marketplace/${itemId}/images/${imageId}/cover`, {
+  return fetch(`${getCurrentUrl}/marketplace/${itemId}/images/${imageId}/cover`, {
     method: 'PUT',
   }).catch((err) => console.error('Set cover error:', err));
 }
 
 function saveTags(itemId, tags) {
-  return fetch(`http://localhost:3000/marketplace/${itemId}/tags`, {
+  return fetch(`${getCurrentUrl}/marketplace/${itemId}/tags`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tags }),

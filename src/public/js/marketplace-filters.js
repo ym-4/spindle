@@ -167,7 +167,7 @@ function initMarketplaceFilters() {
   });
 
   // Populate tag chips from the server (Tags.router.js mounted at /tags, route is /tags -> /tags/tags)
-  fetchMethod('http://localhost:3000/tags/tags', (status, data) => {
+  fetchMethod(`${getCurrentUrl}/tags/tags`, (status, data) => {
     if (status === 200 && Array.isArray(data)) {
       renderTagFilterChips(data);
     } else {

@@ -1,7 +1,7 @@
 function addToCart(seller_id, item_id, user_id, amount) {
   let data = { seller_id: seller_id, item_id: item_id, amount: amount };
   fetchMethod(
-    `http://localhost:3000/cart/add/${user_id}`,
+    `${getCurrentUrl}}/cart/add/${user_id}`,
     (status, data) => {
       console.log(status, data);
       updateCartBadge();
@@ -21,7 +21,7 @@ function updateCartBadge() {
     return;
   }
 
-  fetchMethod(`http://localhost:3000/cart/${userId}`, (status, data) => {
+  fetchMethod(`${getCurrentUrl}/cart/${userId}`, (status, data) => {
     if (status !== 200 || !Array.isArray(data)) {
       badge.classList.add('d-none');
       return;
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', updateCartBadge);
 function removeFromCart(item_id, user_id) {
   let data = {};
   fetchMethod(
-    `http://localhost:3000/cart/remove/${item_id}/${user_id}`,
+    `${getCurrentUrl}/cart/remove/${item_id}/${user_id}`,
     (status, data) => {
       console.log(status, data);
       updateCartBadge();
@@ -56,7 +56,7 @@ function removeFromCart(item_id, user_id) {
 function editCart(item_id, user_id, new_amount) {
   let data = { new_amount: new_amount };
   fetchMethod(
-    `http://localhost:3000/cart/edit/${item_id}/${user_id}`,
+    `${getCurrentUrl}/cart/edit/${item_id}/${user_id}`,
     (status, data) => {
       console.log(status, data);
       updateCartBadge();
@@ -69,7 +69,7 @@ function editCart(item_id, user_id, new_amount) {
 function clearCart(user_id) {
   let data = {};
   fetchMethod(
-    `http://localhost:3000/cart/clear/${user_id}`,
+    `${getCurrentUrl}/cart/clear/${user_id}`,
     (status, data) => {
       console.log(status, data);
       updateCartBadge();

@@ -116,7 +116,7 @@ function addListing({
       )
         return;
 
-      fetch(`http://localhost:3000/marketplace/${id}/status`, {
+      fetch(`${getCurrentUrl}/marketplace/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: nextStatus }),
@@ -134,7 +134,7 @@ function addListing({
 
     card.querySelector('.spindle-delete-btn').addEventListener('click', () => {
       if (!confirm(`Delete "${name}"? This can't be undone.`)) return;
-      fetch(`http://localhost:3000/marketplace/${id}`, { method: 'DELETE' })
+      fetch(`${getCurrentUrl}/marketplace/${id}`, { method: 'DELETE' })
         .then(async (res) => {
           if (!res.ok) {
             console.error('Delete failed', await res.text());
@@ -188,7 +188,7 @@ function hideSoldItems(data) {
 
 async function loadListings() {
   // Update Page Navigation Bar
-  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
+  fetchMethod(`${getCurrentUrl}/marketplace/`, (status, data) => {
     const filtered = applySpindleFilters(hideSoldItems(data));
     let totalListings = filtered.length;
     let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
@@ -213,7 +213,7 @@ async function loadListings() {
   });
 
   // Fetch and Load Listings
-  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
+  fetchMethod(`${getCurrentUrl}/marketplace/`, (status, data) => {
     if (status === 200) {
       const filtered = applySpindleFilters(hideSoldItems(data));
 
@@ -250,7 +250,7 @@ async function loadListings() {
 // Fetch users Listings
 async function loadUserListings() {
   // Update Page Navigation Bar
-  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
+  fetchMethod(`${getCurrentUrl}/marketplace/`, (status, data) => {
     const userListings = applySpindleFilters(
       data.filter((item) => item.seller_id == localStorage.loggedInUserId),
     );
@@ -277,7 +277,7 @@ async function loadUserListings() {
   });
 
   // Fetch and Load Listings
-  fetchMethod('http://localhost:3000/marketplace/', (status, data) => {
+  fetchMethod(`${getCurrentUrl}/marketplace/`, (status, data) => {
     if (status === 200) {
       const userListings = applySpindleFilters(
         data.filter((item) => item.seller_id == localStorage.loggedInUserId),
@@ -381,7 +381,7 @@ function updateSummary() {
 }
 
 async function loadCart() {
-  fetchMethod(`http://localhost:3000/cart/${localStorage.loggedInUserId}`, (status, data) => {
+  fetchMethod(`${getCurrentUrl}/cart/${localStorage.loggedInUserId}`, (status, data) => {
     const emptyState = document.getElementById('empty-cart-state');
     const clearBtn = document.getElementById('clear-cart-btn');
 
@@ -396,7 +396,7 @@ async function loadCart() {
     if (status === 200) {
       data.forEach((item) => {
         fetchMethod(
-          `http://localhost:3000/marketplace/${item.item_id}`,
+          `${getCurrentUrl}/marketplace/${item.item_id}`,
           (cartStatus, cartData) => {
             if (status == 200) {
               addCartItem(

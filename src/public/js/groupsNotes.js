@@ -891,7 +891,7 @@ function findNoteByTitle(title) {
 // Gets the notes for the group
 async function fetchGroupNotes() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/group/${groupId}`;
+    const url = `${getCurrentUrl}/notes/group/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupNotes', responseData);
@@ -919,7 +919,7 @@ async function fetchGroupFolders() {
   let token = localStorage.getItem('token');
 
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/folders/group/${groupId}`;
+    const url = `${getCurrentUrl}/notes/folders/group/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupFolders', responseData);
@@ -942,7 +942,7 @@ async function fetchGroupFolders() {
 // Gets note by id
 async function fetchNoteById(id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/note/${id}`;
+    const url = `${getCurrentUrl}/notes/note/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchNoteById', responseData);
@@ -971,7 +971,7 @@ async function fetchNoteById(id) {
 // Gets all note links
 async function fetchNoteLinks() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/links/`;
+    const url = `${getCurrentUrl}/notes/links/`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchNoteLinks', responseData);
@@ -995,7 +995,7 @@ async function fetchNoteLinks() {
 // Get note links referenced by a note (Get notes that are referenced by this note)
 async function fetchNoteLinksBySourceNoteId(id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/links/source/${id}`;
+    const url = `${getCurrentUrl}/notes/links/source/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchNoteLinksBySourceNoteId', responseData);
@@ -1019,7 +1019,7 @@ async function fetchNoteLinksBySourceNoteId(id) {
 // Get note links that references a note (Get notes that are reference this note)
 async function fetchNoteLinksByTargetNoteId(id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/links/target/${id}`;
+    const url = `${getCurrentUrl}/notes/links/target/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchNoteLinksByTargetNoteId', responseData);
@@ -1046,7 +1046,7 @@ async function fetchNoteLinksByTargetNoteId(id) {
 // Create note
 async function createNote(title) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/${groupId}`;
+    const url = `${getCurrentUrl}/notes/${groupId}`;
 
     const data = {
       title: title,
@@ -1090,7 +1090,7 @@ async function createNote(title) {
 // is_archived(boolean), is_pinned(boolean), template, title, folder_id
 async function updateNote(data) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/${data.id}/group/${groupId}`;
+    const url = `${getCurrentUrl}/notes/${data.id}/group/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateNote', responseData);
@@ -1151,7 +1151,7 @@ async function updateNote(data) {
 // data: content, id
 async function updateNoteContent(data) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/${data.id}/content`;
+    const url = `${getCurrentUrl}/notes/${data.id}/content`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateNoteContent', responseData);
@@ -1193,7 +1193,7 @@ async function updateNoteContent(data) {
 // Delete note
 async function deleteNote(id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/note/${id}`;
+    const url = `${getCurrentUrl}/notes/note/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteNote', responseData);
@@ -1234,7 +1234,7 @@ async function deleteNote(id) {
 // Create folder
 async function createNoteFolder(name) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/folders/${groupId}`;
+    const url = `${getCurrentUrl}/notes/folders/${groupId}`;
 
     const data = {
       name: name,
@@ -1277,7 +1277,7 @@ async function createNoteFolder(name) {
 // data has: id, color
 async function updateFolderColor(data) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/folders/${data.id}/color`;
+    const url = `${getCurrentUrl}/notes/folders/${data.id}/color`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateFolderColor', responseData);
@@ -1320,7 +1320,7 @@ async function updateFolderColor(data) {
 // data has: id, icon
 async function updateFolderIcon(data) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/folders/${data.id}/icon`;
+    const url = `${getCurrentUrl}/notes/folders/${data.id}/icon`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateFolderIcon', responseData);
@@ -1363,7 +1363,7 @@ async function updateFolderIcon(data) {
 // data has: id, name, group_id
 async function updateFolderName(data) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/folders/${data.id}/name`;
+    const url = `${getCurrentUrl}/notes/folders/${data.id}/name`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateFolderName', responseData);
@@ -1414,7 +1414,7 @@ async function updateFolderName(data) {
 // Delete folder
 async function deleteFolder(id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/folders/${id}`;
+    const url = `${getCurrentUrl}/notes/folders/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteFolder', responseData);
@@ -1448,7 +1448,7 @@ async function deleteFolder(id) {
 // Create Link
 async function createNoteLink(source_note_id, target_note_id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/links/${source_note_id}/${target_note_id}`;
+    const url = `${getCurrentUrl}/notes/links/${source_note_id}/${target_note_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('createNoteLink', responseData);
@@ -1494,7 +1494,7 @@ async function createNoteLink(source_note_id, target_note_id) {
 // Delete Link
 async function deleteNoteLink(source_note_id, target_note_id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/notes/links/${source_note_id}/${target_note_id}`;
+    const url = `${getCurrentUrl}/notes/links/${source_note_id}/${target_note_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteNoteLink', responseData);
