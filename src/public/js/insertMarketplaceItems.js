@@ -188,7 +188,7 @@ function hideSoldItems(data) {
 
 async function loadListings() {
   // Update Page Navigation Bar
-  fetchMethod('${currentUrl}/marketplace/', (status, data) => {
+  fetchMethod(`${currentUrl}/marketplace/`, (status, data) => {
     const filtered = applySpindleFilters(hideSoldItems(data));
     let totalListings = filtered.length;
     let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
@@ -228,7 +228,7 @@ async function loadListings() {
   });
 
   // Fetch and Load Listings
-  fetchMethod('${currentUrl}/marketplace/', (status, data) => {
+  fetchMethod(`${currentUrl}/marketplace/`, (status, data) => {
     if (status === 200) {
       const filtered = applySpindleFilters(hideSoldItems(data));
 
@@ -255,7 +255,7 @@ async function loadListings() {
 // Fetch users Listings
 async function loadUserListings() {
   // Update Page Navigation Bar
-  fetchMethod('${currentUrl}/marketplace/', (status, data) => {
+  fetchMethod(`${currentUrl}/marketplace/`, (status, data) => {
     const userListings = applySpindleFilters(
       data.filter((item) => item.seller_id == localStorage.loggedInUserId),
     );
@@ -297,7 +297,7 @@ async function loadUserListings() {
   });
 
   // Fetch and Load Listings
-  fetchMethod('${currentUrl}/marketplace/', (status, data) => {
+  fetchMethod(`${currentUrl}/marketplace/`, (status, data) => {
     if (status === 200) {
       const userListings = applySpindleFilters(
         data.filter((item) => item.seller_id == localStorage.loggedInUserId),

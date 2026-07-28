@@ -437,7 +437,7 @@ async function enterStudyRoom() {
 // Get all characters
 async function fetchAvailableCharacters() {
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/study-room/characters`;
+    const url = `${currentUrl}/study-room/characters`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchAvailableCharacters', responseData);
@@ -462,7 +462,7 @@ async function fetchAvailableCharacters() {
 // Get user's character
 async function fetchUserCharacter() {
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/study-room/my-character`;
+    const url = `${currentUrl}/study-room/my-character`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchUserCharacter', responseData);
@@ -489,7 +489,7 @@ async function fetchUserCharacter() {
 
 async function fetchUserCharacterParts() {
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/study-room/my-character/parts`;
+    const url = `${currentUrl}/study-room/my-character/parts`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchUserCharacterParts', responseData);
@@ -522,7 +522,7 @@ async function saveUserCharacter() {
 
 function saveCharacter() {
   return new Promise((resolve, reject) => {
-    const url = `${getCurrentUrl}/study-room/my-character`;
+    const url = `${currentUrl}/study-room/my-character`;
 
     const data = {
       character_id: currentCharacter.id,
@@ -550,7 +550,7 @@ function saveCharacterPart(part, option) {
   return new Promise((resolve, reject) => {
     const isNone = option === null;
 
-    const url = `${getCurrentUrl}/study-room/my-character/parts/${part}`;
+    const url = `${currentUrl}/study-room/my-character/parts/${part}`;
 
     const data = isNone
       ? null
