@@ -4,7 +4,7 @@
   if (protocol === 'file:') return;
   if ((hostname === 'localhost' || hostname === '127.0.0.1') && port && port !== '3000') {
     const page = pathname.split('/').pop() || 'home.html';
-    window.location.replace(`http://localhost:3000/${page}${search}`);
+    window.location.replace(`${currentUrl}/${page}${search}`);
   }
 })();
 
@@ -12,7 +12,7 @@ function getApiBase() {
   const { protocol, hostname, port } = window.location;
 
   if (protocol === 'file:') {
-    return 'http://localhost:3000';
+    return '${currentUrl}';
   }
 
   if (port === '3000' || (port === '' && hostname !== 'localhost' && hostname !== '127.0.0.1')) {
@@ -20,7 +20,7 @@ function getApiBase() {
   }
 
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:3000';
+    return '${currentUrl}';
   }
 
   return '';
@@ -188,7 +188,7 @@ async function authFetch(path, options = {}) {
     });
   } catch {
     throw new Error(
-      'Cannot connect to the server. Run npm start, then open http://localhost:3000/home.html',
+      'Cannot connect to the server. Run npm start, then open ${currentUrl}/home.html',
     );
   }
 

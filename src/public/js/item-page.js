@@ -184,7 +184,7 @@ function renderRecommendedCard(item) {
 }
 
 function loadRecommendedItems(itemId) {
-  fetchMethod(`http://localhost:3000/marketplace/${itemId}/recommended`, (status, data) => {
+  fetchMethod(`${currentUrl}/marketplace/${itemId}/recommended`, (status, data) => {
     const container = document.getElementById('recommended-container');
     const section = document.getElementById('recommended-section');
     if (!container || !section) return;
@@ -269,7 +269,7 @@ function renderRecommendedCard(item) {
 }
 
 function loadRecommendedItems(itemId) {
-  fetchMethod(`http://localhost:3000/marketplace/${itemId}/recommended`, (status, data) => {
+  fetchMethod(`${currentUrl}/marketplace/${itemId}/recommended`, (status, data) => {
     const container = document.getElementById('recommended-container');
     const section = document.getElementById('recommended-section');
     if (!container || !section) return;
@@ -299,7 +299,7 @@ function loadItem() {
     return;
   }
 
-  fetchMethod(`http://localhost:3000/marketplace/${id}`, (status, data) => {
+  fetchMethod(`${currentUrl}/marketplace/${id}`, (status, data) => {
     if (status === 200 && data && data.id) {
       renderItem(data);
     } else {

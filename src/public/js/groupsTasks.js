@@ -800,7 +800,7 @@ function openEditTaskModal(taskId) {
 // Get group tasks
 async function fetchGroupTasks() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupTasks/tasks/group/${groupId}`;
+    const url = `${currentUrl}/groupTasks/tasks/group/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupTasks', responseData);
@@ -824,7 +824,7 @@ async function fetchGroupTasks() {
 // Get group tasks by assignee_id
 async function fetchGroupTasksByAssignee() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupTasks/tasks/user/${groupId}/${userId}`;
+    const url = `${currentUrl}/groupTasks/tasks/user/${groupId}/${userId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupTasksByAssignee', responseData);
@@ -848,7 +848,7 @@ async function fetchGroupTasksByAssignee() {
 // Get group task items
 async function fetchGroupTaskItems(task_id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupTasks/taskItems/${task_id}`;
+    const url = `${currentUrl}/groupTasks/taskItems/${task_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupTaskItems', responseData);
@@ -878,7 +878,7 @@ async function fetchGroupTaskItems(task_id) {
 // Optional: assignee_id and due_date
 async function createGroupTasks(data) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupTasks/tasks/${groupId}`;
+    const url = `${currentUrl}/groupTasks/tasks/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('createGroupTasks', responseData);
@@ -919,7 +919,7 @@ async function createGroupTasks(data) {
 // Optional: completed_by
 async function createGroupTaskItems(data, task_id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupTasks/taskItems/${task_id}`;
+    const url = `${currentUrl}/groupTasks/taskItems/${task_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('createGroupTaskItems', responseData);
@@ -964,7 +964,7 @@ async function createGroupTaskItems(data, task_id) {
 // Optional: assignee_id, status and due_date
 async function updateGroupTasks(data, task_id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupTasks/tasks/${task_id}`;
+    const url = `${currentUrl}/groupTasks/tasks/${task_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateGroupTasks', responseData);
@@ -1012,7 +1012,7 @@ async function updateGroupTasks(data, task_id) {
 // Optional: completed_by, completed_at, completed
 async function updateGroupTaskItems(data, task_item_id, task_id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupTasks/taskItems/${task_id}/${task_item_id}`;
+    const url = `${currentUrl}/groupTasks/taskItems/${task_id}/${task_item_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateGroupTaskItems', responseData);
@@ -1061,7 +1061,7 @@ async function updateGroupTaskItems(data, task_item_id, task_id) {
 // Delete group tasks
 async function deleteGroupTasks(task_id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupTasks/tasks/${task_id}`;
+    const url = `${currentUrl}/groupTasks/tasks/${task_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteGroupTasks', responseData);
@@ -1104,7 +1104,7 @@ async function deleteGroupTasks(task_id) {
 // Delete group task items
 async function deleteGroupTaskItems(task_item_id) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupTasks/taskItems/${task_item_id}`;
+    const url = `${currentUrl}/groupTasks/taskItems/${task_item_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteGroupTaskItems', responseData);
