@@ -32,7 +32,6 @@
 
 const user_id = localStorage.getItem('loggedInUserId');
 const token = localStorage.getItem('token');
-console.log('sdfsfd', token);
 
 // redirect to login if no token
 if (token == null) {
@@ -67,7 +66,7 @@ let currentJoinedPage = 1;
 
 // Only runs in groups_page.html
 const currentURL = window.location.href;
-if (currentURL == '${currentUrl}/groups_page.html') {
+if (currentURL == `${currentUrl}/groups_page.html`) {
   window.addEventListener('DOMContentLoaded', async () => {
     // Get stored school
     const school = localStorage.getItem('school');

@@ -624,8 +624,6 @@ const marketplaceItems = [
 
 module.exports = marketplaceItems;
 
-module.exports = marketplaceItems;
-
 // Seed data for groups
 // Example Groups
 const groups = [
@@ -1327,6 +1325,8 @@ const characters = [
 async function seed() {
   console.log('Seeding data...');
 
+  // Ensure Person table is clean regardless of DROP SCHEMA behavior in Neon
+  await pool.query(`TRUNCATE "Person" CASCADE`);
   // Insert persons
   for (const person of persons) {
     const hashedPassword = await bcrypt.hash(
