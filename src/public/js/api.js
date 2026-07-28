@@ -12,7 +12,7 @@ function getApiBase() {
   const { protocol, hostname, port } = window.location;
 
   if (protocol === 'file:') {
-    return '${currentUrl}';
+    return currentUrl;
   }
 
   if (port === '3000' || (port === '' && hostname !== 'localhost' && hostname !== '127.0.0.1')) {
@@ -20,7 +20,7 @@ function getApiBase() {
   }
 
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return '${currentUrl}';
+    return currentUrl;
   }
 
   return '';
