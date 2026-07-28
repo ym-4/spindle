@@ -51,7 +51,6 @@ const whiteboardRouter = require('./routers/Whiteboard.router');
 const notesRouter = require('./routers/Notes.router');
 const SnakeRouter = require('./routers/Snake.router');
 const somethingRouter = require('./routers/Something.router');
-const wordleRouter = require('./routers/wordle.router');
 const studyRoomRouter = require('./routers/StudyRoom.router');
 
 // Allow Live Server / local dev frontends to call the API on another port
