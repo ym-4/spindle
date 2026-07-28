@@ -371,7 +371,7 @@ function getFileIcon(filename) {
 // ---------------------------------------------------
 async function fetchGroupFiles() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupFiles/files/${groupId}`;
+    const url = `${currentUrl}/groupFiles/files/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupFiles', responseData);
@@ -392,12 +392,12 @@ async function fetchGroupFiles() {
 }
 
 async function fetchFile(file_path) {
-  const fileUrl = `http://localhost:3000/uploads/group_files/${file_path}`;
+  const fileUrl = `${currentUrl}/uploads/group_files/${file_path}`;
   window.open(fileUrl, '_blank');
 }
 
 async function createGroupFiles(file) {
-  const url = `http://localhost:3000/groupFiles/files/${groupId}`;
+  const url = `${currentUrl}/groupFiles/files/${groupId}`;
 
   const folderName = 'Unorganised';
 
@@ -451,7 +451,7 @@ async function createGroupFiles(file) {
 
 async function updateGroupFileFolder(fileId, folderName) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupFiles/files/${fileId}`;
+    const url = `${currentUrl}/groupFiles/files/${fileId}`;
 
     const data = {
       folder_name: folderName,
@@ -471,7 +471,7 @@ async function updateGroupFileFolder(fileId, folderName) {
 
 async function deleteGroupFiles(fileId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupFiles/files/${fileId}`;
+    const url = `${currentUrl}/groupFiles/files/${fileId}`;
 
     const callback = async (status, response) => {
       if (status === 204) {
@@ -495,7 +495,7 @@ async function deleteGroupFiles(fileId) {
 
 async function fetchFolders() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupFiles/folders/${groupId}`;
+    const url = `${currentUrl}/groupFiles/folders/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchFolders', responseData);
@@ -517,7 +517,7 @@ async function fetchFolders() {
 
 async function createFolder(folderName) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupFiles/folders/${groupId}`;
+    const url = `${currentUrl}/groupFiles/folders/${groupId}`;
 
     const data = {
       group_id: groupId,
@@ -588,7 +588,7 @@ async function deleteFolder(folderId) {
 
 async function deleteFolderRequest(folderId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groupFiles/folders/${folderId}`;
+    const url = `${currentUrl}/groupFiles/folders/${folderId}`;
 
     const callback = (status, response) => {
       if (status === 204) {
