@@ -59,7 +59,7 @@ module.exports.insertWhiteboards = async function insertWhiteboards(data) {
 // Update whiteboard data
 // drawing_data, id
 module.exports.updateWhiteboardsData = async function updateWhiteboardData(data) {
-  const VALUES = [data.drawing_data, data.id];
+  const VALUES = [JSON.stringify(data.drawing_data), data.id];
   const { rows } = await pool.query(
     'UPDATE "WhiteboardDrawings" SET drawing_data = $1 WHERE id = $2 RETURNING *',
     VALUES,
