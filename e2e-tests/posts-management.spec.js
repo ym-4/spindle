@@ -25,7 +25,6 @@ function postCards(page) {
 }
 
 // Waits for the feed's initial fetch to complete
-
 async function waitForFeedLoaded(page) {
   await expect(page.locator('#postsContainer .spinner-border')).toHaveCount(0, { timeout: 15000 });
 }

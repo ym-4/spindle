@@ -5,25 +5,26 @@ const path = require('path');
 const session = require('express-session');
 
 const app = express();
-
 app.use(cors()); // Might remove later
 
 // Session handler for the wordle
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'connect-pg-simple',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 day; games don't need to outlive this yet
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'connect-pg-simple',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 1 day; games don't need to outlive this yet
+  }),
+);
 
 // Parse incoming JSON request bodies (e.g. from POST/PUT requests)
-app.use(express.json({limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files (HTML, CSS, JS, images) from the 'public' folder.
 // e.g. src/public/index.html is accessible at http://localhost:<port>/
 app.use(express.static(path.join(__dirname, 'public')));
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 // Import route handlers
 const personRouter = require('./routers/Person.router');
@@ -53,9 +54,6 @@ const notesRouter = require('./routers/Notes.router');
 const SnakeRouter = require('./routers/Snake.router');
 const somethingRouter = require('./routers/Something.router');
 const studyRoomRouter = require('./routers/StudyRoom.router');
-
-const app = express();
-app.use(cors()); // Might remove later
 
 // Allow Live Server / local dev frontends to call the API on another port
 app.use((req, res, next) => {

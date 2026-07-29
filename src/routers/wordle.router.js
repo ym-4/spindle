@@ -1,11 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {
-  WORD_LENGTH,
-  pickRandomWord,
-  isValidWord,
-  wordleGuess,
-} = require('../models/Wordle.model');
+const { WORD_LENGTH, pickRandomWord, isValidWord, wordleGuess } = require('../models/Wordle.model');
 
 const MAX_GUESSES = 6;
 
@@ -65,7 +60,9 @@ router.post('/guess', (req, res) => {
     return res.status(400).json({ error: 'This game is already finished.' });
   }
 
-  const guess = String(req.body.guess || '').trim().toUpperCase();
+  const guess = String(req.body.guess || '')
+    .trim()
+    .toUpperCase();
 
   if (guess.length !== WORD_LENGTH || !/^[A-Z]+$/.test(guess)) {
     return res.status(400).json({ error: `Guess must be ${WORD_LENGTH} letters.` });
