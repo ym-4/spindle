@@ -50,6 +50,70 @@ const brushTool = document.getElementById('brushTool');
 const eraserBtn = document.getElementById('eraser');
 
 // --------------------------------------------------
+//             SAVE / BACK FUNCTIONS
+// --------------------------------------------------
+
+// Save drawing to database
+async function saveDrawing() {
+  if (!whiteboardID) {
+    console.error('No whiteboard ID found.');
+    return false;
+  }
+
+  // Cancel any pending auto-save
+  clearTimeout(saveTimeout);
+
+  try {
+    await saveWhiteboard();
+    console.log('Whiteboard saved successfully.');
+    return true;
+  } catch (err) {
+    console.error('Failed to save whiteboard:', err);
+    return false;
+  }
+}
+
+// SAVE BUTTON
+document.getElementById('save').onclick = async () => {
+  // First save to database
+  const saved = await saveDrawing();
+
+  if (!saved) {
+    alert('Failed to save your whiteboard.');
+    return;
+  }
+
+  // Then download PNG
+  const link = document.createElement('a');
+  link.download = 'drawing.png';
+
+  if (currentMode === 'pixel') {
+    link.href = pixelCanvas.toDataURL('image/png');
+  } else {
+    link.href = canvas.toDataURL('image/png');
+  }
+
+  link.click();
+};
+
+// BACK BUTTON
+document.getElementById('back').onclick = async () => {
+  // Save to database before leaving
+  const saved = await saveDrawing();
+
+  if (!saved) {
+    const leaveAnyway = confirm('Your drawing could not be saved. Do you want to leave anyway?');
+
+    if (!leaveAnyway) {
+      return;
+    }
+  }
+
+  // Change this to the page you want to return to
+  window.location.href = 'home.html';
+};
+
+// --------------------------------------------------
 //              WHITEBOARD FUNCTIONS
 // --------------------------------------------------
 document.getElementById('undo').addEventListener('click', () => {
@@ -550,11 +614,28 @@ function loadPixelDrawing(data) {
 //                  SETUP
 // --------------------------------------------------
 
+const whiteboardMode = localStorage.getItem('whiteboardMode');
+
 async function init() {
   canvas.style.display = 'block';
   eraserBtn.textContent = 'Eraser: OFF';
 
-  setMode('whiteboard');
+  if (whiteboardMode === 'pixel') {
+    // Initialise pixel whiteboard
+    const whiteboardBtn = document.getElementById('whiteboardBtn');
+
+    whiteboardBtn.disabled = true;
+    whiteboardBtn.style.display = 'none';
+    setMode('pixel');
+  } else {
+    // Initialise normal whiteboard
+    setMode('whiteboard');
+    const pixelBtn = document.getElementById('pixelBtn');
+
+    pixelBtn.disabled = true;
+    pixelBtn.style.display = 'none';
+  }
+
   resizeCanvas();
   saveState();
   savePixelState();

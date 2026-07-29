@@ -4,6 +4,7 @@
 // Global variables
 let groupNotes = [];
 let groupFolders = [];
+let groupWhiteboards = [];
 let noteLinks = [];
 let folderStates = {};
 let quill;
@@ -15,9 +16,7 @@ let noteGraph = null;
 const newNoteFolderModal = new bootstrap.Modal(document.getElementById('newNoteFolderModal'));
 const newNoteModal = new bootstrap.Modal(document.getElementById('newNoteModal'));
 const insertLinkModal = new bootstrap.Modal(document.getElementById('insertLinkModal'));
-
-const newNoteFolderModal = new bootstrap.Modal(document.getElementById('newNoteFolderModal'));
-const newNoteModal = new bootstrap.Modal(document.getElementById('newNoteModal'));
+const newWhiteboardModal = new bootstrap.Modal(document.getElementById('createWhiteboardModal'));
 
 window.addEventListener('DOMContentLoaded', async () => {
   // Fetch data
@@ -73,7 +72,13 @@ function addListeners() {
 
   document.getElementById('newNoteFolderBtn').addEventListener('click', handleNewNoteFolder);
 
-  document.getElementById('createWhiteboardBtn').addEventListener('click', handleNewWhiteboard);
+  document.getElementById('createWhiteboardBtn').addEventListener('click', () => {
+    // Show modal (title, mode)
+    newWhiteboardModal.show();
+
+    const confirmWhiteboardBtn = document.getElementById('createWhiteboardConfirmBtn');
+    confirmWhiteboardBtn.addEventListener('click', handleNewWhiteboard);
+  });
 
   // For graph view
   document.getElementById('graphViewBtn').addEventListener('click', displayGraphView);
@@ -357,10 +362,41 @@ async function handleNewNote() {
   }
 }
 
-// NOT DONE
-// Use whiteboard.js file
-function handleNewWhiteboard() {
-  console.log('new whiteboard');
+async function handleNewWhiteboard() {
+  // get data
+  const title = document.getElementById('whiteboardTitle').value.trim();
+
+  const mode = document.querySelector('input[name="whiteboardMode"]:checked').value;
+
+  // Make sure title isn't empty
+  if (!title) {
+    document.getElementById('whiteboardTitle').focus();
+
+    return;
+  }
+
+  const data = {
+    title: title,
+    mode: mode,
+    group_id: groupId,
+  };
+
+  try {
+    // Create whiteboard
+    const response = await createWhiteboard(data);
+
+    console.log('whiteboard response', response);
+
+    // Set items
+    localStorage.setItem('whiteboardID', response);
+    localStorage.setItem('whiteboardMode', mode);
+
+    // Redirect to whiteboard page
+    window.location.href = 'whiteboard.html';
+  } catch (err) {
+    console.error('Failed to create whiteboard:', err);
+    displayToast('error', 'Failed to create whiteboard.');
+  }
 }
 
 // -----------------------
@@ -616,6 +652,74 @@ function displayFolderStructure() {
 
     container.appendChild(folderDiv);
   }
+
+  // --------------------------------------------------
+  // Whiteboards folder
+  // --------------------------------------------------
+
+  if (groupWhiteboards.length > 0) {
+    if (folderStates['whiteboards'] === undefined) {
+      folderStates['whiteboards'] = true;
+    }
+
+    const expanded = folderStates['whiteboards'];
+
+    const folderDiv = document.createElement('div');
+    folderDiv.className = 'folder';
+
+    folderDiv.innerHTML = `
+    <div class="folder-header">
+      <i class="bi ${expanded ? 'bi-chevron-down' : 'bi-chevron-right'}"></i>
+
+      <i class="bi bi-easel2-fill text-primary"></i>
+
+      Whiteboards
+    </div>
+
+    <div
+      class="folder-items"
+      style="display:${expanded ? 'block' : 'none'}"
+    ></div>
+  `;
+
+    const items = folderDiv.querySelector('.folder-items');
+
+    // Display each whiteboard
+    groupWhiteboards.forEach((whiteboard) => {
+      const link = document.createElement('a');
+
+      link.className = 'wiki-file';
+
+      link.innerHTML = `
+      <i class="bi ${whiteboard.mode === 'pixel' ? 'bi-grid-3x3-gap-fill' : 'bi-easel2'}"></i>
+
+      ${whiteboard.title}
+    `;
+
+      link.onclick = () => {
+        localStorage.setItem('whiteboardID', whiteboard.id);
+        localStorage.setItem('whiteboardMode', whiteboard.mode);
+
+        window.location.href = 'whiteboard.html';
+      };
+
+      items.appendChild(link);
+    });
+
+    // Make Whiteboards folder collapsible
+    const header = folderDiv.querySelector('.folder-header');
+    const arrow = header.querySelector('.bi');
+
+    header.onclick = () => {
+      folderStates['whiteboards'] = !folderStates['whiteboards'];
+
+      items.style.display = folderStates['whiteboards'] ? 'block' : 'none';
+
+      arrow.className = folderStates['whiteboards'] ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
+    };
+
+    container.appendChild(folderDiv);
+  }
 }
 
 // Middle section - Actual note being shown
@@ -828,6 +932,7 @@ function hideGraphView() {
 async function fetchNoteData() {
   groupNotes = await fetchGroupNotes();
   groupFolders = await fetchGroupFolders();
+  groupWhiteboards = await fetchGroupAndUserWhiteboards();
   noteLinks = await fetchNoteLinks();
 }
 
@@ -891,7 +996,7 @@ function findNoteByTitle(title) {
 // Gets the notes for the group
 async function fetchGroupNotes() {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/group/${groupId}`;
+    const url = `http://localhost:3000/notes/group/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupNotes', responseData);
@@ -919,7 +1024,7 @@ async function fetchGroupFolders() {
   let token = localStorage.getItem('token');
 
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/folders/group/${groupId}`;
+    const url = `http://localhost:3000/notes/folders/group/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupFolders', responseData);
@@ -942,7 +1047,7 @@ async function fetchGroupFolders() {
 // Gets note by id
 async function fetchNoteById(id) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/note/${id}`;
+    const url = `http://localhost:3000/notes/note/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchNoteById', responseData);
@@ -971,7 +1076,7 @@ async function fetchNoteById(id) {
 // Gets all note links
 async function fetchNoteLinks() {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/links/`;
+    const url = `http://localhost:3000/notes/links/`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchNoteLinks', responseData);
@@ -995,7 +1100,7 @@ async function fetchNoteLinks() {
 // Get note links referenced by a note (Get notes that are referenced by this note)
 async function fetchNoteLinksBySourceNoteId(id) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/links/source/${id}`;
+    const url = `http://localhost:3000/notes/links/source/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchNoteLinksBySourceNoteId', responseData);
@@ -1019,7 +1124,7 @@ async function fetchNoteLinksBySourceNoteId(id) {
 // Get note links that references a note (Get notes that are reference this note)
 async function fetchNoteLinksByTargetNoteId(id) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/links/target/${id}`;
+    const url = `http://localhost:3000/notes/links/target/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchNoteLinksByTargetNoteId', responseData);
@@ -1046,7 +1151,7 @@ async function fetchNoteLinksByTargetNoteId(id) {
 // Create note
 async function createNote(title) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/${groupId}`;
+    const url = `http://localhost:3000/notes/${groupId}`;
 
     const data = {
       title: title,
@@ -1090,7 +1195,7 @@ async function createNote(title) {
 // is_archived(boolean), is_pinned(boolean), template, title, folder_id
 async function updateNote(data) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/${data.id}/group/${groupId}`;
+    const url = `http://localhost:3000/notes/${data.id}/group/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateNote', responseData);
@@ -1151,7 +1256,7 @@ async function updateNote(data) {
 // data: content, id
 async function updateNoteContent(data) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/${data.id}/content`;
+    const url = `http://localhost:3000/notes/${data.id}/content`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateNoteContent', responseData);
@@ -1193,7 +1298,7 @@ async function updateNoteContent(data) {
 // Delete note
 async function deleteNote(id) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/note/${id}`;
+    const url = `http://localhost:3000/notes/note/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteNote', responseData);
@@ -1227,14 +1332,14 @@ async function deleteNote(id) {
       }
     };
 
-    fetchMethod(url, callback, 'DELETE', null, token);
+    fetchMethod(url, callback, 'DELETE', data, token);
   });
 }
 
 // Create folder
 async function createNoteFolder(name) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/folders/${groupId}`;
+    const url = `http://localhost:3000/notes/folders/${groupId}`;
 
     const data = {
       name: name,
@@ -1277,7 +1382,7 @@ async function createNoteFolder(name) {
 // data has: id, color
 async function updateFolderColor(data) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/folders/${data.id}/color`;
+    const url = `http://localhost:3000/notes/folders/${data.id}/color`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateFolderColor', responseData);
@@ -1320,7 +1425,7 @@ async function updateFolderColor(data) {
 // data has: id, icon
 async function updateFolderIcon(data) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/folders/${data.id}/icon`;
+    const url = `http://localhost:3000/notes/folders/${data.id}/icon`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateFolderIcon', responseData);
@@ -1363,7 +1468,7 @@ async function updateFolderIcon(data) {
 // data has: id, name, group_id
 async function updateFolderName(data) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/folders/${data.id}/name`;
+    const url = `http://localhost:3000/notes/folders/${data.id}/name`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateFolderName', responseData);
@@ -1414,7 +1519,7 @@ async function updateFolderName(data) {
 // Delete folder
 async function deleteFolder(id) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/folders/${id}`;
+    const url = `http://localhost:3000/notes/folders/${id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteFolder', responseData);
@@ -1448,7 +1553,7 @@ async function deleteFolder(id) {
 // Create Link
 async function createNoteLink(source_note_id, target_note_id) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/links/${source_note_id}/${target_note_id}`;
+    const url = `http://localhost:3000/notes/links/${source_note_id}/${target_note_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('createNoteLink', responseData);
@@ -1494,7 +1599,7 @@ async function createNoteLink(source_note_id, target_note_id) {
 // Delete Link
 async function deleteNoteLink(source_note_id, target_note_id) {
   return new Promise((resolve, reject) => {
-    const url = `${currentUrl}/notes/links/${source_note_id}/${target_note_id}`;
+    const url = `http://localhost:3000/notes/links/${source_note_id}/${target_note_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteNoteLink', responseData);
