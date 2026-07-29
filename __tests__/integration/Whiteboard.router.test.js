@@ -226,13 +226,13 @@ describe('PUT /whiteboards/:id/drawing_data', () => {
       .put(`/whiteboards/${whiteboardId}/drawing_data`)
       .set('Authorization', `Bearer ${user.token}`)
       .send({
-        drawing_data: [
+        drawing_data: JSON.stringify([
           {
             type: 'rectangle',
             x: 100,
             y: 100,
           },
-        ],
+        ]),
       })
       .expect(200);
 
