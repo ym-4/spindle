@@ -3,7 +3,7 @@ const path = require('path');
 const request = require('supertest');
 const app = require('../../src/app');
 const pool = require('../../src/models/db');
-const { applySchema, truncateAll, closePool } = require('./setup');
+// const { applySchema, truncateAll, closePool } = require('./setup');
 
 // A real (tiny, valid) 1x1 PNG, so multer's fileFilter (which checks
 // mimetype) and any future image-processing code have real bytes to work with.
@@ -30,6 +30,21 @@ async function createItem(overrides = {}) {
   return res;
 }
 
+// Creates the tables the Marketplace routes need (no-op if they already exist).
+async function applySchema() {
+  const sql = fs.readFileSync(path.join(__dirname, '../../schema.sql'), 'utf8');
+  await pool.query(sql);
+}
+
+// Wipes all Marketplace-related tables between tests so one test's data
+// never leaks into the next. RESTART IDENTITY resets the SERIAL id counters
+// too, so ids are predictable within a single test.
+async function truncateAll() {
+  await pool.query(
+    'TRUNCATE TABLE "ItemTags", "ListingImages", "Tags", "MarketplaceItems" RESTART IDENTITY CASCADE',
+  );
+}
+
 beforeAll(async () => {
   await applySchema();
 });
@@ -43,7 +58,6 @@ afterAll(async () => {
   for (const filePath of uploadedFiles) {
     fs.promises.unlink(filePath).catch(() => {});
   }
-  await closePool();
 });
 
 describe('POST /marketplace (create listing)', () => {
