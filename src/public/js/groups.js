@@ -547,12 +547,14 @@ function displayGroups(groups, container, currPage) {
     let members = groupObj ? groupObj.member : [];
 
     // CHANGE currentSchool to respective group icon if implemented
+    let currSchool = currentSchool.toUpperCase();
+
     tempHTML += `
             <div class="group-card" data-group-id="${currGroup.id}">
                 <div class="group-top">
 
                     <div class="group-info">
-                        <img src="images/Groups_${currentSchool}_Building.png" class="group-icon">
+                        <img src="images/Groups_${currSchool}_Building.png" class="group-icon">
                         <h3>${currGroup.name}</h3>
                     </div>
 

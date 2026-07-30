@@ -20,6 +20,8 @@ let currentSessionMinutes = DEFAULT_SESSION_MINUTES;
 
 let isTimerRunning = false;
 
+let studyProgressDate = null;
+
 /* =================================
 STUDY GOALS
 ================================= */
@@ -663,9 +665,15 @@ SAVE STUDY DATA
 ================================= */
 
 function saveStudyData() {
+  const today = new Date().toISOString().split('T')[0];
+
+  studyProgressDate = today;
+
   localStorage.setItem('studyGoals', JSON.stringify(studyGoals));
 
   localStorage.setItem('studyProgress', JSON.stringify(studyProgress));
+
+  localStorage.setItem('studyProgressDate', studyProgressDate);
 }
 
 /* =================================
@@ -676,6 +684,8 @@ function loadStudyData() {
   const savedGoals = localStorage.getItem('studyGoals');
 
   const savedProgress = localStorage.getItem('studyProgress');
+
+  const savedProgressDate = localStorage.getItem('studyProgressDate');
 
   if (savedGoals) {
     try {
@@ -690,7 +700,39 @@ function loadStudyData() {
       studyProgress = JSON.parse(savedProgress);
     } catch (error) {
       console.error('Could not load study progress:', error);
+
+      studyProgress = {
+        minutes: 0,
+        sessions: 0,
+      };
     }
+  }
+
+  /*
+  Check if the saved progress belongs to today.
+  */
+
+  const today = new Date().toISOString().split('T')[0];
+
+  if (savedProgressDate !== today) {
+    /*
+    New day:
+    Reset today's minutes and sessions.
+    Keep the study goals unchanged.
+    */
+
+    studyProgress = {
+      minutes: 0,
+      sessions: 0,
+    };
+
+    studyProgressDate = today;
+
+    localStorage.setItem('studyProgress', JSON.stringify(studyProgress));
+
+    localStorage.setItem('studyProgressDate', studyProgressDate);
+  } else {
+    studyProgressDate = savedProgressDate;
   }
 }
 
