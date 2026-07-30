@@ -199,7 +199,7 @@ router.get('/reaction/:user_id', (req, res, next) => {
 });
 
 // ======================== POLL POSTS ===========================
-// get poll for a post
+// GET poll for a post
 router.get('/:id/poll', (req, res, next) => {
   const data = {
     post_id: req.params.id,
@@ -222,6 +222,12 @@ router.post('/:id/poll', authenticateJWT, async (req, res, next) => {
   }
 
   try {
+    const post = await getPostByID({ id: req.params.id });
+    if (!post) return res.status(404).json({ message: 'Post not found.' });
+    if (post.user_id !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to add a poll to this post.' });
+    }
+
     const poll = await insertPoll({ post_id: req.params.id, question });
     const insertedOptions = await Promise.all(
       options.map((opt) => insertPollOption({ poll_id: poll.id, option_text: opt })),
@@ -234,8 +240,8 @@ router.post('/:id/poll', authenticateJWT, async (req, res, next) => {
   }
 });
 
-// Update poll (question only)
-router.put('/:id/poll', authenticateJWT, (req, res, next) => {
+// Update poll (question only, owner only)
+router.put('/:id/poll', authenticateJWT, async (req, res, next) => {
   const data = {
     question: req.body.question,
     post_id: req.params.id,
@@ -243,26 +249,40 @@ router.put('/:id/poll', authenticateJWT, (req, res, next) => {
 
   if (!data.question) return res.status(400).json({ message: 'question is required.' });
 
-  updatePollQuestion(data)
-    .then((result) => {
-      if (!result) return res.status(404).json({ message: 'Poll not found.' });
-      res.status(200).json({ question: result.question, id: result.id });
-    })
-    .catch(next);
+  try {
+    const post = await getPostByID({ id: req.params.id });
+    if (!post) return res.status(404).json({ message: 'Post not found.' });
+    if (post.user_id !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to edit this poll.' });
+    }
+
+    const result = await updatePollQuestion(data);
+    if (!result) return res.status(404).json({ message: 'Poll not found.' });
+    res.status(200).json({ question: result.question, id: result.id });
+  } catch (error) {
+    next(error);
+  }
 });
 
-// Delete poll from a post
-router.delete('/:id/poll', authenticateJWT, (req, res, next) => {
+// Delete poll from a post (owner only)
+router.delete('/:id/poll', authenticateJWT, async (req, res, next) => {
   const data = {
     post_id: req.params.id,
   };
 
-  deletePollByPostID(data)
-    .then((result) => {
-      if (!result) return res.status(404).json({ message: 'Poll not found.' });
-      res.status(200).json(result);
-    })
-    .catch(next);
+  try {
+    const post = await getPostByID({ id: req.params.id });
+    if (!post) return res.status(404).json({ message: 'Post not found.' });
+    if (post.user_id !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to delete this poll.' });
+    }
+
+    const result = await deletePollByPostID(data);
+    if (!result) return res.status(404).json({ message: 'Poll not found.' });
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
 });
 
 // POST vote on a poll option
@@ -278,6 +298,15 @@ router.post('/:id/poll/vote', authenticateJWT, async (req, res, next) => {
   }
 
   try {
+    const poll = await getPollByPostID({ post_id: req.params.id });
+    if (!poll || poll.id !== Number(data.poll_id)) {
+      return res.status(400).json({ message: 'poll_id does not match the poll on this post.' });
+    }
+    const optionBelongsToPoll = poll.options.some((o) => o.id === Number(data.option_id));
+    if (!optionBelongsToPoll) {
+      return res.status(400).json({ message: 'option_id does not belong to this poll.' });
+    }
+
     const vote = await insertPollVote(data);
     const updatedPoll = await getPollByPostID({ post_id: req.params.id });
     res.status(201).json({ vote, poll: updatedPoll });
@@ -291,6 +320,10 @@ router.post('/:id/poll/vote', authenticateJWT, async (req, res, next) => {
 
 // GET user's vote on a post's poll
 router.get('/:id/poll/vote/:user_id', authenticateJWT, (req, res, next) => {
+  if (Number(req.params.user_id) !== req.user.id) {
+    return res.status(403).json({ message: 'Not authorized to view this vote.' });
+  }
+
   const data = {
     post_id: req.params.id,
   };
@@ -304,7 +337,7 @@ router.get('/:id/poll/vote/:user_id', authenticateJWT, (req, res, next) => {
     .catch(next);
 });
 
-// DELETE user's vote on a poll
+// DELETE user's vote on a poll 
 router.delete('/:id/poll/vote', authenticateJWT, (req, res, next) => {
   const data = {
     poll_id: req.body.poll_id,
@@ -411,7 +444,6 @@ router.get('/analytics/all', authenticateJWT, (req, res, next) => {
 });
 
 //========================= basic posts ==============================
-
 // Get post by ID
 router.get('/:id', (req, res, next) => {
   const data = {
@@ -509,7 +541,7 @@ router.post('/', upload.single('attachment'), (req, res) => {
 });
 
 // Update post (owner only)
-router.put('/:id', upload.single('attachment'), (req, res) => {
+router.put('/:id', authenticateJWT, upload.single('attachment'), (req, res) => {
   let attachmentUrl = req.body.attachment_url || null;
   let gifUrl = req.body.gif_url || null;
 
@@ -517,6 +549,10 @@ router.put('/:id', upload.single('attachment'), (req, res) => {
     .then((existingPost) => {
       if (!existingPost) {
         return null;
+      }
+
+      if (req.user.role !== 'admin' && existingPost.user_id !== req.user.id) {
+        return res.status(403).json({ error: 'Not authorized to edit this post.' });
       }
 
       attachmentUrl = existingPost.attachment_url;
@@ -570,6 +606,7 @@ router.put('/:id', upload.single('attachment'), (req, res) => {
       return updatePostByID(data);
     })
     .then((results) => {
+      if (res.headersSent) return; 
       if (results === null) {
         return res.status(404).json({ error: 'Post not found' });
       }

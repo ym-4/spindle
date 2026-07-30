@@ -12,11 +12,6 @@ async function getPandabotUserId() {
 }
 
 async function generatePandabotReply(postContent, triggerComment) {
-  console.log(
-    'AGNES KEY LOADED:',
-    process.env.AGNES_API_KEY ? `${process.env.AGNES_API_KEY.slice(0, 6)}...` : 'UNDEFINED',
-  );
-
   const response = await fetch('https://apihub.agnes-ai.com/v1/chat/completions', {
     method: 'POST',
     headers: {

@@ -27,6 +27,8 @@ const pool = require('../../src/models/db');
 
 beforeEach(async () => {
   // Clean slate for every test
+  await pool.query('DELETE FROM "PostTags"');
+  await pool.query('DELETE FROM "Tags"');
   await pool.query('DELETE FROM "PollVotes"');
   await pool.query('DELETE FROM "PollOptions"');
   await pool.query('DELETE FROM "PostPolls"');
@@ -38,6 +40,8 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
+  await pool.query('DELETE FROM "PostTags"');
+  await pool.query('DELETE FROM "Tags"');
   await pool.query('DELETE FROM "PollVotes"');
   await pool.query('DELETE FROM "PollOptions"');
   await pool.query('DELETE FROM "PostPolls"');
@@ -79,6 +83,18 @@ async function createTestUser(name = 'Test User', email = 'test@test.com') {
   return {
     id: mockUserId,
   };
+}
+
+async function createTestPost(userId, title = 'Test Post', category = 'general') {
+  const { rows } = await pool.query(
+    `INSERT INTO "Posts"
+    (user_id, title, category, content)
+    VALUES ($1, $2, $3, 'Content')
+    RETURNING id`,
+    [userId, title, category],
+  );
+
+  return { id: rows[0].id };
 }
 
 // ─────────────────────────────────────────────────────────
@@ -1068,5 +1084,330 @@ describe('DELETE /posts/reaction/:id', () => {
 
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/reaction not found/i);
+  });
+});
+
+// ================== Posts Tags ======================
+// ─────────────────────────────────────────────────────────
+// GET /posts/:id/tags
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/:id/tags', () => {
+  // Valid partition: returns tags attached to the post
+  test('should return the tags attached to a post', async () => {
+    const author = await createTestUser('TagReadAuthor', 'tagreadauthor@example.com');
+    const post = await createTestPost(author.id);
+
+    const { rows: tagRows } = await pool.query(
+      `INSERT INTO "Tags" (name) VALUES ('confession'), ('finals') RETURNING id`,
+    );
+    await pool.query(
+      `INSERT INTO "PostTags" (post_id, tag_id) VALUES ($1, $2), ($1, $3)`,
+      [post.id, tagRows[0].id, tagRows[1].id],
+    );
+
+    const res = await request(app).get(`/posts/${post.id}/tags`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(2);
+    expect(res.body.map((t) => t.name).sort()).toEqual(['confession', 'finals']);
+  });
+
+  // Boundary: a post with no tags
+  test('should return an empty array when the post has no tags', async () => {
+    const author = await createTestUser('NoTagAuthor', 'notagauthor@example.com');
+    const post = await createTestPost(author.id);
+
+    const res = await request(app).get(`/posts/${post.id}/tags`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// GET /posts/tags/search
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/tags/search', () => {
+  // Valid partition: returns tags matching the prefix
+  test('should return tags matching the search prefix', async () => {
+    await pool.query(`INSERT INTO "Tags" (name) VALUES ('internship'), ('events')`);
+
+    const res = await request(app).get('/posts/tags/search').query({ q: 'INT' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.some((t) => t.name === 'internship')).toBe(true);
+    expect(res.body.some((t) => t.name === 'events')).toBe(false);
+  });
+
+  // Boundary: an empty query stops search
+  test('should return an empty array for an empty query', async () => {
+    const res = await request(app).get('/posts/tags/search').query({ q: '' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  // Boundary: no tags match the prefix
+  test('should return an empty array when no tags match', async () => {
+    await pool.query(`INSERT INTO "Tags" (name) VALUES ('confession')`);
+
+    const res = await request(app).get('/posts/tags/search').query({ q: 'zzz' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// PUT /posts/:id/tags
+// ─────────────────────────────────────────────────────────
+describe('PUT /posts/:id/tags', () => {
+  // Valid partition: attaches new tags to a post
+  test("should replace a post's tags with the provided tag names", async () => {
+    const author = await createTestUser('TagWriteAuthor', 'tagwriteauthor@example.com');
+    const post = await createTestPost(author.id);
+
+    const res = await request(app)
+      .put(`/posts/${post.id}/tags`)
+      .send({ tag_names: ['Confession', 'Finals'] });
+
+    expect(res.status).toBe(200);
+    expect(res.body.map((t) => t.name).sort()).toEqual(['confession', 'finals']);
+  });
+
+  // Valid partition: using an existing tag name reuses the same Tags row, not duplicate
+  test('should reuse an existing tag row across different posts instead of duplicating it', async () => {
+    const author = await createTestUser('TagReuseAuthor', 'tagreuseauthor@example.com');
+    const postA = await createTestPost(author.id, 'Post A');
+    const postB = await createTestPost(author.id, 'Post B');
+
+    await request(app).put(`/posts/${postA.id}/tags`).send({ tag_names: ['finals'] });
+    await request(app).put(`/posts/${postB.id}/tags`).send({ tag_names: ['finals'] });
+
+    const { rows } = await pool.query(`SELECT * FROM "Tags" WHERE name = 'finals'`);
+    expect(rows).toHaveLength(1);
+  });
+
+  // Boundary: an empty array clears all tags from the post
+  test("should clear a post's tags when given an empty array", async () => {
+    const author = await createTestUser('TagClearAuthor', 'tagclearauthor@example.com');
+    const post = await createTestPost(author.id);
+    await request(app).put(`/posts/${post.id}/tags`).send({ tag_names: ['temporary'] });
+
+    const res = await request(app).put(`/posts/${post.id}/tags`).send({ tag_names: [] });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  // Invalid partition: tag_names is not an array
+  test('should return 400 when tag_names is not an array', async () => {
+    const author = await createTestUser('TagBadShapeAuthor', 'tagbadshapeauthor@example.com');
+    const post = await createTestPost(author.id);
+
+    const res = await request(app)
+      .put(`/posts/${post.id}/tags`)
+      .send({ tag_names: 'not-an-array' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/must be an array/i);
+  });
+
+  // Invalid partition: more than 10 tags
+  test('should return 400 when more than 10 tags are provided', async () => {
+    const author = await createTestUser('TagTooManyAuthor', 'tagtoomanyauthor@example.com');
+    const post = await createTestPost(author.id);
+
+    const tooMany = Array.from({ length: 11 }, (_, i) => `tag${i}`);
+
+    const res = await request(app).put(`/posts/${post.id}/tags`).send({ tag_names: tooMany });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/maximum of 10 tags/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// POST /posts/:id/view
+// ─────────────────────────────────────────────────────────
+describe('POST /posts/:id/view', () => {
+  // Valid partition: increments the view count
+  test('should increment and return the new view count', async () => {
+    const author = await createTestUser('ViewAuthor', 'viewauthor@example.com');
+    const post = await createTestPost(author.id);
+
+    const first = await request(app).post(`/posts/${post.id}/view`);
+    const second = await request(app).post(`/posts/${post.id}/view`);
+
+    expect(first.status).toBe(200);
+    expect(first.body.view_count).toBe(1);
+    expect(second.body.view_count).toBe(2);
+  });
+
+  // no post returns 0
+  test('should return view_count: 0 for a non-existent post instead of a 404', async () => {
+    await createTestUser('GhostViewUser', 'ghostviewuser@example.com');
+
+    const res = await request(app).post('/posts/999999999/view');
+
+    expect(res.status).toBe(200);
+    expect(res.body.view_count).toBe(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// GET /posts/:id/analytics
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/:id/analytics', () => {
+  // Valid partition: owner sees full engagement counts for their post
+  test("should return the post owner's analytics with correct counts", async () => {
+    const owner = await createTestUser('AnalyticsOwner', 'analyticsowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    const commenter = await createTestUser('AnalyticsCommenter', 'analyticscommenter@example.com');
+    await pool.query(
+      `INSERT INTO "PostReactions" (post_id, user_id, reaction_type) VALUES ($1, $2, 'like')`,
+      [post.id, commenter.id],
+    );
+    await pool.query(
+      `INSERT INTO "PostComments" (user_id, post_id, content) VALUES ($1, $2, 'Nice!')`,
+      [commenter.id, post.id],
+    );
+    await pool.query(`INSERT INTO "SavedPosts" (user_id, post_id) VALUES ($1, $2)`, [
+      commenter.id,
+      post.id,
+    ]);
+
+
+    mockUserId = owner.id;
+    const res = await request(app).get(`/posts/${post.id}/analytics`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.like_count).toBe(1);
+    expect(res.body.dislike_count).toBe(0);
+    expect(res.body.comment_count).toBe(1);
+    expect(res.body.save_count).toBe(1);
+  });
+
+  // Boundary: a post with zero engagement returns 0, not null 
+  test('should return zeroed counts for a post with no engagement', async () => {
+    const owner = await createTestUser('QuietAuthor', 'quietauthor@example.com');
+    const post = await createTestPost(owner.id);
+
+    const res = await request(app).get(`/posts/${post.id}/analytics`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.like_count).toBe(0);
+    expect(res.body.comment_count).toBe(0);
+    expect(res.body.save_count).toBe(0);
+  });
+
+  // Invalid partition: a non-owner cannot view another user's post analytics
+  test("should return 404 when requesting another user's post analytics", async () => {
+    const owner = await createTestUser('PrivateAnalyticsOwner', 'privateanalyticsowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    await createTestUser('AnalyticsStranger', 'analyticsstranger@example.com');
+
+    const res = await request(app).get(`/posts/${post.id}/analytics`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toMatch(/not found or not yours/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// GET /posts/:id/analytics/engagement-over-time
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/:id/analytics/engagement-over-time', () => {
+  // Valid partition: owner sees engagement grouped by day
+  test('should return engagement data grouped by day for the owner', async () => {
+    const owner = await createTestUser('TimelineOwner', 'timelineowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    const reactor = await createTestUser('TimelineReactor', 'timelinereactor@example.com');
+    await pool.query(
+      `INSERT INTO "PostReactions" (post_id, user_id, reaction_type) VALUES ($1, $2, 'like')`,
+      [post.id, reactor.id],
+    );
+
+    mockUserId = owner.id;
+    const res = await request(app).get(`/posts/${post.id}/analytics/engagement-over-time`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBeGreaterThan(0);
+    expect(res.body[0]).toHaveProperty('likes');
+  });
+
+  // Boundary: no engagement yet returns an empty array
+  test('should return an empty array when there is no engagement yet', async () => {
+    const owner = await createTestUser('QuietTimelineOwner', 'quiettimelineowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    const res = await request(app).get(`/posts/${post.id}/analytics/engagement-over-time`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  // non-owner gets empty array
+  test("should silently return an empty array for another user's post, not a 404", async () => {
+    const owner = await createTestUser('TimelineVictim', 'timelinevictim@example.com');
+    const post = await createTestPost(owner.id);
+
+    const stranger = await createTestUser('TimelineIntruder', 'timelineintruder@example.com');
+    await pool.query(
+      `INSERT INTO "PostReactions" (post_id, user_id, reaction_type) VALUES ($1, $2, 'like')`,
+      [post.id, stranger.id],
+    );
+
+    const res = await request(app).get(`/posts/${post.id}/analytics/engagement-over-time`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// GET /posts/analytics/all
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/analytics/all', () => {
+  // Valid partition: returns analytics summaries for all of the user's posts
+  test('should return analytics for all of the authenticated user\'s posts', async () => {
+    const user = await createTestUser('AllAnalyticsUser', 'allanalyticsuser@example.com');
+    await createTestPost(user.id, 'First Post');
+    await createTestPost(user.id, 'Second Post');
+
+    const res = await request(app).get('/posts/analytics/all');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(2);
+  });
+
+  // Boundary: anonymous posts are excluded
+  test("should exclude the user's anonymous posts from the summary", async () => {
+    const user = await createTestUser('AnonAnalyticsUser', 'anonanalyticsuser@example.com');
+    await createTestPost(user.id, 'Visible Post');
+    await pool.query(
+      `INSERT INTO "Posts" (user_id, title, category, content, is_anonymous)
+       VALUES ($1, 'Anonymous Post', 'general', 'Content', TRUE)`,
+      [user.id],
+    );
+
+    const res = await request(app).get('/posts/analytics/all');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].title).toBe('Visible Post');
+  });
+
+  // Boundary: a user with no posts gets an empty array
+  test('should return an empty array for a user with no posts', async () => {
+    await createTestUser('NoPostsAnalyticsUser', 'nopostsanalyticsuser@example.com');
+
+    const res = await request(app).get('/posts/analytics/all');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
   });
 });
