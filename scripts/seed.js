@@ -4,6 +4,9 @@ const { hashPassword } = require('../src/models/Auth.model');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  connectionTimeoutMillis: 15000,
+  idleTimeoutMillis: 15000,
+  statement_timeout: 60000,
 });
 
 const DEFAULT_PASSWORD = 'password123';
@@ -1326,7 +1329,7 @@ async function seed() {
   console.log('Seeding data...');
 
   // Ensure Person table is clean regardless of DROP SCHEMA behavior in Neon
-  await pool.query(`TRUNCATE "Person" CASCADE`);
+  await pool.query(`SET lock_timeout = 15000; TRUNCATE "Person" CASCADE`);
   const preAliceRes = await pool.query(`SELECT id, email FROM "Person"`);
   console.log(`[DEBUG] Person rows after TRUNCATE: ${preAliceRes.rows.length}`);
   // Insert persons
