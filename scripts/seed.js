@@ -842,8 +842,6 @@ const marketplaceItems = [
 
 module.exports = marketplaceItems;
 
-module.exports = marketplaceItems;
-
 // Seed data for groups
 // Example Groups
 const groups = [
@@ -855,6 +853,22 @@ const groups = [
     school: 'SOC',
     module: 'CS1010',
     public: true,
+  },
+  {
+    name: 'Public Test Group',
+    creatorEmail: 'carol@example.com',
+    description: 'For E2E testing.',
+    school: 'SOC',
+    module: 'CS1020',
+    public: true,
+  },
+  {
+    name: 'Private Test Group',
+    creatorEmail: 'carol@example.com',
+    description: 'For E2E testing.',
+    school: 'SOC',
+    module: 'CS2040',
+    public: false,
   },
   {
     name: 'SOC Algorithms',
@@ -957,6 +971,10 @@ const groupMembers = [
   { groupName: 'SOC Study Buddies', userEmail: 'dave@example.com', role: 'user' },
   { groupName: 'SOC Study Buddies', userEmail: 'eve@example.com', role: 'user' },
   { groupName: 'SOC Study Buddies', userEmail: 'beni@example.com', role: 'user' },
+
+  // Test groups
+  { groupName: 'Public Test Group', userEmail: 'carol@example.com', role: 'admin' },
+  { groupName: 'Private Test Group', userEmail: 'carol@example.com', role: 'admin' },
 
   // ===== SOC Algorithms =====
   { groupName: 'SOC Algorithms', userEmail: 'bob@example.com', role: 'admin' },
