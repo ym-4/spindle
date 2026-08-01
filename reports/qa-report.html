@@ -13,7 +13,7 @@
   <h1>QA Report</h1>
   <pre>============================================================
   QA REPORT
-  Generated: 2026-07-19T03:46:10.153Z
+  Generated: 2026-08-01T03:25:34.129Z
 ============================================================
 
 ────────────────────────────────────────────────────────────
@@ -23,1583 +23,466 @@
 1. LINT (eslint)
 
 
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\integration\Groups.routes.test.js
-  1:7  error  'request' is assigned a value but never used  no-unused-vars
-  2:7  error  'app' is assigned a value but never used      no-unused-vars
-  3:7  error  'pool' is assigned a value but never used     no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\integration\Posts.routes.test.js
-  32:16  error  'seedPersons' is defined but never used     no-unused-vars
-  40:16  error  'seedSomethings' is defined but never used  no-unused-vars
-  53:16  error  'loginAndVerify' is defined but never used  no-unused-vars
-  70:16  error  'makeFriends' is defined but never used     no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\unit\GroupFiles.model.test.js
-  104:11  error  'fakeFiles' is assigned a value but never used    no-unused-vars
-  429:11  error  'fakeFolders' is assigned a value but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\unit\Groups.model.test.js
-  128:11  error  'fakeGroups' is assigned a value but never used    no-unused-vars
-  236:11  error  'fakeGroups' is assigned a value but never used    no-unused-vars
-  306:11  error  'newFakeGroup' is assigned a value but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\unit\Tasks.model.test.js
-   12:3   error  'getTaskItemsByUserAndGroupID' is assigned a value but never used  no-unused-vars
-  102:11  error  'fakeTasks' is assigned a value but never used                     no-unused-vars
-  205:11  error  'fakeTasks' is assigned a value but never used                     no-unused-vars
-  227:11  error  'fakeTasks' is assigned a value but never used                     no-unused-vars
-  331:11  error  'newFakeTask' is assigned a value but never used                   no-unused-vars
-  417:11  error  'date' is assigned a value but never used                          no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\unit\Whiteboard.model.test.js
-  113:11  error  'fakeWhiteboards' is assigned a value but never used    no-unused-vars
-  232:11  error  'fakeWhiteboards' is assigned a value but never used    no-unused-vars
-  314:11  error  'fakeWhiteboards' is assigned a value but never used    no-unused-vars
-  415:11  error  'newFakeWhiteboard' is assigned a value but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js
-  29:13  error  Empty block statement  no-empty
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\jwtMiddleware.js
-  43:9   error  'token' is assigned a value but never used  no-unused-vars
-  49:39  error  'next' is defined but never used            no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\models\Auth.model.js
-   93:11  error  Empty block statement                no-empty
-  246:11  error  Empty block statement                no-empty
-  341:11  error  Empty block statement                no-empty
-  348:11  error  Empty block statement                no-empty
-  355:11  error  Empty block statement                no-empty
-  381:11  error  Empty block statement                no-empty
-  394:11  error  Empty block statement                no-empty
-  407:11  error  Empty block statement                no-empty
-  422:3   error  'adminId' is defined but never used  no-unused-vars
-  435:11  error  Empty block statement                no-empty
-  455:11  error  Empty block statement                no-empty
-  470:11  error  Empty block statement                no-empty
-  509:11  error  Empty block statement                no-empty
-  516:11  error  Empty block statement                no-empty
-  539:11  error  Empty block statement                no-empty
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\models\BlockedUsers.model.js
-  8:11  error  Empty block statement  no-empty
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\models\Groups.model.js
-  318:77  error  'data' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\models\Posts.model.js
-  499:5  error  The value assigned to 'idx' is not used in subsequent statements  no-useless-assignment
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\models\Stories.model.js
-  101:60  error  'userId' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\models\Tasks.model.js
-  1:9  error  'group' is assigned a value but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\models\Whiteboard.model.js
-  4:69  error  'data' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\admin.js
-    29:12  error  'hasClass' is defined but never used      no-unused-vars
-    32:12  error  'toggleClass' is defined but never used   no-unused-vars
-   197:7   error  'authFetch' is not defined                no-undef
-   285:5   error  'authFetch' is not defined                no-undef
-   430:5   error  'authFetch' is not defined                no-undef
-   592:11  error  'authFetch' is not defined                no-undef
-   835:13  error  'authFetch' is not defined                no-undef
-   900:35  error  'showResolved' is defined but never used  no-unused-vars
-   997:13  error  'authFetch' is not defined                no-undef
-  1012:9   error  'authFetch' is not defined                no-undef
-  1065:13  error  'authFetch' is not defined                no-undef
-  1150:13  error  'authFetch' is not defined                no-undef
-  1170:13  error  'authFetch' is not defined                no-undef
-  1230:13  error  'authFetch' is not defined                no-undef
-  1254:13  error  'authFetch' is not defined                no-undef
-  1277:13  error  'authFetch' is not defined                no-undef
-  1312:7   error  'authFetch' is not defined                no-undef
-  1332:5   error  'authFetch' is not defined                no-undef
-  1359:5   error  'authFetch' is not defined                no-undef
-  1361:9   error  'authFetch' is not defined                no-undef
-  1381:5   error  'authFetch' is not defined                no-undef
-  1398:5   error  'authFetch' is not defined                no-undef
-  1405:9   error  'authFetch' is not defined                no-undef
-  1422:5   error  'authFetch' is not defined                no-undef
-  1439:5   error  'authFetch' is not defined                no-undef
-  1606:12  error  'isLoggedIn' is not defined               no-undef
-  1610:12  error  'isAdmin' is not defined                  no-undef
-  1610:20  error  'getStoredUser' is not defined            no-undef
-  1615:49  error  'updateNavForUser' is not defined         no-undef
-  1615:66  error  'getStoredUser' is not defined            no-undef
-  1623:44  error  'clearAuth' is not defined                no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\api.js
-   82:10  error  'setAuth' is defined but never used             no-unused-vars
-   92:10  error  'getRememberToken' is defined but never used    no-unused-vars
-  116:10  error  'isLoggedIn' is defined but never used          no-unused-vars
-  156:10  error  'getWsUrl' is defined but never used            no-unused-vars
-  167:10  error  'mediaUrl' is defined but never used            no-unused-vars
-  173:16  error  'authFetch' is defined but never used           no-unused-vars
-  214:10  error  'redirectAfterLogin' is defined but never used  no-unused-vars
-  236:10  error  'updateNavForUser' is defined but never used    no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\auth.js
-   71:3   error  'setAuth' is not defined               no-undef
-   72:22  error  'setRememberToken' is not defined      no-undef
-   74:3   error  'updateNavForUser' is not defined      no-undef
-   76:42  error  'injectWaNav' is not defined           no-undef
-   78:5   error  'injectHeaderActions' is not defined   no-undef
-   82:5   error  'redirectAfterLogin' is not defined    no-undef
-   94:24  error  'authFetch' is not defined             no-undef
-   99:25  error  'getRememberToken' is not defined      no-undef
-  154:22  error  'e' is defined but never used          no-unused-vars
-  176:24  error  'authFetch' is not defined             no-undef
-  198:26  error  'authFetch' is not defined             no-undef
-  210:24  error  'authFetch' is not defined             no-undef
-  224:24  error  'authFetch' is not defined             no-undef
-  239:3   error  'clearAuth' is not defined             no-undef
-  240:3   error  'updateNavForUser' is not defined      no-undef
-  257:16  error  'getStoredUser' is not defined         no-undef
-  258:3   error  'updateNavForUser' is not defined      no-undef
-  262:39  error  'isLoggedIn' is not defined            no-undef
-  265:7   error  'isLoggedIn' is not defined            no-undef
-  266:29  error  'getPostLoginRedirect' is not defined  no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\cartFunctions.js
-   1:10  error  'addToCart' is defined but never used       no-unused-vars
-   3:3   error  'fetchMethod' is not defined                no-undef
-  13:10  error  'removeFromCart' is defined but never used  no-unused-vars
-  15:3   error  'fetchMethod' is not defined                no-undef
-  25:10  error  'editCart' is defined but never used        no-unused-vars
-  27:3   error  'fetchMethod' is not defined                no-undef
-  37:10  error  'clearCart' is defined but never used       no-unused-vars
-  39:3   error  'fetchMethod' is not defined                no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\chat.js
-   31:56  error  'mediaUrl' is not defined           no-undef
-   61:11  error  'authFetch' is not defined          no-undef
-  169:32  error  'authFetch' is not defined          no-undef
-  198:5   error  'showToast' is not defined          no-undef
-  232:24  error  'authFetch' is not defined          no-undef
-  243:5   error  'showToast' is not defined          no-undef
-  253:23  error  'sendChatMessage' is not defined    no-undef
-  256:5   error  'showToast' is not defined          no-undef
-  295:31  error  'authFetch' is not defined          no-undef
-  301:5   error  'showToast' is not defined          no-undef
-  316:37  error  'authFetch' is not defined          no-undef
-  334:9   error  'showToast' is not defined          no-undef
-  343:7   error  'showToast' is not defined          no-undef
-  349:35  error  'authFetch' is not defined          no-undef
-  352:9   error  'showToast' is not defined          no-undef
-  382:15  error  'authFetch' is not defined          no-undef
-  386:9   error  'showToast' is not defined          no-undef
-  390:9   error  'showToast' is not defined          no-undef
-  397:15  error  'authFetch' is not defined          no-undef
-  401:9   error  'showToast' is not defined          no-undef
-  406:9   error  'showToast' is not defined          no-undef
-  431:29  error  'authFetch' is not defined          no-undef
-  473:32  error  'authFetch' is not defined          no-undef
-  490:17  error  'authFetch' is not defined          no-undef
-  498:11  error  'showToast' is not defined          no-undef
-  500:11  error  'showToast' is not defined          no-undef
-  507:17  error  'authFetch' is not defined          no-undef
-  513:11  error  'showToast' is not defined          no-undef
-  526:28  error  'authFetch' is not defined          no-undef
-  558:7   error  'sendCallSignal' is not defined     no-undef
-  586:3   error  'isCamOff' is not defined           no-undef
-  596:5   error  'sendCallSignal' is not defined     no-undef
-  606:5   error  'showToast' is not defined          no-undef
-  613:5   error  'showToast' is not defined          no-undef
-  617:5   error  'showToast' is not defined          no-undef
-  627:3   error  'sendCallInvite' is not defined     no-undef
-  646:3   error  'sendCallAccept' is not defined     no-undef
-  656:3   error  'sendCallDecline' is not defined    no-undef
-  685:5   error  'sendCallCancel' is not defined     no-undef
-  704:7   error  'sendCallSignal' is not defined     no-undef
-  708:14  error  'err' is defined but never used     no-unused-vars
-  709:7   error  'showToast' is not defined          no-undef
-  736:3   error  'isCamOff' is not defined           no-undef
-  736:15  error  'isCamOff' is not defined           no-undef
-  738:18  error  'isCamOff' is not defined           no-undef
-  740:59  error  'isCamOff' is not defined           no-undef
-  741:57  error  'isCamOff' is not defined           no-undef
-  764:29  error  'endCall' is not defined            no-undef
-  811:16  error  'getStoredUser' is not defined      no-undef
-  812:17  error  'isLoggedIn' is not defined         no-undef
-  813:5   error  'redirectToLogin' is not defined    no-undef
-  817:48  error  'injectWaHeader' is not defined     no-undef
-  818:45  error  'injectWaNav' is not defined        no-undef
-  819:3   error  'connectSocket' is not defined      no-undef
-  820:3   error  'refreshNotifBadge' is not defined  no-undef
-  821:3   error  'onWs' is not defined               no-undef
-  821:30  error  'refreshNotifBadge' is not defined  no-undef
-  822:3   error  'onWs' is not defined               no-undef
-  849:3   error  'onWs' is not defined               no-undef
-  858:3   error  'onWs' is not defined               no-undef
-  862:3   error  'onWs' is not defined               no-undef
-  876:3   error  'onWs' is not defined               no-undef
-  878:7   error  'sendCallBusy' is not defined       no-undef
-  884:3   error  'onWs' is not defined               no-undef
-  891:3   error  'onWs' is not defined               no-undef
-  897:3   error  'onWs' is not defined               no-undef
-  898:5   error  'showToast' is not defined          no-undef
-  903:3   error  'onWs' is not defined               no-undef
-  908:3   error  'onWs' is not defined               no-undef
-  909:3   error  'onWs' is not defined               no-undef
-  929:32  error  'authFetch' is not defined          no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\friends-page.js
-   10:25  error  'mediaUrl' is not defined   no-undef
-   32:15  error  'authFetch' is not defined  no-undef
-   47:15  error  'authFetch' is not defined  no-undef
-   62:15  error  'authFetch' is not defined  no-undef
-   92:29  error  'authFetch' is not defined  no-undef
-  124:32  error  'authFetch' is not defined  no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\friends-panel.js
-   65:29  error  'authFetch' is not defined                    no-undef
-   84:15  error  'authFetch' is not defined                    no-undef
-   92:46  error  'showToast' is not defined                    no-undef
-   99:13  error  'authFetch' is not defined                    no-undef
-  109:13  error  'authFetch' is not defined                    no-undef
-  120:5   error  'authFetch' is not defined                    no-undef
-  121:5   error  'authFetch' is not defined                    no-undef
-  156:29  error  'authFetch' is not defined                    no-undef
-  189:13  error  'authFetch' is not defined                    no-undef
-  206:29  error  'authFetch' is not defined                    no-undef
-  241:10  error  'initFriendsPanel' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groups.js
-    62:5   error  'toast' is assigned a value but never used  no-unused-vars
-    82:17  error  'bootstrap' is not defined                  no-undef
-   324:32  error  'school' is defined but never used          no-unused-vars
-   326:21  error  'bootstrap' is not defined                  no-undef
-   360:19  error  'bootstrap' is not defined                  no-undef
-   374:21  error  'bootstrap' is not defined                  no-undef
-   394:21  error  'bootstrap' is not defined                  no-undef
-   437:19  error  'bootstrap' is not defined                  no-undef
-   446:21  error  'bootstrap' is not defined                  no-undef
-   452:21  error  'bootstrap' is not defined                  no-undef
-   491:19  error  'bootstrap' is not defined                  no-undef
-   500:21  error  'bootstrap' is not defined                  no-undef
-   506:21  error  'bootstrap' is not defined                  no-undef
-   730:21  error  'bootstrap' is not defined                  no-undef
-   761:5   error  'fetchMethod' is not defined                no-undef
-   782:5   error  'fetchMethod' is not defined                no-undef
-   804:5   error  'fetchMethod' is not defined                no-undef
-   826:5   error  'fetchMethod' is not defined                no-undef
-   873:5   error  'fetchMethod' is not defined                no-undef
-   924:5   error  'fetchMethod' is not defined                no-undef
-   967:5   error  'fetchMethod' is not defined                no-undef
-  1004:5   error  'fetchMethod' is not defined                no-undef
-  1061:5   error  'fetchMethod' is not defined                no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groupsAdmin.js
-    4:5   error  'school' is assigned a value but never used                           no-unused-vars
-   10:5   error  'token' is assigned a value but never used                            no-unused-vars
-   26:20  error  'fetchGroupByGroupId' is not defined                                  no-undef
-   27:26  error  'fetchGroupMembers' is not defined                                    no-undef
-   28:27  error  'fetchGroupChannels' is not defined                                   no-undef
-   29:32  error  'fetchGroupAnnouncements' is not defined                              no-undef
-   30:19  error  'fetchAllUsers' is not defined                                        no-undef
-   31:31  error  'fetchGroupJoinRequests' is not defined                               no-undef
-  148:13  error  'deleteGroupAnnouncement' is not defined                              no-undef
-  150:34  error  'fetchGroupAnnouncements' is not defined                              no-undef
-  153:7   error  'displayToast' is not defined                                         no-undef
-  155:7   error  'bootstrap' is not defined                                            no-undef
-  158:7   error  'displayToast' is not defined                                         no-undef
-  172:13  error  'deleteGroup' is not defined                                          no-undef
-  174:7   error  'displayToast' is not defined                                         no-undef
-  181:7   error  'displayToast' is not defined                                         no-undef
-  207:20  error  'fetchGroupByGroupId' is not defined                                  no-undef
-  213:5   error  'displayToast' is not defined                                         no-undef
-  217:5   error  'displayToast' is not defined                                         no-undef
-  223:11  error  'updateRoleToUser' is not defined                                     no-undef
-  226:26  error  'fetchGroupMembers' is not defined                                    no-undef
-  228:5   error  'displayToast' is not defined                                         no-undef
-  230:5   error  'displayToast' is not defined                                         no-undef
-  236:11  error  'updateRoleToAdmin' is not defined                                    no-undef
-  238:26  error  'fetchGroupMembers' is not defined                                    no-undef
-  241:5   error  'displayToast' is not defined                                         no-undef
-  243:5   error  'displayToast' is not defined                                         no-undef
-  249:11  error  'deleteGroupMember' is not defined                                    no-undef
-  252:26  error  'fetchGroupMembers' is not defined                                    no-undef
-  255:5   error  'displayToast' is not defined                                         no-undef
-  257:5   error  'displayToast' is not defined                                         no-undef
-  263:11  error  'deleteGroupDiscussionChannel' is not defined                         no-undef
-  266:27  error  'fetchGroupChannels' is not defined                                   no-undef
-  269:5   error  'displayToast' is not defined                                         no-undef
-  272:5   error  'displayToast' is not defined                                         no-undef
-  280:5   error  'displayToast' is not defined                                         no-undef
-  285:11  error  'createGroupAnnouncement' is not defined                              no-undef
-  289:32  error  'fetchGroupAnnouncements' is not defined                              no-undef
-  293:5   error  'displayToast' is not defined                                         no-undef
-  297:5   error  'displayToast' is not defined                                         no-undef
-  312:21  error  'bootstrap' is not defined                                            no-undef
-  323:11  error  'updateGroupAnnouncement' is not defined                              no-undef
-  326:32  error  'fetchGroupAnnouncements' is not defined                              no-undef
-  330:5   error  'bootstrap' is not defined                                            no-undef
-  332:5   error  'displayToast' is not defined                                         no-undef
-  335:5   error  'displayToast' is not defined                                         no-undef
-  342:21  error  'bootstrap' is not defined                                            no-undef
-  349:5   error  'updateGroupDescription' is not defined                               no-undef
-  350:5   error  'updateGroupModule' is not defined                                    no-undef
-  351:5   error  'updateGroupPublicity' is not defined                                 no-undef
-  357:11  error  'acceptJoinRequest' is not defined                                    no-undef
-  359:11  error  'deleteJoinRequest' is not defined                                    no-undef
-  362:31  error  'fetchGroupJoinRequests' is not defined                               no-undef
-  363:26  error  'fetchGroupMembers' is not defined                                    no-undef
-  364:5   error  'displayToast' is not defined                                         no-undef
-  370:5   error  'displayToast' is not defined                                         no-undef
-  376:11  error  'declineJoinRequest' is not defined                                   no-undef
-  378:11  error  'deleteJoinRequest' is not defined                                    no-undef
-  381:31  error  'fetchGroupJoinRequests' is not defined                               no-undef
-  385:5   error  'displayToast' is not defined                                         no-undef
-  388:5   error  'displayToast' is not defined                                         no-undef
-  435:11  error  The value assigned to 'badge' is not used in subsequent statements    no-useless-assignment
-  436:11  error  The value assigned to 'actions' is not used in subsequent statements  no-useless-assignment
-  573:19  error  'checkGroupCreator' is not defined                                    no-undef
-  574:17  error  'checkGroupAdmin' is not defined                                      no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groupsFeed.js
-    2:5   error  'school' is assigned a value but never used                              no-unused-vars
-   17:5   error  'users' is always 'undefined' because it's never assigned                no-unassigned-vars
-   21:5   error  'channels' is always 'undefined' because it's never assigned             no-unassigned-vars
-   27:5   error  'group' is always 'undefined' because it's never assigned                no-unassigned-vars
-   39:5   error  'members' is always 'undefined' because it's never assigned              no-unassigned-vars
-   47:5   error  'currChannelMessages' is always 'undefined' because it's never assigned  no-unassigned-vars
-  155:11  error  'fetchGroupChannels' is not defined                                      no-undef
-  157:11  error  'fetchGroupByGroupId' is not defined                                     no-undef
-  159:11  error  'fetchGroupMembers' is not defined                                       no-undef
-  162:11  error  'fetchAllUsers' is not defined                                           no-undef
-  163:27  error  'fetchGroupAnnouncements' is not defined                                 no-undef
-  166:11  error  'fetchGroupDiscussionByChannel' is not defined                           no-undef
-  188:39  error  'checkGroupAdmin' is not defined                                         no-undef
-  246:11  error  'createGroupDiscussionMessage' is not defined                            no-undef
-  288:11  error  'updateGroupDiscussionMessage' is not defined                            no-undef
-  301:9   error  'deleteGroupDiscussionMessage' is not defined                            no-undef
-  304:17  error  'bootstrap' is not defined                                               no-undef
-  329:5   error  'displayToast' is not defined                                            no-undef
-  336:7   error  'isAdminOnly' is assigned a value but never used                         no-unused-vars
-  339:3   error  'channelName' is not defined                                             no-undef
-  343:11  error  'createGroupDiscussionChannel' is not defined                            no-undef
-  343:40  error  'channelName' is not defined                                             no-undef
-  346:19  error  'bootstrap' is not defined                                               no-undef
-  354:33  error  'channelName' is not defined                                             no-undef
-  355:5   error  'displayToast' is not defined                                            no-undef
-  355:49  error  'channelName' is not defined                                             no-undef
-  360:19  error  'bootstrap' is not defined                                               no-undef
-  369:7   error  'displayToast' is not defined                                            no-undef
-  373:7   error  'displayToast' is not defined                                            no-undef
-  390:11  error  'deleteGroupMembership' is not defined                                   no-undef
-  392:5   error  'displayToast' is not defined                                            no-undef
-  399:7   error  'displayToast' is not defined                                            no-undef
-  403:7   error  'displayToast' is not defined                                            no-undef
-  571:21  error  'bootstrap' is not defined                                               no-undef
-  580:7   error  'adminList' is assigned a value but never used                           no-unused-vars
-  598:9   error  The value assigned to 'role' is not used in subsequent statements        no-useless-assignment
-  738:21  error  'bootstrap' is not defined                                               no-undef
-  745:25  error  'bootstrap' is not defined                                               no-undef
-  752:7   error  'adminList' is assigned a value but never used                           no-unused-vars
-  768:9   error  The value assigned to 'role' is not used in subsequent statements        no-useless-assignment
-  865:9   error  'fetchGroupDiscussionByChannel' is not defined                           no-undef
-  884:9   error  'fetchGroupChannels' is not defined                                      no-undef
-  887:9   error  'fetchGroupByGroupId' is not defined                                     no-undef
-  890:9   error  'fetchGroupMembers' is not defined                                       no-undef
-  893:9   error  'fetchGroupDiscussionByChannel' is not defined                           no-undef
-  895:25  error  'fetchGroupAnnouncements' is not defined                                 no-undef
-  899:9   error  'fetchAllUsers' is not defined                                           no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groupsFiles.js
-  198:10  error  'showMoveModal' is defined but never used     no-unused-vars
-  219:21  error  'bootstrap' is not defined                    no-undef
-  234:21  error  'bootstrap' is not defined                    no-undef
-  258:5   error  'displayToast' is not defined                 no-undef
-  267:5   error  'displayToast' is not defined                 no-undef
-  277:5   error  'displayToast' is not defined                 no-undef
-  291:5   error  'bootstrap' is not defined                    no-undef
-  293:5   error  'displayToast' is not defined                 no-undef
-  295:5   error  'displayToast' is not defined                 no-undef
-  310:5   error  'bootstrap' is not defined                    no-undef
-  312:5   error  'displayToast' is not defined                 no-undef
-  314:5   error  'displayToast' is not defined                 no-undef
-  322:10  error  'changeFolder' is defined but never used      no-unused-vars
-  372:59  error  'groupId' is not defined                      no-undef
-  388:5   error  'fetchMethod' is not defined                  no-undef
-  392:16  error  'fetchFile' is defined but never used         no-unused-vars
-  398:57  error  'groupId' is not defined                      no-undef
-  411:34  error  'token' is not defined                        no-undef
-  466:5   error  'fetchMethod' is not defined                  no-undef
-  466:45  error  'token' is not defined                        no-undef
-  470:16  error  'deleteGroupFiles' is defined but never used  no-unused-vars
-  482:9   error  'displayToast' is not defined                 no-undef
-  490:5   error  'fetchMethod' is not defined                  no-undef
-  490:48  error  'token' is not defined                        no-undef
-  496:61  error  'groupId' is not defined                      no-undef
-  512:5   error  'fetchMethod' is not defined                  no-undef
-  518:61  error  'groupId' is not defined                      no-undef
-  521:17  error  'groupId' is not defined                      no-undef
-  561:5   error  'fetchMethod' is not defined                  no-undef
-  561:46  error  'token' is not defined                        no-undef
-  565:16  error  'deleteFolder' is defined but never used      no-unused-vars
-  581:5   error  'displayToast' is not defined                 no-undef
-  583:5   error  'displayToast' is not defined                 no-undef
-  599:5   error  'fetchMethod' is not defined                  no-undef
-  599:48  error  'token' is not defined                        no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groupsSharedFunctions.js
-     8:16  error  'fetchGroupChannels' is defined but never used             no-unused-vars
-    10:67  error  'groupId' is not defined                                   no-undef
-    16:9   error  'channels' is not defined                                  no-undef
-    28:5   error  'fetchMethod' is not defined                               no-undef
-    28:45  error  'token' is not defined                                     no-undef
-    33:16  error  'fetchGroupDiscussionByChannel' is defined but never used  no-unused-vars
-    35:66  error  'groupId' is not defined                                   no-undef
-    41:9   error  'currChannelMessages' is not defined                       no-undef
-    53:5   error  'fetchMethod' is not defined                               no-undef
-    53:45  error  'token' is not defined                                     no-undef
-    57:16  error  'fetchGroupDiscussionMatch' is defined but never used      no-unused-vars
-    75:5   error  'fetchMethod' is not defined                               no-undef
-    79:16  error  'fetchAllUsers' is defined but never used                  no-unused-vars
-    87:9   error  'users' is not defined                                     no-undef
-    98:5   error  'fetchMethod' is not defined                               no-undef
-   103:16  error  'fetchGroupByGroupId' is defined but never used            no-unused-vars
-   111:9   error  'group' is not defined                                     no-undef
-   122:5   error  'fetchMethod' is not defined                               no-undef
-   127:16  error  'fetchGroupMembers' is defined but never used              no-unused-vars
-   135:9   error  'members' is not defined                                   no-undef
-   146:5   error  'fetchMethod' is not defined                               no-undef
-   151:16  error  'fetchGroupAnnouncements' is defined but never used        no-unused-vars
-   153:63  error  'groupId' is not defined                                   no-undef
-   169:5   error  'fetchMethod' is not defined                               no-undef
-   169:45  error  'token' is not defined                                     no-undef
-   174:16  error  'fetchGroupJoinRequests' is defined but never used         no-unused-vars
-   176:63  error  'groupId' is not defined                                   no-undef
-   192:5   error  'fetchMethod' is not defined                               no-undef
-   192:45  error  'token' is not defined                                     no-undef
-   200:16  error  'createGroupDiscussionChannel' is defined but never used   no-unused-vars
-   202:66  error  'userId' is not defined                                    no-undef
-   205:17  error  'groupId' is not defined                                   no-undef
-   245:5   error  'fetchMethod' is not defined                               no-undef
-   245:46  error  'token' is not defined                                     no-undef
-   249:16  error  'createGroupDiscussionMessage' is defined but never used   no-unused-vars
-   251:63  error  'userId' is not defined                                    no-undef
-   254:17  error  'groupId' is not defined                                   no-undef
-   255:21  error  'currChannel' is not defined                               no-undef
-   288:5   error  'fetchMethod' is not defined                               no-undef
-   288:46  error  'token' is not defined                                     no-undef
-   292:16  error  'updateGroupDiscussionMessage' is defined but never used   no-unused-vars
-   294:63  error  'userId' is not defined                                    no-undef
-   330:5   error  'fetchMethod' is not defined                               no-undef
-   330:45  error  'token' is not defined                                     no-undef
-   334:16  error  'deleteGroupDiscussionMessage' is defined but never used   no-unused-vars
-   336:65  error  'userId' is not defined                                    no-undef
-   371:5   error  'fetchMethod' is not defined                               no-undef
-   371:48  error  'token' is not defined                                     no-undef
-   376:16  error  'deleteGroupDiscussionChannel' is defined but never used   no-unused-vars
-   378:66  error  'groupId' is not defined                                   no-undef
-   418:5   error  'fetchMethod' is not defined                               no-undef
-   418:48  error  'token' is not defined                                     no-undef
-   423:16  error  'deleteGroupMembership' is defined but never used          no-unused-vars
-   425:15  error  'groupId' is not defined                                   no-undef
-   426:14  error  'userId' is not defined                                    no-undef
-   468:5   error  'fetchMethod' is not defined                               no-undef
-   468:48  error  'token' is not defined                                     no-undef
-   473:16  error  'deleteGroupMember' is defined but never used              no-unused-vars
-   475:54  error  'groupId' is not defined                                   no-undef
-   513:5   error  'fetchMethod' is not defined                               no-undef
-   513:48  error  'token' is not defined                                     no-undef
-   518:16  error  'createGroupAnnouncement' is defined but never used        no-unused-vars
-   520:63  error  'groupId' is not defined                                   no-undef
-   555:5   error  'fetchMethod' is not defined                               no-undef
-   555:46  error  'token' is not defined                                     no-undef
-   560:16  error  'updateGroupAnnouncement' is defined but never used        no-unused-vars
-   562:63  error  'groupId' is not defined                                   no-undef
-   604:5   error  'fetchMethod' is not defined                               no-undef
-   604:45  error  'token' is not defined                                     no-undef
-   608:16  error  'deleteGroupAnnouncement' is defined but never used        no-unused-vars
-   610:63  error  'groupId' is not defined                                   no-undef
-   641:5   error  'fetchMethod' is not defined                               no-undef
-   641:48  error  'token' is not defined                                     no-undef
-   646:16  error  'updateGroupDescription' is defined but never used         no-unused-vars
-   648:61  error  'groupId' is not defined                                   no-undef
-   690:5   error  'fetchMethod' is not defined                               no-undef
-   690:45  error  'token' is not defined                                     no-undef
-   695:16  error  'updateGroupModule' is defined but never used              no-unused-vars
-   697:56  error  'groupId' is not defined                                   no-undef
-   739:5   error  'fetchMethod' is not defined                               no-undef
-   739:45  error  'token' is not defined                                     no-undef
-   744:16  error  'updateGroupPublicity' is defined but never used           no-unused-vars
-   746:56  error  'groupId' is not defined                                   no-undef
-   788:5   error  'fetchMethod' is not defined                               no-undef
-   788:45  error  'token' is not defined                                     no-undef
-   793:16  error  'updateRoleToAdmin' is defined but never used              no-unused-vars
-   795:61  error  'groupId' is not defined                                   no-undef
-   833:5   error  'fetchMethod' is not defined                               no-undef
-   833:45  error  'token' is not defined                                     no-undef
-   838:16  error  'updateRoleToUser' is defined but never used               no-unused-vars
-   840:60  error  'groupId' is not defined                                   no-undef
-   878:5   error  'fetchMethod' is not defined                               no-undef
-   878:45  error  'token' is not defined                                     no-undef
-   883:16  error  'createJoinRequest' is defined but never used              no-unused-vars
-   885:63  error  'groupId' is not defined                                   no-undef
-   916:5   error  'fetchMethod' is not defined                               no-undef
-   916:46  error  'token' is not defined                                     no-undef
-   921:16  error  'acceptJoinRequest' is defined but never used              no-unused-vars
-   923:70  error  'groupId' is not defined                                   no-undef
-   961:5   error  'fetchMethod' is not defined                               no-undef
-   961:45  error  'token' is not defined                                     no-undef
-   966:16  error  'declineJoinRequest' is defined but never used             no-unused-vars
-   968:71  error  'groupId' is not defined                                   no-undef
-  1006:5   error  'fetchMethod' is not defined                               no-undef
-  1006:45  error  'token' is not defined                                     no-undef
-  1011:16  error  'deleteJoinRequest' is defined but never used              no-unused-vars
-  1013:63  error  'groupId' is not defined                                   no-undef
-  1044:5   error  'fetchMethod' is not defined                               no-undef
-  1044:48  error  'token' is not defined                                     no-undef
-  1049:16  error  'deleteGroup' is defined but never used                    no-unused-vars
-  1051:49  error  'groupId' is not defined                                   no-undef
-  1082:5   error  'fetchMethod' is not defined                               no-undef
-  1082:48  error  'token' is not defined                                     no-undef
-  1089:10  error  'checkGroupCreator' is defined but never used              no-unused-vars
-  1090:7   error  'userId' is not defined                                    no-undef
-  1090:17  error  'group' is not defined                                     no-undef
-  1097:10  error  'checkGroupAdmin' is defined but never used                no-unused-vars
-  1098:19  error  'members' is not defined                                   no-undef
-  1100:50  error  'userId' is not defined                                    no-undef
-  1107:10  error  'displayToast' is defined but never used                   no-unused-vars
-  1136:21  error  'bootstrap' is not defined                                 no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groupsTasks.js
-    15:18  error  'fetchAllUsers' is not defined                no-undef
-    28:9   error  'fetchGroupMembers' is not defined            no-undef
-    28:27  error  'groupId' is not defined                      no-undef
-    95:40  error  'userId' is not defined                       no-undef
-   207:3   error  'members' is not defined                      no-undef
-   233:3   error  'members' is not defined                      no-undef
-   252:7   error  'editAssigneeBtn' is not defined              no-undef
-   254:7   error  'editAssigneeBtn' is not defined              no-undef
-   273:23  error  'bootstrap' is not defined                    no-undef
-   282:7   error  'bootstrap' is not defined                    no-undef
-   287:7   error  'displayToast' is not defined                 no-undef
-   290:5   error  'bootstrap' is not defined                    no-undef
-   382:5   error  'displayToast' is not defined                 no-undef
-   383:12  error  'err' is defined but never used               no-unused-vars
-   384:5   error  'displayToast' is not defined                 no-undef
-   391:9   error  'Sortable' is not defined                     no-undef
-   396:15  error  'evt' is defined but never used               no-unused-vars
-   445:5   error  'displayToast' is not defined                 no-undef
-   447:5   error  'displayToast' is not defined                 no-undef
-   457:27  error  'userId' is not defined                       no-undef
-   493:5   error  'displayToast' is not defined                 no-undef
-   527:5   error  'bootstrap' is not defined                    no-undef
-   532:5   error  'displayToast' is not defined                 no-undef
-   535:5   error  'displayToast' is not defined                 no-undef
-   574:34  error  'userId' is not defined                       no-undef
-   577:33  error  'userId' is not defined                       no-undef
-   585:7   error  Unexpected lexical declaration in case block  no-case-declarations
-   670:11  error  'displayToast' is not defined                 no-undef
-   672:11  error  'displayToast' is not defined                 no-undef
-   677:9   error  'displayToast' is not defined                 no-undef
-   679:9   error  'displayToast' is not defined                 no-undef
-   742:7   error  'bootstrap' is not defined                    no-undef
-   748:7   error  'displayToast' is not defined                 no-undef
-   752:7   error  'displayToast' is not defined                 no-undef
-   761:3   error  'members' is not defined                      no-undef
-   790:21  error  'bootstrap' is not defined                    no-undef
-   802:65  error  'groupId' is not defined                      no-undef
-   819:5   error  'fetchMethod' is not defined                  no-undef
-   819:45  error  'token' is not defined                        no-undef
-   826:64  error  'groupId' is not defined                      no-undef
-   826:75  error  'userId' is not defined                       no-undef
-   843:5   error  'fetchMethod' is not defined                  no-undef
-   843:45  error  'token' is not defined                        no-undef
-   866:5   error  'fetchMethod' is not defined                  no-undef
-   866:45  error  'token' is not defined                        no-undef
-   880:59  error  'groupId' is not defined                      no-undef
-   911:5   error  'fetchMethod' is not defined                  no-undef
-   911:46  error  'token' is not defined                        no-undef
-   952:5   error  'fetchMethod' is not defined                  no-undef
-   952:46  error  'token' is not defined                        no-undef
-  1004:5   error  'fetchMethod' is not defined                  no-undef
-  1004:45  error  'token' is not defined                        no-undef
-  1052:5   error  'fetchMethod' is not defined                  no-undef
-  1052:45  error  'token' is not defined                        no-undef
-  1099:5   error  'fetchMethod' is not defined                  no-undef
-  1099:48  error  'token' is not defined                        no-undef
-  1142:5   error  'fetchMethod' is not defined                  no-undef
-  1142:48  error  'token' is not defined                        no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\home.js
-   2:16  error  'getStoredUser' is not defined         no-undef
-   3:30  error  'isLoggedIn' is not defined            no-undef
-   8:3   error  'updateNavForUser' is not defined      no-undef
-  17:9   error  'handleLogout' is not defined          no-undef
-  20:5   error  'connectSocket' is not defined         no-undef
-  21:5   error  'onWs' is not defined                  no-undef
-  21:32  error  'refreshNotifBadge' is not defined     no-undef
-  24:76  error  'openAuthModal' is not defined         no-undef
-  28:7   error  'getToken' is not defined              no-undef
-  28:22  error  'getStoredUser' is not defined         no-undef
-  28:39  error  'clearAuth' is not defined             no-undef
-  31:7   error  'isLoggedIn' is not defined            no-undef
-  32:18  error  'getStoredUser' is not defined         no-undef
-  33:29  error  'getPostLoginRedirect' is not defined  no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\index-page.js
-  3:44  error  'isLoggedIn' is not defined               no-undef
-  9:5   error  'injectNotificationsOnly' is not defined  no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\indexFeed.js
-     4:44  error  'currentUrl' is not defined                                 no-undef
-     4:63  error  'currentUrl' is not defined                                 no-undef
-     6:18  error  'getApiBase' is not defined                                 no-undef
-    16:15  error  'getStoredUser' is not defined                              no-undef
-    29:46  error  'getToken' is not defined                                   no-undef
-    33:5   error  'uploadedAttachmentUrl' is assigned a value but never used  no-unused-vars
-    43:3   error  'loadUserReactions' is not defined                          no-undef
-    77:52  error  'getStoredUser' is not defined                              no-undef
-    81:24  error  'authFetch' is not defined                                  no-undef
-    83:44  error  'getToken' is not defined                                   no-undef
-    84:9   error  'setAuth' is not defined                                    no-undef
-    84:23  error  'getToken' is not defined                                   no-undef
-   188:5   error  'fetchMethod' is not defined                                no-undef
-   212:3   error  'fetchMethod' is not defined                                no-undef
-   236:3   error  'fetchMethod' is not defined                                no-undef
-   243:7   error  'fetchMethod' is not defined                                no-undef
-   470:11  error  'DOMPurify' is not defined                                  no-undef
-   524:3   error  'initReactionButtons' is not defined                        no-undef
-   526:3   error  'setupReactionEvents' is not defined                        no-undef
-   583:3   error  'fetchMethod' is not defined                                no-undef
-   632:3   error  'fetchMethod' is not defined                                no-undef
-   651:3   error  'fetchMethod' is not defined                                no-undef
-   664:3   error  'fetchMethod' is not defined                                no-undef
-   676:13  error  'fetchMethod' is not defined                                no-undef
-   732:13  error  'fetchMethod' is not defined                                no-undef
-   758:13  error  'fetchMethod' is not defined                                no-undef
-   762:19  error  'fetchMethod' is not defined                                no-undef
-   788:11  error  'fetchMethod' is not defined                                no-undef
-   953:9   error  'overlay' is assigned a value but never used                no-unused-vars
-   976:3   error  'fetchMethod' is not defined                                no-undef
-   978:14  error  'data' is defined but never used                            no-unused-vars
-  1016:3   error  'fetchMethod' is not defined                                no-undef
-  1149:14  error  'API_BASE' is not defined                                   no-undef
-  1165:13  error  'bootstrap' is not defined                                  no-undef
-  1173:13  error  'fetchMethod' is not defined                                no-undef
-  1234:3   error  'fetchMethod' is not defined                                no-undef
-  1455:12  error  'isLoggedIn' is not defined                                 no-undef
-  1460:11  error  'bootstrap' is not defined                                  no-undef
-  1468:12  error  'isLoggedIn' is not defined                                 no-undef
-  1472:13  error  'modal' is assigned a value but never used                  no-unused-vars
-  1472:25  error  'bootstrap' is not defined                                  no-undef
-  1485:11  error  'bootstrap' is not defined                                  no-undef
-  1498:3   error  'fetchMethod' is not defined                                no-undef
-  1551:10  error  'loadYourGroups' is defined but never used                  no-unused-vars
-  1562:3   error  'fetchMethod' is not defined                                no-undef
-  1697:21  error  'Quill' is not defined                                      no-undef
-  1714:5   error  'validatePostForm' is not defined                           no-undef
-  1734:51  error  'validatePostForm' is not defined                           no-undef
-  1737:51  error  'validatePostForm' is not defined                           no-undef
-  1740:49  error  'validatePostForm' is not defined                           no-undef
-  1903:23  error  'bootstrap' is not defined                                  no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\insertMarketplaceItems.js
-   81:5   error  'addToCart' is not defined       no-undef
-   96:3   error  'fetchMethod' is not defined     no-undef
-  120:3   error  'fetchMethod' is not defined     no-undef
-  127:14  error  'i' is not defined               no-undef
-  127:57  error  'i' is not defined               no-undef
-  127:94  error  'i' is not defined               no-undef
-  128:21  error  'i' is not defined               no-undef
-  130:18  error  'i' is not defined               no-undef
-  131:18  error  'i' is not defined               no-undef
-  132:18  error  'i' is not defined               no-undef
-  133:18  error  'i' is not defined               no-undef
-  134:18  error  'i' is not defined               no-undef
-  135:18  error  'i' is not defined               no-undef
-  136:18  error  'i' is not defined               no-undef
-  137:18  error  'i' is not defined               no-undef
-  138:18  error  'i' is not defined               no-undef
-  151:3   error  'fetchMethod' is not defined     no-undef
-  176:3   error  'fetchMethod' is not defined     no-undef
-  242:5   error  'removeFromCart' is not defined  no-undef
-  256:9   error  'newQuantity' is constant        no-const-assign
-  258:7   error  'editCart' is not defined        no-undef
-  260:7   error  'bootstrap' is not defined       no-undef
-  264:9   error  'bootstrap' is not defined       no-undef
-  286:3   error  'fetchMethod' is not defined     no-undef
-  297:9   error  'fetchMethod' is not defined     no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\item-page.js
-  130:5   error  'addToCart' is not defined                  no-undef
-  137:3   error  'fetchMethod' is not defined                no-undef
-  155:10  error  'renderRecommendedCard' is already defined  no-redeclare
-  215:5   error  'addToCart' is not defined                  no-undef
-  221:10  error  'loadRecommendedItems' is already defined   no-redeclare
-  222:3   error  'fetchMethod' is not defined                no-undef
-  252:3   error  'fetchMethod' is not defined                no-undef
-  280:5   error  'addToCart' is not defined                  no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\loginUser.js
-   1:1   error  'xdocument' is not defined    no-undef
-  40:5   error  'fetchMethod' is not defined  no-undef
-  40:17  error  'currentUrl' is not defined   no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\messages.js
-   80:10  error  'authFetch' is not defined                    no-undef
-  127:22  error  'authFetch' is not defined                    no-undef
-  162:13  error  'authFetch' is not defined                    no-undef
-  185:16  error  'initPersonalChat' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\new-listing.js
-   44:3   error  'fetchMethod' is not defined  no-undef
-  157:42  error  'bootstrap' is not defined    no-undef
-  161:26  error  'bootstrap' is not defined    no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\page-guard.js
-  17:22  error  'isLoggedIn' is not defined     no-undef
-  23:10  error  'isLoggedIn' is not defined     no-undef
-  27:18  error  'getStoredUser' is not defined  no-undef
-  28:10  error  'isAdmin' is not defined        no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\payment.js
-  38:21  error  'bootstrap' is not defined       no-undef
-  93:9   error  'clearCart' is not defined       no-undef
-  94:16  error  'err' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\posts.js
-     7:44  error  'currentUrl' is not defined                      no-undef
-     7:63  error  'currentUrl' is not defined                      no-undef
-     9:18  error  'getApiBase' is not defined                      no-undef
-    15:26  error  'currentUrl' is not defined                      no-undef
-    45:27  error  'currentUrl' is not defined                      no-undef
-    65:5   error  'fetchMethod' is not defined                     no-undef
-    66:10  error  'currentUrl' is not defined                      no-undef
-    72:9   error  'fetchMethod' is not defined                     no-undef
-    73:14  error  'currentUrl' is not defined                      no-undef
-   105:3   error  'fetchMethod' is not defined                     no-undef
-   106:8   error  'currentUrl' is not defined                      no-undef
-   134:3   error  'fetchMethod' is not defined                     no-undef
-   135:8   error  'currentUrl' is not defined                      no-undef
-   143:7   error  'fetchMethod' is not defined                     no-undef
-   144:12  error  'currentUrl' is not defined                      no-undef
-   267:20  error  'bootstrap' is not defined                       no-undef
-   363:11  error  'fetchMethod' is not defined                     no-undef
-   364:16  error  'currentUrl' is not defined                      no-undef
-   384:5   error  'fetchMethod' is not defined                     no-undef
-   384:20  error  'currentUrl' is not defined                      no-undef
-   544:15  error  'data' is assigned a value but never used        no-unused-vars
-   544:28  error  'authFetch' is not defined                       no-undef
-   561:11  error  'fetchMethod' is not defined                     no-undef
-   562:16  error  'currentUrl' is not defined                      no-undef
-   617:19  error  'currentUrl' is not defined                      no-undef
-   737:25  error  'Quill' is not defined                           no-undef
-   776:11  error  'category' is assigned a value but never used    no-unused-vars
-   823:3   error  'fetchMethod' is not defined                     no-undef
-   823:18  error  'currentUrl' is not defined                      no-undef
-   885:7   error  'fetchMethod' is not defined                     no-undef
-   886:12  error  'currentUrl' is not defined                      no-undef
-   909:11  error  'fetchMethod' is not defined                     no-undef
-   910:16  error  'currentUrl' is not defined                      no-undef
-   936:3   error  'fetchMethod' is not defined                     no-undef
-   936:18  error  'currentUrl' is not defined                      no-undef
-   945:13  error  'fetchMethod' is not defined                     no-undef
-   946:18  error  'currentUrl' is not defined                      no-undef
-  1011:9   error  'fetchMethod' is not defined                     no-undef
-  1012:14  error  'currentUrl' is not defined                      no-undef
-  1031:9   error  'fetchMethod' is not defined                     no-undef
-  1032:14  error  'currentUrl' is not defined                      no-undef
-  1035:15  error  'fetchMethod' is not defined                     no-undef
-  1036:20  error  'currentUrl' is not defined                      no-undef
-  1059:7   error  'fetchMethod' is not defined                     no-undef
-  1060:12  error  'currentUrl' is not defined                      no-undef
-  1089:10  error  'getCommentSortLabel' is defined but never used  no-unused-vars
-  1160:3   error  'fetchMethod' is not defined                     no-undef
-  1216:5   error  'fetchMethod' is not defined                     no-undef
-  1426:9   error  'fetchMethod' is not defined                     no-undef
-  1442:9   error  'fetchMethod' is not defined                     no-undef
-  1553:5   error  'fetchMethod' is not defined                     no-undef
-  1604:3   error  'fetchMethod' is not defined                     no-undef
-  1605:8   error  'currentUrl' is not defined                      no-undef
-  1628:3   error  'fetchMethod' is not defined                     no-undef
-  1629:8   error  'currentUrl' is not defined                      no-undef
-  1630:14  error  'data' is defined but never used                 no-unused-vars
-  1667:5   error  'fetchMethod' is not defined                     no-undef
-  1682:5   error  'fetchMethod' is not defined                     no-undef
-  1697:5   error  'fetchMethod' is not defined                     no-undef
-  2034:3   error  'fetchMethod' is not defined                     no-undef
-  2066:5   error  'fetchMethod' is not defined                     no-undef
-  2091:5   error  'fetchMethod' is not defined                     no-undef
-  2110:3   error  'fetchMethod' is not defined                     no-undef
-  2112:14  error  'data' is defined but never used                 no-unused-vars
-  2196:3   error  'fetchMethod' is not defined                     no-undef
-  2197:8   error  'currentUrl' is not defined                      no-undef
-  2231:10  error  'renderYourGroups' is defined but never used     no-unused-vars
-  2295:3   error  'fetchMethod' is not defined                     no-undef
-  2447:7   error  'fetchMethod' is not defined                     no-undef
-  2449:18  error  'data' is defined but never used                 no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\profile-sections.js
-   28:9   error  'initFriendsPanel' is not defined           no-undef
-   31:15  error  'openMessagesForPeer' is not defined        no-undef
-   44:13  error  'authFetch' is not defined                  no-undef
-   60:27  error  'authFetch' is not defined                  no-undef
-   79:13  error  'authFetch' is not defined                  no-undef
-   86:27  error  'authFetch' is not defined                  no-undef
-  105:28  error  'authFetch' is not defined                  no-undef
-  122:16  error  'initProfileHub' is defined but never used  no-unused-vars
-  125:48  error  'initSettingsPanel' is not defined          no-undef
-  126:47  error  'initFriendsPanel' is not defined           no-undef
-  131:7   error  'initPersonalChat' is not defined           no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\profile.js
-  60:9   error  'content' is assigned a value but never used  no-unused-vars
-  61:16  error  'getStoredUser' is not defined                no-undef
-  63:8   error  'isLoggedIn' is not defined                   no-undef
-  64:5   error  'redirectToLogin' is not defined              no-undef
-  68:7   error  'isAdmin' is not defined                      no-undef
-  74:27  error  'authFetch' is not defined                    no-undef
-  79:7   error  'initProfileHub' is not defined               no-undef
-  83:7   error  'clearAuth' is not defined                    no-undef
-  84:7   error  'redirectToLogin' is not defined              no-undef
-  94:3   error  'updateNavForUser' is not defined             no-undef
-  94:20  error  'getStoredUser' is not defined                no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\queryCmds.js
-  5:10  error  'fetchMethod' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\reactions.js
-    6:25  error  'currentUrl' is not defined                      no-undef
-   12:16  error  'loadUserReactions' is defined but never used    no-unused-vars
-   19:5   error  'fetchMethod' is not defined                     no-undef
-   42:10  error  'initReactionButtons' is defined but never used  no-unused-vars
-   48:10  error  'setupReactionEvents' is defined but never used  no-unused-vars
-   72:7   error  'showAuthPopup' is not defined                   no-undef
-   81:5   error  'fetchMethod' is not defined                     no-undef
-  113:5   error  'fetchMethod' is not defined                     no-undef
-  139:3   error  'fetchMethod' is not defined                     no-undef
-  142:14  error  'data' is defined but never used                 no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\registerUser.js
-  56:7   error  'fetchMethod' is not defined  no-undef
-  56:19  error  'currentUrl' is not defined   no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\saved.js
-    6:44  error  'currentUrl' is not defined           no-undef
-    6:63  error  'currentUrl' is not defined           no-undef
-    8:18  error  'getApiBase' is not defined           no-undef
-   76:3   error  'fetchMethod' is not defined          no-undef
-   84:5   error  'fetchMethod' is not defined          no-undef
-  159:27  error  'currentUrl' is not defined           no-undef
-  162:32  error  'currentUrl' is not defined           no-undef
-  200:3   error  'initReactionButtons' is not defined  no-undef
-  201:3   error  'setupReactionEvents' is not defined  no-undef
-  237:3   error  'fetchMethod' is not defined          no-undef
-  297:3   error  'fetchMethod' is not defined          no-undef
-  370:5   error  'fetchMethod' is not defined          no-undef
-  487:50  error  'getToken' is not defined             no-undef
-  500:3   error  'fetchMethod' is not defined          no-undef
-  569:3   error  'fetchMethod' is not defined          no-undef
-  569:18  error  'API_BASE' is not defined             no-undef
-  712:7   error  'fetchMethod' is not defined          no-undef
-  713:12  error  'API_BASE' is not defined             no-undef
-  767:23  error  'bootstrap' is not defined            no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\searchBar-Marketplace.js
-  11:7   error  'loadListings' is not defined      no-undef
-  15:5   error  'fetchMethod' is not defined       no-undef
-  24:13  error  'addListing' is not defined        no-undef
-  47:7   error  'loadUserListings' is not defined  no-undef
-  51:5   error  'fetchMethod' is not defined       no-undef
-  63:13  error  'addListing' is not defined        no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\settings-panel.js
-   16:30  error  'authFetch' is not defined                     no-undef
-   79:32  error  'authFetch' is not defined                     no-undef
-  103:17  error  'getToken' is not defined                      no-undef
-  104:30  error  'API_BASE' is not defined                      no-undef
-  119:11  error  'authFetch' is not defined                     no-undef
-  129:11  error  'authFetch' is not defined                     no-undef
-  140:11  error  'authFetch' is not defined                     no-undef
-  152:32  error  'authFetch' is not defined                     no-undef
-  164:11  error  'authFetch' is not defined                     no-undef
-  174:24  error  'authFetch' is not defined                     no-undef
-  183:11  error  'authFetch' is not defined                     no-undef
-  184:5   error  'handleLogout' is not defined                  no-undef
-  189:11  error  'authFetch' is not defined                     no-undef
-  193:5   error  'handleLogout' is not defined                  no-undef
-  201:30  error  'authFetch' is not defined                     no-undef
-  216:13  error  'authFetch' is not defined                     no-undef
-  226:10  error  'initSettingsPanel' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\settings.js
-   12:12  error  'bootstrap' is not defined          no-undef
-   43:22  error  'authFetch' is not defined          no-undef
-   76:22  error  'authFetch' is not defined          no-undef
-   97:17  error  'authFetch' is not defined          no-undef
-   99:21  error  'getStoredUser' is not defined      no-undef
-  100:23  error  'getToken' is not defined           no-undef
-  102:37  error  'getToken' is not defined           no-undef
-  103:21  error  Empty block statement               no-empty
-  131:13  error  'authFetch' is not defined          no-undef
-  149:5   error  'authFetch' is not defined          no-undef
-  155:5   error  'authFetch' is not defined          no-undef
-  161:5   error  'authFetch' is not defined          no-undef
-  169:5   error  'authFetch' is not defined          no-undef
-  175:5   error  'authFetch' is not defined          no-undef
-  183:5   error  'authFetch' is not defined          no-undef
-  189:5   error  'authFetch' is not defined          no-undef
-  198:24  error  'authFetch' is not defined          no-undef
-  213:13  error  'authFetch' is not defined          no-undef
-  236:13  error  'authFetch' is not defined          no-undef
-  285:15  error  'authFetch' is not defined          no-undef
-  306:15  error  'authFetch' is not defined          no-undef
-  317:24  error  'authFetch' is not defined          no-undef
-  330:3   error  'clearAuth' is not defined          no-undef
-  335:8   error  'isLoggedIn' is not defined         no-undef
-  336:5   error  'redirectToLogin' is not defined    no-undef
-  339:48  error  'injectWaHeader' is not defined     no-undef
-  340:45  error  'injectWaNav' is not defined        no-undef
-  341:3   error  'refreshNotifBadge' is not defined  no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\socket-client.js
-   4:10  error  'connectSocket' is defined but never used    no-unused-vars
-   5:17  error  'getToken' is not defined                    no-undef
-   9:18  error  'getWsUrl' is not defined                    no-undef
-  41:10  error  'onWs' is defined but never used             no-unused-vars
-  54:10  error  'sendChatMessage' is defined but never used  no-unused-vars
-  56:10  error  'authFetch' is not defined                   no-undef
-  62:10  error  'sendCallInvite' is defined but never used   no-unused-vars
-  66:10  error  'sendCallAccept' is defined but never used   no-unused-vars
-  70:10  error  'sendCallDecline' is defined but never used  no-unused-vars
-  74:10  error  'sendCallBusy' is defined but never used     no-unused-vars
-  78:10  error  'sendCallCancel' is defined but never used   no-unused-vars
-  82:10  error  'sendCallSignal' is defined but never used   no-unused-vars
-  86:10  error  'endCall' is defined but never used          no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\spindle-page.js
-  11:61  error  'isLoggedIn' is not defined               no-undef
-  12:5   error  'redirectToLogin' is not defined          no-undef
-  18:5   error  'isLoggedIn' is not defined               no-undef
-  21:5   error  'injectNotificationsOnly' is not defined  no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\spindle-sidebar.js
-   37:19  error  'getToken' is not defined              no-undef
-   37:30  error  'getToken' is not defined              no-undef
-   47:44  error  'currentUrl' is not defined            no-undef
-   48:11  error  'currentUrl' is not defined            no-undef
-   49:48  error  'getApiBase' is not defined            no-undef
-  105:23  error  'renderSpindleSidebar' is not defined  no-undef
-  106:5   error  'loadYourGroups' is not defined        no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\stories.js
-   21:13  error  'getStoredUser' is not defined               no-undef
-   26:12  error  'e' is defined but never used                no-unused-vars
-   26:15  error  Empty block statement                        no-empty
-   59:12  error  'getStoredUser' is not defined               no-undef
-   60:12  error  'e' is defined but never used                no-unused-vars
-   84:22  error  'authFetch' is not defined                   no-undef
-   86:12  error  'e' is defined but never used                no-unused-vars
-  115:7   error  'uid' is assigned a value but never used     no-unused-vars
-  141:28  error  'mediaUrl' is not defined                    no-undef
-  168:24  error  'mediaUrl' is not defined                    no-undef
-  264:26  error  'mediaUrl' is not defined                    no-undef
-  444:27  error  'API_BASE' is not defined                    no-undef
-  446:45  error  'getToken' is not defined                    no-undef
-  459:12  error  'err' is defined but never used              no-unused-vars
-  490:27  error  'API_BASE' is not defined                    no-undef
-  492:45  error  'getToken' is not defined                    no-undef
-  505:12  error  'err' is defined but never used              no-unused-vars
-  515:22  error  'authFetch' is not defined                   no-undef
-  575:12  error  'e' is defined but never used                no-unused-vars
-  582:22  error  'authFetch' is not defined                   no-undef
-  597:12  error  'e' is defined but never used                no-unused-vars
-  597:15  error  Empty block statement                        no-empty
-  602:21  error  'authFetch' is not defined                   no-undef
-  607:12  error  'e' is defined but never used                no-unused-vars
-  607:15  error  Empty block statement                        no-empty
-  613:11  error  'authFetch' is not defined                   no-undef
-  615:12  error  'e' is defined but never used                no-unused-vars
-  615:15  error  Empty block statement                        no-empty
-  713:7   error  'viewer' is assigned a value but never used  no-unused-vars
-  734:7   error  'mediaUrl' is not defined                    no-undef
-  748:19  error  'mediaUrl' is not defined                    no-undef
-  807:3   error  'authFetch' is not defined                   no-undef
-  825:11  error  'authFetch' is not defined                   no-undef
-  922:8   error  'isLoggedIn' is not defined                  no-undef
-  923:5   error  'redirectToLogin' is not defined             no-undef
-  926:3   error  'refreshNotifBadge' is not defined           no-undef
-  929:20  error  'authFetch' is not defined                   no-undef
-  930:57  error  'getToken' is not defined                    no-undef
-  931:7   error  'setAuth' is not defined                     no-undef
-  931:19  error  'getToken' is not defined                    no-undef
-  933:12  error  'e' is defined but never used                no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\user-profile.js
-   54:13  error  'authFetch' is not defined        no-undef
-   65:13  error  'authFetch' is not defined        no-undef
-   76:13  error  'authFetch' is not defined        no-undef
-  130:26  error  'mediaUrl' is not defined         no-undef
-  133:24  error  'mediaUrl' is not defined         no-undef
-  285:13  error  'authFetch' is not defined        no-undef
-  357:27  error  'authFetch' is not defined        no-undef
-  374:18  error  'getStoredUser' is not defined    no-undef
-  376:7   error  'setAuth' is not defined          no-undef
-  376:84  error  'getToken' is not defined         no-undef
-  388:30  error  'API_BASE' is not defined         no-undef
-  390:41  error  'getToken' is not defined         no-undef
-  404:30  error  'API_BASE' is not defined         no-undef
-  406:41  error  'getToken' is not defined         no-undef
-  420:8   error  'isLoggedIn' is not defined       no-undef
-  421:5   error  'redirectToLogin' is not defined  no-undef
-  427:14  error  'getStoredUser' is not defined    no-undef
-  432:23  error  'authFetch' is not defined        no-undef
-  435:26  error  'authFetch' is not defined        no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\userNavBarToggle.js
-   3:48  error  'getToken' is not defined       no-undef
-  13:50  error  'isLoggedIn' is not defined     no-undef
-  16:55  error  'getStoredUser' is not defined  no-undef
-  23:7   error  'handleLogout' is not defined   no-undef
-  27:7   error  'clearAuth' is not defined      no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\wa-nav.js
-   10:5   error  'handleLogout' is not defined                                             no-undef
-   13:3   error  'clearAuth' is not defined                                                no-undef
-   48:9   error  'isLoggedIn' is not defined                                               no-undef
-   98:8   error  'isLoggedIn' is not defined                                               no-undef
-  124:10  error  'injectHeaderActions' is defined but never used                           no-unused-vars
-  126:17  error  'isLoggedIn' is not defined                                               no-undef
-  137:7   error  'handleLogout' is not defined                                             no-undef
-  143:10  error  'injectNotificationsOnly' is defined but never used                       no-unused-vars
-  145:17  error  'isLoggedIn' is not defined                                               no-undef
-  151:5   error  'connectSocket' is not defined                                            no-undef
-  152:5   error  'onWs' is not defined                                                     no-undef
-  165:7   error  The value assigned to 'actionsHTML' is not used in subsequent statements  no-useless-assignment
-  200:16  error  'err' is defined but never used                                           no-unused-vars
-  204:7   error  'clearAuth' is not defined                                                no-undef
-  243:10  error  'showToast' is defined but never used                                     no-unused-vars
-  259:8   error  'isLoggedIn' is not defined                                               no-undef
-  264:30  error  'authFetch' is not defined                                                no-undef
-  274:17  error  'isLoggedIn' is not defined                                               no-undef
-  276:45  error  'authFetch' is not defined                                                no-undef
-  297:15  error  'authFetch' is not defined                                                no-undef
-  344:11  error  'authFetch' is not defined                                                no-undef
-  354:10  error  'initAppShell' is defined but never used                                  no-unused-vars
-  355:8   error  'isLoggedIn' is not defined                                               no-undef
-  356:5   error  'redirectToLogin' is not defined                                          no-undef
-  361:7   error  'isLoggedIn' is not defined                                               no-undef
-  362:5   error  'connectSocket' is not defined                                            no-undef
-  364:5   error  'onWs' is not defined                                                     no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\whiteboard.js
-    8:1   error  'token' is not defined                                    no-undef
-   11:5   error  'token' is not defined                                    no-undef
-  191:9   error  Unexpected lexical declaration in case block              no-case-declarations
-  561:5   error  'userWhiteboards' is not defined                          no-undef
-  562:17  error  'userWhiteboards' is not defined                          no-undef
-  599:5   error  'fetchMethod' is not defined                              no-undef
-  599:45  error  'token' is not defined                                    no-undef
-  604:16  error  'fetchGroupWhiteboards' is defined but never used         no-unused-vars
-  606:60  error  'groupId' is not defined                                  no-undef
-  622:5   error  'fetchMethod' is not defined                              no-undef
-  622:45  error  'token' is not defined                                    no-undef
-  627:16  error  'fetchGroupAndUserWhiteboards' is defined but never used  no-unused-vars
-  629:59  error  'groupId' is not defined                                  no-undef
-  645:5   error  'fetchMethod' is not defined                              no-undef
-  645:45  error  'token' is not defined                                    no-undef
-  668:5   error  'fetchMethod' is not defined                              no-undef
-  668:45  error  'token' is not defined                                    no-undef
-  678:16  error  'createWhiteboard' is defined but never used              no-unused-vars
-  703:5   error  'fetchMethod' is not defined                              no-undef
-  703:46  error  'token' is not defined                                    no-undef
-  747:5   error  'fetchMethod' is not defined                              no-undef
-  747:45  error  'token' is not defined                                    no-undef
-  753:16  error  'updateWhiteboardTitle' is defined but never used         no-unused-vars
-  791:5   error  'fetchMethod' is not defined                              no-undef
-  791:45  error  'token' is not defined                                    no-undef
-  796:16  error  'deleteWhiteboard' is defined but never used              no-unused-vars
-  832:5   error  'fetchMethod' is not defined                              no-undef
-  832:48  error  'token' is not defined                                    no-undef
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Auth.router.js
-  191:13  error  Empty block statement  no-empty
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\GroupFiles.router.js
-   82:12  error  'results' is defined but never used  no-unused-vars
-  122:30  error  'err' is defined but never used      no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Groups.router.js
-  134:22  error  'results' is defined but never used  no-unused-vars
-  140:26  error  'results' is defined but never used  no-unused-vars
-  426:20  error  'results' is defined but never used  no-unused-vars
-  464:24  error  'results' is defined but never used  no-unused-vars
-  765:18  error  'results' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Notes.router.js
-  4:7  error  Unexpected empty object pattern                       no-empty-pattern
-  6:9  error  'authenticateJWT' is assigned a value but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Person.router.js
-  11:3   error  'readUserByEmailAndUsername' is assigned a value but never used  no-unused-vars
-  17:9   error  'authenticateJWT' is assigned a value but never used             no-unused-vars
-  29:17  error  'createError' is not defined                                     no-undef
-  35:21  error  'createError' is not defined                                     no-undef
-  46:29  error  'next' is defined but never used                                 no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\PostComments.router.js
-   39:51  error  'next' is defined but never used  no-unused-vars
-   63:40  error  'next' is defined but never used  no-unused-vars
-   90:50  error  'next' is defined but never used  no-unused-vars
-  115:40  error  'next' is defined but never used  no-unused-vars
-  133:43  error  'next' is defined but never used  no-unused-vars
-  161:54  error  'next' is defined but never used  no-unused-vars
-  190:48  error  'next' is defined but never used  no-unused-vars
-  211:51  error  'next' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Posts.router.js
-  262:58  error  'next' is defined but never used  no-unused-vars
-  306:60  error  'next' is defined but never used  no-unused-vars
-  379:51  error  'next' is defined but never used  no-unused-vars
-  407:51  error  'next' is defined but never used  no-unused-vars
-  432:40  error  'next' is defined but never used  no-unused-vars
-  451:50  error  'next' is defined but never used  no-unused-vars
-  478:40  error  'next' is defined but never used  no-unused-vars
-  499:43  error  'next' is defined but never used  no-unused-vars
-  531:39  error  'next' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Tags.router.js
-  10:12  error  'err' is defined but never used  no-unused-vars
-  20:12  error  'err' is defined but never used  no-unused-vars
-  33:12  error  'err' is defined but never used  no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Tasks.router.js
-   13:3   error  'getTaskItemsByUserAndGroupID' is assigned a value but never used  no-unused-vars
-  140:18  error  'results' is defined but never used                                no-unused-vars
-  253:18  error  'results' is defined but never used                                no-unused-vars
-
-C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Whiteboard.router.js
-  80:7   error  'mode' is not defined  no-undef
-  80:32  error  'mode' is not defined  no-undef
-
-✖ 1026 problems (1026 errors, 0 warnings)
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\integration\GroupFiles.routes.test.js
+  50:16  error  'seedPersons' is defined but never used. Allowed unused vars must match /^_/u     no-unused-vars
+  58:16  error  'seedSomethings' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  71:16  error  'loginAndVerify' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\integration\Groups.routes.test.js
+   50:16  error  'seedPersons' is defined but never used. Allowed unused vars must match /^_/u     no-unused-vars
+   58:16  error  'seedSomethings' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   71:16  error  'loginAndVerify' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  133:11  error  'user' is assigned a value but never used. Allowed unused vars must match /^_/u   no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\integration\Marketplace.test.js
+  386:4  warning  Insert `␍⏎`  prettier/prettier
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\integration\PostComments.routes.test.js
+  890:41  warning  Replace `'ReportedCommentAuthor',·'reportedcommentauthor@example.com'` with `␍⏎······'ReportedCommentAuthor',␍⏎······'reportedcommentauthor@example.com',␍⏎····`  prettier/prettier
+  959:4   warning  Insert `␍⏎`                                                                                                                                                       prettier/prettier
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\integration\Posts.routes.test.js
+  473:11  error    'stranger' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                       no-unused-vars
+  493:11  error    'user' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                           no-unused-vars
+  873:39  warning  Replace `'VoteOptionMismatchUser',·'voteoptionmismatchuser@example.com'` with `␍⏎······'VoteOptionMismatchUser',␍⏎······'voteoptionmismatchuser@example.com',␍⏎····`                      prettier/prettier
+  881:22  warning  Replace ``INSERT·INTO·"PollOptions"·(poll_id,·option_text)·VALUES·($1,·'Real·option')`,·[` with `␍⏎······`INSERT·INTO·"PollOptions"·(poll_id,·option_text)·VALUES·($1,·'Real·option')`,`  prettier/prettier
+  882:7   warning  Replace `pollRows[0].id` with `[pollRows[0].id]`                                                                                                                                          prettier/prettier
+  883:5   warning  Delete `]`                                                                                                                                                                                prettier/prettier
+  905:11  error    'user' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                           no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\integration\Tasks.router.test.js
+  50:16  error  'seedPersons' is defined but never used. Allowed unused vars must match /^_/u     no-unused-vars
+  58:16  error  'seedSomethings' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  71:16  error  'loginAndVerify' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\unit\PostComments.model.test.js
+  850:26  error    'insertCommentReport' is not defined                                                                                                          no-undef
+  852:45  warning  Replace `expect.stringContaining('INSERT·INTO·"CommentReports"'),·[` with `␍⏎······expect.stringContaining('INSERT·INTO·"CommentReports"'),`  prettier/prettier
+  853:7   warning  Replace `5,␍⏎······2,␍⏎······'spam',␍⏎······''` with `[5,·2,·'spam',·'']`                                                                     prettier/prettier
+  857:5   warning  Delete `]`                                                                                                                                    prettier/prettier
+  864:11  error    'insertCommentReport' is not defined                                                                                                          no-undef
+  875:7   error    'insertCommentReport' is not defined                                                                                                          no-undef
+  887:11  error    'getAllCommentReports' is not defined                                                                                                         no-undef
+  897:11  error    'getAllCommentReports' is not defined                                                                                                         no-undef
+  905:26  error    'getAllCommentReports' is not defined                                                                                                         no-undef
+  913:18  error    'getAllCommentReports' is not defined                                                                                                         no-undef
+  915:4   warning  Insert `␍⏎`                                                                                                                                   prettier/prettier
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\unit\Posts.model.test.js
+  647:83  warning  Replace `␍⏎······'%exam·stress%',␍⏎····` with `'%exam·stress%'`                                                                                                                prettier/prettier
+  673:45  warning  Replace `␍⏎······expect.stringContaining("INTERVAL·'24·hours'"),␍⏎······[],␍⏎····` with `expect.stringContaining("INTERVAL·'24·hours'"),·[]`                                   prettier/prettier
+  720:45  warning  Replace `expect.stringContaining('hot_score'.slice(0,·0))·||·expect.any(String)` with `␍⏎······expect.stringContaining('hot_score'.slice(0,·0))·||·expect.any(String),␍⏎····`  prettier/prettier
+  721:45  warning  Replace `␍⏎······expect.stringContaining('COUNT(DISTINCT·pr.id)·*·2'),␍⏎····` with `expect.stringContaining('COUNT(DISTINCT·pr.id)·*·2')`                                      prettier/prettier
+  741:1   warning  Delete `␍⏎··`                                                                                                                                                                  prettier/prettier
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\postcomments-management.spec.js
+   44:10  error    'allComments' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                              no-unused-vars
+  270:3   warning  Insert `··`                                                                                                                                                                                                                                prettier/prettier
+  271:1   warning  Insert `··`                                                                                                                                                                                                                                prettier/prettier
+  273:1   warning  Replace `··` with `····`                                                                                                                                                                                                                   prettier/prettier
+  274:3   warning  Insert `··`                                                                                                                                                                                                                                prettier/prettier
+  276:1   warning  Replace `··await·expect(topLevelComments(page).filter({·hasText:·'E2E·Delete·This·Comment'·})).toHaveCount(0` with `····await·expect(topLevelComments(page).filter({·hasText:·'E2E·Delete·This·Comment'·})).toHaveCount(␍⏎······0,␍⏎····`  prettier/prettier
+  277:1   warning  Insert `··`                                                                                                                                                                                                                                prettier/prettier
+  279:3   warning  Insert `··`                                                                                                                                                                                                                                prettier/prettier
+  280:1   warning  Replace `··` with `····`                                                                                                                                                                                                                   prettier/prettier
+  281:3   warning  Insert `··`                                                                                                                                                                                                                                prettier/prettier
+  283:1   warning  Insert `··`                                                                                                                                                                                                                                prettier/prettier
+  284:3   warning  Insert `··`                                                                                                                                                                                                                                prettier/prettier
+  285:1   warning  Insert `··`                                                                                                                                                                                                                                prettier/prettier
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\posts-management.spec.js
+  253:32  warning  Replace `page,·{·title,·content,·category·=·CATEGORIES[0],·pollQuestion,·pollOptions·}` with `␍⏎··page,␍⏎··{·title,·content,·category·=·CATEGORIES[0],·pollQuestion,·pollOptions·},␍⏎`                                                                 prettier/prettier
+  320:3   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  321:1   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  322:5   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  323:1   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  324:5   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  325:3   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  327:1   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  328:1   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  330:3   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  331:1   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  332:5   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  333:1   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  335:3   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  337:1   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  338:5   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  339:1   warning  Insert `··`                                                                                                                                                                                                                                            prettier/prettier
+  340:3   warning  Replace `await·expect(␍⏎····card.locator('.poll-option.user-voted').filter({·hasText:·'Pizza'·}),␍⏎··).toHaveCount(0` with `··await·expect(card.locator('.poll-option.user-voted').filter({·hasText:·'Pizza'·})).toHaveCount(␍⏎······0,␍⏎····);␍⏎··}`  prettier/prettier
+  344:1   warning  Delete `});`                                                                                                                                                                                                                                           prettier/prettier
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\models\Posts.model.js
+  580:37  warning  Replace `'DELETE·FROM·"SavedPosts"·WHERE·"id"·=·$1·AND·user_id·=·$2·RETURNING·*',·VALUES` with `␍⏎····'DELETE·FROM·"SavedPosts"·WHERE·"id"·=·$1·AND·user_id·=·$2·RETURNING·*',␍⏎····VALUES,␍⏎··`  prettier/prettier
+  703:5   error    The value assigned to 'idx' is not used in subsequent statements                                                                                                                                  no-useless-assignment
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\models\Whiteboard.model.js
+  4:69  error  'data' is defined but never used. Allowed unused args must match /^_|^(next|req|res|e)$/u  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\admin.js
+  29:12  warning  'hasClass' is defined but never used     no-unused-vars
+  32:12  warning  'toggleClass' is defined but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\auth.js
+  154:22  warning  'e' is defined but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\chat.js
+  708:14  warning  'err' is defined but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groupsAdmin.js
+  437:11  error  The value assigned to 'badge' is not used in subsequent statements    no-useless-assignment
+  438:11  error  The value assigned to 'actions' is not used in subsequent statements  no-useless-assignment
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groupsFeed.js
+  143:3  error    Read-only global 'groupId' should not be modified                  no-global-assign
+  145:3  error    Read-only global 'token' should not be modified                    no-global-assign
+  336:7  warning  'isAdminOnly' is assigned a value but never used                   no-unused-vars
+  339:3  error    Read-only global 'channelName' should not be modified              no-global-assign
+  580:7  warning  'adminList' is assigned a value but never used                     no-unused-vars
+  598:9  error    The value assigned to 'role' is not used in subsequent statements  no-useless-assignment
+  752:7  warning  'adminList' is assigned a value but never used                     no-unused-vars
+  768:9  error    The value assigned to 'role' is not used in subsequent statements  no-useless-assignment
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groupsNotes.js
+  19:7  error  Parsing error: Identifier 'newNoteFolderModal' has already been declared
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groupsSharedFunctions.js
+    18:9   error  'channels' is not defined             no-undef
+    43:9   error  'currChannelMessages' is not defined  no-undef
+    89:9   error  'users' is not defined                no-undef
+   113:9   error  'group' is not defined                no-undef
+   137:9   error  'members' is not defined              no-undef
+   257:21  error  'currChannel' is not defined          no-undef
+  1092:17  error  'group' is not defined                no-undef
+  1100:19  error  'members' is not defined              no-undef
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groupsTasks.js
+  384:12  warning  'err' is defined but never used               no-unused-vars
+  586:7   error    Unexpected lexical declaration in case block  no-case-declarations
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\indexFeed.js
+    62:52  error    'setupSearchDropdown' is not defined          no-undef
+   552:5   error    'recordRecentlyViewed' is not defined         no-undef
+   558:5   error    'recordRecentlyViewed' is not defined         no-undef
+   917:9   warning  'label' is assigned a value but never used    no-unused-vars
+  1159:9   warning  'overlay' is assigned a value but never used  no-unused-vars
+  1555:13  warning  'modal' is assigned a value but never used    no-unused-vars
+  1691:7   error    'recordRecentlyViewed' is not defined         no-undef
+  1703:18  error    'getRecentlyViewed' is not defined            no-undef
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\insertMarketplaceItems.js
+  179:32  error  'SpindleFilters' is not defined  no-undef
+  451:23  error  'totalPages' is not defined      no-undef
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\loginUser.js
+  3:1  error  'xdocument' is not defined  no-undef
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\marketplace-filters.js
+  43:3  error  'currentPage' is not defined       no-undef
+  50:5  error  'loadListings' is not defined      no-undef
+  52:5  error  'loadUserListings' is not defined  no-undef
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\payment.js
+  94:16  warning  'err' is defined but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\postAnalytics.js
+  126:7  error  'Chart' is not defined  no-undef
+  146:7  error  'Chart' is not defined  no-undef
+  190:9  error  'Chart' is not defined  no-undef
+  367:7  error  'Chart' is not defined  no-undef
+  390:7  error  'Chart' is not defined  no-undef
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\posts.js
+    22:50  error    'setupSearchDropdown' is not defined                no-undef
+   831:15  warning  'data' is assigned a value but never used           no-unused-vars
+  1070:11  warning  'category' is assigned a value but never used       no-unused-vars
+  1398:9   warning  'getReplyCount' is assigned a value but never used  no-unused-vars
+  1604:33  error    Unnecessary escape character: \@                    no-useless-escape
+  2267:14  error    Unnecessary escape character: \@                    no-useless-escape
+  3367:9   warning  'mainActions' is assigned a value but never used    no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\profile.js
+  60:9  warning  'content' is assigned a value but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\saved.js
+  24:50  error  'setupSearchDropdown' is not defined  no-undef
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\search.js
+  650:7   error    The value assigned to 'list' is not used in subsequent statements  no-useless-assignment
+  653:12  warning  'e' is defined but never used                                      no-unused-vars
+  676:12  warning  'e' is defined but never used                                      no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\searchBar-Marketplace.js
+  12:5  error  'SpindleFilters' is not defined           no-undef
+  18:5  error  'refreshFilteredListings' is not defined  no-undef
+  24:7  error  'SpindleFilters' is not defined           no-undef
+  26:7  error  'refreshFilteredListings' is not defined  no-undef
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\stories.js
+   26:12  warning  'e' is defined but never used                no-unused-vars
+   60:12  warning  'e' is defined but never used                no-unused-vars
+   86:12  warning  'e' is defined but never used                no-unused-vars
+  115:7   warning  'uid' is assigned a value but never used     no-unused-vars
+  459:12  warning  'err' is defined but never used              no-unused-vars
+  505:12  warning  'err' is defined but never used              no-unused-vars
+  575:12  warning  'e' is defined but never used                no-unused-vars
+  597:12  warning  'e' is defined but never used                no-unused-vars
+  607:12  warning  'e' is defined but never used                no-unused-vars
+  615:12  warning  'e' is defined but never used                no-unused-vars
+  713:7   warning  'viewer' is assigned a value but never used  no-unused-vars
+  933:12  warning  'e' is defined but never used                no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\studyRoom.js
+    4:1  error  'userId' is not defined                            no-undef
+    6:1  error  Read-only global 'groupId' should not be modified  no-global-assign
+    8:1  error  Read-only global 'token' should not be modified    no-global-assign
+   98:5  error  Read-only global 'token' should not be modified    no-global-assign
+   99:5  error  'userId' is not defined                            no-undef
+  100:5  error  Read-only global 'groupId' should not be modified  no-global-assign
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\user-profile.js
+  518:12  warning  'e' is defined but never used  no-unused-vars
+  583:12  warning  'e' is defined but never used  no-unused-vars
+  612:12  warning  'e' is defined but never used  no-unused-vars
+  641:12  warning  'e' is defined but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\wa-nav.js
+  258:16  warning  'err' is defined but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\whiteboard.js
+  193:9  error  Unexpected lexical declaration in case block  no-case-declarations
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\wordle.js
+  157:12  warning  'err' is defined but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Badge.router.js
+  2:27  error  'awardBadge' is assigned a value but never used       no-unused-vars
+  3:9   error  'authenticateJWT' is assigned a value but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Groups.router.js
+  143:22  error  'results' is defined but never used. Allowed unused args must match /^(next|req|res)$/u  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Marketplace.router.js
+  5:7  error  'upload' is assigned a value but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\PostComments.router.js
+    8:3   error  'PANDABOT_EMAIL' is assigned a value but never used                                        no-unused-vars
+  237:68  error  'commentId' is defined but never used. Allowed unused args must match /^(next|req|res)$/u  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Posts.router.js
+   31:3   error    'insertReport' is assigned a value but never used               no-unused-vars
+   32:3   error    'getAllReports' is assigned a value but never used              no-unused-vars
+  119:27  error    'getAllCommentReports' is not defined                           no-undef
+  187:17  warning  Delete `·`                                                      prettier/prettier
+  188:32  warning  Replace `·` with `,`                                            prettier/prettier
+  191:1   warning  Replace `··.then((post)·=&gt;·␍⏎····` with `····.then((post)·=&gt;·`  prettier/prettier
+  193:1   warning  Insert `··`                                                     prettier/prettier
+  200:17  warning  Delete `·`                                                      prettier/prettier
+  201:32  warning  Replace `·` with `,`                                            prettier/prettier
+  204:20  warning  Delete `·␍⏎·····`                                               prettier/prettier
+  760:26  warning  Delete `······`                                                 prettier/prettier
+  812:3   error    'insertCommentReport' is not defined                            no-undef
+  821:4   warning  Delete `␍⏎`                                                     prettier/prettier
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Tasks.router.js
+  309:12  error  'result' is defined but never used. Allowed unused args must match /^(next|req|res)$/u  no-unused-vars
+
+✖ 177 problems (83 errors, 94 warnings)
+  0 errors and 57 warnings potentially fixable with the `--fix` option.
 
 
 
 2. FORMAT CHECK (prettier)
 
 Checking formatting...
-All matched files use Prettier code style!
+[[33mwarn[39m] __tests__/integration/Marketplace.test.js
+[[33mwarn[39m] __tests__/integration/PostComments.routes.test.js
+[[33mwarn[39m] __tests__/integration/Posts.routes.test.js
+[[33mwarn[39m] __tests__/unit/PostComments.model.test.js
+[[33mwarn[39m] __tests__/unit/Posts.model.test.js
+[[33mwarn[39m] e2e-tests/postcomments-management.spec.js
+[[33mwarn[39m] e2e-tests/posts-management.spec.js
+[[33mwarn[39m] e2e-tests/storageState.json
+[[33mwarn[39m] src/models/Posts.model.js
+[[33mwarn[39m] src/routers/Posts.router.js
+[[33mwarn[39m] Code style issues found in 10 files. Run Prettier with --write to fix.
 
-   <span style="color:#22c55e;font-weight:bold">[PASS]</span> All files match Prettier code style
+
+   Files with formatting issues:
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> __tests__/integration/Marketplace.test.js
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> __tests__/integration/PostComments.routes.test.js
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> __tests__/integration/Posts.routes.test.js
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> __tests__/unit/PostComments.model.test.js
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> __tests__/unit/Posts.model.test.js
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> e2e-tests/postcomments-management.spec.js
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> e2e-tests/posts-management.spec.js
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> e2e-tests/storageState.json
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/models/Posts.model.js
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/routers/Posts.router.js
 
 3. UNIT + INTEGRATION TESTS (jest --coverage)
 
-Running database reset for integration tests...
-Resetting database schema...
-Schema applied.
-Running seed...
-Seeding data...
-Inserted 23 persons.
-Inserted 2 somethings.
-Set passwords (password123) and verified emails for all users.
-Seeded Alice/Bob friendship and sample message.
-Seed data inserted successfully.
-Inserted 3 posts.
-Inserted 2 comments.
-Inserted 2 reactions.
-Inserted 1 saved posts.
-Inserted 60 marketplace items.
-Inserted 12 groups.
-Inserted 56 group members.
-Created default general discussion for every group.
-Inserted 4 tasks.
-Inserted 11 subtasks.
-Inserted 6 group announcements.
-Inserted 14 group discussions.
-Inserted 5 whiteboards.
-Inserted 5 note folders.
-Inserted 8 notes.
-Inserted 11 note links.
-Seed completed successfully.
-Login: Alice/Bob password "password123", Admin password "admin123"
-Database reset completed successfully.
---------------------------|---------|----------|---------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-File                      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                                                                                                                                                                                     
---------------------------|---------|----------|---------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-All files                 |   33.44 |    19.19 |    14.3 |   34.46 |                                                                                                                                                                                                                                                                                                                       
- src                      |   91.02 |       50 |      50 |   94.66 |                                                                                                                                                                                                                                                                                                                       
-  app.js                  |   91.02 |       50 |      50 |   94.66 | 41-43,46                                                                                                                                                                                                                                                                                                              
- src/middlewares          |   35.84 |     27.5 |   11.76 |   35.84 |                                                                                                                                                                                                                                                                                                                       
-  auth.middleware.js      |   85.71 |    68.75 |     100 |   85.71 | 35-37,55                                                                                                                                                                                                                                                                                                              
-  bcryptMiddleware.js     |   21.05 |        0 |       0 |   21.05 | 16-30,37-47                                                                                                                                                                                                                                                                                                           
-  fileUpload.js           |   35.71 |        0 |       0 |   35.71 | 6-19,24-58                                                                                                                                                                                                                                                                                                            
-  jwtMiddleware.js        |       0 |        0 |       0 |       0 | 4-86                                                                                                                                                                                                                                                                                                                  
-  upload.js               |   41.66 |        0 |       0 |   41.66 | 6-12,17-22                                                                                                                                                                                                                                                                                                            
- src/models               |   39.96 |    34.24 |   21.22 |   40.47 |                                                                                                                                                                                                                                                                                                                       
-  Auth.model.js           |   46.72 |    51.42 |   33.33 |   48.26 | 10,30,112,157-163,167-172,176,220-223,259-266,270,274,280,284,288-321,325,331-335,339-342,346-349,353-364,379-399,403-415,424-425,433-439,443-460,464-478,482-486,490-493,497-501,505-510,514-521,525-531,535-578,586-626,635-644                                                                                     
-  BlockedUsers.model.js   |   33.33 |      100 |       0 |   33.33 | 4-16,20-24                                                                                                                                                                                                                                                                                                            
-  Calls.model.js          |    37.5 |        0 |       0 |   42.85 | 10-16,20-32                                                                                                                                                                                                                                                                                                           
-  Cart.model.js           |   36.84 |      100 |       0 |   36.84 | 5-13,18-19,24-25,30-34,39-43,48-51                                                                                                                                                                                                                                                                                    
-  Friends.model.js        |   78.35 |    60.93 |   93.75 |    83.9 | 11-14,68,123-128,189,194,196,250-259                                                                                                                                                                                                                                                                                  
-  GroupFiles.model.js     |   26.82 |      100 |       0 |   26.82 | 5-7,12-14,19-24,29-34,39-44,49-51,56-61,66-71,75-77,81-86                                                                                                                                                                                                                                                             
-  Groups.model.js         |   24.84 |        0 |       0 |   24.84 | 9-10,15-17,22-24,29-31,36-38,43-48,53-58,63-68,73-78,83-88,93-98,103-125,134-136,141-147,152-157,162-167,172-177,182-187,192-197,206-211,216-221,228-233,238-243,248-250,256-261,266-271,278-291,308-314,319-321,326-332,337-343,348-354,363-368,375-384,388-390,395-400,405-410,415-420                              
-  Marketplace.model.js    |    22.8 |        0 |       0 |   24.07 | 12-16,21-40,45-68,73-81,86-90,94-98,102-105,110-121,126-134,139-163,170-241                                                                                                                                                                                                                                           
-  Message.model.js        |   52.54 |    21.62 |   53.33 |   54.71 | 53-69,83-84,106-111,115-122,126-134,138-151,155-159,163,181                                                                                                                                                                                                                                                           
-  Notes.model.js          |      28 |      100 |       0 |      28 | 5-7,12-14,20-25,30-42,47-52,57-62                                                                                                                                                                                                                                                                                     
-  Notification.model.js   |   68.42 |    28.57 |   33.33 |   68.42 | 25-33,37-41,45,52                                                                                                                                                                                                                                                                                                     
-  Orders.model.js         |   11.11 |      100 |       0 |   11.11 | 4-40                                                                                                                                                                                                                                                                                                                  
-  Person.model.js         |   34.37 |      100 |    12.5 |   34.37 | 10-15,20-25,30-35,40-45,52-57,64-69,76-81                                                                                                                                                                                                                                                                             
-  PostComments.model.js   |   27.27 |        0 |       0 |   27.27 | 5-6,11-27,32-34,39-44,49-54,59-64,71-93,98-103,108-113,118-120,125-130,135-140,145-150,154-158                                                                                                                                                                                                                        
-  Posts.model.js          |   39.09 |    17.94 |   25.92 |   39.39 | 226-228,279-283,296-301,306-311,315-320,324-329,334-353,358-363,368-373,377-382,389-391,396-401,406-408,414-416,421-426,431-436,441-446,451-456,460-472,477-509                                                                                                                                                       
-  Profile.model.js        |   61.84 |    27.77 |      50 |   61.84 | 42,48,65-73,80-96,100-108,112-126,132-138,159-164,168-172,176-182,227-235,239-240                                                                                                                                                                                                                                     
-  Search.model.js         |   33.33 |      100 |       0 |   33.33 | 4-38                                                                                                                                                                                                                                                                                                                  
-  Something.model.js      |       0 |      100 |       0 |       0 | 1-25                                                                                                                                                                                                                                                                                                                  
-  Stories.model.js        |   22.22 |        0 |       0 |   22.22 | 6-37,41-63,67,71-75,79-83,87-98,102-114,120-126,130-136,140-144                                                                                                                                                                                                                                                       
-  Tags.model.js           |   28.57 |      100 |       0 |   28.57 | 5-17                                                                                                                                                                                                                                                                                                                  
-  Tasks.model.js          |   28.57 |      100 |       0 |   28.57 | 10-11,16-18,23-25,30-35,40-45,50-62,67-79,84-89,98-99,104-106,111-123,128-133,138-143,148-153                                                                                                                                                                                                                         
-  Whiteboard.model.js     |   27.77 |      100 |       0 |   27.77 | 5-6,11-16,21-26,33-38,43-45,51-56,62-67,73-78,83-88                                                                                                                                                                                                                                                                   
-  db.js                   |      80 |      100 |       0 |      80 | 8                                                                                                                                                                                                                                                                                                                     
- src/realtime             |   12.04 |     1.35 |   22.22 |   11.68 |                                                                                                                                                                                                                                                                                                                       
-  wsHub.js                |   12.04 |     1.35 |   22.22 |   11.68 | 10-18,24-26,35-167                                                                                                                                                                                                                                                                                                    
- src/routers              |   27.82 |    13.21 |    9.19 |   29.03 |                                                                                                                                                                                                                                                                                                                       
-  Auth.router.js          |   34.21 |    26.34 |   19.51 |   34.87 | 20-29,37-46,64,73,76,82,87-95,116,124,137,145,149,155-159,164-172,180,201,211-213,223-226,246,251-257,262-268,273-277,287,295,303-309,316,327,337-343,350,359,367-371,377-385,391-404,410-428,434-440,446-469,475-479,485-492,498-502,508-520,526-542,548-552,558-564,570-575,581-585,591-614,620-625,631-636,642-653 
-  BlockedUsers.router.js  |   35.29 |        0 |       0 |   35.29 | 7-19,26-27                                                                                                                                                                                                                                                                                                            
-  Calls.router.js         |   32.14 |        0 |       0 |   32.14 | 10-14,19-43                                                                                                                                                                                                                                                                                                           
-  Cart.router.js          |      25 |        0 |       0 |   27.02 | 14-15,21-22,28-47,53-73,80-85,92-96                                                                                                                                                                                                                                                                                   
-  Friends.router.js       |   56.17 |    26.47 |   66.66 |   60.24 | 13,18,24-32,37-44,53,63,71,82-83,91,103-104,109-118,129                                                                                                                                                                                                                                                               
-  Giphy.router.js         |   45.45 |      100 |       0 |   45.45 | 7-21                                                                                                                                                                                                                                                                                                                  
-  GroupFiles.router.js    |   23.07 |        0 |       0 |   23.07 | 25-30,36-57,64-91,99-126,134-139,145-158,165-189                                                                                                                                                                                                                                                                      
-  Groups.router.js        |   11.89 |        0 |       0 |   12.68 | 55-56,62-67,73-78,84-89,96-140,153-188,196-220,228-251,259-283,291-312,321-326,336-341,348-353,361-391,405-434,441-478,488-513,525-549,562-569,575-581,587-600,608-641,650-703,712-738,747-772,780-817,829-834,840-841,848-874,883-916,924-952,963-968,974-979,985-1009,1018-1052,1064-1092,1104-1118                 
-  Marketplace.router.js   |    28.3 |        0 |       0 |   31.25 | 19-21,27-28,34-38,44-45,51-52,58-63,70-77,83-86,93-97,104-106                                                                                                                                                                                                                                                         
-  Message.router.js       |   41.07 |       32 |   42.85 |   43.39 | 29,37,41,46,61,71,75,84,88,108-109,114-136,141-156,161-184,189-195                                                                                                                                                                                                                                                    
-  Notes.router.js         |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                                       
-  Notifications.router.js |   39.13 |      100 |       0 |   39.13 | 9-14,19-23,28-33                                                                                                                                                                                                                                                                                                      
-  Payments.router.js      |   13.04 |        0 |       0 |   14.63 | 6-17,22-54,59-65                                                                                                                                                                                                                                                                                                      
-  Person.router.js        |   20.28 |        0 |   11.11 |   20.58 | 27-37,47-93,103-150,161-213                                                                                                                                                                                                                                                                                           
-  PostComments.router.js  |   19.76 |        0 |       0 |   20.73 | 24-25,33-34,40-58,64-74,80-85,91-110,116-128,134-145,151-156,162-185,191-206,212-228                                                                                                                                                                                                                                  
-  Posts.router.js         |   34.23 |    35.29 |   26.22 |   35.37 | 49-57,63-71,100-104,109-113,120-127,134-149,155-165,172-179,186-204,210-219,225-237,300-301,320-335,338-352,373-374,394-400,408-427,433-445,452-473,479-494,500-513,519-526,532-550                                                                                                                                   
-  Profile.router.js       |   39.86 |    21.27 |      35 |   42.22 | 16,25,30-34,39-43,48-52,57-61,66-76,81-103,108-112,117-123,128-132,137-141,146-153,158-162,170,179,187,200,212,220,225-228                                                                                                                                                                                            
-  Search.router.js        |      50 |        0 |       0 |      50 | 7-13                                                                                                                                                                                                                                                                                                                  
-  Something.router.js     |       0 |        0 |       0 |       0 | 1-53                                                                                                                                                                                                                                                                                                                  
-  Stories.router.js       |   19.13 |        0 |       0 |   21.15 | 16-23,30-35,40-60,65-74,79-93,98-104,111-115,120-135,140-147,152-163,168-174                                                                                                                                                                                                                                          
-  Tags.router.js          |   31.81 |        0 |       0 |   33.33 | 7-11,17-21,27-34                                                                                                                                                                                                                                                                                                      
-  Tasks.router.js         |   20.48 |        0 |       0 |   20.73 | 28-29,35-40,46-52,60-84,94-122,130-145,156-157,163-168,176-198,208-235,243-258                                                                                                                                                                                                                                        
-  Whiteboard.router.js    |   20.58 |        0 |       0 |   20.58 | 22-23,29-34,40-45,51-57,63-68,75-93,99-126,134-160,168-194                                                                                                                                                                                                                                                            
- src/utils                |     100 |       75 |     100 |     100 |                                                                                                                                                                                                                                                                                                                       
-  jwt.js                  |     100 |       75 |     100 |     100 | 4,14                                                                                                                                                                                                                                                                                                                  
---------------------------|---------|----------|---------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-PASS __tests__/unit/Groups.model.test.js
-PASS __tests__/unit/Auth.model.test.js
-PASS __tests__/unit/Posts.model.test.js
-PASS __tests__/unit/jwt.test.js
-PASS __tests__/unit/Tasks.model.test.js
+PASS __tests__/unit/Person.model.test.js
+PASS __tests__/unit/Snake.model.test.js
 PASS __tests__/unit/Whiteboard.model.test.js
 PASS __tests__/unit/GroupFiles.model.test.js
 PASS __tests__/unit/Something.model.test.js
-PASS __tests__/unit/Person.model.test.js
+PASS __tests__/unit/Badge.model.test.js
+PASS __tests__/unit/Notes.model.test.js
+PASS __tests__/unit/Tasks.model.test.js
+PASS __tests__/unit/Groups.model.test.js
+PASS __tests__/unit/jwt.test.js
+PASS __tests__/unit/Marketplace.model.test.js
+PASS __tests__/unit/Auth.model.test.js
+FAIL __tests__/unit/PostComments.model.test.js
+  ● PostComments.model - insertCommentReport › should insert a report and return it
 
-Test Suites: 9 passed, 9 total
-Tests:       202 passed, 202 total
+    ReferenceError: insertCommentReport is not defined
+
+    [0m [90m 848 |[39m     pool[33m.[39mquery[33m.[39mmockResolvedValue({ rows[33m:[39m [fakeReport] })[33m;[39m
+     [90m 849 |[39m
+    [31m[1m&gt;[22m[39m[90m 850 |[39m     [36mconst[39m result [33m=[39m [36mawait[39m insertCommentReport({ comment_id[33m:[39m [35m5[39m[33m,[39m user_id[33m:[39m [35m2[39m[33m,[39m reason[33m:[39m [32m'spam'[39m })[33m;[39m
+     [90m     |[39m                    [31m[1m^[22m[39m
+     [90m 851 |[39m
+     [90m 852 |[39m     expect(pool[33m.[39mquery)[33m.[39mtoHaveBeenCalledWith(expect[33m.[39mstringContaining([32m'INSERT INTO "CommentReports"'[39m)[33m,[39m [
+     [90m 853 |[39m       [35m5[39m[33m,[39m[0m
+
+      at Object.&lt;anonymous&gt; (__tests__/unit/PostComments.model.test.js:850:20)
+
+  ● PostComments.model - insertCommentReport › should default description to an empty string when omitted
+
+    ReferenceError: insertCommentReport is not defined
+
+    [0m [90m 862 |[39m     pool[33m.[39mquery[33m.[39mmockResolvedValue({ rows[33m:[39m [{ id[33m:[39m [35m1[39m }] })[33m;[39m
+     [90m 863 |[39m
+    [31m[1m&gt;[22m[39m[90m 864 |[39m     [36mawait[39m insertCommentReport({ comment_id[33m:[39m [35m5[39m[33m,[39m user_id[33m:[39m [35m2[39m[33m,[39m reason[33m:[39m [32m'spam'[39m })[33m;[39m
+     [90m     |[39m     [31m[1m^[22m[39m
+     [90m 865 |[39m
+     [90m 866 |[39m     expect(pool[33m.[39mquery)[33m.[39mtoHaveBeenCalledWith(expect[33m.[39many([33mString[39m)[33m,[39m [[35m5[39m[33m,[39m [35m2[39m[33m,[39m [32m'spam'[39m[33m,[39m [32m''[39m])[33m;[39m
+     [90m 867 |[39m   })[33m;[39m[0m
+
+      at Object.&lt;anonymous&gt; (__tests__/unit/PostComments.model.test.js:864:5)
+
+  ● PostComments.model - insertCommentReport › should propagate duplicate-report constraint errors
+
+    ReferenceError: insertCommentReport is not defined
+
+    [0m [90m 872 |[39m     pool[33m.[39mquery[33m.[39mmockRejectedValue(err)[33m;[39m
+     [90m 873 |[39m
+    [31m[1m&gt;[22m[39m[90m 874 |[39m     [36mawait[39m expect(
+     [90m     |[39m     [31m[1m^[22m[39m
+     [90m 875 |[39m       insertCommentReport({ comment_id[33m:[39m [35m5[39m[33m,[39m user_id[33m:[39m [35m2[39m[33m,[39m reason[33m:[39m [32m'spam'[39m })[33m,[39m
+     [90m 876 |[39m     )[33m.[39mrejects[33m.[39mtoThrow([32m'duplicate key value'[39m)[33m;[39m
+     [90m 877 |[39m   })[33m;[39m[0m
+
+      at Object.&lt;anonymous&gt; (__tests__/unit/PostComments.model.test.js:874:5)
+
+  ● PostComments.model - getAllCommentReports › should exclude dismissed reports by default
+
+    ReferenceError: getAllCommentReports is not defined
+
+    [0m [90m 885 |[39m     pool[33m.[39mquery[33m.[39mmockResolvedValue({ rows[33m:[39m [] })[33m;[39m
+     [90m 886 |[39m
+    [31m[1m&gt;[22m[39m[90m 887 |[39m     [36mawait[39m getAllCommentReports([36mfalse[39m)[33m;[39m
+     [90m     |[39m     [31m[1m^[22m[39m
+     [90m 888 |[39m
+     [90m 889 |[39m     expect(pool[33m.[39mquery)[33m.[39mtoHaveBeenCalledWith(
+     [90m 890 |[39m       expect[33m.[39mstringContaining([32m'WHERE (cr.dismissed IS NULL OR cr.dismissed = FALSE)'[39m)[33m,[39m[0m
+
+      at Object.&lt;anonymous&gt; (__tests__/unit/PostComments.model.test.js:887:5)
+
+  ● PostComments.model - getAllCommentReports › should include dismissed reports when requested
+
+    ReferenceError: getAllCommentReports is not defined
+
+    [0m [90m 895 |[39m     pool[33m.[39mquery[33m.[39mmockResolvedValue({ rows[33m:[39m [] })[33m;[39m
+     [90m 896 |[39m
+    [31m[1m&gt;[22m[39m[90m 897 |[39m     [36mawait[39m getAllCommentReports([36mtrue[39m)[33m;[39m
+     [90m     |[39m     [31m[1m^[22m[39m
+     [90m 898 |[39m
+     [90m 899 |[39m     expect(pool[33m.[39mquery)[33m.[39mtoHaveBeenCalledWith(expect[33m.[39mnot[33m.[39mstringContaining([32m'WHERE (cr.dismissed'[39m))[33m;[39m
+     [90m 900 |[39m   })[33m;[39m[0m
+
+      at Object.&lt;anonymous&gt; (__tests__/unit/PostComments.model.test.js:897:5)
+
+  ● PostComments.model - getAllCommentReports › should return an empty array when there are no reports
+
+    ReferenceError: getAllCommentReports is not defined
+
+    [0m [90m 903 |[39m     pool[33m.[39mquery[33m.[39mmockResolvedValue({ rows[33m:[39m [] })[33m;[39m
+     [90m 904 |[39m
+    [31m[1m&gt;[22m[39m[90m 905 |[39m     [36mconst[39m result [33m=[39m [36mawait[39m getAllCommentReports([36mfalse[39m)[33m;[39m
+     [90m     |[39m                    [31m[1m^[22m[39m
+     [90m 906 |[39m
+     [90m 907 |[39m     expect(result)[33m.[39mtoEqual([])[33m;[39m
+     [90m 908 |[39m   })[33m;[39m[0m
+
+      at Object.&lt;anonymous&gt; (__tests__/unit/PostComments.model.test.js:905:20)
+
+  ● PostComments.model - getAllCommentReports › should propagate database errors
+
+    ReferenceError: getAllCommentReports is not defined
+
+    [0m [90m 911 |[39m     pool[33m.[39mquery[33m.[39mmockRejectedValue([36mnew[39m [33mError[39m([32m'connection lost'[39m))[33m;[39m
+     [90m 912 |[39m
+    [31m[1m&gt;[22m[39m[90m 913 |[39m     [36mawait[39m expect(getAllCommentReports([36mfalse[39m))[33m.[39mrejects[33m.[39mtoThrow([32m'connection lost'[39m)[33m;[39m
+     [90m     |[39m     [31m[1m^[22m[39m
+     [90m 914 |[39m   })[33m;[39m
+     [90m 915 |[39m })[33m;[39m[0m
+
+      at Object.&lt;anonymous&gt; (__tests__/unit/PostComments.model.test.js:913:5)
+
+FAIL __tests__/unit/Posts.model.test.js
+  ● Posts.model - getSortedPosts › should currently interpolate the category filter directly into the SQL string (SQL injection risk)
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "x' OR '1'='1"
+    Received string:    "SELECT
+           p.id,
+           p.user_id,
+           p.title,
+           p.category,
+           p.content,
+           p.created_at,
+           p.updated_at,
+           p.is_anonymous,
+           p.attachment_url,
+           p.gif_url,
+           p.view_count,
+           p.pinned,
+           pp.id AS poll_id,
+           per.name AS author_name,
+           per.profile_image AS author_avatar,
+           COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'like')::int AS like_count,
+           COUNT(DISTINCT pr.id) FILTER (WHERE pr.reaction_type = 'dislike')::int AS dislike_count,
+           COUNT(DISTINCT pc.id)::int AS comment_count
+         FROM \"Posts\" p
+         JOIN \"Person\" per ON per.id    = p.user_id
+         LEFT JOIN \"PostPolls\" pp ON pp.post_id = p.id
+         LEFT JOIN \"PostReactions\" pr ON pr.post_id = p.id
+         LEFT JOIN \"PostComments\" pc ON pc.post_id = p.id
+         WHERE 1=1
+         AND p.category = $1······
+         GROUP BY p.id, p.user_id, p.title, p.category, p.content,
+                  p.created_at, p.updated_at, p.is_anonymous,
+                  p.attachment_url, p.gif_url, p.view_count,
+                  p.pinned, pp.id, per.name, per.profile_image
+         ORDER BY p.pinned DESC, p.created_at DESC"
+
+    [0m [90m 748 |[39m
+     [90m 749 |[39m     [36mconst[39m [sqlArg] [33m=[39m pool[33m.[39mquery[33m.[39mmock[33m.[39mcalls[[35m0[39m][33m;[39m
+    [31m[1m&gt;[22m[39m[90m 750 |[39m     expect(sqlArg)[33m.[39mtoContain(maliciousCategory)[33m;[39m
+     [90m     |[39m                    [31m[1m^[22m[39m
+     [90m 751 |[39m   })[33m;[39m
+     [90m 752 |[39m
+     [90m 753 |[39m   test([32m'should propagate database errors'[39m[33m,[39m [36masync[39m () [33m=&gt;[39m {[0m
+
+      at Object.toContain (__tests__/unit/Posts.model.test.js:750:20)
+
+Test Suites: 2 failed, 12 passed, 14 total
+Tests:       8 failed, 470 passed, 478 total
 Snapshots:   0 total
-Time:        3.286 s
-FAIL __tests__/integration/Groups.routes.test.js
-  ● Test suite failed to run
-
-    Your test suite must contain at least one test.
-
-      at onResult (node_modules/@jest/core/build/index.js:1054:18)
-      at node_modules/@jest/core/build/index.js:1125:165
-      at node_modules/emittery/index.js:363:13
-          at Array.map (&lt;anonymous&gt;)
-      at Emittery.emit (node_modules/emittery/index.js:361:23)
-
-FAIL __tests__/integration/Posts.routes.test.js
-  ● GET /posts › should return 200 and all posts
-
-    TypeError: Cannot read properties of undefined (reading 'id')
-
-    [0m [90m 105 |[39m [32m      ($1,'First Post','general','Hello World'),[39m
-     [90m 106 |[39m [32m      ($1,'Second Post','qna','Need help')`[39m[33m,[39m
-    [31m[1m&gt;[22m[39m[90m 107 |[39m       [user[33m.[39muser[33m.[39mid][33m,[39m
-     [90m     |[39m                  [31m[1m^[22m[39m
-     [90m 108 |[39m     )[33m;[39m
-     [90m 109 |[39m
-     [90m 110 |[39m     [36mconst[39m res [33m=[39m [36mawait[39m request(app)[33m.[39m[36mget[39m([32m'/posts'[39m)[33m;[39m[0m
-
-      at Object.id (__tests__/integration/Posts.routes.test.js:107:18)
-
-  ● GET /posts/related/:category/:id › should return an empty array when no related posts exist
-
-    TypeError: Cannot read properties of undefined (reading 'id')
-
-    [0m [90m 261 |[39m [32m      VALUES ($1, 'Only General Post', 'general', 'Content')[39m
-     [90m 262 |[39m [32m      RETURNING id`[39m[33m,[39m
-    [31m[1m&gt;[22m[39m[90m 263 |[39m       [user[33m.[39muser[33m.[39mid][33m,[39m
-     [90m     |[39m                  [31m[1m^[22m[39m
-     [90m 264 |[39m     )[33m;[39m
-     [90m 265 |[39m
-     [90m 266 |[39m     [36mconst[39m postId [33m=[39m rows[[35m0[39m][33m.[39mid[33m;[39m[0m
-
-      at Object.id (__tests__/integration/Posts.routes.test.js:263:18)
-
-  ● POST /posts › should return 201 and create a new post
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 38
-    Received: "38"
-
-    [0m [90m 301 |[39m     expect(res[33m.[39mbody[33m.[39mcategory)[33m.[39mtoBe([32m'general'[39m)[33m;[39m
-     [90m 302 |[39m     expect(res[33m.[39mbody[33m.[39mcontent)[33m.[39mtoBe([32m'Hello everyone!'[39m)[33m;[39m
-    [31m[1m&gt;[22m[39m[90m 303 |[39m     expect(res[33m.[39mbody[33m.[39muser_id)[33m.[39mtoBe(user[33m.[39muser[33m.[39mid)[33m;[39m
-     [90m     |[39m                              [31m[1m^[22m[39m
-     [90m 304 |[39m   })[33m;[39m
-     [90m 305 |[39m
-     [90m 306 |[39m   [90m// Valid partition: verify created post in the database[39m[0m
-
-      at Object.toBe (__tests__/integration/Posts.routes.test.js:303:30)
-
-FAIL __tests__/integration/routes.test.js (5.957 s)
-  ● GET /somethings › should return 200 and an empty array when none exist
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 200
-    Received: 404
-
-    [0m [90m 119 |[39m     [36mconst[39m res [33m=[39m [36mawait[39m request(app)[33m.[39m[36mget[39m([32m'/somethings'[39m)[33m;[39m
-     [90m 120 |[39m
-    [31m[1m&gt;[22m[39m[90m 121 |[39m     expect(res[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
-     [90m     |[39m                        [31m[1m^[22m[39m
-     [90m 122 |[39m     expect(res[33m.[39mbody)[33m.[39mtoEqual([])[33m;[39m
-     [90m 123 |[39m   })[33m;[39m
-     [90m 124 |[39m[0m
-
-      at Object.toBe (__tests__/integration/routes.test.js:121:24)
-
-  ● GET /somethings › should return 200 and all somethings
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 200
-    Received: 404
-
-    [0m [90m 129 |[39m     [36mconst[39m res [33m=[39m [36mawait[39m request(app)[33m.[39m[36mget[39m([32m'/somethings'[39m)[33m;[39m
-     [90m 130 |[39m
-    [31m[1m&gt;[22m[39m[90m 131 |[39m     expect(res[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
-     [90m     |[39m                        [31m[1m^[22m[39m
-     [90m 132 |[39m     expect(res[33m.[39mbody)[33m.[39mtoHaveLength([35m2[39m)[33m;[39m
-     [90m 133 |[39m     expect(res[33m.[39mbody[[35m0[39m])[33m.[39mtoHaveProperty([32m'id'[39m)[33m;[39m
-     [90m 134 |[39m     expect(res[33m.[39mbody[[35m0[39m])[33m.[39mtoHaveProperty([32m'name'[39m)[33m;[39m[0m
-
-      at Object.toBe (__tests__/integration/routes.test.js:131:24)
-
-  ● POST /somethings › should return 201 and the created something
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 201
-    Received: 404
-
-    [0m [90m 144 |[39m     [36mconst[39m res [33m=[39m [36mawait[39m request(app)[33m.[39mpost([32m'/somethings'[39m)[33m.[39msend({ name[33m:[39m [32m'cheese'[39m })[33m;[39m
-     [90m 145 |[39m
-    [31m[1m&gt;[22m[39m[90m 146 |[39m     expect(res[33m.[39mstatus)[33m.[39mtoBe([35m201[39m)[33m;[39m
-     [90m     |[39m                        [31m[1m^[22m[39m
-     [90m 147 |[39m     expect(res[33m.[39mbody)[33m.[39mtoHaveProperty([32m'id'[39m)[33m;[39m
-     [90m 148 |[39m     expect(res[33m.[39mbody[33m.[39mname)[33m.[39mtoBe([32m'cheese'[39m)[33m;[39m
-     [90m 149 |[39m   })[33m;[39m[0m
-
-      at Object.toBe (__tests__/integration/routes.test.js:146:24)
-
-  ● POST /somethings › created something should be persisted in the database
-
-    TypeError: expect(received).toHaveLength(expected)
-
-    Matcher error: received value must have a length property whose value must be a number
-
-    Received has type:  object
-    Received has value: {"error": "Unknown resource GET /somethings"}
-
-    [0m [90m 155 |[39m     [36mconst[39m res [33m=[39m [36mawait[39m request(app)[33m.[39m[36mget[39m([32m'/somethings'[39m)[33m;[39m
-     [90m 156 |[39m
-    [31m[1m&gt;[22m[39m[90m 157 |[39m     expect(res[33m.[39mbody)[33m.[39mtoHaveLength([35m1[39m)[33m;[39m
-     [90m     |[39m                      [31m[1m^[22m[39m
-     [90m 158 |[39m     expect(res[33m.[39mbody[[35m0[39m][33m.[39mname)[33m.[39mtoBe([32m'milk'[39m)[33m;[39m
-     [90m 159 |[39m   })[33m;[39m
-     [90m 160 |[39m })[33m;[39m[0m
-
-      at Object.toHaveLength (__tests__/integration/routes.test.js:157:22)
-
-  ● PUT /somethings/:id › should return 200 and the updated something
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 200
-    Received: 404
-
-    [0m [90m 172 |[39m     [36mconst[39m res [33m=[39m [36mawait[39m request(app)[33m.[39mput([32m`/somethings/${id}`[39m)[33m.[39msend({ name[33m:[39m [32m'updated'[39m })[33m;[39m
-     [90m 173 |[39m
-    [31m[1m&gt;[22m[39m[90m 174 |[39m     expect(res[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
-     [90m     |[39m                        [31m[1m^[22m[39m
-     [90m 175 |[39m     expect(res[33m.[39mbody[33m.[39mid)[33m.[39mtoBe(id)[33m;[39m
-     [90m 176 |[39m     expect(res[33m.[39mbody[33m.[39mname)[33m.[39mtoBe([32m'updated'[39m)[33m;[39m
-     [90m 177 |[39m   })[33m;[39m[0m
-
-      at Object.toBe (__tests__/integration/routes.test.js:174:24)
-
-  ● PUT /somethings/:id › updated value should persist when retrieved
-
-    TypeError: getRes.body.find is not a function
-
-    [0m [90m 185 |[39m
-     [90m 186 |[39m     [36mconst[39m getRes [33m=[39m [36mawait[39m request(app)[33m.[39m[36mget[39m([32m'/somethings'[39m)[33m;[39m
-    [31m[1m&gt;[22m[39m[90m 187 |[39m     [36mconst[39m item [33m=[39m getRes[33m.[39mbody[33m.[39mfind((s) [33m=&gt;[39m s[33m.[39mid [33m===[39m id)[33m;[39m
-     [90m     |[39m                              [31m[1m^[22m[39m
-     [90m 188 |[39m
-     [90m 189 |[39m     expect(item[33m.[39mname)[33m.[39mtoBe([32m'after'[39m)[33m;[39m
-     [90m 190 |[39m   })[33m;[39m[0m
-
-      at Object.find (__tests__/integration/routes.test.js:187:30)
-
-  ● DELETE /somethings/:id › should return 200 and the deleted something
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 200
-    Received: 404
-
-    [0m [90m 210 |[39m     [36mconst[39m res [33m=[39m [36mawait[39m request(app)[33m.[39m[36mdelete[39m([32m`/somethings/${id}`[39m)[33m;[39m
-     [90m 211 |[39m
-    [31m[1m&gt;[22m[39m[90m 212 |[39m     expect(res[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
-     [90m     |[39m                        [31m[1m^[22m[39m
-     [90m 213 |[39m     expect(res[33m.[39mbody[33m.[39mid)[33m.[39mtoBe(id)[33m;[39m
-     [90m 214 |[39m     expect(res[33m.[39mbody[33m.[39mname)[33m.[39mtoBe([32m'doomed'[39m)[33m;[39m
-     [90m 215 |[39m   })[33m;[39m[0m
-
-      at Object.toBe (__tests__/integration/routes.test.js:212:24)
-
-  ● DELETE /somethings/:id › deleted item should no longer appear in GET
-
-    TypeError: getRes.body.map is not a function
-
-    [0m [90m 223 |[39m
-     [90m 224 |[39m     [36mconst[39m getRes [33m=[39m [36mawait[39m request(app)[33m.[39m[36mget[39m([32m'/somethings'[39m)[33m;[39m
-    [31m[1m&gt;[22m[39m[90m 225 |[39m     [36mconst[39m ids [33m=[39m getRes[33m.[39mbody[33m.[39mmap((s) [33m=&gt;[39m s[33m.[39mid)[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 226 |[39m
-     [90m 227 |[39m     expect(ids)[33m.[39mnot[33m.[39mtoContain(id)[33m;[39m
-     [90m 228 |[39m   })[33m;[39m[0m
-
-      at Object.map (__tests__/integration/routes.test.js:225:29)
-
-  ● DELETE /somethings/:id › other items should remain after deleting one
-
-    TypeError: expect(received).toHaveLength(expected)
-
-    Matcher error: received value must have a length property whose value must be a number
-
-    Received has type:  object
-    Received has value: {"error": "Unknown resource GET /somethings"}
-
-    [0m [90m 238 |[39m     [36mconst[39m getRes [33m=[39m [36mawait[39m request(app)[33m.[39m[36mget[39m([32m'/somethings'[39m)[33m;[39m
-     [90m 239 |[39m
-    [31m[1m&gt;[22m[39m[90m 240 |[39m     expect(getRes[33m.[39mbody)[33m.[39mtoHaveLength([35m1[39m)[33m;[39m
-     [90m     |[39m                         [31m[1m^[22m[39m
-     [90m 241 |[39m     expect(getRes[33m.[39mbody[[35m0[39m][33m.[39mname)[33m.[39mtoBe([32m'keep'[39m)[33m;[39m
-     [90m 242 |[39m   })[33m;[39m
-     [90m 243 |[39m[0m
-
-      at Object.toHaveLength (__tests__/integration/routes.test.js:240:25)
-
-  ● POST /auth/login › should require 2FA then log in with valid credentials
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 200
-    Received: 401
-
-    [0m [90m 302 |[39m     })[33m;[39m
-     [90m 303 |[39m
-    [31m[1m&gt;[22m[39m[90m 304 |[39m     expect(step1[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
-     [90m     |[39m                          [31m[1m^[22m[39m
-     [90m 305 |[39m     expect(step1[33m.[39mbody[33m.[39mneeds2FA)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
-     [90m 306 |[39m     expect(step1[33m.[39mbody[33m.[39mpreviewCode)[33m.[39mtoMatch([35m/^\d{6}$/[39m)[33m;[39m
-     [90m 307 |[39m[0m
-
-      at Object.toBe (__tests__/integration/routes.test.js:304:26)
-
-  ● POST /auth/login › should skip 2FA when remember token is valid
-
-    expect(received).toBeTruthy()
-
-    Received: undefined
-
-    [0m [90m 320 |[39m     [36mawait[39m registerAndVerify([32m'rememberuser'[39m[33m,[39m [32m'remember@example.com'[39m[33m,[39m [32m'mypass'[39m)[33m;[39m
-     [90m 321 |[39m     [36mconst[39m first [33m=[39m [36mawait[39m loginAndVerify([32m'rememberuser'[39m[33m,[39m [32m'mypass'[39m[33m,[39m [36mtrue[39m)[33m;[39m
-    [31m[1m&gt;[22m[39m[90m 322 |[39m     expect(first[33m.[39mremember_token)[33m.[39mtoBeTruthy()[33m;[39m
-     [90m     |[39m                                  [31m[1m^[22m[39m
-     [90m 323 |[39m
-     [90m 324 |[39m     [36mconst[39m res [33m=[39m [36mawait[39m request(app)[33m.[39mpost([32m'/auth/login'[39m)[33m.[39msend({
-     [90m 325 |[39m       username[33m:[39m [32m'rememberuser'[39m[33m,[39m[0m
-
-      at Object.toBeTruthy (__tests__/integration/routes.test.js:322:34)
-
-  ● GET /auth/admin/users › should return all users for admin
-
-    expect(received).toBeGreaterThanOrEqual(expected)
-
-    Expected: &gt;= 1
-    Received:    0
-
-    [0m [90m 395 |[39m
-     [90m 396 |[39m     expect(res[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
-    [31m[1m&gt;[22m[39m[90m 397 |[39m     expect(res[33m.[39mbody[33m.[39musers[33m.[39mlength)[33m.[39mtoBeGreaterThanOrEqual([35m1[39m)[33m;[39m
-     [90m     |[39m                                   [31m[1m^[22m[39m
-     [90m 398 |[39m     expect(res[33m.[39mbody[33m.[39musers[33m.[39msome((u) [33m=&gt;[39m u[33m.[39mrole [33m===[39m [32m'admin'[39m))[33m.[39mtoBe([36mtrue[39m)[33m;[39m
-     [90m 399 |[39m   })[33m;[39m
-     [90m 400 |[39m[0m
-
-      at Object.toBeGreaterThanOrEqual (__tests__/integration/routes.test.js:397:35)
-
-  ● Personal messages › user A can send a message and sees it as sent; user B sees it as received
-
-    TypeError: Cannot read properties of undefined (reading '0')
-
-    [0m [90m 78 |[39m     [33m.[39m[36mget[39m([32m'/friends/requests?tab=received'[39m)
-     [90m 79 |[39m     [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`Bearer ${bob.token}`[39m)[33m;[39m
-    [31m[1m&gt;[22m[39m[90m 80 |[39m   [36mconst[39m requestId [33m=[39m reqs[33m.[39mbody[33m.[39mrequests[[35m0[39m][33m.[39mrequest_id[33m;[39m
-     [90m    |[39m                                       [31m[1m^[22m[39m
-     [90m 81 |[39m   [36mawait[39m request(app)
-     [90m 82 |[39m     [33m.[39mpost([32m'/friends/accept'[39m)
-     [90m 83 |[39m     [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`Bearer ${bob.token}`[39m)[0m
-
-      at makeFriends (__tests__/integration/routes.test.js:80:39)
-      at Object.&lt;anonymous&gt; (__tests__/integration/routes.test.js:418:5)
-
-  ● Profile features › lists joined study groups
-
-    error: invalid input value for enum school_choices: "SP"
-
-    [0m [90m 667 |[39m   test([32m'lists joined study groups'[39m[33m,[39m [36masync[39m () [33m=&gt;[39m {
-     [90m 668 |[39m     [36mconst[39m alice [33m=[39m [36mawait[39m registerAndVerify([32m'GroupAlice'[39m[33m,[39m [32m'galice@example.com'[39m)[33m;[39m
-    [31m[1m&gt;[22m[39m[90m 669 |[39m     [36mconst[39m { rows } [33m=[39m [36mawait[39m pool[33m.[39mquery(
-     [90m     |[39m                      [31m[1m^[22m[39m
-     [90m 670 |[39m       [32m`INSERT INTO "Groups" (name, creator_id, description, school, module)[39m
-     [90m 671 |[39m [32m       VALUES ('Test Group', $1, 'Desc', 'SP', 'MOD') RETURNING id`[39m[33m,[39m
-     [90m 672 |[39m       [alice[33m.[39muser[33m.[39mid][33m,[39m[0m
-
-      at node_modules/pg-pool/index.js:45:11
-      at Object.&lt;anonymous&gt; (__tests__/integration/routes.test.js:669:22)
-
-A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
-Jest: Coverage for statements (33.44%) does not meet "global" threshold (80%)
-Jest: Coverage for branches (19.19%) does not meet "global" threshold (80%)
-Jest: Coverage for lines (34.46%) does not meet "global" threshold (80%)
-Jest: Coverage for functions (14.3%) does not meet "global" threshold (80%)
-Test Suites: 3 failed, 3 total
-Tests:       17 failed, 40 passed, 57 total
-Snapshots:   0 total
-Time:        34.014 s
+Time:        1.905 s, estimated 2 s
 
 
 4. E2E TESTS (playwright)
@@ -1614,15 +497,22 @@ Resetting database schema...
 Schema applied.
 Running seed...
 Seeding data...
-Inserted 23 persons.
+Inserted 24 persons.
 Inserted 2 somethings.
 Set passwords (password123) and verified emails for all users.
+⍝ʕ´•ᴥ•`ʔ⍝   PandaBot is online!
 Seeded Alice/Bob friendship and sample message.
 Seed data inserted successfully.
-Inserted 3 posts.
+Inserted 10 posts.
+Inserted 18 tags.
+Tagged 6 posts.
+Inserted 2 polls.
 Inserted 2 comments.
 Inserted 2 reactions.
 Inserted 1 saved posts.
+Inserted 17 analytics reactions.
+Inserted 6 analytics saves.
+Inserted 14 badges.
 Inserted 60 marketplace items.
 Inserted 12 groups.
 Inserted 56 group members.
@@ -1635,38 +525,236 @@ Inserted 5 whiteboards.
 Inserted 5 note folders.
 Inserted 8 notes.
 Inserted 11 note links.
+Inserted 4 Study Room characters.
 Seed completed successfully.
 Login: Alice/Bob password "password123", Admin password "admin123"
 Database reset completed successfully.
-Error: Playwright Test did not expect test.beforeEach() to be called here.
-Most common reasons include:
-- You are calling test.beforeEach() in a configuration file.
-- You are calling test.beforeEach() in a file that is imported by the configuration file.
-- You have two different versions of @playwright/test. This usually happens
-  when one of the dependencies in your package.json depends on @playwright/test.
+Logging in test user...
+Saved authenticated storageState for alice@example.com
 
-   at something-management.spec.js:6
+Running 48 tests using 3 workers
 
-  4 | const NEW_SOMETHINGS = ['cheese', 'milk', 'delete-me'];
-  5 |
-&gt; 6 | test.beforeEach(async ({ page }) =&gt; {
-    |      ^
-  7 |   await page.goto('http://localhost:3001');
-  8 | });
-  9 |
-    at TestTypeImpl._currentSuite (C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\node_modules\@playwright\test\node_modules\playwright\lib\common\testType.js:75:13)
-    at TestTypeImpl._hook (C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\node_modules\@playwright\test\node_modules\playwright\lib\common\testType.js:160:24)
-    at Function.beforeEach (C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\node_modules\@playwright\test\node_modules\playwright\lib\transform\transform.js:282:12)
-    at Object.&lt;anonymous&gt; (C:\Users\User\Downloads\School\Y2S1\Continuous Integration and Continuous Delivery\CA3\Repo\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\something-management.spec.js:6:6)
-Error: No tests found
+  ✓   3 [chromium] › e2e-tests\snake-management.spec.js:36:3 › Open &amp; Close Game › should open the game modal with a fresh round running (9.5s)
+  ✓   1 [chromium] › e2e-tests\posts-management.spec.js:66:3 › Page load › should display the posts feed container (9.5s)
+  ✓   2 [chromium] › e2e-tests\postcomments-management.spec.js:89:3 › Load Comments › should show the empty state when a post has no comments (10.1s)
+  ✓   5 [chromium] › e2e-tests\posts-management.spec.js:71:3 › Page load › should display the create-post input for a logged-in user (2.1s)
+  ✓   4 [chromium] › e2e-tests\snake-management.spec.js:44:3 › Open &amp; Close Game › should close the modal when Quit is clicked (2.3s)
+  ✓   7 [chromium] › e2e-tests\posts-management.spec.js:79:3 › Load Posts › should show existing post cards in the feed on page load (1.9s)
+  ✓   6 [chromium] › e2e-tests\postcomments-management.spec.js:95:3 › Load Comments › should show existing comments in the thread on page load (3.8s)
+  ✓   9 [chromium] › e2e-tests\posts-management.spec.js:87:3 › Load Posts › each post card should display author, content, and action buttons (1.3s)
+  ✓   8 [chromium] › e2e-tests\snake-management.spec.js:54:3 › Open &amp; Close Game › should close the modal from the game-over overlay Quit button (4.2s)
+  ✘  10 [chromium] › e2e-tests\postcomments-management.spec.js:108:3 › Load Comments › each comment should display author, content, and action buttons (30.2s)
+  ✘  11 [chromium] › e2e-tests\posts-management.spec.js:101:3 › New Post › should allow me to create a new post (30.1s)
+  ✘  12 [chromium] › e2e-tests\snake-management.spec.js:69:3 › Pause &amp; Resume › should show the paused overlay when P is pressed (30.1s)
+  ✓  13 [chromium] › e2e-tests\postcomments-management.spec.js:125:3 › New Comment › should allow me to post a new comment (1.4s)
+  ✓  15 [chromium] › e2e-tests\postcomments-management.spec.js:133:3 › New Comment › should keep the submit button disabled until content is entered (1.9s)
+  ✓  16 [chromium] › e2e-tests\snake-management.spec.js:80:3 › Pause &amp; Resume › should hide the paused overlay and restore labels when Resume is clicked (935ms)
+  ✓  17 [chromium] › e2e-tests\postcomments-management.spec.js:146:3 › New Comment › should escape special characters in comment content (XSS boundary) (1.1s)
+  ✓  19 [chromium] › e2e-tests\postcomments-management.spec.js:160:3 › Reply to Comment › should allow me to reply to a comment (1.5s)
+  ✓  18 [chromium] › e2e-tests\snake-management.spec.js:94:3 › Pause &amp; Resume › should not progress the game while paused (3.3s)
+  ✓  14 [chromium] › e2e-tests\posts-management.spec.js:106:3 › New Post › should allow me to create posts in different categories (7.3s)
+  ✓  20 [chromium] › e2e-tests\postcomments-management.spec.js:173:3 › Reply to Comment › cancelling a reply should discard it (1.9s)
+  ✓  22 [chromium] › e2e-tests\posts-management.spec.js:116:3 › New Post › should keep the Post button disabled until title, category, and content are filled (1.6s)
+  ✓  21 [chromium] › e2e-tests\snake-management.spec.js:110:3 › Game Over &amp; Restart › should end the round and show the game-over overlay (2.9s)
+  ✓  24 [chromium] › e2e-tests\posts-management.spec.js:128:3 › New Post › should handle special characters in post content (XSS boundary) (1.6s)
+  ✓  25 [chromium] › e2e-tests\snake-management.spec.js:117:3 › Game Over &amp; Restart › should start a fresh round when Play again is clicked (3.0s)
+  ✓  26 [chromium] › e2e-tests\posts-management.spec.js:140:3 › Delete Post › should allow me to delete a post I created, leaving other posts intact (3.6s)
+  ✓  27 [chromium] › e2e-tests\snake-management.spec.js:130:3 › Game Over &amp; Restart › should display the final score and level on the game-over overlay (2.7s)
+  ✓  23 [chromium] › e2e-tests\postcomments-management.spec.js:190:3 › Reply to Comment › multiple replies to the same comment should all appear nested under it (7.9s)
+  ✓  29 [chromium] › e2e-tests\snake-management.spec.js:142:3 › Leaderboard &amp; Personal Best › should reflect the player's real best score on the home page card (1.0s)
+  ✓  30 [chromium] › e2e-tests\postcomments-management.spec.js:209:3 › Edit Comment › should allow the comment owner to edit their comment (1.4s)
+  ✓  28 [chromium] › e2e-tests\posts-management.spec.js:153:3 › Delete Post › a deleted post's detail page should show a not-found state (3.1s)
+  ✓  31 [chromium] › e2e-tests\snake-management.spec.js:150:3 › Leaderboard &amp; Personal Best › should show the seeded score in the leaderboard opened from an active game (1.2s)
+  ✓  34 [chromium] › e2e-tests\snake-management.spec.js:164:3 › Leaderboard &amp; Personal Best › should show the seeded score in the leaderboard opened from the game-over overlay (3.4s)
+  ✓  32 [chromium] › e2e-tests\postcomments-management.spec.js:228:3 › Edit Comment › cancelling an edit should discard changes (6.5s)
+  ✓  33 [chromium] › e2e-tests\posts-management.spec.js:166:3 › Delete Post › cancelling the delete confirmation should keep the post (6.8s)
+  ✓  35 [chromium] › e2e-tests\postcomments-management.spec.js:245:3 › Edit Comment › should block saving when the edit is cleared to empty (1.4s)
+  ✓  36 [chromium] › e2e-tests\posts-management.spec.js:188:3 › Edit Post › should allow the post owner to edit a post's title and content (2.7s)
+  ✓  37 [chromium] › e2e-tests\postcomments-management.spec.js:269:3 › Delete Comment › should allow me to delete a comment, leaving other comments intact (2.4s)
+  ✓  39 [chromium] › e2e-tests\postcomments-management.spec.js:288:3 › Delete Comment › cancelling the delete confirmation should keep the comment (1.8s)
+  ✓  38 [chromium] › e2e-tests\posts-management.spec.js:206:3 › Edit Post › an edited post should show an "edited" indicator (2.7s)
+  ✓  41 [chromium] › e2e-tests\posts-management.spec.js:220:3 › Edit Post › should block saving when the title is cleared (4.1s)
+  ✓  42 [chromium] › e2e-tests\posts-management.spec.js:235:3 › Edit Post › cancelling an edit should discard changes (3.4s)
+  ✓  40 [chromium] › e2e-tests\postcomments-management.spec.js:305:3 › Delete Comment › deleting a reply should remove only that reply, not its parent or sibling replies (8.7s)
+  ✘  43 [chromium] › e2e-tests\posts-management.spec.js:286:3 › Poll Tests › should allow me to create a post with a poll (7.6s)
+  ✓  44 [chromium] › e2e-tests\postcomments-management.spec.js:337:3 › PandaBot Auto-Reply › should get a PandaBot reply when a comment mentions @pandabot (8.8s)
+  ✓  46 [chromium] › e2e-tests\posts-management.spec.js:301:3 › Poll Tests › should allow me to vote on a poll option and see the result (3.0s)
+  ✓  47 [chromium] › e2e-tests\posts-management.spec.js:319:3 › Poll Tests › should switch my vote when I click a different option (3.0s)
+  ✓  45 [chromium] › e2e-tests\postcomments-management.spec.js:351:3 › PandaBot Auto-Reply › should thread the PandaBot reply flat under the parent when mentioned in a reply (8.5s)
+  ✓  48 [chromium] › e2e-tests\postcomments-management.spec.js:372:3 › PandaBot Auto-Reply › PandaBot's reply should render with bot-specific avatar and name badge (10.2s)
 
+
+  1) [chromium] › e2e-tests\postcomments-management.spec.js:108:3 › Load Comments › each comment should display author, content, and action buttons 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#commentInput')[22m
+    [2m    - locator resolved to &lt;textarea rows="2" id="commentInput" class="form-control" placeholder="Write a comment..."&gt;&lt;/textarea&gt;[22m
+    [2m    - fill("E2E Comment Structure Check")[22m
+    [2m  - attempting fill action[22m
+    [2m    2 × waiting for element to be visible, enabled and editable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying fill action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and editable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying fill action[22m
+    [2m      - waiting 100ms[22m
+    [2m    - waiting for element to be visible, enabled and editable[22m
+    [2m  - element was detached from the DOM, retrying[22m
+    [2m    - waiting for" http://localhost:3000/home.html?login=1&amp;return=posts.html" navigation to finish...[22m
+    [2m    - navigated to "http://localhost:3000/home.html?login=1&amp;return=posts.html"[22m
+
+
+      56 | // Submit a new comment and wait for it to render
+      57 | async function addComment(page, content) {
+    &gt; 58 |   await page.locator('#commentInput').fill(content);
+         |                                       ^
+      59 |   await page.locator('#submitCommentBtn').click();
+      60 |   await expect(topLevelComments(page).filter({ hasText: content })).toBeVisible();
+      61 | }
+        at addComment (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\postcomments-management.spec.js:58:39)
+        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\postcomments-management.spec.js:109:11
+
+    Error Context: test-results\postcomments-management-Lo-6b3ee--content-and-action-buttons-chromium\error-context.md
+
+  2) [chromium] › e2e-tests\posts-management.spec.js:101:3 › New Post › should allow me to create a new post 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('.create-post-input')[22m
+    [2m    - locator resolved to &lt;div class="create-post-input"&gt;…&lt;/div&gt;[22m
+    [2m  - attempting click action[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+    [2m    - element is visible, enabled and stable[22m
+    [2m    - scrolling into view if needed[22m
+    [2m    - done scrolling[22m
+    [2m  - element was detached from the DOM, retrying[22m
+    [2m    - waiting for" http://localhost:3000/home.html?login=1&amp;return=index.html" navigation to finish...[22m
+    [2m    - navigated to "http://localhost:3000/home.html?login=1&amp;return=index.html"[22m
+
+
+      32 | // Fill in the create-post modal and submit a new post
+      33 | async function addPost(page, { title, content, category = CATEGORIES[0] }) {
+    &gt; 34 |   await page.locator('.create-post-input').click();
+         |                                            ^
+      35 |   await expect(page.locator('#createPostModal')).toBeVisible();
+      36 |   await page.locator('#postTitle').fill(title);
+      37 |   await page.locator('#postCategory').selectOption(category);
+        at addPost (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\posts-management.spec.js:34:44)
+        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\posts-management.spec.js:102:11
+
+    Error Context: test-results\posts-management-New-Post--5360a-low-me-to-create-a-new-post-chromium\error-context.md
+
+  3) [chromium] › e2e-tests\posts-management.spec.js:286:3 › Poll Tests › should allow me to create a post with a poll 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('.post-card').filter({ has: locator('.post-author-name') }).filter({ hasText: 'E2E Poll Creation Post' }).locator('.poll-option-label').first()
+    Expected: [32m"Coffee"[39m
+    Received: [31m"Tea"[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveText" with timeout 5000ms[22m
+    [2m  - waiting for locator('.post-card').filter({ has: locator('.post-author-name') }).filter({ hasText: 'E2E Poll Creation Post' }).locator('.poll-option-label').first()[22m
+    [2m    9 × locator resolved to &lt;span class="poll-option-label"&gt;Tea&lt;/span&gt;[22m
+    [2m      - unexpected value "Tea"[22m
+
+
+      295 |     await expect(card.locator('.poll-question')).toHaveText('Coffee or tea?', { timeout: 10000 });
+      296 |     await expect(card.locator('.poll-option')).toHaveCount(2);
+    &gt; 297 |     await expect(card.locator('.poll-option-label').first()).toHaveText('Coffee');
+          |                                                              ^
+      298 |   });
+      299 |
+      300 |   // Valid partition: voting on an option marks it as the user's choice and shows results
+        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\posts-management.spec.js:297:62
+
+    Error Context: test-results\posts-management-Poll-Test-f39d4-o-create-a-post-with-a-poll-chromium\error-context.md
+
+  4) [chromium] › e2e-tests\snake-management.spec.js:69:3 › Pause &amp; Resume › should show the paused overlay when P is pressed 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#snakePlayBtn')[22m
+    [2m    - waiting for" http://localhost:3000/home.html?login=1&amp;return=index.html" navigation to finish...[22m
+    [2m    - navigated to "http://localhost:3000/home.html?login=1&amp;return=index.html"[22m
+
+
+      11 | // ── Helpers ──────────────────────────────────────────────
+      12 | async function openGame(page) {
+    &gt; 13 |   await page.locator('#snakePlayBtn').click();
+         |                                       ^
+      14 |   await expect(page.locator('#snakeModalOverlay')).toBeVisible();
+      15 |   await expect(page.locator('#snakeCanvas')).toBeVisible();
+      16 | }
+        at openGame (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\snake-management.spec.js:13:39)
+        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\snake-management.spec.js:70:11
+
+    Error Context: test-results\snake-management-Pause-Res-bb3fc-d-overlay-when-P-is-pressed-chromium\error-context.md
+
+  4 failed
+    [chromium] › e2e-tests\postcomments-management.spec.js:108:3 › Load Comments › each comment should display author, content, and action buttons 
+    [chromium] › e2e-tests\posts-management.spec.js:101:3 › New Post › should allow me to create a new post 
+    [chromium] › e2e-tests\posts-management.spec.js:286:3 › Poll Tests › should allow me to create a post with a poll 
+    [chromium] › e2e-tests\snake-management.spec.js:69:3 › Pause &amp; Resume › should show the paused overlay when P is pressed 
+  44 passed (2.1m)
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Invalid or expired token.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:55:17)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22mUnauthorizedError: Session revoked. Please log in again.
+[2m[WebServer] [22m    at authenticateJWT (C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\middlewares\auth.middleware.js:19:21)
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
 
 
 ============================================================
   QA SUMMARY
 ============================================================
    <span style="color:#ef4444;font-weight:bold">[FAIL]</span> 1. LINT (eslint)
-   <span style="color:#22c55e;font-weight:bold">[PASS]</span> 2. FORMAT CHECK (prettier)
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> 2. FORMAT CHECK (prettier)
    <span style="color:#ef4444;font-weight:bold">[FAIL]</span> 3. UNIT + INTEGRATION TESTS (jest --coverage)
    <span style="color:#ef4444;font-weight:bold">[FAIL]</span> 4. E2E TESTS (playwright)
 
@@ -1680,7 +768,7 @@ Error: No tests found
    reports/qa-report.html          (this combined report)
 ============================================================
 
-   3 pipeline step(s) FAILED.
+   4 pipeline step(s) FAILED.
 </pre>
 </body>
 </html>

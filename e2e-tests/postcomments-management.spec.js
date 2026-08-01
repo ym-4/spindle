@@ -124,6 +124,9 @@ test.describe('New Comment', () => {
   // Valid partition: submitting a comment adds it to the thread
   test('should allow me to post a new comment', async ({ page }) => {
     await addComment(page, 'E2E New Comment Post');
+
+    // Input should reset after a successful submit
+    await expect(page.locator('#commentInput')).toHaveValue('');
   });
 
   // Boundary: an empty comment box keeps the submit button disabled
@@ -264,17 +267,22 @@ test.describe('Edit Comment', () => {
 test.describe('Delete Comment', () => {
   // Valid partition: deleting a comment removes it, other comments remain
   test('should allow me to delete a comment, leaving other comments intact', async ({ page }) => {
-    await addComment(page, 'E2E Keep This Comment');
-    await addComment(page, 'E2E Delete This Comment');
+  await addComment(page, 'E2E Keep This Comment');
+  await addComment(page, 'E2E Delete This Comment');
 
-    const target = topLevelComments(page).filter({ hasText: 'E2E Delete This Comment' });
-    await deleteComment(page, target);
+  const target = topLevelComments(page).filter({ hasText: 'E2E Delete This Comment' });
+  await deleteComment(page, target);
 
-    await expect(topLevelComments(page).filter({ hasText: 'E2E Delete This Comment' })).toHaveCount(
-      0,
-    );
-    await expect(topLevelComments(page).filter({ hasText: 'E2E Keep This Comment' })).toBeVisible();
-  });
+  await expect(topLevelComments(page).filter({ hasText: 'E2E Delete This Comment' })).toHaveCount(0);
+  await expect(topLevelComments(page).filter({ hasText: 'E2E Keep This Comment' })).toBeVisible();
+
+  // empty state after deletion
+  const remaining = topLevelComments(page).filter({ hasText: 'E2E Keep This Comment' });
+  await deleteComment(page, remaining);
+
+  await expect(page.locator('#commentsPlaceholder')).toBeVisible();
+  await expect(page.locator('#commentsPlaceholder')).toContainText('No comments yet');
+});
 
   // Error handling: cancelling the delete confirmation keeps the comment
   test('cancelling the delete confirmation should keep the comment', async ({ page }) => {

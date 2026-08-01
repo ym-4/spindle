@@ -133,6 +133,12 @@ describe('GET /posts', () => {
     expect(res.body[0]).toHaveProperty('content');
     expect(res.body[0]).toHaveProperty('user_id');
   });
+
+  // Error handling: an unknown route
+  test('should return 404 for a completely unknown route', async () => {
+    const res = await request(app).get('/this-route-does-not-exist-anywhere');
+    expect(res.status).toBe(404);
+  });
 });
 
 // ─────────────────────────────────────────────────────────
@@ -403,6 +409,22 @@ describe('PUT /posts/:id', () => {
     expect(getRes.body.content).toBe('New content');
   });
 
+  // Invalid partition: a non-owner cannot edit another user's post
+  test('should return 403 when a non-owner tries to edit the post', async () => {
+    const owner = await createTestUser('EditOwner', 'editowner@example.com');
+    const post = await createTestPost(owner.id, 'Original Title');
+
+    await createTestUser('EditIntruder', 'editintruder@example.com');
+
+    const res = await request(app)
+      .put(`/posts/${post.id}`)
+      .field('title', 'Hijacked Title')
+      .field('content', 'Hijacked content')
+      .field('category', 'general');
+
+    expect(res.status).toBe(403);
+  });
+
   // Boundary: non-existent id
   test('should return 404 when updating a non-existent post', async () => {
     const res = await request(app)
@@ -632,6 +654,94 @@ describe('POST /posts/:id/poll', () => {
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/at least 2 options/i);
   });
+
+  // Invalid partition: a non-owner cannot add a poll to another user's post
+  test('should return 403 when a non-owner tries to add a poll to the post', async () => {
+    const owner = await createTestUser('PollOwnerGuard', 'pollownerguard@example.com');
+    const post = await createTestPost(owner.id);
+
+    await createTestUser('PollIntruder', 'pollintruder@example.com');
+
+    const res = await request(app)
+      .post(`/posts/${post.id}/poll`)
+      .send({ question: 'Hijacked poll?', options: ['A', 'B'] });
+
+    expect(res.status).toBe(403);
+  });
+
+  // Boundary: post does not exist
+  test('should return 404 when creating a poll on a non-existent post', async () => {
+    await createTestUser('PollGhostUser', 'pollghostuser@example.com');
+
+    const res = await request(app)
+      .post('/posts/999999999/poll')
+      .send({ question: 'Ghost poll?', options: ['A', 'B'] });
+
+    expect(res.status).toBe(404);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// PUT /posts/:id/poll
+// ─────────────────────────────────────────────────────────
+describe('PUT /posts/:id/poll', () => {
+  // Valid partition: owner updates the poll question
+  test('should update the poll question for the owner', async () => {
+    const owner = await createTestUser('PollEditOwner', 'polleditowner@example.com');
+    const post = await createTestPost(owner.id);
+    await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Old question?')`, [
+      post.id,
+    ]);
+
+    const res = await request(app)
+      .put(`/posts/${post.id}/poll`)
+      .send({ question: 'New question?' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.question).toBe('New question?');
+  });
+
+  // Boundary: missing question
+  test('should return 400 when question is missing', async () => {
+    const owner = await createTestUser('PollEditNoQuestion', 'polleditnoquestion@example.com');
+    const post = await createTestPost(owner.id);
+    await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Old question?')`, [
+      post.id,
+    ]);
+
+    const res = await request(app).put(`/posts/${post.id}/poll`).send({});
+
+    expect(res.status).toBe(400);
+  });
+
+  // Boundary: post has no poll to update
+  test('should return 404 when the post has no poll', async () => {
+    const owner = await createTestUser('PollEditNoPoll', 'polleditnopoll@example.com');
+    const post = await createTestPost(owner.id);
+
+    const res = await request(app)
+      .put(`/posts/${post.id}/poll`)
+      .send({ question: 'New question?' });
+
+    expect(res.status).toBe(404);
+  });
+
+  // Invalid partition: a non-owner cannot edit the poll question
+  test('should return 403 when a non-owner tries to edit the poll question', async () => {
+    const owner = await createTestUser('PollEditGuardOwner', 'polleditguardowner@example.com');
+    const post = await createTestPost(owner.id);
+    await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Old question?')`, [
+      post.id,
+    ]);
+
+    await createTestUser('PollEditIntruder', 'polleditintruder@example.com');
+
+    const res = await request(app)
+      .put(`/posts/${post.id}/poll`)
+      .send({ question: 'Hijacked question?' });
+
+    expect(res.status).toBe(403);
+  });
 });
 
 // ─────────────────────────────────────────────────────────
@@ -732,6 +842,64 @@ describe('POST /posts/:id/poll/vote', () => {
     expect(res.body.message).toMatch(/already voted/i);
   });
 
+  // Invalid partition: poll_id in the body doesn't match the poll on this post
+  test('should return 400 when poll_id does not match the poll on this post', async () => {
+    const user = await createTestUser('VoteMismatchUser', 'votemismatchuser@example.com');
+    const postA = await createTestPost(user.id, 'Poll Post A');
+    const postB = await createTestPost(user.id, 'Poll Post B');
+
+    await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'A?')`, [postA.id]);
+    const { rows: pollBRows } = await pool.query(
+      `INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'B?') RETURNING id`,
+      [postB.id],
+    );
+    const { rows: optionRows } = await pool.query(
+      `INSERT INTO "PollOptions" (poll_id, option_text) VALUES ($1, 'Opt') RETURNING id`,
+      [pollBRows[0].id],
+    );
+
+    // voting via postA's URL but with pollB's id
+    const res = await request(app).post(`/posts/${postA.id}/poll/vote`).send({
+      poll_id: pollBRows[0].id,
+      option_id: optionRows[0].id,
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/does not match/i);
+  });
+
+  // Invalid partition: option_id doesn't belong to the given poll_id
+  test('should return 400 when option_id does not belong to the given poll_id', async () => {
+    const user = await createTestUser('VoteOptionMismatchUser', 'voteoptionmismatchuser@example.com');
+    const post = await createTestPost(user.id);
+    const otherPost = await createTestPost(user.id, 'Unrelated Post');
+
+    const { rows: pollRows } = await pool.query(
+      `INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Real poll?') RETURNING id`,
+      [post.id],
+    );
+    await pool.query(`INSERT INTO "PollOptions" (poll_id, option_text) VALUES ($1, 'Real option')`, [
+      pollRows[0].id,
+    ]);
+
+    const { rows: otherPollRows } = await pool.query(
+      `INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Other poll?') RETURNING id`,
+      [otherPost.id],
+    );
+    const { rows: otherOptionRows } = await pool.query(
+      `INSERT INTO "PollOptions" (poll_id, option_text) VALUES ($1, 'Other option') RETURNING id`,
+      [otherPollRows[0].id],
+    );
+
+    const res = await request(app).post(`/posts/${post.id}/poll/vote`).send({
+      poll_id: pollRows[0].id,
+      option_id: otherOptionRows[0].id,
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/does not belong/i);
+  });
+
   // Invalid partition: missing required fields
   test('should return 400 when poll_id or option_id is missing', async () => {
     const user = await createTestUser('MissingVoteUser', 'missingvote@example.com');
@@ -743,6 +911,60 @@ describe('POST /posts/:id/poll/vote', () => {
   });
 });
 
+// ─────────────────────────────────────────────────────────
+// GET /posts/:id/poll/vote/:user_id
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/:id/poll/vote/:user_id', () => {
+  // Valid partition: user gets their own vote
+  test("should return the authenticated user's own vote", async () => {
+    const user = await createTestUser('VoteLookupUser', 'votelookupuser@example.com');
+    const post = await createTestPost(user.id);
+    const { rows: pollRows } = await pool.query(
+      `INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Q?') RETURNING id`,
+      [post.id],
+    );
+    const { rows: optionRows } = await pool.query(
+      `INSERT INTO "PollOptions" (poll_id, option_text) VALUES ($1, 'Opt') RETURNING id`,
+      [pollRows[0].id],
+    );
+    await pool.query(`INSERT INTO "PollVotes" (poll_id, option_id, user_id) VALUES ($1, $2, $3)`, [
+      pollRows[0].id,
+      optionRows[0].id,
+      user.id,
+    ]);
+
+    const res = await request(app).get(`/posts/${post.id}/poll/vote/${user.id}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.vote).not.toBeNull();
+    expect(res.body.vote.option_id).toBe(optionRows[0].id);
+  });
+
+  // Boundary: user hasn't voted yet
+  test('should return vote: null when the user has not voted', async () => {
+    const user = await createTestUser('VoteLookupNoVoteUser', 'votelookupnovoteuser@example.com');
+    const post = await createTestPost(user.id);
+    await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Q?')`, [post.id]);
+
+    const res = await request(app).get(`/posts/${post.id}/poll/vote/${user.id}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.vote).toBeNull();
+  });
+
+  // Invalid partition: a user cannot view another user's vote
+  test("should return 403 when requesting another user's vote", async () => {
+    const owner = await createTestUser('VoteLookupOwner', 'votelookupowner@example.com');
+    const post = await createTestPost(owner.id);
+    await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Q?')`, [post.id]);
+
+    await createTestUser('VoteLookupStranger', 'votelookupstranger@example.com');
+
+    const res = await request(app).get(`/posts/${post.id}/poll/vote/${owner.id}`);
+
+    expect(res.status).toBe(403);
+  });
+});
 // ==================== Saved Posts ========================
 // ─────────────────────────────────────────────────────────
 // GET /posts/saved/:user_id
@@ -1100,10 +1322,11 @@ describe('GET /posts/:id/tags', () => {
     const { rows: tagRows } = await pool.query(
       `INSERT INTO "Tags" (name) VALUES ('confession'), ('finals') RETURNING id`,
     );
-    await pool.query(
-      `INSERT INTO "PostTags" (post_id, tag_id) VALUES ($1, $2), ($1, $3)`,
-      [post.id, tagRows[0].id, tagRows[1].id],
-    );
+    await pool.query(`INSERT INTO "PostTags" (post_id, tag_id) VALUES ($1, $2), ($1, $3)`, [
+      post.id,
+      tagRows[0].id,
+      tagRows[1].id,
+    ]);
 
     const res = await request(app).get(`/posts/${post.id}/tags`);
 
@@ -1181,8 +1404,12 @@ describe('PUT /posts/:id/tags', () => {
     const postA = await createTestPost(author.id, 'Post A');
     const postB = await createTestPost(author.id, 'Post B');
 
-    await request(app).put(`/posts/${postA.id}/tags`).send({ tag_names: ['finals'] });
-    await request(app).put(`/posts/${postB.id}/tags`).send({ tag_names: ['finals'] });
+    await request(app)
+      .put(`/posts/${postA.id}/tags`)
+      .send({ tag_names: ['finals'] });
+    await request(app)
+      .put(`/posts/${postB.id}/tags`)
+      .send({ tag_names: ['finals'] });
 
     const { rows } = await pool.query(`SELECT * FROM "Tags" WHERE name = 'finals'`);
     expect(rows).toHaveLength(1);
@@ -1192,7 +1419,9 @@ describe('PUT /posts/:id/tags', () => {
   test("should clear a post's tags when given an empty array", async () => {
     const author = await createTestUser('TagClearAuthor', 'tagclearauthor@example.com');
     const post = await createTestPost(author.id);
-    await request(app).put(`/posts/${post.id}/tags`).send({ tag_names: ['temporary'] });
+    await request(app)
+      .put(`/posts/${post.id}/tags`)
+      .send({ tag_names: ['temporary'] });
 
     const res = await request(app).put(`/posts/${post.id}/tags`).send({ tag_names: [] });
 
@@ -1278,7 +1507,6 @@ describe('GET /posts/:id/analytics', () => {
       post.id,
     ]);
 
-
     mockUserId = owner.id;
     const res = await request(app).get(`/posts/${post.id}/analytics`);
 
@@ -1289,7 +1517,7 @@ describe('GET /posts/:id/analytics', () => {
     expect(res.body.save_count).toBe(1);
   });
 
-  // Boundary: a post with zero engagement returns 0, not null 
+  // Boundary: a post with zero engagement returns 0, not null
   test('should return zeroed counts for a post with no engagement', async () => {
     const owner = await createTestUser('QuietAuthor', 'quietauthor@example.com');
     const post = await createTestPost(owner.id);
@@ -1304,7 +1532,10 @@ describe('GET /posts/:id/analytics', () => {
 
   // Invalid partition: a non-owner cannot view another user's post analytics
   test("should return 404 when requesting another user's post analytics", async () => {
-    const owner = await createTestUser('PrivateAnalyticsOwner', 'privateanalyticsowner@example.com');
+    const owner = await createTestUser(
+      'PrivateAnalyticsOwner',
+      'privateanalyticsowner@example.com',
+    );
     const post = await createTestPost(owner.id);
 
     await createTestUser('AnalyticsStranger', 'analyticsstranger@example.com');
@@ -1373,7 +1604,7 @@ describe('GET /posts/:id/analytics/engagement-over-time', () => {
 // ─────────────────────────────────────────────────────────
 describe('GET /posts/analytics/all', () => {
   // Valid partition: returns analytics summaries for all of the user's posts
-  test('should return analytics for all of the authenticated user\'s posts', async () => {
+  test("should return analytics for all of the authenticated user's posts", async () => {
     const user = await createTestUser('AllAnalyticsUser', 'allanalyticsuser@example.com');
     await createTestPost(user.id, 'First Post');
     await createTestPost(user.id, 'Second Post');

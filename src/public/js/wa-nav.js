@@ -430,12 +430,12 @@ function showBadgeUnlockPopup(title, description) {
   const popup = document.createElement('div');
   popup.id = 'badgeUnlockPopup';
 
-  const badgeName = title.replace(/^Badge unlocked:\s*/i, "");
+  const badgeName = title.replace(/^Badge unlocked:\s*/i, '');
 
   popup.innerHTML = `
     <div class="badge-unlock-image">
       <img
-        src="/images/badges/${badgeName.replace(/\s+/g, "_")}.png"
+        src="/images/badges/${badgeName.replace(/\s+/g, '_')}.png"
         alt="${badgeName}"
       >
     </div>

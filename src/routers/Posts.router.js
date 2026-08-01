@@ -116,7 +116,7 @@ router.get('/reports', authenticateJWT, async (req, res, next) => {
       return res.status(403).json({ message: 'Admin access required.' });
     }
     const includeDismissed = req.query.includeDismissed === 'true';
-    const reports = await getAllReports(includeDismissed);
+    const reports = await getAllCommentReports(includeDismissed);
     res.status(200).json(reports);
   } catch (err) {
     next(err);
@@ -180,21 +180,29 @@ router.get('/sorted', (req, res, next) => {
 });
 
 // Saved posts
-router.get('/saved/:user_id', (req, res, next) => {
-  const data = {
-    user_id: req.params.user_id,
+router.get('/saved/:user_id', authenticateJWT, (req, res, next) => {
+  if (Number(req.params.user_id) !== req.user.id) {
+    return res.status(403).json({ error: 'Not authorized to view these saved posts.' });
+  }
+  const data = { 
+    user_id: req.params.user_id 
   };
   getSavedByUserID(data)
-    .then((post) => res.status(200).json(post))
-    .catch(next);
+  .then((post) => 
+    res.status(200).json(post))
+  .catch(next);
 });
 
-router.get('/reaction/:user_id', (req, res, next) => {
-  const data = {
-    user_id: req.params.user_id,
+router.get('/reaction/:user_id', authenticateJWT, (req, res, next) => {
+  if (Number(req.params.user_id) !== req.user.id) {
+    return res.status(403).json({ error: 'Not authorized to view these reactions.' });
+  }
+  const data = { 
+    user_id: req.params.user_id 
   };
   getReactionByUserID(data)
-    .then((post) => res.status(200).json(post))
+    .then((post) => 
+      res.status(200).json(post))
     .catch(next);
 });
 
@@ -337,7 +345,7 @@ router.get('/:id/poll/vote/:user_id', authenticateJWT, (req, res, next) => {
     .catch(next);
 });
 
-// DELETE user's vote on a poll 
+// DELETE user's vote on a poll
 router.delete('/:id/poll/vote', authenticateJWT, (req, res, next) => {
   const data = {
     poll_id: req.body.poll_id,
@@ -606,7 +614,7 @@ router.put('/:id', authenticateJWT, upload.single('attachment'), (req, res) => {
       return updatePostByID(data);
     })
     .then((results) => {
-      if (res.headersSent) return; 
+      if (res.headersSent) return;
       if (results === null) {
         return res.status(404).json({ error: 'Post not found' });
       }
@@ -675,21 +683,15 @@ router.post('/saved', authenticateJWT, (req, res) => {
 });
 
 // remove a save
-router.delete('/saved/:id', (req, res) => {
-  const data = {
-    id: req.params.id,
-  };
-  deleteSavedByID(data)
-    .then((results) => {
-      if (!results) {
-        return res.status(404).json({ error: 'Save not found' });
-      }
-      res.status(200).json(results);
-    })
-    .catch((error) => {
-      console.error('Error deleteSavedByID: ' + error);
-      res.status(500).json(error);
-    });
+router.delete('/saved/:id', authenticateJWT, async (req, res) => {
+  try {
+    const result = await deleteSavedByID({ id: req.params.id, user_id: req.user.id });
+    if (!result) return res.status(404).json({ error: 'Save not found' });
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Error deleteSavedByID: ' + error);
+    res.status(500).json(error);
+  }
 });
 
 // ===================== likes n dislikes =======================
@@ -752,18 +754,15 @@ router.post('/like', authenticateJWT, (req, res, next) => {
 });
 
 // Update reaction type
-router.put('/reaction/:id', (req, res) => {
+router.put('/reaction/:id', authenticateJWT, (req, res) => {
   const data = {
     id: req.params.id,
-    user_id: req.body.user_id,
+    user_id: req.user.id,      
     reaction_type: req.body.reaction_type,
   };
-
   updateReaction(data)
     .then((results) => {
-      if (!results) {
-        return res.status(404).json({ error: 'Reaction not found' });
-      }
+      if (!results) return res.status(404).json({ error: 'Reaction not found' });
       res.status(200).json(results);
     })
     .catch((error) => {
@@ -773,16 +772,11 @@ router.put('/reaction/:id', (req, res) => {
 });
 
 // remove a like or dislike
-router.delete('/reaction/:id', (req, res) => {
-  const data = {
-    id: req.params.id,
-    user_id: req.body.user_id,
-  };
+router.delete('/reaction/:id', authenticateJWT, (req, res) => {
+  const data = { id: req.params.id, user_id: req.user.id };
   deleteReaction(data)
     .then((results) => {
-      if (!results) {
-        return res.status(404).json({ error: 'Reaction not found' });
-      }
+      if (!results) return res.status(404).json({ error: 'Reaction not found' });
       res.status(200).json(results);
     })
     .catch((error) => {
@@ -805,27 +799,26 @@ router.post('/:id/pin', authenticateJWT, async (req, res, next) => {
 });
 
 // Report a post
-router.post('/:id/report', (req, res) => {
-  if (!req.body.user_id || !req.body.reason) {
-    return res.status(400).json({ message: 'user_id and reason not found.' });
+router.post('/:id/report', authenticateJWT, (req, res) => {
+  if (!req.body.reason) {
+    return res.status(400).json({ message: 'reason not found.' });
   }
-
   const data = {
-    post_id: req.params.id,
-    user_id: req.body.user_id,
+    comment_id: req.params.id,
+    user_id: req.user.id,
     reason: req.body.reason,
     description: req.body.description || '',
   };
-
-  insertReport(data)
+  insertCommentReport(data)
     .then((result) => res.status(201).json(result))
     .catch((error) => {
       if (error.code === '23505') {
-        return res.status(409).json({ message: 'You have already reported this post.' });
+        return res.status(409).json({ message: 'You have already reported this comment.' });
       }
-      console.error('Error insertReport:', error);
+      console.error('Error insertCommentReport:', error);
       res.status(500).json({ message: 'Failed to submit report.' });
     });
 });
+
 
 module.exports = router;

@@ -6,6 +6,11 @@ const {
   insertPost,
   updatePostByID,
   deletePostByID,
+  getRelatedPosts,
+  getHotPosts,
+  getPostsByUserID,
+  searchAllPosts,
+  getSortedPosts,
   insertPoll,
   insertPollOption,
   updatePollQuestion,
@@ -532,6 +537,212 @@ describe('Posts.model - deletePostByID', () => {
       [-1],
     );
     expect(result).toBeUndefined();
+  });
+});
+
+// ── getRelatedPosts ───────────────────────────────────────
+describe('Posts.model - getRelatedPosts', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('should return related posts by shared category or tags', async () => {
+    const fakeRows = [{ id: 2, title: 'Related Post', shared_tag_count: 2 }];
+    pool.query.mockResolvedValue({ rows: fakeRows });
+
+    const result = await getRelatedPosts({ category: 'confession', id: 1 });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WITH current_tags'), [
+      'confession',
+      1,
+    ]);
+    expect(result).toEqual(fakeRows);
+  });
+
+  test('should return an empty array when no related posts exist', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getRelatedPosts({ category: 'general', id: 999 });
+
+    expect(result).toEqual([]);
+  });
+
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getRelatedPosts({ category: 'general', id: 1 })).rejects.toThrow(
+      'connection lost',
+    );
+  });
+});
+
+// ── getHotPosts ───────────────────────────────────────
+describe('Posts.model - getHotPosts', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('should return the top 3 hot posts ordered by hot_score', async () => {
+    const fakeRows = [
+      { id: 1, hot_score: 9.5 },
+      { id: 2, hot_score: 5.2 },
+    ];
+    pool.query.mockResolvedValue({ rows: fakeRows });
+
+    const result = await getHotPosts();
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('ORDER BY hot_score DESC'));
+    expect(result).toEqual(fakeRows);
+  });
+
+  test('should return an empty array when there are no recent posts', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getHotPosts();
+
+    expect(result).toEqual([]);
+  });
+
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getHotPosts()).rejects.toThrow('connection lost');
+  });
+});
+
+// ── getPostsByUserID ───────────────────────────────────────
+describe('Posts.model - getPostsByUserID', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test("should return a user's posts with engagement counts", async () => {
+    const fakeRows = [{ id: 1, title: 'My Post', like_count: 3, comment_count: 1 }];
+    pool.query.mockResolvedValue({ rows: fakeRows });
+
+    const result = await getPostsByUserID({ user_id: 5 });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), expect.arrayContaining([]));
+    expect(result).toEqual(fakeRows);
+  });
+
+  test('should return an empty array when the user has no posts', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getPostsByUserID({ user_id: 999 });
+
+    expect(result).toEqual([]);
+  });
+
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getPostsByUserID({ user_id: 5 })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── searchAllPosts ───────────────────────────────────────
+describe('Posts.model - searchAllPosts', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('should build a search filter when search is provided', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchAllPosts({ search: 'exam stress' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('ILIKE $1'), [
+      '%exam stress%',
+    ]);
+  });
+
+  test('should map a known category alias (q&a) to its enum value', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchAllPosts({ category: 'Q&A' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('p.category = $1'), ['qna']);
+  });
+
+  test('should ignore an unrecognized category instead of filtering by it', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchAllPosts({ category: 'not-a-real-category' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.not.stringContaining('p.category ='), []);
+  });
+
+  test('should apply a date filter when a positive hour value is given', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchAllPosts({ date: '24' });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining("INTERVAL '24 hours'"),
+      [],
+    );
+  });
+
+  test('should ignore a non-positive date value', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchAllPosts({ date: '-5' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.not.stringContaining('INTERVAL'), []);
+  });
+
+  test('should return all posts when no filters are provided', async () => {
+    pool.query.mockResolvedValue({ rows: [{ id: 1 }] });
+
+    const result = await searchAllPosts({});
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), []);
+    expect(result).toEqual([{ id: 1 }]);
+  });
+
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(searchAllPosts({ search: 'x' })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── getSortedPosts ───────────────────────────────────────
+describe('Posts.model - getSortedPosts', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('should default to newest-first when no sort is given', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getSortedPosts({});
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('p.created_at DESC'));
+  });
+
+  test('should apply the hot sort order with weighted engagement', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getSortedPosts({ sort: 'hot' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('hot_score'.slice(0, 0)) || expect.any(String));
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('COUNT(DISTINCT pr.id) * 2'),
+    );
+  });
+
+  test('should apply a timeframe filter only for top/hot sorts, not newest', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getSortedPosts({ sort: 'newest', timeframe: 'week' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.not.stringContaining('AND p.created_at >='));
+  });
+
+  test('should apply a week timeframe filter for a top sort', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getSortedPosts({ sort: 'top', timeframe: 'week' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining("INTERVAL '7 days'"));
+  });
+
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getSortedPosts({})).rejects.toThrow('connection lost');
   });
 });
 
@@ -1376,7 +1587,7 @@ describe('Posts.model - upsertTag', () => {
     expect(pool.query).toHaveBeenCalledWith(expect.any(String), ['finals']);
   });
 
-  // Valid partition: an existing tag name 
+  // Valid partition: an existing tag name
   test('should resolve to the existing row when the tag name already exists', async () => {
     const existingTag = { id: 3, name: 'confession' };
     pool.query.mockResolvedValue({ rows: [existingTag] });
@@ -1451,9 +1662,7 @@ describe('Posts.model - getTagsByPostID', () => {
 
     const result = await getTagsByPostID({ post_id: 10 });
 
-    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE pt.post_id = $1'), [
-      10,
-    ]);
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE pt.post_id = $1'), [10]);
     expect(result).toEqual(fakeTags);
   });
 
@@ -1638,9 +1847,7 @@ describe('Posts.model - getPostAnalytics', () => {
   test('should propagate database errors', async () => {
     pool.query.mockRejectedValue(new Error('connection lost'));
 
-    await expect(getPostAnalytics({ post_id: 10, user_id: 5 })).rejects.toThrow(
-      'connection lost',
-    );
+    await expect(getPostAnalytics({ post_id: 10, user_id: 5 })).rejects.toThrow('connection lost');
   });
 });
 

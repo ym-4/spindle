@@ -4,19 +4,18 @@ const { generatePandabotReply, getPandabotUserId } = require('../../src/services
 let mockUserId = 1;
 
 jest.mock('../../src/middlewares/auth.middleware', () => ({
-  authenticateJWT: (req, res, next) => {
+  authenticateJWT: async (req, res, next) => {
+    const pool = require('../../src/models/db');
+    const { rows } = await pool.query('SELECT role FROM "Person" WHERE id = $1', [mockUserId]);
     req.user = {
       id: mockUserId,
       name: 'Test User',
       email: 'test@test.com',
-      role: 'user',
+      role: rows[0]?.role || 'user',
     };
     next();
   },
-
-  requireAdmin: (req, res, next) => {
-    next();
-  },
+  requireAdmin: (req, res, next) => next(),
 }));
 
 jest.mock('../../src/services/pandabot', () => ({
@@ -879,5 +878,81 @@ describe('POST /comments/:post_id — @mention notifications', () => {
       [commenter.id],
     );
     expect(rows).toHaveLength(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// POST /comments/:post_id — @mention notifications
+// ─────────────────────────────────────────────────────────
+describe('POST /comments/:id/report', () => {
+  test('should submit a report using the authenticated user, not a client-supplied one', async () => {
+    const author = await createTestUser('ReportedCommentAuthor', 'reportedcommentauthor@example.com');
+    const post = await createTestPost(author.id);
+    const { rows } = await pool.query(
+      `INSERT INTO "PostComments" (user_id, post_id, content) VALUES ($1, $2, 'bad comment') RETURNING id`,
+      [author.id, post.id],
+    );
+    const commentId = rows[0].id;
+
+    const reporter = await createTestUser('CommentReporter', 'commentreporter@example.com');
+
+    const res = await request(app)
+      .post(`/comments/${commentId}/report`)
+      .send({ reason: 'harassment' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.user_id).toBe(reporter.id);
+  });
+
+  test('should return 400 when reason is missing', async () => {
+    const author = await createTestUser('NoReasonAuthor', 'noreasonauthor@example.com');
+    const post = await createTestPost(author.id);
+    const { rows } = await pool.query(
+      `INSERT INTO "PostComments" (user_id, post_id, content) VALUES ($1, $2, 'comment') RETURNING id`,
+      [author.id, post.id],
+    );
+
+    const res = await request(app).post(`/comments/${rows[0].id}/report`).send({});
+
+    expect(res.status).toBe(400);
+  });
+
+  test('should return 409 when the same user reports the same comment twice', async () => {
+    const author = await createTestUser('DupeReportAuthor', 'dupereportauthor@example.com');
+    const post = await createTestPost(author.id);
+    const { rows } = await pool.query(
+      `INSERT INTO "PostComments" (user_id, post_id, content) VALUES ($1, $2, 'comment') RETURNING id`,
+      [author.id, post.id],
+    );
+    await createTestUser('DupeReporter', 'dupereporter@example.com');
+
+    await request(app).post(`/comments/${rows[0].id}/report`).send({ reason: 'spam' });
+    const res = await request(app).post(`/comments/${rows[0].id}/report`).send({ reason: 'spam' });
+
+    expect(res.status).toBe(409);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// GET /comments/reports
+// ─────────────────────────────────────────────────────────
+describe('GET /comments/reports', () => {
+  test('should return the report list for an admin', async () => {
+    const admin = await createTestUser('CommentReportsAdmin', 'commentreportsadmin@example.com');
+    await pool.query(`UPDATE "Person" SET role = 'admin' WHERE id = $1`, [admin.id]);
+    mockUserId = admin.id;
+
+    const res = await request(app).get('/comments/reports');
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  test('should return 403 for a non-admin user', async () => {
+    await createTestUser('RegularCommentUser', 'regularcommentuser@example.com');
+
+    const res = await request(app).get('/comments/reports');
+
+    expect(res.status).toBe(403);
   });
 });

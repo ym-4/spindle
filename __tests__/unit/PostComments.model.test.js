@@ -13,6 +13,8 @@ const {
   updateCommentReaction,
   deleteCommentReaction,
   deleteCommentByPostOwner,
+  insertCommentReport,
+  getAllCommentReports,
 } = require('../../src/models/PostComments.model');
 
 // ── Mocking ──────────────────────────────────────────────
@@ -836,5 +838,80 @@ describe('PostComments.model - deleteCommentByPostOwner', () => {
     await expect(deleteCommentByPostOwner({ id: 1, user_id: 5 })).rejects.toThrow(
       'connection lost',
     );
+  });
+});
+
+// ── insertCommentReport ───────────────────────────────────
+describe('PostComments.model - insertCommentReport', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('should insert a report and return it', async () => {
+    const fakeReport = { id: 1, comment_id: 5, user_id: 2, reason: 'spam' };
+    pool.query.mockResolvedValue({ rows: [fakeReport] });
+
+    const result = await insertCommentReport({ comment_id: 5, user_id: 2, reason: 'spam' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO "CommentReports"'), [
+      5,
+      2,
+      'spam',
+      '',
+    ]);
+    expect(result).toEqual(fakeReport);
+  });
+
+  test('should default description to an empty string when omitted', async () => {
+    pool.query.mockResolvedValue({ rows: [{ id: 1 }] });
+
+    await insertCommentReport({ comment_id: 5, user_id: 2, reason: 'spam' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [5, 2, 'spam', '']);
+  });
+
+  test('should propagate duplicate-report constraint errors', async () => {
+    const err = new Error('duplicate key value');
+    err.code = '23505';
+    pool.query.mockRejectedValue(err);
+
+    await expect(
+      insertCommentReport({ comment_id: 5, user_id: 2, reason: 'spam' }),
+    ).rejects.toThrow('duplicate key value');
+  });
+});
+
+// ── getAllCommentReports ──────────────────────────────────
+describe('PostComments.model - getAllCommentReports', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('should exclude dismissed reports by default', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getAllCommentReports(false);
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE (cr.dismissed IS NULL OR cr.dismissed = FALSE)'),
+    );
+  });
+
+  test('should include dismissed reports when requested', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getAllCommentReports(true);
+
+    expect(pool.query).toHaveBeenCalledWith(expect.not.stringContaining('WHERE (cr.dismissed'));
+  });
+
+  test('should return an empty array when there are no reports', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getAllCommentReports(false);
+
+    expect(result).toEqual([]);
+  });
+
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getAllCommentReports(false)).rejects.toThrow('connection lost');
   });
 });

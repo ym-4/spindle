@@ -222,17 +222,6 @@ router.delete('/reaction/:id', (req, res) => {
     });
 });
 
-// Get Comments by post ID
-router.get('/:post_id', (req, res, next) => {
-  const data = {
-    post_id: req.params.post_id,
-  };
-
-  getCommentsByPostID(data)
-    .then((Comments) => res.status(200).json(Comments))
-    .catch(next);
-});
-
 // notifications for @mentions
 async function notifyMentionedUsers(content, senderUserId, postId, commentId) {
   const mentions = [...content.matchAll(/@([a-zA-Z0-9_]+)/g)]
@@ -427,8 +416,13 @@ router.delete('/:id', authenticateJWT, (req, res) => {
 // Get all comment reports (admin only)
 router.get('/reports', authenticateJWT, async (req, res, next) => {
   try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Forbidden action' });
+    }
+
     const includeDismissed = req.query.includeDismissed === 'true';
     const reports = await getAllCommentReports(includeDismissed);
+
     res.status(200).json(reports);
   } catch (err) {
     next(err);
@@ -436,27 +430,39 @@ router.get('/reports', authenticateJWT, async (req, res, next) => {
 });
 
 // Report a comment
-router.post('/:id/report', (req, res) => {
-  if (!req.body.user_id || !req.body.reason) {
-    return res.status(400).json({ message: 'user_id and reason not found.' });
+router.post('/:id/report', authenticateJWT, async (req, res) => {
+  if (!req.body.reason) {
+    return res.status(400).json({ message: 'Reason not found.' });
   }
 
   const data = {
     comment_id: req.params.id,
-    user_id: req.body.user_id,
+    user_id: req.user.id,
     reason: req.body.reason,
     description: req.body.description || '',
   };
 
-  insertCommentReport(data)
-    .then((result) => res.status(201).json(result))
-    .catch((error) => {
-      if (error.code === '23505') {
-        return res.status(409).json({ message: 'You have already reported this comment.' });
-      }
-      console.error('Error insertCommentReport:', error);
-      res.status(500).json({ message: 'Failed to submit report.' });
-    });
+  try {
+    const result = await insertCommentReport(data);
+    res.status(201).json(result);
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ message: 'You have already reported this comment.' });
+    }
+    console.error('Error insertCommentReport:', error);
+    res.status(500).json({ message: 'Failed to submit report.' });
+  }
+});
+
+// Get Comments by post ID
+router.get('/:post_id', (req, res, next) => {
+  const data = {
+    post_id: req.params.post_id,
+  };
+
+  getCommentsByPostID(data)
+    .then((Comments) => res.status(200).json(Comments))
+    .catch(next);
 });
 
 module.exports = router;
