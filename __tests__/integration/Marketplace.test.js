@@ -6,7 +6,7 @@ const pool = require('../../src/models/db');
 
 // Creates the tables the Marketplace routes need (no-op if they already exist).
 async function applySchema() {
-  const sql = fs.readFileSync(path.join(".", 'schema.sql'), 'utf8');
+  const sql = fs.readFileSync(path.join('.', 'schema.sql'), 'utf8');
   await pool.query(sql);
 }
 
@@ -22,7 +22,6 @@ async function truncateAll() {
 async function closePool() {
   await pool.end();
 }
-
 
 // A real (tiny, valid) 1x1 PNG, so multer's fileFilter (which checks
 // mimetype) and any future image-processing code have real bytes to work with.

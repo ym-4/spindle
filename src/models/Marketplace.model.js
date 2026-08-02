@@ -232,8 +232,8 @@ module.exports.getRecommendedItems = async function getRecommendedItems(itemId, 
   const excludeIds = [Number(itemId)];
 
   if (tagIds.length > 0) {
-  const { rows } = await pool.query(
-    `
+    const { rows } = await pool.query(
+      `
     SELECT m.*,
       COALESCE(img.images, '[]') AS images,
       COALESCE(tg.tags, '[]') AS tags,
@@ -262,8 +262,8 @@ module.exports.getRecommendedItems = async function getRecommendedItems(itemId, 
     ORDER BY match_count DESC, random()
     LIMIT $3
   `,
-    [tagIds, itemId, limit],
-  );
+      [tagIds, itemId, limit],
+    );
 
     results.push(...rows);
     excludeIds.push(...rows.map((r) => r.id));

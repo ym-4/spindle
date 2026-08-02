@@ -37,10 +37,15 @@ function listingCards(page) {
 }
 
 function cardByTitle(page, title) {
-  return listingCards(page).filter({ has: page.locator('.spindle-card-title', { hasText: title }) });
+  return listingCards(page).filter({
+    has: page.locator('.spindle-card-title', { hasText: title }),
+  });
 }
 
-async function fillListingForm(page, { title, description, price, condition, location, tags = [] }) {
+async function fillListingForm(
+  page,
+  { title, description, price, condition, location, tags = [] },
+) {
   await page.locator('#listingTitle').fill(title);
   await page.locator('#listingDescription').fill(description);
   await page.locator('#listingPrice').fill(String(price));
@@ -177,9 +182,7 @@ test.describe('Create Listing', () => {
 
 // ── Item Detail Page ─────────────────────────────────────
 test.describe('Item Detail Page', () => {
-  test('should show the listing title, price, description, and meet-up spot', async ({
-    page,
-  }) => {
+  test('should show the listing title, price, description, and meet-up spot', async ({ page }) => {
     const listing = makeListing('Detail Page', { price: '30', location: 'Clementi MRT' });
     const card = await createListing(page, listing);
     const itemId = await card.getAttribute('data-id');
