@@ -3,7 +3,26 @@ const path = require('path');
 const request = require('supertest');
 const app = require('../../src/app');
 const pool = require('../../src/models/db');
-const { applySchema, truncateAll, closePool } = require('./setup');
+
+// Creates the tables the Marketplace routes need (no-op if they already exist).
+async function applySchema() {
+  const sql = fs.readFileSync(path.join(".", 'schema.sql'), 'utf8');
+  await pool.query(sql);
+}
+
+// Wipes all Marketplace-related tables between tests so one test's data
+// never leaks into the next. RESTART IDENTITY resets the SERIAL id counters
+// too, so ids are predictable within a single test.
+async function truncateAll() {
+  await pool.query(
+    'TRUNCATE TABLE "ItemTags", "ListingImages", "Tags", "MarketplaceItems" RESTART IDENTITY CASCADE',
+  );
+}
+
+async function closePool() {
+  await pool.end();
+}
+
 
 // A real (tiny, valid) 1x1 PNG, so multer's fileFilter (which checks
 // mimetype) and any future image-processing code have real bytes to work with.
@@ -14,6 +33,14 @@ const PNG_1PX = Buffer.from(
 );
 
 const uploadedFiles = []; // track real files written to disk so we can clean them up
+
+async function seedSeller() {
+  await pool.query(
+    `INSERT INTO "Person" ("id", "email", "name")
+     VALUES (1, 'seller@spindle.test', 'Test Seller')
+     ON CONFLICT ("id") DO NOTHING`,
+  );
+}
 
 async function createItem(overrides = {}) {
   const res = await request(app)
@@ -32,6 +59,7 @@ async function createItem(overrides = {}) {
 
 beforeAll(async () => {
   await applySchema();
+  await seedSeller();
 });
 
 beforeEach(async () => {

@@ -61,6 +61,13 @@ test('createItem inserts a row and returns it', async () => {
   expect(result).toEqual(fakeItem);
 });
 
+test('createItem propagates DB errors', async () => {
+  pool.query.mockRejectedValueOnce(new Error('connection lost'));
+  await expect(createItem(5, 'Textbook', 'desc', 20, 'good', 'Clementi MRT')).rejects.toThrow(
+    'connection lost',
+  );
+});
+
 test('getAllItemsById queries by id and returns the first row', async () => {
   const fakeItem = { id: 7, name: 'Calculator' };
   pool.query.mockResolvedValueOnce({ rows: [fakeItem] });
@@ -77,6 +84,11 @@ test('getAllItemsById returns undefined when no row matches', async () => {
   pool.query.mockResolvedValueOnce({ rows: [] });
   const result = await getAllItemsById(999);
   expect(result).toBeUndefined();
+});
+
+test('getAllItemsById propagates DB errors', async () => {
+  pool.query.mockRejectedValueOnce(new Error('connection lost'));
+  await expect(getAllItemsById(7)).rejects.toThrow('connection lost');
 });
 
 test('addImagesToItem continues sort_order from the current max instead of restarting at 0', async () => {
@@ -107,6 +119,21 @@ test('addImagesToItem starts at 0 when the item has no existing images', async (
   expect(pool.query.mock.calls[1][1]).toEqual([2, '/first.png', 0]);
 });
 
+test('addImagesToItem still runs the MAX lookup but inserts nothing when given an empty array', async () => {
+  pool.query.mockResolvedValueOnce({ rows: [{ maxOrder: -1 }] });
+
+  const result = await addImagesToItem(2, []);
+
+  // Only the MAX query runs; no INSERT queries fire for an empty list
+  expect(pool.query).toHaveBeenCalledTimes(1);
+  expect(result).toEqual([]);
+});
+
+test('addImagesToItem propagates DB errors from the MAX lookup', async () => {
+  pool.query.mockRejectedValueOnce(new Error('connection lost'));
+  await expect(addImagesToItem(2, ['/a.png'])).rejects.toThrow('connection lost');
+});
+
 test('setCoverImage moves the target image to sort_order 0 and shifts the rest after it', async () => {
   // Existing images in order: 10, 20, 30. Making 20 the cover.
   pool.query
@@ -134,6 +161,11 @@ test('setCoverImage returns null when the image does not belong to the item', as
   expect(result).toBeNull();
 });
 
+test('setCoverImage propagates DB errors from the initial SELECT', async () => {
+  pool.query.mockRejectedValueOnce(new Error('connection lost'));
+  await expect(setCoverImage(1, 20)).rejects.toThrow('connection lost');
+});
+
 test('deleteItemImage deletes scoped to both image id and item id', async () => {
   const fakeImage = { id: 5, item_id: 1 };
   pool.query.mockResolvedValueOnce({ rows: [fakeImage] });
@@ -148,6 +180,11 @@ test('deleteItemImage returns undefined when nothing matched', async () => {
   pool.query.mockResolvedValueOnce({ rows: [] });
   const result = await deleteItemImage(5, 1);
   expect(result).toBeUndefined();
+});
+
+test('deleteItemImage propagates DB errors', async () => {
+  pool.query.mockRejectedValueOnce(new Error('connection lost'));
+  await expect(deleteItemImage(5, 1)).rejects.toThrow('connection lost');
 });
 
 test('updateItem updates the row and returns it', async () => {
@@ -174,6 +211,27 @@ test('updateItem updates the row and returns it', async () => {
   expect(result).toEqual(fakeItem);
 });
 
+test('updateItem returns undefined when no row matches the given id', async () => {
+  pool.query.mockResolvedValueOnce({ rows: [] });
+
+  const result = await updateItem(999, {
+    name: 'Ghost',
+    price: 1,
+    description: '',
+    quality: 'good',
+    meetup: '',
+  });
+
+  expect(result).toBeUndefined();
+});
+
+test('updateItem propagates DB errors', async () => {
+  pool.query.mockRejectedValueOnce(new Error('connection lost'));
+  await expect(
+    updateItem(1, { name: 'x', price: 1, description: 'd', quality: 'good', meetup: 'm' }),
+  ).rejects.toThrow('connection lost');
+});
+
 test('setItemStatus accepts "active" and "sold" and updates the row', async () => {
   const fakeItem = { id: 1, status: 'sold' };
   pool.query.mockResolvedValueOnce({ rows: [fakeItem] });
@@ -189,6 +247,16 @@ test('setItemStatus rejects any status outside the allowed list without querying
   expect(pool.query).not.toHaveBeenCalled();
 });
 
+test('setItemStatus rejects a missing/undefined status without querying the db', async () => {
+  await expect(setItemStatus(1, undefined)).rejects.toThrow(/Invalid status "undefined"/);
+  expect(pool.query).not.toHaveBeenCalled();
+});
+
+test('setItemStatus propagates DB errors for an otherwise-valid status', async () => {
+  pool.query.mockRejectedValueOnce(new Error('connection lost'));
+  await expect(setItemStatus(1, 'sold')).rejects.toThrow('connection lost');
+});
+
 test('deleteItem deletes and returns the removed row', async () => {
   const fakeItem = { id: 1 };
   pool.query.mockResolvedValueOnce({ rows: [fakeItem] });
@@ -197,6 +265,17 @@ test('deleteItem deletes and returns the removed row', async () => {
 
   expect(pool.query.mock.calls[0][1]).toEqual([1]);
   expect(result).toEqual(fakeItem);
+});
+
+test('deleteItem returns undefined when no row matches the given id', async () => {
+  pool.query.mockResolvedValueOnce({ rows: [] });
+  const result = await deleteItem(999);
+  expect(result).toBeUndefined();
+});
+
+test('deleteItem propagates DB errors', async () => {
+  pool.query.mockRejectedValueOnce(new Error('connection lost'));
+  await expect(deleteItem(1)).rejects.toThrow('connection lost');
 });
 
 test('setItemTags clears existing tags then finds-or-creates and attaches each new one', async () => {
@@ -232,6 +311,12 @@ test('setItemTags results in no attached tags when given an empty list, but stil
   expect(result).toEqual([]);
 });
 
+test('setItemTags propagates DB errors from the DELETE step, before touching findOrCreateTag', async () => {
+  pool.query.mockRejectedValueOnce(new Error('connection lost'));
+  await expect(setItemTags(10, ['textbooks'])).rejects.toThrow('connection lost');
+  expect(findOrCreateTag).not.toHaveBeenCalled();
+});
+
 test('getTagsForItem returns the tags attached to the item', async () => {
   const fakeTags = [{ id: 1, name: 'textbooks' }];
   pool.query.mockResolvedValueOnce({ rows: fakeTags });
@@ -242,12 +327,23 @@ test('getTagsForItem returns the tags attached to the item', async () => {
   expect(result).toEqual(fakeTags);
 });
 
+test('getTagsForItem returns an empty array when the item has no tags', async () => {
+  pool.query.mockResolvedValueOnce({ rows: [] });
+  const result = await getTagsForItem(10);
+  expect(result).toEqual([]);
+});
+
 test('getItemsByTag normalizes the tag name to lowercase and trims whitespace', async () => {
   pool.query.mockResolvedValueOnce({ rows: [] });
 
   await getItemsByTag('  Textbooks  ');
 
   expect(pool.query.mock.calls[0][1]).toEqual(['textbooks']);
+});
+
+test('getItemsByTag propagates DB errors', async () => {
+  pool.query.mockRejectedValueOnce(new Error('connection lost'));
+  await expect(getItemsByTag('textbooks')).rejects.toThrow('connection lost');
 });
 
 test('getRecommendedItems fills entirely with random items when the source item has no tags', async () => {
@@ -287,4 +383,9 @@ test('getRecommendedItems skips the random top-up query when tag matches already
 
   expect(pool.query).toHaveBeenCalledTimes(2);
   expect(result).toEqual([{ id: 2 }, { id: 3 }]);
+});
+
+test('getRecommendedItems propagates DB errors from the initial tags lookup', async () => {
+  pool.query.mockRejectedValueOnce(new Error('connection lost'));
+  await expect(getRecommendedItems(1, 4)).rejects.toThrow('connection lost');
 });
