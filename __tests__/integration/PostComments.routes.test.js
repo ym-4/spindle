@@ -368,15 +368,18 @@ describe('POST /comments/:post_id', () => {
       return originalQuery(text, params);
     });
 
-    const res = await request(app)
-      .post(`/comments/${post.id}`)
-      .set('Authorization', `Bearer ${commenter.token}`)
-      .field('content', 'hey @someone check this out');
+    try {
+      const res = await request(app)
+        .post(`/comments/${post.id}`)
+        .set('Authorization', `Bearer ${commenter.token}`)
+        .field('content', 'hey @someone check this out');
 
-    expect(res.status).toBe(201);
+      expect(res.status).toBe(201);
 
-    await new Promise((r) => setTimeout(r, 300));
-    querySpy.mockRestore();
+      await new Promise((r) => setTimeout(r, 300));
+    } finally {
+      querySpy.mockRestore();
+    }
   });
 
   // Error handling: comment creation still succeeds when post-owner notification fails
@@ -403,15 +406,45 @@ describe('POST /comments/:post_id', () => {
       return originalQuery(text, params);
     });
 
+    try {
+      const res = await request(app)
+        .post(`/comments/${post.id}`)
+        .set('Authorization', `Bearer ${commenter.token}`)
+        .field('content', 'no mentions here, just a comment');
+
+      expect(res.status).toBe(201);
+
+      await new Promise((r) => setTimeout(r, 300));
+    } finally {
+      querySpy.mockRestore();
+    }
+  });
+
+  // Valid partition: commenting on someone else's post notifies the post owner
+  test('should notify the post owner when a different user comments', async () => {
+    const author = await createTestUser('NotifyOwnerSuccessAuthor', 'notifyownersuccessauthor@example.com');
+    const post = await createTestPost(author.id);
+    const commenter = await createTestUser(
+      'NotifyOwnerSuccessCommenter',
+      'notifyownersuccesscommenter@example.com',
+    );
+
     const res = await request(app)
       .post(`/comments/${post.id}`)
       .set('Authorization', `Bearer ${commenter.token}`)
-      .field('content', 'no mentions here, just a comment');
+      .field('content', 'a comment with no mentions');
 
     expect(res.status).toBe(201);
 
-    await new Promise((r) => setTimeout(r, 300));
-    querySpy.mockRestore();
+    const notif = await waitFor(async () => {
+      const { rows: notifRows } = await pool.query(
+        `SELECT * FROM "Notifications" WHERE user_id = $1 AND type = 'comment'`,
+        [author.id],
+      );
+      return notifRows[0];
+    });
+
+    expect(notif.title).toContain('commented on your post');
   });
 });
 
@@ -1066,15 +1099,51 @@ describe('POST /comments/like', () => {
       return originalQuery(text, params);
     });
 
+    try {
+      const res = await request(app)
+        .post('/comments/like')
+        .set('Authorization', `Bearer ${liker.token}`)
+        .send({ comment_id: commentId, reaction_type: 'like' });
+
+      expect(res.status).toBe(201);
+
+      await new Promise((r) => setTimeout(r, 300));
+    } finally {
+      querySpy.mockRestore();
+    }
+  });
+
+  // Valid partition: reacting to someone else's comment sends them a notification
+  test('should notify the comment owner when a different user dislikes their comment', async () => {
+    const author = await createTestUser('NotifySuccessAuthor', 'notifysuccessauthor@example.com');
+    const post = await createTestPost(author.id);
+
+    const { rows } = await pool.query(
+      `INSERT INTO "PostComments" (user_id, post_id, content)
+       VALUES ($1, $2, 'Notify-success target')
+       RETURNING id`,
+      [author.id, post.id],
+    );
+    const commentId = rows[0].id;
+
+    const disliker = await createTestUser('NotifySuccessDisliker', 'notifysuccessdisliker@example.com');
+
     const res = await request(app)
       .post('/comments/like')
-      .set('Authorization', `Bearer ${liker.token}`)
-      .send({ comment_id: commentId, reaction_type: 'like' });
+      .set('Authorization', `Bearer ${disliker.token}`)
+      .send({ comment_id: commentId, reaction_type: 'dislike' });
 
     expect(res.status).toBe(201);
 
-    await new Promise((r) => setTimeout(r, 300));
-    querySpy.mockRestore();
+    const notif = await waitFor(async () => {
+      const { rows: notifRows } = await pool.query(
+        `SELECT * FROM "Notifications" WHERE user_id = $1 AND type = 'comment_reaction'`,
+        [author.id],
+      );
+      return notifRows[0];
+    });
+
+    expect(notif.title).toContain('reacted 👎 to your comment');
   });
 });
 

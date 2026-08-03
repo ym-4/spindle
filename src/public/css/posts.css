@@ -93,6 +93,46 @@ body {
   margin-left: auto;
 }
 
+.sidebar-toggle-btn {
+  display: none;
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  z-index: 1060;
+}
+
+.sidebar-toggle-btn:hover {
+  background-color: var(--hover-bg);
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
+  z-index: 1050;
+}
+
+.sidebar-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
 .notif-bell {
   color: var(--text-primary);
   font-size: 1.2rem;
@@ -846,13 +886,15 @@ body {
 
 .create-post-options {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   padding-top: 0.85rem;
   border-top: 1px solid var(--border-color);
 }
 
 .create-post-option {
-  flex: 1;
+  flex: 1 1 140px;
+  min-width: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -958,6 +1000,15 @@ body {
 
 .post-content-input::placeholder {
   color: #888;
+  font-weight: 500;
+}
+
+.post-content-input::-webkit-input-placeholder,
+.post-content-input::-moz-placeholder,
+.post-content-input:-ms-input-placeholder,
+.post-content-input::-ms-input-placeholder {
+  color: #888;
+  font-weight: 500;
 }
 
 .post-meta-section {
@@ -2937,6 +2988,10 @@ label:has(> .comment-edit-attachment-input) i {
 }
 
 @media (max-width: 768px) {
+  .sidebar-toggle-btn {
+    display: inline-flex;
+  }
+
   .content-area {
     padding: 0 1rem;
     max-width: 100%;
@@ -2948,7 +3003,48 @@ label:has(> .comment-edit-attachment-input) i {
     display: none;
   }
   .sidebar {
+    position: fixed;
+    z-index: 1055;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    max-width: 90vw;
+    height: 100vh;
+    padding-top: 70px;
+    margin: 0;
+    transform: translateX(-110%);
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      transform 0.25s ease,
+      opacity 0.25s ease,
+      visibility 0.25s ease;
+    box-shadow: 6px 0 18px rgba(0, 0, 0, 0.16);
+    background-color: var(--card-background);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .navbar .navbar-brand {
+    margin-left: 3.5rem;
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .right-sidebar {
     display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .create-post-option {
+    flex: 1 1 100%;
   }
 }
 

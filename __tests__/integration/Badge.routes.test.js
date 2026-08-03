@@ -3,10 +3,6 @@ const app = require('../../src/app');
 const pool = require('../../src/models/db');
 
 // ── DB Setup / Teardown ──────────────────────────────────
-// This router has no authenticateJWT middleware, so no auth mock is needed.
-// "Badges" catalog rows are created per-test with a "test_" key prefix so
-// this suite is self-contained and doesn't depend on seed.js's real catalog.
-
 beforeEach(async () => {
   await pool.query('DELETE FROM "UserBadges"');
   await pool.query(`DELETE FROM "Badges" WHERE key LIKE 'test\\_%'`);
@@ -22,18 +18,19 @@ afterAll(async () => {
   await pool.end();
 });
 
-// ── Helper ───────────────────────────────────────────────
-async function createTestUser(name = 'Test User', email = 'test@test.com') {
-  const { rows } = await pool.query(
-    `
-    INSERT INTO "Person"
-    (name, email, hashed_password, role, email_verified)
-    VALUES ($1, $2, 'fakehash', 'user', TRUE)
-    RETURNING id
-    `,
-    [name, email],
-  );
-  return { id: rows[0].id };
+// ── Helpers ───────────────────────────────────────────────
+async function registerAndVerify(name, email, password = 'secret') {
+  const reg = await request(app).post('/auth/register').send({ name, email, password });
+  const verify = await request(app).post('/auth/verify-email').send({
+    email,
+    code: reg.body.previewCode,
+  });
+  return { user: verify.body.user, token: verify.body.token };
+}
+
+async function createTestUser(name = 'Test User', email = 'test@test.com', password = 'secret') {
+  const { user, token } = await registerAndVerify(name, email, password);
+  return { id: user.id, token };
 }
 
 async function createTestBadge(key, name = 'Test Badge', description = 'A test badge.') {
@@ -64,7 +61,9 @@ describe('GET /badges/:user_id', () => {
     const notOwned = await createTestBadge('test_prolific_poster', 'Prolific Poster');
     await awardTestBadge(user.id, owned.id);
 
-    const res = await request(app).get(`/badges/${user.id}`);
+    const res = await request(app)
+      .get(`/badges/${user.id}`)
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     const ownedEntry = res.body.find((b) => b.id === owned.id);
@@ -80,7 +79,9 @@ describe('GET /badges/:user_id', () => {
     const user = await createTestUser('NoBadgesUser', 'nobadgesuser@example.com');
     await createTestBadge('test_group_joiner', 'Group Joiner');
 
-    const res = await request(app).get(`/badges/${user.id}`);
+    const res = await request(app)
+      .get(`/badges/${user.id}`)
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.every((b) => b.unlocked === false)).toBe(true);
@@ -88,17 +89,24 @@ describe('GET /badges/:user_id', () => {
 
   // Boundary: a non-existent user_id should return everything locked
   test('should return all badges as locked for a non-existent user_id', async () => {
+    const user = await createTestUser('LookupUser', 'lookupuser@example.com');
     await createTestBadge('test_night_owl', 'Night Owl');
 
-    const res = await request(app).get('/badges/999999999');
+    const res = await request(app)
+      .get('/badges/999999999')
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.every((b) => b.unlocked === false)).toBe(true);
   });
 
-  // Error handling: a non-integer user_id causes a DB type error
+  // Error handling: a non-integer user_id
   test('should return 500 for a non-numeric user_id', async () => {
-    const res = await request(app).get('/badges/not-a-number');
+    const user = await createTestUser('BadIdUser', 'badiduser@example.com');
+
+    const res = await request(app)
+      .get('/badges/not-a-number')
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(500);
   });

@@ -1,23 +1,5 @@
 const request = require('supertest');
 
-let mockUserId = 1;
-
-jest.mock('../../src/middlewares/auth.middleware', () => ({
-  authenticateJWT: (req, res, next) => {
-    req.user = {
-      id: mockUserId,
-      name: 'Test User',
-      email: 'test@test.com',
-      role: 'user',
-    };
-    next();
-  },
-
-  requireAdmin: (req, res, next) => {
-    next();
-  },
-}));
-
 const app = require('../../src/app');
 const pool = require('../../src/models/db');
 
@@ -39,36 +21,19 @@ afterAll(async () => {
   await pool.end();
 });
 
-// ── Helper ───────────────────────────────────────────────
-async function createTestUser(name = 'Test User', email = 'test@test.com') {
-  const { rows } = await pool.query(
-    `
-    INSERT INTO "Person"
-    (
-      name,
-      email,
-      hashed_password,
-      role,
-      email_verified
-    )
-    VALUES
-    (
-      $1,
-      $2,
-      'fakehash',
-      'user',
-      TRUE
-    )
-    RETURNING id
-    `,
-    [name, email],
-  );
+// ── Helpers ───────────────────────────────────────────────
+async function registerAndVerify(name, email, password = 'secret') {
+  const reg = await request(app).post('/auth/register').send({ name, email, password });
+  const verify = await request(app).post('/auth/verify-email').send({
+    email,
+    code: reg.body.previewCode,
+  });
+  return { user: verify.body.user, token: verify.body.token };
+}
 
-  mockUserId = rows[0].id;
-
-  return {
-    id: mockUserId,
-  };
+async function createTestUser(name = 'Test User', email = 'test@test.com', password = 'secret') {
+  const { user, token } = await registerAndVerify(name, email, password);
+  return { id: user.id, token };
 }
 
 // ─────────────────────────────────────────────────────────
@@ -119,7 +84,9 @@ describe('GET /snake/score', () => {
       33,
     ]);
 
-    const res = await request(app).get('/snake/score');
+    const res = await request(app)
+      .get('/snake/score')
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.best_score).toBe(33);
@@ -127,9 +94,11 @@ describe('GET /snake/score', () => {
 
   // Boundary: authenticated user has never played
   test('should return 0 when the user has no score row yet', async () => {
-    await createTestUser('NeverPlayed', 'neverplayed@example.com');
+    const user = await createTestUser('NeverPlayed', 'neverplayed@example.com');
 
-    const res = await request(app).get('/snake/score');
+    const res = await request(app)
+      .get('/snake/score')
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.best_score).toBe(0);
@@ -142,9 +111,12 @@ describe('GET /snake/score', () => {
 describe('POST /snake/score', () => {
   // Valid partition: first score submission creates the row
   test('should return 200 and create a new best score on first submission', async () => {
-    await createTestUser('FirstScoreUser', 'firstscoreuser@example.com');
+    const user = await createTestUser('FirstScoreUser', 'firstscoreuser@example.com');
 
-    const res = await request(app).post('/snake/score').send({ score: 15 });
+    const res = await request(app)
+      .post('/snake/score')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ score: 15 });
 
     expect(res.status).toBe(200);
     expect(res.body.best_score).toBe(15);
@@ -159,16 +131,17 @@ describe('POST /snake/score', () => {
       10,
     ]);
 
-    const res = await request(app).post('/snake/score').send({ score: 25 });
+    const res = await request(app)
+      .post('/snake/score')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ score: 25 });
 
     expect(res.status).toBe(200);
     expect(res.body.best_score).toBe(25);
     expect(res.body.is_new_best).toBe(true);
   });
 
-  // Boundary: a lower score should NOT overwrite the existing best
-  // (exercises the GREATEST()/CASE conflict logic against a real DB —
-  // the model unit tests can only assert the mocked pass-through, not this)
+  // Boundary: a lower score should not overwrite the existing best
   test('should not overwrite the best score when the new score is lower', async () => {
     const user = await createTestUser('DecliningUser', 'declininguser@example.com');
     await pool.query(`INSERT INTO "SnakeScores" (user_id, best_score) VALUES ($1, $2)`, [
@@ -176,7 +149,10 @@ describe('POST /snake/score', () => {
       50,
     ]);
 
-    const res = await request(app).post('/snake/score').send({ score: 12 });
+    const res = await request(app)
+      .post('/snake/score')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ score: 12 });
 
     expect(res.status).toBe(200);
     expect(res.body.best_score).toBe(50);
@@ -190,9 +166,12 @@ describe('POST /snake/score', () => {
 
   // Boundary: score = 0 is a valid, non-negative integer
   test('should accept a score of 0', async () => {
-    await createTestUser('ZeroScoreUser', 'zeroscoreuser@example.com');
+    const user = await createTestUser('ZeroScoreUser', 'zeroscoreuser@example.com');
 
-    const res = await request(app).post('/snake/score').send({ score: 0 });
+    const res = await request(app)
+      .post('/snake/score')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ score: 0 });
 
     expect(res.status).toBe(200);
     expect(res.body.best_score).toBe(0);
@@ -200,9 +179,12 @@ describe('POST /snake/score', () => {
 
   // Invalid partition: negative score is rejected
   test('should return 400 for a negative score', async () => {
-    await createTestUser('NegativeScoreUser', 'negativescoreuser@example.com');
+    const user = await createTestUser('NegativeScoreUser', 'negativescoreuser@example.com');
 
-    const res = await request(app).post('/snake/score').send({ score: -5 });
+    const res = await request(app)
+      .post('/snake/score')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ score: -5 });
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/non-negative/i);
@@ -210,9 +192,12 @@ describe('POST /snake/score', () => {
 
   // Invalid partition: non-numeric score is rejected
   test('should return 400 for a non-numeric score', async () => {
-    await createTestUser('BadScoreUser', 'badscoreuser@example.com');
+    const user = await createTestUser('BadScoreUser', 'badscoreuser@example.com');
 
-    const res = await request(app).post('/snake/score').send({ score: 'abc' });
+    const res = await request(app)
+      .post('/snake/score')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ score: 'abc' });
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/non-negative/i);
