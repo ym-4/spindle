@@ -146,7 +146,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // redirect to login if no token
   if (token == null) {
-    window.location.href = 'login.html';
+    window.location.href = 'home.html';
   }
 
   try {
