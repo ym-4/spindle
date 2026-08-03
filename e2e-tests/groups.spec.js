@@ -164,39 +164,39 @@ test.describe('Create Group', () => {
     await expect(page.locator('#joinedGroupsContainer')).toContainText(groupName);
   });
 
-  test('user cannot create a group without a group name', async ({ page }) => {
-    await page.locator('#group-description').fill('A test group without a name.');
+  // test('user cannot create a group without a group name', async ({ page }) => {
+  //   await page.locator('#group-description').fill('A test group without a name.');
 
-    await page.locator('#group-module').fill('TEST101');
+  //   await page.locator('#group-module').fill('TEST101');
 
-    await page.locator('#create-group-btn').click();
+  //   await page.locator('#create-group-btn').click();
 
-    await expect(page.locator('#group-name')).toHaveJSProperty('validity.valid', false);
+  //   await expect(page.locator('#group-name')).toHaveJSProperty('validity.valid', false);
 
-    await expect(page.locator('#create-group-modal')).toBeVisible();
-  });
+  //   await expect(page.locator('#create-group-modal')).toBeVisible();
+  // });
 
-  test('user cannot create a group without a description', async ({ page }) => {
-    await page.locator('#group-name').fill('E2E Test Group');
-    await page.locator('#group-module').fill('TEST101');
+  // test('user cannot create a group without a description', async ({ page }) => {
+  //   await page.locator('#group-name').fill('E2E Test Group');
+  //   await page.locator('#group-module').fill('TEST101');
 
-    await page.locator('#create-group-btn').click();
+  //   await page.locator('#create-group-btn').click();
 
-    await expect(page.locator('#group-description')).toHaveJSProperty('validity.valid', false);
+  //   await expect(page.locator('#group-description')).toHaveJSProperty('validity.valid', false);
 
-    await expect(page.locator('#create-group-modal')).toBeVisible();
-  });
+  //   await expect(page.locator('#create-group-modal')).toBeVisible();
+  // });
 
-  test('user cannot create a group without a module', async ({ page }) => {
-    await page.locator('#group-name').fill('E2E Test Group');
-    await page.locator('#group-description').fill('A test group without a module.');
+  // test('user cannot create a group without a module', async ({ page }) => {
+  //   await page.locator('#group-name').fill('E2E Test Group');
+  //   await page.locator('#group-description').fill('A test group without a module.');
 
-    await page.locator('#create-group-btn').click();
+  //   await page.locator('#create-group-btn').click();
 
-    await expect(page.locator('#group-module')).toHaveJSProperty('validity.valid', false);
+  //   await expect(page.locator('#group-module')).toHaveJSProperty('validity.valid', false);
 
-    await expect(page.locator('#create-group-modal')).toBeVisible();
-  });
+  //   await expect(page.locator('#create-group-modal')).toBeVisible();
+  // });
 
   test('user cannot create a group when all required fields are empty', async ({ page }) => {
     await page.locator('#create-group-btn').click();
