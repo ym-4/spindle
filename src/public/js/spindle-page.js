@@ -6,7 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const file = window.location.pathname.split('/').pop() || 'index.html';
-  const isPublicFeed = file === 'index.html' || file === 'home.html' || file === 'posts.html' || file === 'search.html';
+  const isPublicFeed =
+    file === 'index.html' ||
+    file === 'home.html' ||
+    file === 'posts.html' ||
+    file === 'search.html';
 
   if (!isPublicFeed && typeof isLoggedIn === 'function' && !isLoggedIn()) {
     redirectToLogin(file);

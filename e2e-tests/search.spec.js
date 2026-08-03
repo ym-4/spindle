@@ -74,22 +74,22 @@ test.describe('Search Results', () => {
 
   // Valid partition: clearing filters resets category/sort/date and reruns the search
   test('should reset filters and rerun the search when Clear is clicked', async ({ page }) => {
-  const keyword = `ClearFilterKeyword${Date.now()}`;
-  await createTestPost(page, { title: `${keyword} Post`, content: 'x', category: 'confession' });
+    const keyword = `ClearFilterKeyword${Date.now()}`;
+    await createTestPost(page, { title: `${keyword} Post`, content: 'x', category: 'confession' });
 
-  await gotoSearch(page, keyword);
-  await page.locator('#categoryFilterBtn').click();
-  await page.locator('.search-category-checkbox[value="confession"]').check();
-  await waitForSearchLoaded(page);
-  await expect(page.locator('#categoryFilterLabel')).toHaveText('Confession');
+    await gotoSearch(page, keyword);
+    await page.locator('#categoryFilterBtn').click();
+    await page.locator('.search-category-checkbox[value="confession"]').check();
+    await waitForSearchLoaded(page);
+    await expect(page.locator('#categoryFilterLabel')).toHaveText('Confession');
 
-  await page.locator('#categoryFilterBtn').click(); 
-  await page.locator('#clearSearchFiltersBtn').click();
-  await waitForSearchLoaded(page);
+    await page.locator('#categoryFilterBtn').click();
+    await page.locator('#clearSearchFiltersBtn').click();
+    await waitForSearchLoaded(page);
 
-  await expect(page.locator('#categoryFilterLabel')).toHaveText('All categories');
-  await expect(page.locator('#searchSort')).toHaveValue('newest');
-});
+    await expect(page.locator('#categoryFilterLabel')).toHaveText('All categories');
+    await expect(page.locator('#searchSort')).toHaveValue('newest');
+  });
 });
 
 // ── Search Filters ───────────────────────────────────────
@@ -113,7 +113,7 @@ test.describe('Search Filters', () => {
   test('should reorder results when sort is switched to oldest first', async ({ page }) => {
     const keyword = `SortOrderKeyword${Date.now()}`;
     await createTestPost(page, { title: `${keyword} First`, content: 'x' });
-    await page.waitForTimeout(1100); 
+    await page.waitForTimeout(1100);
     await createTestPost(page, { title: `${keyword} Second`, content: 'x' });
 
     await gotoSearch(page, keyword);
@@ -150,7 +150,9 @@ test.describe('Search Autocomplete & Recent Searches', () => {
 
     await expect(page.locator('#searchDropdown')).toBeVisible({ timeout: 5000 });
     await expect(
-      page.locator('#searchDropdown .search-dropdown-item').filter({ hasText: 'some partial query' }),
+      page
+        .locator('#searchDropdown .search-dropdown-item')
+        .filter({ hasText: 'some partial query' }),
     ).toBeVisible();
   });
 
@@ -164,9 +166,11 @@ test.describe('Search Autocomplete & Recent Searches', () => {
     await page.waitForTimeout(400);
 
     await page.locator('#searchInput').fill('');
-    await expect(page.locator('#searchDropdown')).toContainText('Recent searches', { timeout: 5000 });
-    await expect(page.locator('#searchDropdown')).toContainText(keyword);
+    await expect(page.locator('#searchDropdown')).toContainText('Recent searches', {
+      timeout: 5000,
     });
+    await expect(page.locator('#searchDropdown')).toContainText(keyword);
+  });
 
   // Boundary: removing a recent search removes only that entry
   test('should remove only the targeted recent search', async ({ page }) => {
@@ -174,23 +178,25 @@ test.describe('Search Autocomplete & Recent Searches', () => {
     const remove = `RemoveSearch${Date.now()}`;
 
     for (const term of [keep, remove]) {
-        await page.locator('#searchInput').fill(term);
-        await page.locator('#searchInput').press('Enter');
-        await waitForSearchLoaded(page);
-        await page.waitForTimeout(400);
+      await page.locator('#searchInput').fill(term);
+      await page.locator('#searchInput').press('Enter');
+      await waitForSearchLoaded(page);
+      await page.waitForTimeout(400);
     }
 
     await page.locator('#searchInput').fill('');
-    await expect(page.locator('#searchDropdown')).toContainText('Recent searches', { timeout: 5000 });
+    await expect(page.locator('#searchDropdown')).toContainText('Recent searches', {
+      timeout: 5000,
+    });
 
     const removeItem = page
-        .locator('#searchDropdown .search-dropdown-item')
-        .filter({ hasText: remove });
+      .locator('#searchDropdown .search-dropdown-item')
+      .filter({ hasText: remove });
     await removeItem.locator('.remove-recent').click();
 
     await expect(page.locator('#searchDropdown')).not.toContainText(remove);
     await expect(page.locator('#searchDropdown')).toContainText(keep);
-    });
+  });
 });
 
 // ── Tag Search ────────────────────────────────────────────

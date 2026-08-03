@@ -317,7 +317,7 @@ describe('POST /comments/:post_id', () => {
     expect(res.body.message).toMatch(/content is undefined/i);
   });
 
-  // Error handling: insertComments fails 
+  // Error handling: insertComments fails
   test('should return 500 when creating the comment fails', async () => {
     const author = await createTestUser('CommentFailAuthor', 'commentfailauthor@example.com');
     const post = await createTestPost(author.id);
@@ -334,7 +334,10 @@ describe('POST /comments/:post_id', () => {
 
   // Boundary: uploading a file attaches it to the new comment
   test('should attach a file when one is uploaded', async () => {
-    const author = await createTestUser('AttachNewCommentAuthor', 'attachnewcommentauthor@example.com');
+    const author = await createTestUser(
+      'AttachNewCommentAuthor',
+      'attachnewcommentauthor@example.com',
+    );
     const post = await createTestPost(author.id);
     const commenter = await createTestUser('AttachCommenter', 'attachcommenter@example.com');
 
@@ -352,7 +355,10 @@ describe('POST /comments/:post_id', () => {
   test('should still return 201 when @mention notification fails', async () => {
     const author = await createTestUser('MentionFailAuthor', 'mentionfailauthor@example.com');
     const post = await createTestPost(author.id);
-    const commenter = await createTestUser('MentionFailCommenter', 'mentionfailcommenter@example.com');
+    const commenter = await createTestUser(
+      'MentionFailCommenter',
+      'mentionfailcommenter@example.com',
+    );
 
     const originalQuery = pool.query.bind(pool);
     const querySpy = jest.spyOn(pool, 'query').mockImplementation((text, params) => {
@@ -375,9 +381,15 @@ describe('POST /comments/:post_id', () => {
 
   // Error handling: comment creation still succeeds when post-owner notification fails
   test('should still return 201 when post-owner notification fails', async () => {
-    const author = await createTestUser('OwnerNotifyFailAuthor', 'ownernotifyfailauthor@example.com');
+    const author = await createTestUser(
+      'OwnerNotifyFailAuthor',
+      'ownernotifyfailauthor@example.com',
+    );
     const post = await createTestPost(author.id);
-    const commenter = await createTestUser('OwnerNotifyFailCommenter', 'ownernotifyfailcommenter@example.com');
+    const commenter = await createTestUser(
+      'OwnerNotifyFailCommenter',
+      'ownernotifyfailcommenter@example.com',
+    );
 
     const originalQuery = pool.query.bind(pool);
     const querySpy = jest.spyOn(pool, 'query').mockImplementation((text, params) => {
@@ -458,7 +470,10 @@ describe('PUT /comments/:id', () => {
 
   // Boundary: remove_attachment=true clears the stored attachment reference
   test('should clear the attachment reference when remove_attachment is true', async () => {
-    const author = await createTestUser('ClearAttachCommentAuthor', 'clearattachcommentauthor@example.com');
+    const author = await createTestUser(
+      'ClearAttachCommentAuthor',
+      'clearattachcommentauthor@example.com',
+    );
     const post = await createTestPost(author.id);
 
     const { rows } = await pool.query(
@@ -633,9 +648,12 @@ describe('DELETE /comments/:id', () => {
     expect(res.body.error).toMatch(/not authorized|not found/i);
   });
 
-  // Error handling: deleteCommentsByID fails 
+  // Error handling: deleteCommentsByID fails
   test('should return 500 when deleting the comment fails', async () => {
-    const author = await createTestUser('DeleteCommentFailAuthor', 'deletecommentfailauthor@example.com');
+    const author = await createTestUser(
+      'DeleteCommentFailAuthor',
+      'deletecommentfailauthor@example.com',
+    );
     const post = await createTestPost(author.id);
 
     const { rows } = await pool.query(
@@ -844,7 +862,10 @@ describe('DELETE /comments/saved/:id', () => {
 
   // Boundary: non-existent save id
   test('should return 404 when the saved comment does not exist', async () => {
-    const actor = await createTestUser('MissingSavedCommentUser', 'missingsavedcommentuser@example.com');
+    const actor = await createTestUser(
+      'MissingSavedCommentUser',
+      'missingsavedcommentuser@example.com',
+    );
 
     const res = await request(app)
       .delete('/comments/saved/999999')
@@ -854,7 +875,7 @@ describe('DELETE /comments/saved/:id', () => {
     expect(res.body.error).toMatch(/save not found/i);
   });
 
-  // Error handling: deleteSavedCommentByID fails 
+  // Error handling: deleteSavedCommentByID fails
   test('should return 500 when unsaving a comment fails', async () => {
     const actor = await createTestUser('UnsaveFailUser', 'unsavefailuser@example.com');
 
@@ -917,7 +938,10 @@ describe('GET /comments/reaction/:user_id', () => {
   // Invalid partition: authenticated user requests another user's reactions
   test("should return 403 when requesting another user's reactions", async () => {
     const owner = await createTestUser('ReactionOwnerUser', 'reactionowneruser@example.com');
-    const stranger = await createTestUser('ReactionStrangerUser', 'reactionstrangeruser@example.com');
+    const stranger = await createTestUser(
+      'ReactionStrangerUser',
+      'reactionstrangeruser@example.com',
+    );
 
     const res = await request(app)
       .get(`/comments/reaction/${owner.id}`)
@@ -1096,7 +1120,10 @@ describe('PUT /comments/reaction/:id', () => {
 
   // Boundary: non-existent reaction id
   test('should return 404 when the reaction does not exist', async () => {
-    const actor = await createTestUser('MissingCommentReactionUser', 'missingcommentreactionuser@example.com');
+    const actor = await createTestUser(
+      'MissingCommentReactionUser',
+      'missingcommentreactionuser@example.com',
+    );
 
     const res = await request(app)
       .put('/comments/reaction/999999')
@@ -1107,11 +1134,16 @@ describe('PUT /comments/reaction/:id', () => {
     expect(res.body.error).toMatch(/reaction not found/i);
   });
 
-  // Error handling: updateCommentReaction fails 
+  // Error handling: updateCommentReaction fails
   test('should return 500 when updating the reaction fails', async () => {
-    const actor = await createTestUser('ReactionUpdateFailUser', 'reactionupdatefailuser@example.com');
+    const actor = await createTestUser(
+      'ReactionUpdateFailUser',
+      'reactionupdatefailuser@example.com',
+    );
 
-    PostCommentsModel.updateCommentReaction.mockRejectedValueOnce(new Error('Reaction update boom'));
+    PostCommentsModel.updateCommentReaction.mockRejectedValueOnce(
+      new Error('Reaction update boom'),
+    );
 
     const res = await request(app)
       .put('/comments/reaction/1')
@@ -1169,7 +1201,10 @@ describe('DELETE /comments/reaction/:id', () => {
 
   // Boundary: non-existent reaction id
   test('should return 404 when the reaction does not exist', async () => {
-    const actor = await createTestUser('MissingCommentReactionDeleteUser', 'missingcommentreactiondeleteuser@example.com');
+    const actor = await createTestUser(
+      'MissingCommentReactionDeleteUser',
+      'missingcommentreactiondeleteuser@example.com',
+    );
 
     const res = await request(app)
       .delete('/comments/reaction/999999')
@@ -1180,11 +1215,16 @@ describe('DELETE /comments/reaction/:id', () => {
     expect(res.body.error).toMatch(/reaction not found/i);
   });
 
-  // Error handling: deleteCommentReaction fails 
+  // Error handling: deleteCommentReaction fails
   test('should return 500 when deleting the reaction fails', async () => {
-    const actor = await createTestUser('ReactionDeleteFailUser', 'reactiondeletefailuser@example.com');
+    const actor = await createTestUser(
+      'ReactionDeleteFailUser',
+      'reactiondeletefailuser@example.com',
+    );
 
-    PostCommentsModel.deleteCommentReaction.mockRejectedValueOnce(new Error('Reaction delete boom'));
+    PostCommentsModel.deleteCommentReaction.mockRejectedValueOnce(
+      new Error('Reaction delete boom'),
+    );
 
     const res = await request(app)
       .delete('/comments/reaction/1')
@@ -1379,9 +1419,12 @@ describe('POST /comments/:id/report', () => {
     expect(res.status).toBe(409);
   });
 
-  // Error handling: reporting a non-existent comment id 
+  // Error handling: reporting a non-existent comment id
   test('should return 500 when reporting a comment that does not exist', async () => {
-    const actor = await createTestUser('BadFkReportCommentUser', 'badfkreportcommentuser@example.com');
+    const actor = await createTestUser(
+      'BadFkReportCommentUser',
+      'badfkreportcommentuser@example.com',
+    );
 
     const res = await request(app)
       .post('/comments/999999999/report')
@@ -1420,7 +1463,10 @@ describe('GET /comments/reports', () => {
   });
 
   test('should return 500 when fetching reports fails', async () => {
-    const admin = await createTestUser('CommentReportsFailAdmin', 'commentreportsfailadmin@example.com');
+    const admin = await createTestUser(
+      'CommentReportsFailAdmin',
+      'commentreportsfailadmin@example.com',
+    );
     await promoteToAdmin(admin);
 
     PostCommentsModel.getAllCommentReports.mockRejectedValueOnce(new Error('Reports boom'));

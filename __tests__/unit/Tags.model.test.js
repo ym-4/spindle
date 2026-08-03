@@ -94,4 +94,3 @@ describe('Tags.model - getAllTags', () => {
     await expect(getAllTags()).rejects.toThrow('database unavailable');
   });
 });
-

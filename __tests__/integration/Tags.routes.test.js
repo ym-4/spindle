@@ -124,7 +124,9 @@ describe('PUT /tags/listings/:id/tags', () => {
   test('should return 200 and update tags when an array is provided', async () => {
     Tag.setListingTags.mockResolvedValue();
 
-    const res = await request(app).put('/tags/listings/7/tags').send({ tags: ['used', 'bike'] });
+    const res = await request(app)
+      .put('/tags/listings/7/tags')
+      .send({ tags: ['used', 'bike'] });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: 'Tags updated' });
@@ -134,7 +136,9 @@ describe('PUT /tags/listings/:id/tags', () => {
   test('should return 500 when updating listing tags fails', async () => {
     Tag.setListingTags.mockRejectedValue(new Error('boom'));
 
-    const res = await request(app).put('/tags/listings/7/tags').send({ tags: ['used'] });
+    const res = await request(app)
+      .put('/tags/listings/7/tags')
+      .send({ tags: ['used'] });
 
     expect(res.status).toBe(500);
     expect(res.body).toEqual({ error: 'Failed to update tags' });

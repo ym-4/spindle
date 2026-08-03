@@ -1772,7 +1772,10 @@ describe('GET /posts/saved/:user_id', () => {
   // Invalid partition: cannot view another user's saved posts
   test("should return 403 when requesting another user's saved posts", async () => {
     const owner = await createTestUser('SavedPrivacyOwner', 'savedprivacyowner@example.com');
-    const intruder = await createTestUser('SavedPrivacyIntruder', 'savedprivacyintruder@example.com');
+    const intruder = await createTestUser(
+      'SavedPrivacyIntruder',
+      'savedprivacyintruder@example.com',
+    );
 
     const res = await request(app)
       .get(`/posts/saved/${owner.id}`)
@@ -2221,7 +2224,10 @@ describe('PUT /posts/reaction/:id', () => {
 
   // Error handling: a non-numeric reaction id triggers a database error
   test('should return 500 for a non-numeric reaction id', async () => {
-    const actor = await createTestUser('BadReactionUpdateUser', 'badreactionupdateuser@example.com');
+    const actor = await createTestUser(
+      'BadReactionUpdateUser',
+      'badreactionupdateuser@example.com',
+    );
 
     const res = await request(app)
       .put('/posts/reaction/not-a-number')
@@ -2273,7 +2279,10 @@ describe('DELETE /posts/reaction/:id', () => {
 
   // Boundary: non-existent reaction id
   test('should return 404 when the reaction does not exist', async () => {
-    const actor = await createTestUser('MissingReactionDeleteUser', 'missingreactiondeleteuser@example.com');
+    const actor = await createTestUser(
+      'MissingReactionDeleteUser',
+      'missingreactiondeleteuser@example.com',
+    );
 
     const res = await request(app)
       .delete('/posts/reaction/999999')
@@ -2286,7 +2295,10 @@ describe('DELETE /posts/reaction/:id', () => {
 
   // Error handling: a non-numeric reaction id triggers a database error
   test('should return 500 for a non-numeric reaction id', async () => {
-    const actor = await createTestUser('BadReactionDeleteUser', 'badreactiondeleteuser@example.com');
+    const actor = await createTestUser(
+      'BadReactionDeleteUser',
+      'badreactiondeleteuser@example.com',
+    );
 
     const res = await request(app)
       .delete('/posts/reaction/not-a-number')
@@ -2827,9 +2839,7 @@ describe('POST /posts/:id/pin', () => {
     const owner = await createTestUser('TogglePinOwner', 'togglepinowner@example.com');
     const post = await createTestPost(owner.id);
 
-    await request(app)
-      .post(`/posts/${post.id}/pin`)
-      .set('Authorization', `Bearer ${owner.token}`);
+    await request(app).post(`/posts/${post.id}/pin`).set('Authorization', `Bearer ${owner.token}`);
     const res = await request(app)
       .post(`/posts/${post.id}/pin`)
       .set('Authorization', `Bearer ${owner.token}`);
@@ -2863,7 +2873,7 @@ describe('POST /posts/:id/pin', () => {
     expect(res.status).toBe(400);
   });
 
-  // Error handling: an out of range post id 
+  // Error handling: an out of range post id
   test('should return 500 for a post id outside the integer range', async () => {
     const actor = await createTestUser('PinOverflowUser', 'pinoverflowuser@example.com');
 
