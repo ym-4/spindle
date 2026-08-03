@@ -388,7 +388,7 @@ async function handleNewWhiteboard() {
     console.log('whiteboard response', response);
 
     // Set items
-    localStorage.setItem('whiteboardID', response);
+    localStorage.setItem('whiteboardID', response[0].id);
     localStorage.setItem('whiteboardMode', mode);
 
     // Redirect to whiteboard page
@@ -743,7 +743,6 @@ function displayNote(noteId) {
   displayFolderStructure();
 }
 
-// NOT DONE
 // Displays graph view
 // When zoomed out no note name, note names shown if zoomed in
 // TODO: Handle when a link to a note that doesn't exist occurs (like obsidian? or dont allow?)

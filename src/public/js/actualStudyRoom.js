@@ -99,6 +99,10 @@ function setupStudyControls() {
   Bootstrap will open the popup automatically.
   */
 
+  if (startButton) {
+    startButton.addEventListener('click', handleStartButtonClick);
+  }
+
   if (pauseButton) {
     pauseButton.addEventListener('click', pauseTimer);
   }
@@ -198,6 +202,32 @@ function setupStudyControls() {
   }
 
   setupQuickActions();
+}
+
+function handleStartButtonClick(event) {
+  event.preventDefault();
+
+  const startButton = document.getElementById('start-timer-btn');
+
+  if (!startButton) {
+    return;
+  }
+
+  const isResumeButton = startButton.textContent.includes('Resume Studying');
+
+  // Resume the paused timer directly
+  if (isResumeButton) {
+    startTimer();
+    return;
+  }
+
+  // Otherwise, open the Start Studying modal
+  const timerModalElement = document.getElementById('timerModal');
+
+  if (timerModalElement) {
+    const timerModal = bootstrap.Modal.getOrCreateInstance(timerModalElement);
+    timerModal.show();
+  }
 }
 
 /* =================================
