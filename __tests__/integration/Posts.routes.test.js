@@ -1,25 +1,31 @@
 const request = require('supertest');
 
-let mockUserId = 1;
+// Wrap the real model/service functions in jest.fn() so normal calls behave
+// exactly like the real (real-DB) implementation, but individual tests can
+// force a single call to reject to exercise the routers' generic catch blocks.
+jest.mock('../../src/models/Posts.model', () => {
+  const actual = jest.requireActual('../../src/models/Posts.model');
+  const mocked = {};
+  Object.keys(actual).forEach((key) => {
+    mocked[key] = jest.fn(actual[key]);
+  });
+  return mocked;
+});
 
-jest.mock('../../src/middlewares/auth.middleware', () => ({
-  authenticateJWT: (req, res, next) => {
-    req.user = {
-      id: mockUserId,
-      name: 'Test User',
-      email: 'test@test.com',
-      role: 'user',
-    };
-    next();
-  },
-
-  requireAdmin: (req, res, next) => {
-    next();
-  },
-}));
+jest.mock('../../src/services/badgeService', () => {
+  const actual = jest.requireActual('../../src/services/badgeService');
+  const mocked = {};
+  Object.keys(actual).forEach((key) => {
+    mocked[key] = jest.fn(actual[key]);
+  });
+  return mocked;
+});
 
 const app = require('../../src/app');
 const pool = require('../../src/models/db');
+const PostsModel = require('../../src/models/Posts.model');
+const Notification = require('../../src/models/Notification.model');
+const { checkAndAwardBadges } = require('../../src/services/badgeService');
 
 // ── DB Setup / Teardown ──────────────────────────────────
 // Tables are created via the Jest globalSetup (configs/jest-integration-setup.js)
@@ -53,36 +59,36 @@ afterAll(async () => {
   await pool.end();
 });
 
-// ── Helper ───────────────────────────────────────────────
-async function createTestUser(name = 'Test User', email = 'test@test.com') {
-  const { rows } = await pool.query(
-    `
-    INSERT INTO "Person"
-    (
-      name,
-      email,
-      hashed_password,
-      role,
-      email_verified
-    )
-    VALUES
-    (
-      $1,
-      $2,
-      'fakehash',
-      'user',
-      TRUE
-    )
-    RETURNING id
-    `,
-    [name, email],
-  );
+// ── Helpers ───────────────────────────────────────────────
+async function registerAndVerify(name, email, password = 'secret') {
+  const reg = await request(app).post('/auth/register').send({ name, email, password });
+  const verify = await request(app).post('/auth/verify-email').send({
+    email,
+    code: reg.body.previewCode,
+  });
+  return { user: verify.body.user, token: verify.body.token };
+}
 
-  mockUserId = rows[0].id;
+async function loginAndVerify(username, password, rememberMe = false) {
+  const login = await request(app).post('/auth/login').send({ username, password });
+  if (login.body.needs2FA) {
+    const verify = await request(app).post('/auth/verify-login').send({
+      email: login.body.email,
+      code: login.body.previewCode,
+      remember_me: rememberMe,
+    });
+    return {
+      user: verify.body.user,
+      token: verify.body.token,
+      remember_token: verify.body.remember_token,
+    };
+  }
+  return { user: login.body.user, token: login.body.token };
+}
 
-  return {
-    id: mockUserId,
-  };
+async function createTestUser(name = 'Test User', email = 'test@test.com', password = 'secret') {
+  const { user, token } = await registerAndVerify(name, email, password);
+  return { id: user.id, token, email, password };
 }
 
 async function createTestPost(userId, title = 'Test Post', category = 'general') {
@@ -95,6 +101,16 @@ async function createTestPost(userId, title = 'Test Post', category = 'general')
   );
 
   return { id: rows[0].id };
+}
+
+// The JWT bakes the role in at issue time (authenticateJWT does not re-check
+// the DB per request), so promoting a user to admin mid-test requires a
+// fresh login afterwards or the old token will still read role: 'user'.
+async function promoteToAdmin(user) {
+  await pool.query(`UPDATE "Person" SET role = 'admin' WHERE id = $1`, [user.id]);
+  const relogged = await loginAndVerify(user.email, user.password);
+  user.token = relogged.token;
+  return user;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -138,6 +154,35 @@ describe('GET /posts', () => {
   test('should return 404 for a completely unknown route', async () => {
     const res = await request(app).get('/this-route-does-not-exist-anywhere');
     expect(res.status).toBe(404);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// GET /posts/hot
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/hot', () => {
+  // Valid partition: returns posts with engagement, ranked by hot_score
+  test('should return posts ranked by engagement', async () => {
+    const author = await createTestUser('HotPostAuthor', 'hotpostauthor@example.com');
+    const post = await createTestPost(author.id, 'Trending Post');
+    const liker = await createTestUser('HotPostLiker', 'hotpostliker@example.com');
+    await pool.query(
+      `INSERT INTO "PostReactions" (post_id, user_id, reaction_type) VALUES ($1, $2, 'like')`,
+      [post.id, liker.id],
+    );
+
+    const res = await request(app).get('/posts/hot');
+
+    expect(res.status).toBe(200);
+    expect(res.body.some((p) => p.title === 'Trending Post')).toBe(true);
+  });
+
+  // Boundary: no posts in the last 7 days
+  test('should return an empty array when there are no recent posts', async () => {
+    const res = await request(app).get('/posts/hot');
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
   });
 });
 
@@ -302,6 +347,32 @@ describe('GET /posts/related/:category/:id', () => {
 });
 
 // ─────────────────────────────────────────────────────────
+// GET /posts/user/:user_id
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/user/:user_id', () => {
+  // Valid partition: publicly viewable, like a profile page
+  test("should return a user's posts without requiring authentication", async () => {
+    const author = await createTestUser('ProfilePostAuthor', 'profilepostauthor@example.com');
+    await createTestPost(author.id, 'Profile Visible Post');
+
+    const res = await request(app).get(`/posts/user/${author.id}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.some((p) => p.title === 'Profile Visible Post')).toBe(true);
+  });
+
+  // Boundary: user has no posts
+  test('should return an empty array for a user with no posts', async () => {
+    const user = await createTestUser('NoPostsProfileUser', 'nopostsprofileuser@example.com');
+
+    const res = await request(app).get(`/posts/user/${user.id}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
 // POST /posts
 // ─────────────────────────────────────────────────────────
 describe('POST /posts', () => {
@@ -311,6 +382,7 @@ describe('POST /posts', () => {
 
     const res = await request(app)
       .post('/posts')
+      .set('Authorization', `Bearer ${user.token}`)
       .field('user_id', user.id)
       .field('title', 'My First Post')
       .field('category', 'general')
@@ -324,29 +396,171 @@ describe('POST /posts', () => {
     expect(res.body.user_id).toBe(user.id);
   });
 
-  // Valid partition: verify created post in the database
-  test('created post should be persisted', async () => {
-    const user = await createTestUser('PersistUser', 'persist@example.com');
+  // Boundary: malformed tag is ignored and the post still creates
+  test('should still create a post when tag data is malformed JSON', async () => {
+    const user = await createTestUser('TagJsonUser', 'tagjson@example.com');
 
-    await request(app)
+    const res = await request(app)
       .post('/posts')
+      .set('Authorization', `Bearer ${user.token}`)
       .field('user_id', user.id)
-      .field('title', 'Persistent Post')
+      .field('title', 'Tag JSON Post')
       .field('category', 'general')
-      .field('content', 'Persistence test');
+      .field('content', 'Hello tags')
+      .field('tags', '{bad json');
 
-    const res = await request(app).get('/posts');
-
-    expect(res.body).toHaveLength(1);
-    expect(res.body[0].title).toBe('Persistent Post');
+    expect(res.status).toBe(201);
+    expect(res.body.title).toBe('Tag JSON Post');
   });
 
   // Invalid partition: required fields missing
   test('should return 400 when required fields are missing', async () => {
-    const res = await request(app).post('/posts').field('title', 'Incomplete Post');
+    const actor = await createTestUser('IncompletePostUser', 'incompletepostuser@example.com');
+
+    const res = await request(app)
+      .post('/posts')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .field('title', 'Incomplete Post');
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/undefined/i);
+  });
+
+  // Valid partition: well-formed tag JSON attaches real tags to the post
+  test('should attach real tags to the post when valid tag JSON is provided', async () => {
+    const user = await createTestUser('ValidTagsUser', 'validtagsuser@example.com');
+
+    const res = await request(app)
+      .post('/posts')
+      .set('Authorization', `Bearer ${user.token}`)
+      .field('user_id', user.id)
+      .field('title', 'Tagged Post')
+      .field('category', 'general')
+      .field('content', 'Content with tags')
+      .field('tags', JSON.stringify(['music', 'events']));
+
+    expect(res.status).toBe(201);
+
+    const tagsRes = await request(app).get(`/posts/${res.body.id}/tags`);
+    expect(tagsRes.body.map((t) => t.name).sort()).toEqual(['events', 'music']);
+  });
+
+  // Error handling: a foreign key violation falls through to the generic catch
+  test('should return 500 when creating a post with a non-existent user_id', async () => {
+    const actor = await createTestUser('GhostAuthorPoster', 'ghostauthorposter@example.com');
+
+    const res = await request(app)
+      .post('/posts')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .field('user_id', 999999999)
+      .field('title', 'Ghost Author Post')
+      .field('category', 'general')
+      .field('content', 'Nobody made this');
+
+    expect(res.status).toBe(500);
+  });
+
+  // Boundary: an @mention that doesn't match a real user is silently ignored
+  test('should not notify anyone when the @mention does not match a real user', async () => {
+    const author = await createTestUser('NoMatchMentionAuthor', 'nomatchmentionauthor@example.com');
+    const notifySpy = jest.spyOn(Notification, 'create');
+
+    const res = await request(app)
+      .post('/posts')
+      .set('Authorization', `Bearer ${author.token}`)
+      .field('user_id', author.id)
+      .field('title', 'Ghost Mention Post')
+      .field('category', 'general')
+      .field('content', 'Hey @NobodyRealHere check this out');
+
+    expect(res.status).toBe(201);
+
+    // Give the fire-and-forget mention notification time to run
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    // A first post can legitimately trigger an unrelated badge_unlocked
+    // notification, so only assert that no *mention* notification fired.
+    expect(notifySpy).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ type: 'mention' }),
+    );
+
+    notifySpy.mockRestore();
+  });
+
+  // Valid partition: an @mention matching a real user creates a notification
+  test('should create a notification for a user mentioned by @name', async () => {
+    const author = await createTestUser('MentionAuthor', 'mentionauthor@example.com');
+    const mentioned = await createTestUser('MentionedFriend', 'mentionedfriend@example.com');
+    const notifySpy = jest.spyOn(Notification, 'create');
+
+    const res = await request(app)
+      .post('/posts')
+      .set('Authorization', `Bearer ${author.token}`)
+      .field('user_id', author.id)
+      .field('title', 'Mention Post')
+      .field('category', 'general')
+      .field('content', 'Hey @MentionedFriend check this out');
+
+    expect(res.status).toBe(201);
+
+    // Give the fire-and-forget mention notification time to run
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(notifySpy).toHaveBeenCalledWith(
+      mentioned.id,
+      expect.objectContaining({ type: 'mention', ref_id: res.body.id }),
+    );
+
+    notifySpy.mockRestore();
+  });
+
+  // Boundary: an anonymous post skips mention notifications even when a real user is mentioned
+  test('should not notify a mentioned user when the post is anonymous', async () => {
+    const author = await createTestUser('AnonMentionAuthor', 'anonmentionauthor@example.com');
+    await createTestUser('AnonMentionedFriend', 'anonmentionedfriend@example.com');
+    const notifySpy = jest.spyOn(Notification, 'create');
+
+    const res = await request(app)
+      .post('/posts')
+      .set('Authorization', `Bearer ${author.token}`)
+      .field('user_id', author.id)
+      .field('title', 'Anonymous Mention Post')
+      .field('category', 'general')
+      .field('content', 'Hey @AnonMentionedFriend check this out')
+      .field('is_anonymous', 'true');
+
+    expect(res.status).toBe(201);
+
+    // Give any fire-and-forget notification time to run
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(notifySpy).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ type: 'mention' }),
+    );
+
+    notifySpy.mockRestore();
+  });
+
+  // Error handling: a failed badge check is swallowed and doesn't affect the 201 response
+  test('should still return 201 when the post-created badge check fails', async () => {
+    const author = await createTestUser('BadgeFailAuthor', 'badgefailauthor@example.com');
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    checkAndAwardBadges.mockRejectedValueOnce(new Error('Badge check boom'));
+
+    const res = await request(app)
+      .post('/posts')
+      .set('Authorization', `Bearer ${author.token}`)
+      .field('user_id', author.id)
+      .field('title', 'Badge Fail Post')
+      .field('category', 'general')
+      .field('content', 'Content');
+
+    expect(res.status).toBe(201);
+
+    // Give the fire-and-forget badge check time to run and fail
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(warnSpy).toHaveBeenCalledWith('Badge check error:', 'Badge check boom');
+
+    warnSpy.mockRestore();
   });
 });
 
@@ -370,6 +584,7 @@ describe('PUT /posts/:id', () => {
 
     const res = await request(app)
       .put(`/posts/${postId}`)
+      .set('Authorization', `Bearer ${user.token}`)
       .field('title', 'New Title')
       .field('category', 'qna')
       .field('content', 'Updated content');
@@ -397,6 +612,7 @@ describe('PUT /posts/:id', () => {
 
     await request(app)
       .put(`/posts/${postId}`)
+      .set('Authorization', `Bearer ${user.token}`)
       .field('title', 'After')
       .field('category', 'news')
       .field('content', 'New content');
@@ -409,15 +625,42 @@ describe('PUT /posts/:id', () => {
     expect(getRes.body.content).toBe('New content');
   });
 
+  // Boundary: remove_attachment=true clears the stored attachment reference
+  test('should remove the attachment reference when remove_attachment is true', async () => {
+    const user = await createTestUser('RemoveAttachmentUser', 'removeattachment@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content, attachment_url)
+      VALUES ($1, 'With Attachment', 'general', 'Content', '/uploads/old-file.png')
+      RETURNING id`,
+      [user.id],
+    );
+
+    const postId = rows[0].id;
+
+    const res = await request(app)
+      .put(`/posts/${postId}`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .field('remove_attachment', 'true')
+      .field('title', 'Attachment Removed')
+      .field('category', 'general')
+      .field('content', 'Content');
+
+    expect(res.status).toBe(200);
+    expect(res.body.attachment_url).toBeNull();
+  });
+
   // Invalid partition: a non-owner cannot edit another user's post
   test('should return 403 when a non-owner tries to edit the post', async () => {
     const owner = await createTestUser('EditOwner', 'editowner@example.com');
     const post = await createTestPost(owner.id, 'Original Title');
 
-    await createTestUser('EditIntruder', 'editintruder@example.com');
+    const intruder = await createTestUser('EditIntruder', 'editintruder@example.com');
 
     const res = await request(app)
       .put(`/posts/${post.id}`)
+      .set('Authorization', `Bearer ${intruder.token}`)
       .field('title', 'Hijacked Title')
       .field('content', 'Hijacked content')
       .field('category', 'general');
@@ -425,16 +668,95 @@ describe('PUT /posts/:id', () => {
     expect(res.status).toBe(403);
   });
 
+  // Valid partition: an admin can edit another user's post
+  test("should allow an admin to edit another user's post", async () => {
+    const owner = await createTestUser('AdminEditOwner', 'admineditowner@example.com');
+    const post = await createTestPost(owner.id, 'Original Title');
+
+    const admin = await createTestUser('AdminEditUser', 'admineditsuser@example.com');
+    await promoteToAdmin(admin);
+
+    const res = await request(app)
+      .put(`/posts/${post.id}`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .field('title', 'Edited By Admin')
+      .field('content', 'Edited content')
+      .field('category', 'general');
+
+    expect(res.status).toBe(200);
+    expect(res.body.title).toBe('Edited By Admin');
+  });
+
   // Boundary: non-existent id
   test('should return 404 when updating a non-existent post', async () => {
+    const actor = await createTestUser('EditGhostUser', 'editghostuser@example.com');
+
     const res = await request(app)
       .put('/posts/999999')
+      .set('Authorization', `Bearer ${actor.token}`)
       .field('title', 'Ghost')
       .field('category', 'general')
       .field('content', 'Ghost content');
 
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/post not found/i);
+  });
+
+  // Boundary: uploading a new file replaces an existing attachment
+  test('should replace an existing attachment when a new file is uploaded', async () => {
+    const user = await createTestUser('ReplaceAttachmentUser', 'replaceattachmentuser@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content, attachment_url)
+      VALUES ($1, 'Has Attachment', 'general', 'Content', '/uploads/old-file.png')
+      RETURNING id`,
+      [user.id],
+    );
+
+    const postId = rows[0].id;
+
+    const res = await request(app)
+      .put(`/posts/${postId}`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .field('title', 'New Attachment')
+      .field('category', 'general')
+      .field('content', 'Content')
+      .attach('attachment', Buffer.from('fake image bytes'), 'new-file.png');
+
+    expect(res.status).toBe(200);
+    expect(res.body.attachment_url).toMatch(/^\/uploads\//);
+  });
+
+  // Boundary: uploading a new file when the post had no prior attachment
+  test('should attach a new file when the post had no prior attachment', async () => {
+    const user = await createTestUser('NewAttachmentUser', 'newattachmentuser@example.com');
+    const post = await createTestPost(user.id, 'No Attachment Yet');
+
+    const res = await request(app)
+      .put(`/posts/${post.id}`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .field('title', 'Now With Attachment')
+      .field('category', 'general')
+      .field('content', 'Content')
+      .attach('attachment', Buffer.from('fake image bytes'), 'first-file.png');
+
+    expect(res.status).toBe(200);
+    expect(res.body.attachment_url).toMatch(/^\/uploads\//);
+  });
+
+  // Error handling: an out-of-range post id triggers a database error
+  test('should return 500 for an out-of-range post id', async () => {
+    const actor = await createTestUser('UpdateOverflowUser', 'updateoverflowuser@example.com');
+
+    const res = await request(app)
+      .put('/posts/99999999999')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .field('title', 'x')
+      .field('category', 'general')
+      .field('content', 'x');
+
+    expect(res.status).toBe(500);
   });
 });
 
@@ -456,7 +778,9 @@ describe('DELETE /posts/:id', () => {
 
     const postId = rows[0].id;
 
-    const res = await request(app).delete(`/posts/${postId}`);
+    const res = await request(app)
+      .delete(`/posts/${postId}`)
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(postId);
@@ -464,6 +788,22 @@ describe('DELETE /posts/:id', () => {
     const check = await request(app).get(`/posts/${postId}`);
 
     expect(check.status).toBe(404);
+  });
+
+  // Valid partition: an admin can delete another user's post
+  test("should allow an admin to delete another user's post", async () => {
+    const owner = await createTestUser('AdminDeleteOwner', 'admindeleteowner@example.com');
+    const post = await createTestPost(owner.id, 'Admin Delete Me');
+
+    const admin = await createTestUser('AdminDeleteUser', 'admindeleteuser@example.com');
+    await promoteToAdmin(admin);
+
+    const res = await request(app)
+      .delete(`/posts/${post.id}`)
+      .set('Authorization', `Bearer ${admin.token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(post.id);
   });
 
   // Invalid partition: authenticated user is not the owner
@@ -482,7 +822,9 @@ describe('DELETE /posts/:id', () => {
 
     const postId = rows[0].id;
 
-    const res = await request(app).delete(`/posts/${postId}`);
+    const res = await request(app)
+      .delete(`/posts/${postId}`)
+      .set('Authorization', `Bearer ${stranger.token}`);
 
     expect(res.status).toBe(403);
     expect(res.body.error).toMatch(/not authorized/i);
@@ -492,10 +834,159 @@ describe('DELETE /posts/:id', () => {
   test('should return 404 when deleting a non-existent post', async () => {
     const user = await createTestUser('GhostDelete', 'ghostdelete@example.com');
 
-    const res = await request(app).delete('/posts/999999');
+    const res = await request(app)
+      .delete('/posts/999999')
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/post not found/i);
+  });
+
+  // Error handling: an out-of-range post id makes the getPostByID lookup throw
+  test('should return 500 for an out-of-range post id', async () => {
+    const actor = await createTestUser('DeleteOverflowUser', 'deleteoverflowuser@example.com');
+
+    const res = await request(app)
+      .delete('/posts/99999999999')
+      .set('Authorization', `Bearer ${actor.token}`);
+
+    expect(res.status).toBe(500);
+  });
+
+  // Error handling: deletePostByID fails after the post was found and authorized
+  test('should return 500 when deletePostByID fails unexpectedly', async () => {
+    const owner = await createTestUser('DeleteFailOwner', 'deletefailowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    PostsModel.deletePostByID.mockRejectedValueOnce(new Error('Delete boom'));
+
+    const res = await request(app)
+      .delete(`/posts/${post.id}`)
+      .set('Authorization', `Bearer ${owner.token}`);
+
+    expect(res.status).toBe(500);
+  });
+
+  // Boundary: deletePostByID resolves falsy even though the post was found and authorized
+  // (e.g. it was already removed by another request in between)
+  test('should return 404 when deletePostByID resolves falsy after authorization passes', async () => {
+    const owner = await createTestUser('DeleteRaceOwner', 'deleteraceowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    PostsModel.deletePostByID.mockResolvedValueOnce(null);
+
+    const res = await request(app)
+      .delete(`/posts/${post.id}`)
+      .set('Authorization', `Bearer ${owner.token}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/post not found/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// GET /posts/sorted
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/sorted', () => {
+  // Valid partition: defaults to newest first
+  test('should return posts newest-first by default', async () => {
+    const author = await createTestUser('SortedPostsAuthor', 'sortedpostsauthor@example.com');
+    await createTestPost(author.id, 'Older Sorted Post');
+    await createTestPost(author.id, 'Newer Sorted Post');
+
+    const res = await request(app).get('/posts/sorted');
+
+    expect(res.status).toBe(200);
+    expect(res.body[0].title).toBe('Newer Sorted Post');
+  });
+
+  // Valid partition: oldest first
+  test('should return posts oldest-first when sort=oldest', async () => {
+    const author = await createTestUser('OldestSortAuthor', 'oldestsortauthor@example.com');
+    await createTestPost(author.id, 'First Post');
+    await createTestPost(author.id, 'Second Post');
+
+    const res = await request(app).get('/posts/sorted').query({ sort: 'oldest' });
+
+    expect(res.status).toBe(200);
+    expect(res.body[0].title).toBe('First Post');
+  });
+
+  // Boundary: category filter narrows results
+  test('should filter by category when provided', async () => {
+    const author = await createTestUser('CategorySortAuthor', 'categorysortauthor@example.com');
+    await pool.query(
+      `INSERT INTO "Posts" (user_id, title, category, content) VALUES ($1, 'Confession Post', 'confession', 'x')`,
+      [author.id],
+    );
+    await pool.query(
+      `INSERT INTO "Posts" (user_id, title, category, content) VALUES ($1, 'General Post', 'general', 'x')`,
+      [author.id],
+    );
+
+    const res = await request(app).get('/posts/sorted').query({ category: 'confession' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.every((p) => p.category === 'confession')).toBe(true);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// GET /posts/admin/all
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/admin/all', () => {
+  // Valid partition: an admin can search/filter all posts
+  test('should return matching posts for an admin', async () => {
+    const admin = await createTestUser('AdminSearchUser', 'adminsearchuser@example.com');
+    await promoteToAdmin(admin);
+    await createTestPost(admin.id, 'Findable Admin Post');
+
+    const res = await request(app)
+      .get('/posts/admin/all')
+      .set('Authorization', `Bearer ${admin.token}`)
+      .query({ search: 'Findable' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.some((p) => p.title === 'Findable Admin Post')).toBe(true);
+  });
+
+  // Invalid partition: a non-admin is blocked
+  test('should return 403 for a non-admin user', async () => {
+    const user = await createTestUser('NonAdminSearchUser', 'nonadminsearchuser@example.com');
+
+    const res = await request(app)
+      .get('/posts/admin/all')
+      .set('Authorization', `Bearer ${user.token}`);
+
+    expect(res.status).toBe(403);
+  });
+
+  // Boundary: no posts match the given filters
+  test('should return an empty array when nothing matches the filters', async () => {
+    const admin = await createTestUser('NoMatchAdmin', 'nomatchadmin@example.com');
+    await promoteToAdmin(admin);
+
+    const res = await request(app)
+      .get('/posts/admin/all')
+      .set('Authorization', `Bearer ${admin.token}`)
+      .query({ search: 'zzz-no-match-zzz' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  // Error handling: searchAllPosts fails unexpectedly
+  test('should return 500 when searchAllPosts fails unexpectedly', async () => {
+    const admin = await createTestUser('AdminAllFailUser', 'adminallfailuser@example.com');
+    await promoteToAdmin(admin);
+
+    PostsModel.searchAllPosts.mockRejectedValueOnce(new Error('Search boom'));
+
+    const res = await request(app)
+      .get('/posts/admin/all')
+      .set('Authorization', `Bearer ${admin.token}`);
+
+    expect(res.status).toBe(500);
   });
 });
 
@@ -591,6 +1082,7 @@ describe('POST /posts/:id/poll', () => {
 
     const res = await request(app)
       .post(`/posts/${postId}/poll`)
+      .set('Authorization', `Bearer ${user.token}`)
       .send({
         question: 'Favourite programming language?',
         options: ['JavaScript', 'Python'],
@@ -618,6 +1110,7 @@ describe('POST /posts/:id/poll', () => {
 
     await request(app)
       .post(`/posts/${postId}/poll`)
+      .set('Authorization', `Bearer ${user.token}`)
       .send({
         question: 'Favourite IDE?',
         options: ['VS Code', 'WebStorm'],
@@ -646,6 +1139,7 @@ describe('POST /posts/:id/poll', () => {
 
     const res = await request(app)
       .post(`/posts/${postId}/poll`)
+      .set('Authorization', `Bearer ${user.token}`)
       .send({
         question: 'Invalid poll',
         options: ['Only one'],
@@ -660,10 +1154,11 @@ describe('POST /posts/:id/poll', () => {
     const owner = await createTestUser('PollOwnerGuard', 'pollownerguard@example.com');
     const post = await createTestPost(owner.id);
 
-    await createTestUser('PollIntruder', 'pollintruder@example.com');
+    const intruder = await createTestUser('PollIntruder', 'pollintruder@example.com');
 
     const res = await request(app)
       .post(`/posts/${post.id}/poll`)
+      .set('Authorization', `Bearer ${intruder.token}`)
       .send({ question: 'Hijacked poll?', options: ['A', 'B'] });
 
     expect(res.status).toBe(403);
@@ -671,13 +1166,29 @@ describe('POST /posts/:id/poll', () => {
 
   // Boundary: post does not exist
   test('should return 404 when creating a poll on a non-existent post', async () => {
-    await createTestUser('PollGhostUser', 'pollghostuser@example.com');
+    const actor = await createTestUser('PollGhostUser', 'pollghostuser@example.com');
 
     const res = await request(app)
       .post('/posts/999999999/poll')
+      .set('Authorization', `Bearer ${actor.token}`)
       .send({ question: 'Ghost poll?', options: ['A', 'B'] });
 
     expect(res.status).toBe(404);
+  });
+
+  // Error handling: insertPoll fails unexpectedly
+  test('should return 500 when creating the poll fails unexpectedly', async () => {
+    const owner = await createTestUser('PollCreateFailOwner', 'pollcreatefailowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    PostsModel.insertPoll.mockRejectedValueOnce(new Error('Poll insert boom'));
+
+    const res = await request(app)
+      .post(`/posts/${post.id}/poll`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ question: 'Pick one', options: ['A', 'B'] });
+
+    expect(res.status).toBe(500);
   });
 });
 
@@ -695,6 +1206,7 @@ describe('PUT /posts/:id/poll', () => {
 
     const res = await request(app)
       .put(`/posts/${post.id}/poll`)
+      .set('Authorization', `Bearer ${owner.token}`)
       .send({ question: 'New question?' });
 
     expect(res.status).toBe(200);
@@ -709,7 +1221,10 @@ describe('PUT /posts/:id/poll', () => {
       post.id,
     ]);
 
-    const res = await request(app).put(`/posts/${post.id}/poll`).send({});
+    const res = await request(app)
+      .put(`/posts/${post.id}/poll`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({});
 
     expect(res.status).toBe(400);
   });
@@ -721,9 +1236,23 @@ describe('PUT /posts/:id/poll', () => {
 
     const res = await request(app)
       .put(`/posts/${post.id}/poll`)
+      .set('Authorization', `Bearer ${owner.token}`)
       .send({ question: 'New question?' });
 
     expect(res.status).toBe(404);
+  });
+
+  // Boundary: the post itself does not exist (distinct from "post exists, no poll")
+  test('should return 404 when the post itself does not exist', async () => {
+    const actor = await createTestUser('PollEditGhostUser', 'polleditghostuser@example.com');
+
+    const res = await request(app)
+      .put('/posts/999999999/poll')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .send({ question: 'New question?' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toMatch(/post not found/i);
   });
 
   // Invalid partition: a non-owner cannot edit the poll question
@@ -734,13 +1263,32 @@ describe('PUT /posts/:id/poll', () => {
       post.id,
     ]);
 
-    await createTestUser('PollEditIntruder', 'polleditintruder@example.com');
+    const intruder = await createTestUser('PollEditIntruder', 'polleditintruder@example.com');
 
     const res = await request(app)
       .put(`/posts/${post.id}/poll`)
+      .set('Authorization', `Bearer ${intruder.token}`)
       .send({ question: 'Hijacked question?' });
 
     expect(res.status).toBe(403);
+  });
+
+  // Error handling: updatePollQuestion fails unexpectedly
+  test('should return 500 when updating the poll fails unexpectedly', async () => {
+    const owner = await createTestUser('PollUpdateFailOwner', 'pollupdatefailowner@example.com');
+    const post = await createTestPost(owner.id);
+    await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Old question?')`, [
+      post.id,
+    ]);
+
+    PostsModel.updatePollQuestion.mockRejectedValueOnce(new Error('Poll update boom'));
+
+    const res = await request(app)
+      .put(`/posts/${post.id}/poll`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ question: 'New question?' });
+
+    expect(res.status).toBe(500);
   });
 });
 
@@ -782,10 +1330,13 @@ describe('POST /posts/:id/poll/vote', () => {
 
     const optionId = optionRows[0].id;
 
-    const res = await request(app).post(`/posts/${postId}/poll/vote`).send({
-      poll_id: pollId,
-      option_id: optionId,
-    });
+    const res = await request(app)
+      .post(`/posts/${postId}/poll/vote`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        poll_id: pollId,
+        option_id: optionId,
+      });
 
     expect(res.status).toBe(201);
     expect(res.body.vote).toHaveProperty('id');
@@ -828,15 +1379,21 @@ describe('POST /posts/:id/poll/vote', () => {
 
     const optionId = optionRows[0].id;
 
-    await request(app).post(`/posts/${postId}/poll/vote`).send({
-      poll_id: pollId,
-      option_id: optionId,
-    });
+    await request(app)
+      .post(`/posts/${postId}/poll/vote`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        poll_id: pollId,
+        option_id: optionId,
+      });
 
-    const res = await request(app).post(`/posts/${postId}/poll/vote`).send({
-      poll_id: pollId,
-      option_id: optionId,
-    });
+    const res = await request(app)
+      .post(`/posts/${postId}/poll/vote`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        poll_id: pollId,
+        option_id: optionId,
+      });
 
     expect(res.status).toBe(409);
     expect(res.body.message).toMatch(/already voted/i);
@@ -859,10 +1416,13 @@ describe('POST /posts/:id/poll/vote', () => {
     );
 
     // voting via postA's URL but with pollB's id
-    const res = await request(app).post(`/posts/${postA.id}/poll/vote`).send({
-      poll_id: pollBRows[0].id,
-      option_id: optionRows[0].id,
-    });
+    const res = await request(app)
+      .post(`/posts/${postA.id}/poll/vote`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        poll_id: pollBRows[0].id,
+        option_id: optionRows[0].id,
+      });
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/does not match/i);
@@ -870,7 +1430,10 @@ describe('POST /posts/:id/poll/vote', () => {
 
   // Invalid partition: option_id doesn't belong to the given poll_id
   test('should return 400 when option_id does not belong to the given poll_id', async () => {
-    const user = await createTestUser('VoteOptionMismatchUser', 'voteoptionmismatchuser@example.com');
+    const user = await createTestUser(
+      'VoteOptionMismatchUser',
+      'voteoptionmismatchuser@example.com',
+    );
     const post = await createTestPost(user.id);
     const otherPost = await createTestPost(user.id, 'Unrelated Post');
 
@@ -878,9 +1441,10 @@ describe('POST /posts/:id/poll/vote', () => {
       `INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Real poll?') RETURNING id`,
       [post.id],
     );
-    await pool.query(`INSERT INTO "PollOptions" (poll_id, option_text) VALUES ($1, 'Real option')`, [
-      pollRows[0].id,
-    ]);
+    await pool.query(
+      `INSERT INTO "PollOptions" (poll_id, option_text) VALUES ($1, 'Real option')`,
+      [pollRows[0].id],
+    );
 
     const { rows: otherPollRows } = await pool.query(
       `INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Other poll?') RETURNING id`,
@@ -891,10 +1455,13 @@ describe('POST /posts/:id/poll/vote', () => {
       [otherPollRows[0].id],
     );
 
-    const res = await request(app).post(`/posts/${post.id}/poll/vote`).send({
-      poll_id: pollRows[0].id,
-      option_id: otherOptionRows[0].id,
-    });
+    const res = await request(app)
+      .post(`/posts/${post.id}/poll/vote`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        poll_id: pollRows[0].id,
+        option_id: otherOptionRows[0].id,
+      });
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/does not belong/i);
@@ -904,10 +1471,40 @@ describe('POST /posts/:id/poll/vote', () => {
   test('should return 400 when poll_id or option_id is missing', async () => {
     const user = await createTestUser('MissingVoteUser', 'missingvote@example.com');
 
-    const res = await request(app).post('/posts/1/poll/vote').send({});
+    const res = await request(app)
+      .post('/posts/1/poll/vote')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({});
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/required/i);
+  });
+
+  // Error handling: insertPollVote fails for a reason other than a duplicate vote
+  test('should return 500 when voting fails for a reason other than a duplicate vote', async () => {
+    const owner = await createTestUser('PollVoteFailOwner', 'pollvotefailowner@example.com');
+    const post = await createTestPost(owner.id);
+    const { rows: pollRows } = await pool.query(
+      `INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Pick one') RETURNING id`,
+      [post.id],
+    );
+    const { rows: optionRows } = await pool.query(
+      `INSERT INTO "PollOptions" (poll_id, option_text) VALUES ($1, 'A') RETURNING id`,
+      [pollRows[0].id],
+    );
+
+    const voter = await createTestUser('PollVoteFailUser', 'pollvotefailuser@example.com');
+    PostsModel.insertPollVote.mockRejectedValueOnce(new Error('Vote insert boom'));
+
+    const res = await request(app)
+      .post(`/posts/${post.id}/poll/vote`)
+      .set('Authorization', `Bearer ${voter.token}`)
+      .send({
+        poll_id: pollRows[0].id,
+        option_id: optionRows[0].id,
+      });
+
+    expect(res.status).toBe(500);
   });
 });
 
@@ -933,7 +1530,9 @@ describe('GET /posts/:id/poll/vote/:user_id', () => {
       user.id,
     ]);
 
-    const res = await request(app).get(`/posts/${post.id}/poll/vote/${user.id}`);
+    const res = await request(app)
+      .get(`/posts/${post.id}/poll/vote/${user.id}`)
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.vote).not.toBeNull();
@@ -946,10 +1545,25 @@ describe('GET /posts/:id/poll/vote/:user_id', () => {
     const post = await createTestPost(user.id);
     await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Q?')`, [post.id]);
 
-    const res = await request(app).get(`/posts/${post.id}/poll/vote/${user.id}`);
+    const res = await request(app)
+      .get(`/posts/${post.id}/poll/vote/${user.id}`)
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.vote).toBeNull();
+  });
+
+  // Boundary: the post has no poll at all (distinct from "poll exists, no vote yet")
+  test('should return 404 when the post has no poll', async () => {
+    const user = await createTestUser('VoteLookupNoPollUser', 'votelookupnopolluser@example.com');
+    const post = await createTestPost(user.id);
+
+    const res = await request(app)
+      .get(`/posts/${post.id}/poll/vote/${user.id}`)
+      .set('Authorization', `Bearer ${user.token}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toMatch(/no poll/i);
   });
 
   // Invalid partition: a user cannot view another user's vote
@@ -958,13 +1572,157 @@ describe('GET /posts/:id/poll/vote/:user_id', () => {
     const post = await createTestPost(owner.id);
     await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Q?')`, [post.id]);
 
-    await createTestUser('VoteLookupStranger', 'votelookupstranger@example.com');
+    const stranger = await createTestUser('VoteLookupStranger', 'votelookupstranger@example.com');
 
-    const res = await request(app).get(`/posts/${post.id}/poll/vote/${owner.id}`);
+    const res = await request(app)
+      .get(`/posts/${post.id}/poll/vote/${owner.id}`)
+      .set('Authorization', `Bearer ${stranger.token}`);
 
     expect(res.status).toBe(403);
   });
 });
+
+// ─────────────────────────────────────────────────────────
+// DELETE /posts/:id/poll
+// ─────────────────────────────────────────────────────────
+describe('DELETE /posts/:id/poll', () => {
+  // Valid partition: owner deletes the poll
+  test('should delete the poll for the owner', async () => {
+    const owner = await createTestUser('DeletePollOwner', 'deletepollowner@example.com');
+    const post = await createTestPost(owner.id);
+    await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Doomed?')`, [
+      post.id,
+    ]);
+
+    const res = await request(app)
+      .delete(`/posts/${post.id}/poll`)
+      .set('Authorization', `Bearer ${owner.token}`);
+
+    expect(res.status).toBe(200);
+
+    const check = await request(app).get(`/posts/${post.id}/poll`);
+    expect(check.status).toBe(404);
+  });
+
+  // Boundary: post has no poll
+  test('should return 404 when the post has no poll', async () => {
+    const owner = await createTestUser('NoPollDeleteOwner', 'nopolldeleteowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    const res = await request(app)
+      .delete(`/posts/${post.id}/poll`)
+      .set('Authorization', `Bearer ${owner.token}`);
+
+    expect(res.status).toBe(404);
+  });
+
+  // Boundary: the post itself does not exist (distinct from "post exists, no poll")
+  test('should return 404 when the post itself does not exist', async () => {
+    const actor = await createTestUser('PollDeleteGhostUser', 'polldeleteghostuser@example.com');
+
+    const res = await request(app)
+      .delete('/posts/999999999/poll')
+      .set('Authorization', `Bearer ${actor.token}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toMatch(/post not found/i);
+  });
+
+  // Invalid partition: non-owner is blocked
+  test('should return 403 when a non-owner tries to delete the poll', async () => {
+    const owner = await createTestUser('GuardedPollOwner', 'guardedpollowner@example.com');
+    const post = await createTestPost(owner.id);
+    await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Guarded?')`, [
+      post.id,
+    ]);
+
+    const stranger = await createTestUser('PollDeleteStranger', 'polldeletestranger@example.com');
+
+    const res = await request(app)
+      .delete(`/posts/${post.id}/poll`)
+      .set('Authorization', `Bearer ${stranger.token}`);
+
+    expect(res.status).toBe(403);
+  });
+
+  // Error handling: deletePollByPostID fails unexpectedly
+  test('should return 500 when deleting the poll fails unexpectedly', async () => {
+    const owner = await createTestUser('PollDeleteFailOwner', 'polldeletefailowner@example.com');
+    const post = await createTestPost(owner.id);
+    await pool.query(`INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Question?')`, [
+      post.id,
+    ]);
+
+    PostsModel.deletePollByPostID.mockRejectedValueOnce(new Error('Poll delete boom'));
+
+    const res = await request(app)
+      .delete(`/posts/${post.id}/poll`)
+      .set('Authorization', `Bearer ${owner.token}`);
+
+    expect(res.status).toBe(500);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// DELETE /posts/:id/poll/vote
+// ─────────────────────────────────────────────────────────
+describe('DELETE /posts/:id/poll/vote', () => {
+  // Valid partition: user removes their own vote
+  test("should delete the authenticated user's vote", async () => {
+    const user = await createTestUser('RemoveVoteUser', 'removevoteuser@example.com');
+    const post = await createTestPost(user.id);
+    const { rows: pollRows } = await pool.query(
+      `INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Q?') RETURNING id`,
+      [post.id],
+    );
+    const { rows: optionRows } = await pool.query(
+      `INSERT INTO "PollOptions" (poll_id, option_text) VALUES ($1, 'Opt') RETURNING id`,
+      [pollRows[0].id],
+    );
+    await pool.query(`INSERT INTO "PollVotes" (poll_id, option_id, user_id) VALUES ($1, $2, $3)`, [
+      pollRows[0].id,
+      optionRows[0].id,
+      user.id,
+    ]);
+
+    const res = await request(app)
+      .delete(`/posts/${post.id}/poll/vote`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ poll_id: pollRows[0].id });
+
+    expect(res.status).toBe(200);
+  });
+
+  // Boundary: no poll_id provided
+  test('should return 400 when poll_id is missing', async () => {
+    const actor = await createTestUser('NoPollIdUser', 'nopollidsuser@example.com');
+
+    const res = await request(app)
+      .delete('/posts/1/poll/vote')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .send({});
+
+    expect(res.status).toBe(400);
+  });
+
+  // Boundary: user has not voted
+  test('should return 404 when the user has not voted on this poll', async () => {
+    const user = await createTestUser('NeverVotedUser', 'nevervoteduser@example.com');
+    const post = await createTestPost(user.id);
+    const { rows: pollRows } = await pool.query(
+      `INSERT INTO "PostPolls" (post_id, question) VALUES ($1, 'Q?') RETURNING id`,
+      [post.id],
+    );
+
+    const res = await request(app)
+      .delete(`/posts/${post.id}/poll/vote`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ poll_id: pollRows[0].id });
+
+    expect(res.status).toBe(404);
+  });
+});
+
 // ==================== Saved Posts ========================
 // ─────────────────────────────────────────────────────────
 // GET /posts/saved/:user_id
@@ -991,7 +1749,9 @@ describe('GET /posts/saved/:user_id', () => {
       postRows[0].id,
     ]);
 
-    const res = await request(app).get(`/posts/saved/${saver.id}`);
+    const res = await request(app)
+      .get(`/posts/saved/${saver.id}`)
+      .set('Authorization', `Bearer ${saver.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
@@ -1001,10 +1761,25 @@ describe('GET /posts/saved/:user_id', () => {
   test('should return 200 and an empty array when the user has no saved posts', async () => {
     const user = await createTestUser('NoSavesUser', 'nosaves@example.com');
 
-    const res = await request(app).get(`/posts/saved/${user.id}`);
+    const res = await request(app)
+      .get(`/posts/saved/${user.id}`)
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
+  });
+
+  // Invalid partition: cannot view another user's saved posts
+  test("should return 403 when requesting another user's saved posts", async () => {
+    const owner = await createTestUser('SavedPrivacyOwner', 'savedprivacyowner@example.com');
+    const intruder = await createTestUser('SavedPrivacyIntruder', 'savedprivacyintruder@example.com');
+
+    const res = await request(app)
+      .get(`/posts/saved/${owner.id}`)
+      .set('Authorization', `Bearer ${intruder.token}`);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/not authorized/i);
   });
 });
 
@@ -1026,7 +1801,10 @@ describe('POST /posts/saved', () => {
 
     const postId = rows[0].id;
     const saver = await createTestUser('SaverUser', 'saveruser@example.com');
-    const res = await request(app).post('/posts/saved').send({ post_id: postId });
+    const res = await request(app)
+      .post('/posts/saved')
+      .set('Authorization', `Bearer ${saver.token}`)
+      .send({ post_id: postId });
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('id');
@@ -1036,9 +1814,12 @@ describe('POST /posts/saved', () => {
 
   // Invalid partition: post_id missing from body
   test('should return 400 when post_id is missing', async () => {
-    await createTestUser('NoPostIdUser', 'nopostid@example.com');
+    const actor = await createTestUser('NoPostIdUser', 'nopostid@example.com');
 
-    const res = await request(app).post('/posts/saved').send({});
+    const res = await request(app)
+      .post('/posts/saved')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .send({});
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/post_id/i);
@@ -1058,12 +1839,30 @@ describe('POST /posts/saved', () => {
 
     const postId = rows[0].id;
 
-    await createTestUser('DupSaver', 'dupsaver@example.com');
+    const saver = await createTestUser('DupSaver', 'dupsaver@example.com');
 
-    await request(app).post('/posts/saved').send({ post_id: postId });
-    const res = await request(app).post('/posts/saved').send({ post_id: postId });
+    await request(app)
+      .post('/posts/saved')
+      .set('Authorization', `Bearer ${saver.token}`)
+      .send({ post_id: postId });
+    const res = await request(app)
+      .post('/posts/saved')
+      .set('Authorization', `Bearer ${saver.token}`)
+      .send({ post_id: postId });
     expect(res.status).toBe(409);
     expect(res.body.message).toMatch(/already saved/i);
+  });
+
+  // Error handling: a foreign key violation falls through to the generic catch
+  test('should return 500 when saving a post that does not exist', async () => {
+    const actor = await createTestUser('BadFkSaveUser', 'badfksaveuser@example.com');
+
+    const res = await request(app)
+      .post('/posts/saved')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .send({ post_id: 999999999 });
+
+    expect(res.status).toBe(500);
   });
 });
 
@@ -1093,7 +1892,9 @@ describe('DELETE /posts/saved/:id', () => {
     );
 
     const saveId = saveRows[0].id;
-    const res = await request(app).delete(`/posts/saved/${saveId}`);
+    const res = await request(app)
+      .delete(`/posts/saved/${saveId}`)
+      .set('Authorization', `Bearer ${saver.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(saveId);
@@ -1104,10 +1905,25 @@ describe('DELETE /posts/saved/:id', () => {
 
   // Boundary: non-existent save id
   test('should return 404 when the saved post does not exist', async () => {
-    const res = await request(app).delete('/posts/saved/999999');
+    const actor = await createTestUser('MissingSaveUser', 'missingsaveuser@example.com');
+
+    const res = await request(app)
+      .delete('/posts/saved/999999')
+      .set('Authorization', `Bearer ${actor.token}`);
 
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/save not found/i);
+  });
+
+  // Error handling: a non-numeric save id triggers a database error
+  test('should return 500 for a non-numeric save id', async () => {
+    const actor = await createTestUser('BadSaveIdUser', 'badsaveiduser@example.com');
+
+    const res = await request(app)
+      .delete('/posts/saved/not-a-number')
+      .set('Authorization', `Bearer ${actor.token}`);
+
+    expect(res.status).toBe(500);
   });
 });
 
@@ -1136,7 +1952,9 @@ describe('GET /posts/reaction/:user_id', () => {
       [postRows[0].id, reactor.id],
     );
 
-    const res = await request(app).get(`/posts/reaction/${reactor.id}`);
+    const res = await request(app)
+      .get(`/posts/reaction/${reactor.id}`)
+      .set('Authorization', `Bearer ${reactor.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
@@ -1147,10 +1965,70 @@ describe('GET /posts/reaction/:user_id', () => {
   test('should return 200 and an empty array when the user has no reactions', async () => {
     const user = await createTestUser('NoReactionsUser', 'noreactions@example.com');
 
-    const res = await request(app).get(`/posts/reaction/${user.id}`);
+    const res = await request(app)
+      .get(`/posts/reaction/${user.id}`)
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
+  });
+
+  // Invalid partition: cannot view another user's reactions
+  test("should return 403 when requesting another user's reactions", async () => {
+    const owner = await createTestUser('ReactionPrivacyOwner', 'reactionprivacyowner@example.com');
+    const intruder = await createTestUser(
+      'ReactionPrivacyIntruder',
+      'reactionprivacyintruder@example.com',
+    );
+
+    const res = await request(app)
+      .get(`/posts/reaction/${owner.id}`)
+      .set('Authorization', `Bearer ${intruder.token}`);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/not authorized/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// GET /posts/liked/:user_id
+// ─────────────────────────────────────────────────────────
+describe('GET /posts/liked/:user_id', () => {
+  // Valid partition: owner views their own liked posts
+  test("should return the authenticated user's liked posts", async () => {
+    const liker = await createTestUser('LikedPostsUser', 'likedpostsuser@example.com');
+    const author = await createTestUser('LikedPostAuthor', 'likedpostauthor@example.com');
+    const post = await createTestPost(author.id, 'A Liked Post');
+    await pool.query(
+      `INSERT INTO "PostReactions" (post_id, user_id, reaction_type) VALUES ($1, $2, 'like')`,
+      [post.id, liker.id],
+    );
+
+    const res = await request(app)
+      .get(`/posts/liked/${liker.id}`)
+      .set('Authorization', `Bearer ${liker.token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.some((p) => p.title === 'A Liked Post')).toBe(true);
+  });
+
+  test("currently allows viewing another user's liked posts", async () => {
+    const owner = await createTestUser('LikedPostsOwner', 'likedpostsowner@example.com');
+    const author = await createTestUser('LikedPostsAuthor2', 'likedpostsauthor2@example.com');
+    const post = await createTestPost(author.id, 'Private-ish Liked Post');
+    await pool.query(
+      `INSERT INTO "PostReactions" (post_id, user_id, reaction_type) VALUES ($1, $2, 'like')`,
+      [post.id, owner.id],
+    );
+
+    const stranger = await createTestUser('LikedPostsStranger', 'likedpoststranger@example.com');
+
+    const res = await request(app)
+      .get(`/posts/liked/${owner.id}`)
+      .set('Authorization', `Bearer ${stranger.token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.some((p) => p.title === 'Private-ish Liked Post')).toBe(true);
   });
 });
 
@@ -1175,6 +2053,7 @@ describe('POST /posts/like', () => {
 
     const res = await request(app)
       .post('/posts/like')
+      .set('Authorization', `Bearer ${liker.token}`)
       .send({ post_id: postId, reaction_type: 'like' });
 
     expect(res.status).toBe(201);
@@ -1186,12 +2065,36 @@ describe('POST /posts/like', () => {
 
   // Invalid partition: post_id missing from body
   test('should return 400 when post_id is missing', async () => {
-    await createTestUser('NoPostIdLiker', 'nopostidliker@example.com');
+    const actor = await createTestUser('NoPostIdLiker', 'nopostidliker@example.com');
 
-    const res = await request(app).post('/posts/like').send({ reaction_type: 'like' });
+    const res = await request(app)
+      .post('/posts/like')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .send({ reaction_type: 'like' });
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/post_id/i);
+  });
+
+  // Boundary: liking your own post still succeeds and skips the notification branch
+  test('should allow a user to like their own post', async () => {
+    const author = await createTestUser('SelfLikeAuthor', 'selflikeauthor@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Self Like Post', 'general', 'Content')
+      RETURNING id`,
+      [author.id],
+    );
+
+    const res = await request(app)
+      .post('/posts/like')
+      .set('Authorization', `Bearer ${author.token}`)
+      .send({ post_id: rows[0].id, reaction_type: 'like' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.user_id).toBe(author.id);
   });
 
   // Boundary: reacting to the same post twice
@@ -1207,14 +2110,65 @@ describe('POST /posts/like', () => {
     );
 
     const postId = rows[0].id;
-    await createTestUser('DupReactor', 'dupreactor@example.com');
+    const reactor = await createTestUser('DupReactor', 'dupreactor@example.com');
 
-    await request(app).post('/posts/like').send({ post_id: postId, reaction_type: 'like' });
+    await request(app)
+      .post('/posts/like')
+      .set('Authorization', `Bearer ${reactor.token}`)
+      .send({ post_id: postId, reaction_type: 'like' });
     const res = await request(app)
       .post('/posts/like')
+      .set('Authorization', `Bearer ${reactor.token}`)
       .send({ post_id: postId, reaction_type: 'dislike' });
     expect(res.status).toBe(409);
     expect(res.body.message).toMatch(/already reacted/i);
+  });
+
+  // Error handling: a Notification failure is swallowed and doesn't affect the 201 response
+  test('should still return 201 when the like notification fails to send', async () => {
+    const author = await createTestUser('NotifyFailAuthor', 'notifyfailauthor@example.com');
+
+    const { rows } = await pool.query(
+      `INSERT INTO "Posts"
+      (user_id, title, category, content)
+      VALUES ($1, 'Notify Fail Post', 'general', 'Content')
+      RETURNING id`,
+      [author.id],
+    );
+
+    const postId = rows[0].id;
+    const liker = await createTestUser('NotifyFailLiker', 'notifyfailliker@example.com');
+
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const notifySpy = jest
+      .spyOn(Notification, 'create')
+      .mockRejectedValueOnce(new Error('Notify boom'));
+
+    const res = await request(app)
+      .post('/posts/like')
+      .set('Authorization', `Bearer ${liker.token}`)
+      .send({ post_id: postId, reaction_type: 'like' });
+
+    expect(res.status).toBe(201);
+
+    // Give the fire-and-forget notification time to run and fail
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(warnSpy).toHaveBeenCalledWith('Post like notify error:', 'Notify boom');
+
+    notifySpy.mockRestore();
+    warnSpy.mockRestore();
+  });
+
+  // Error handling: a foreign key violation falls through to the generic catch
+  test('should return 500 when liking a post that does not exist', async () => {
+    const actor = await createTestUser('BadFkLikeUser', 'badfklikeuser@example.com');
+
+    const res = await request(app)
+      .post('/posts/like')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .send({ post_id: 999999999, reaction_type: 'like' });
+
+    expect(res.status).toBe(500);
   });
 });
 
@@ -1245,6 +2199,7 @@ describe('PUT /posts/reaction/:id', () => {
 
     const res = await request(app)
       .put(`/posts/reaction/${reactionRows[0].id}`)
+      .set('Authorization', `Bearer ${reactor.token}`)
       .send({ user_id: reactor.id, reaction_type: 'dislike' });
 
     expect(res.status).toBe(200);
@@ -1253,12 +2208,27 @@ describe('PUT /posts/reaction/:id', () => {
 
   // Boundary: non-existent reaction id
   test('should return 404 when the reaction does not exist', async () => {
+    const actor = await createTestUser('MissingReactionUser', 'missingreactionuser@example.com');
+
     const res = await request(app)
       .put('/posts/reaction/999999')
-      .send({ user_id: 1, reaction_type: 'dislike' });
+      .set('Authorization', `Bearer ${actor.token}`)
+      .send({ user_id: actor.id, reaction_type: 'dislike' });
 
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/reaction not found/i);
+  });
+
+  // Error handling: a non-numeric reaction id triggers a database error
+  test('should return 500 for a non-numeric reaction id', async () => {
+    const actor = await createTestUser('BadReactionUpdateUser', 'badreactionupdateuser@example.com');
+
+    const res = await request(app)
+      .put('/posts/reaction/not-a-number')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .send({ reaction_type: 'dislike' });
+
+    expect(res.status).toBe(500);
   });
 });
 
@@ -1291,6 +2261,7 @@ describe('DELETE /posts/reaction/:id', () => {
 
     const res = await request(app)
       .delete(`/posts/reaction/${reactionId}`)
+      .set('Authorization', `Bearer ${reactor.token}`)
       .send({ user_id: reactor.id });
 
     expect(res.status).toBe(200);
@@ -1302,10 +2273,26 @@ describe('DELETE /posts/reaction/:id', () => {
 
   // Boundary: non-existent reaction id
   test('should return 404 when the reaction does not exist', async () => {
-    const res = await request(app).delete('/posts/reaction/999999').send({ user_id: 1 });
+    const actor = await createTestUser('MissingReactionDeleteUser', 'missingreactiondeleteuser@example.com');
+
+    const res = await request(app)
+      .delete('/posts/reaction/999999')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .send({ user_id: actor.id });
 
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/reaction not found/i);
+  });
+
+  // Error handling: a non-numeric reaction id triggers a database error
+  test('should return 500 for a non-numeric reaction id', async () => {
+    const actor = await createTestUser('BadReactionDeleteUser', 'badreactiondeleteuser@example.com');
+
+    const res = await request(app)
+      .delete('/posts/reaction/not-a-number')
+      .set('Authorization', `Bearer ${actor.token}`);
+
+    expect(res.status).toBe(500);
   });
 });
 
@@ -1392,6 +2379,7 @@ describe('PUT /posts/:id/tags', () => {
 
     const res = await request(app)
       .put(`/posts/${post.id}/tags`)
+      .set('Authorization', `Bearer ${author.token}`)
       .send({ tag_names: ['Confession', 'Finals'] });
 
     expect(res.status).toBe(200);
@@ -1406,9 +2394,11 @@ describe('PUT /posts/:id/tags', () => {
 
     await request(app)
       .put(`/posts/${postA.id}/tags`)
+      .set('Authorization', `Bearer ${author.token}`)
       .send({ tag_names: ['finals'] });
     await request(app)
       .put(`/posts/${postB.id}/tags`)
+      .set('Authorization', `Bearer ${author.token}`)
       .send({ tag_names: ['finals'] });
 
     const { rows } = await pool.query(`SELECT * FROM "Tags" WHERE name = 'finals'`);
@@ -1421,9 +2411,13 @@ describe('PUT /posts/:id/tags', () => {
     const post = await createTestPost(author.id);
     await request(app)
       .put(`/posts/${post.id}/tags`)
+      .set('Authorization', `Bearer ${author.token}`)
       .send({ tag_names: ['temporary'] });
 
-    const res = await request(app).put(`/posts/${post.id}/tags`).send({ tag_names: [] });
+    const res = await request(app)
+      .put(`/posts/${post.id}/tags`)
+      .set('Authorization', `Bearer ${author.token}`)
+      .send({ tag_names: [] });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
@@ -1436,6 +2430,7 @@ describe('PUT /posts/:id/tags', () => {
 
     const res = await request(app)
       .put(`/posts/${post.id}/tags`)
+      .set('Authorization', `Bearer ${author.token}`)
       .send({ tag_names: 'not-an-array' });
 
     expect(res.status).toBe(400);
@@ -1449,10 +2444,28 @@ describe('PUT /posts/:id/tags', () => {
 
     const tooMany = Array.from({ length: 11 }, (_, i) => `tag${i}`);
 
-    const res = await request(app).put(`/posts/${post.id}/tags`).send({ tag_names: tooMany });
+    const res = await request(app)
+      .put(`/posts/${post.id}/tags`)
+      .set('Authorization', `Bearer ${author.token}`)
+      .send({ tag_names: tooMany });
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/maximum of 10 tags/i);
+  });
+
+  // Error handling: deletePostTags fails unexpectedly
+  test('should return 500 when updating tags fails unexpectedly', async () => {
+    const owner = await createTestUser('TagsFailOwner', 'tagsfailowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    PostsModel.deletePostTags.mockRejectedValueOnce(new Error('Tags delete boom'));
+
+    const res = await request(app)
+      .put(`/posts/${post.id}/tags`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ tag_names: ['music', 'sports'] });
+
+    expect(res.status).toBe(500);
   });
 });
 
@@ -1465,8 +2478,12 @@ describe('POST /posts/:id/view', () => {
     const author = await createTestUser('ViewAuthor', 'viewauthor@example.com');
     const post = await createTestPost(author.id);
 
-    const first = await request(app).post(`/posts/${post.id}/view`);
-    const second = await request(app).post(`/posts/${post.id}/view`);
+    const first = await request(app)
+      .post(`/posts/${post.id}/view`)
+      .set('Authorization', `Bearer ${author.token}`);
+    const second = await request(app)
+      .post(`/posts/${post.id}/view`)
+      .set('Authorization', `Bearer ${author.token}`);
 
     expect(first.status).toBe(200);
     expect(first.body.view_count).toBe(1);
@@ -1475,15 +2492,18 @@ describe('POST /posts/:id/view', () => {
 
   // no post returns 0
   test('should return view_count: 0 for a non-existent post instead of a 404', async () => {
-    await createTestUser('GhostViewUser', 'ghostviewuser@example.com');
+    const actor = await createTestUser('GhostViewUser', 'ghostviewuser@example.com');
 
-    const res = await request(app).post('/posts/999999999/view');
+    const res = await request(app)
+      .post('/posts/999999999/view')
+      .set('Authorization', `Bearer ${actor.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.view_count).toBe(0);
   });
 });
 
+// ================== Posts Analytics ======================
 // ─────────────────────────────────────────────────────────
 // GET /posts/:id/analytics
 // ─────────────────────────────────────────────────────────
@@ -1507,8 +2527,9 @@ describe('GET /posts/:id/analytics', () => {
       post.id,
     ]);
 
-    mockUserId = owner.id;
-    const res = await request(app).get(`/posts/${post.id}/analytics`);
+    const res = await request(app)
+      .get(`/posts/${post.id}/analytics`)
+      .set('Authorization', `Bearer ${owner.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.like_count).toBe(1);
@@ -1522,7 +2543,9 @@ describe('GET /posts/:id/analytics', () => {
     const owner = await createTestUser('QuietAuthor', 'quietauthor@example.com');
     const post = await createTestPost(owner.id);
 
-    const res = await request(app).get(`/posts/${post.id}/analytics`);
+    const res = await request(app)
+      .get(`/posts/${post.id}/analytics`)
+      .set('Authorization', `Bearer ${owner.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.like_count).toBe(0);
@@ -1538,9 +2561,11 @@ describe('GET /posts/:id/analytics', () => {
     );
     const post = await createTestPost(owner.id);
 
-    await createTestUser('AnalyticsStranger', 'analyticsstranger@example.com');
+    const stranger = await createTestUser('AnalyticsStranger', 'analyticsstranger@example.com');
 
-    const res = await request(app).get(`/posts/${post.id}/analytics`);
+    const res = await request(app)
+      .get(`/posts/${post.id}/analytics`)
+      .set('Authorization', `Bearer ${stranger.token}`);
 
     expect(res.status).toBe(404);
     expect(res.body.message).toMatch(/not found or not yours/i);
@@ -1562,8 +2587,9 @@ describe('GET /posts/:id/analytics/engagement-over-time', () => {
       [post.id, reactor.id],
     );
 
-    mockUserId = owner.id;
-    const res = await request(app).get(`/posts/${post.id}/analytics/engagement-over-time`);
+    const res = await request(app)
+      .get(`/posts/${post.id}/analytics/engagement-over-time`)
+      .set('Authorization', `Bearer ${owner.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
@@ -1575,7 +2601,9 @@ describe('GET /posts/:id/analytics/engagement-over-time', () => {
     const owner = await createTestUser('QuietTimelineOwner', 'quiettimelineowner@example.com');
     const post = await createTestPost(owner.id);
 
-    const res = await request(app).get(`/posts/${post.id}/analytics/engagement-over-time`);
+    const res = await request(app)
+      .get(`/posts/${post.id}/analytics/engagement-over-time`)
+      .set('Authorization', `Bearer ${owner.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
@@ -1592,7 +2620,9 @@ describe('GET /posts/:id/analytics/engagement-over-time', () => {
       [post.id, stranger.id],
     );
 
-    const res = await request(app).get(`/posts/${post.id}/analytics/engagement-over-time`);
+    const res = await request(app)
+      .get(`/posts/${post.id}/analytics/engagement-over-time`)
+      .set('Authorization', `Bearer ${stranger.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
@@ -1609,7 +2639,9 @@ describe('GET /posts/analytics/all', () => {
     await createTestPost(user.id, 'First Post');
     await createTestPost(user.id, 'Second Post');
 
-    const res = await request(app).get('/posts/analytics/all');
+    const res = await request(app)
+      .get('/posts/analytics/all')
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(2);
@@ -1625,7 +2657,9 @@ describe('GET /posts/analytics/all', () => {
       [user.id],
     );
 
-    const res = await request(app).get('/posts/analytics/all');
+    const res = await request(app)
+      .get('/posts/analytics/all')
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
@@ -1634,11 +2668,209 @@ describe('GET /posts/analytics/all', () => {
 
   // Boundary: a user with no posts gets an empty array
   test('should return an empty array for a user with no posts', async () => {
-    await createTestUser('NoPostsAnalyticsUser', 'nopostsanalyticsuser@example.com');
+    const user = await createTestUser('NoPostsAnalyticsUser', 'nopostsanalyticsuser@example.com');
 
-    const res = await request(app).get('/posts/analytics/all');
+    const res = await request(app)
+      .get('/posts/analytics/all')
+      .set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
+  });
+});
+
+// ================== Posts Reports ======================
+// ─────────────────────────────────────────────────────────
+// GET /posts/reports
+// ─────────────────────────────────────────────────────────
+test('should return the report list for an admin', async () => {
+  const admin = await createTestUser('AdminReportsUser', 'adminreportsuser@example.com');
+  await promoteToAdmin(admin);
+
+  const author = await createTestUser('ReportedPostAuthor', 'reportedpostauthor@example.com');
+  const post = await createTestPost(author.id);
+  const reporter = await createTestUser('PostReporterUser', 'postreporteruser@example.com');
+  await pool.query(`INSERT INTO "PostReports" (post_id, user_id, reason) VALUES ($1, $2, 'spam')`, [
+    post.id,
+    reporter.id,
+  ]);
+
+  const res = await request(app)
+    .get('/posts/reports')
+    .set('Authorization', `Bearer ${admin.token}`);
+
+  expect(res.status).toBe(200);
+  expect(res.body.some((r) => r.post_id === post.id)).toBe(true);
+});
+
+// Invalid partition: a non-admin user cannot get reports
+test('should return 403 for a non-admin users', async () => {
+  const actor = await createTestUser('NonAdminReportsUser', 'nonadminreports@example.com');
+
+  const res = await request(app)
+    .get('/posts/reports')
+    .set('Authorization', `Bearer ${actor.token}`);
+
+  expect(res.status).toBe(403);
+  expect(res.body.message).toMatch(/admin access required/i);
+});
+
+// Valid partition: includeDismissed=true
+test('should include dismissed reports when includeDismissed=true', async () => {
+  const admin = await createTestUser('AdminReportsUser2', 'adminreports2@example.com');
+  await promoteToAdmin(admin);
+
+  const res = await request(app)
+    .get('/posts/reports')
+    .set('Authorization', `Bearer ${admin.token}`)
+    .query({ includeDismissed: 'true' });
+
+  expect(res.status).toBe(200);
+  expect(Array.isArray(res.body)).toBe(true);
+});
+
+// Error handling: getAllReports fails
+test('should return 500 when fetching reports fails', async () => {
+  const admin = await createTestUser('ReportsFailUser', 'reportsfailuser@example.com');
+  await promoteToAdmin(admin);
+
+  PostsModel.getAllReports.mockRejectedValueOnce(new Error('Reports boom'));
+
+  const res = await request(app)
+    .get('/posts/reports')
+    .set('Authorization', `Bearer ${admin.token}`);
+
+  expect(res.status).toBe(500);
+});
+
+// ─────────────────────────────────────────────────────────
+// POST /posts/:id/report
+// ─────────────────────────────────────────────────────────
+describe('POST /posts/:id/report', () => {
+  test('should return 400 when reason is missing', async () => {
+    const author = await createTestUser('NoReasonPostAuthor', 'noreasonpostauthor@example.com');
+    const post = await createTestPost(author.id);
+    const reporter = await createTestUser('NoReasonReporter', 'noreasonreporter@example.com');
+
+    const res = await request(app)
+      .post(`/posts/${post.id}/report`)
+      .set('Authorization', `Bearer ${reporter.token}`)
+      .send({});
+
+    expect(res.status).toBe(400);
+  });
+
+  test('should submit a post report as the authenticated user', async () => {
+    const author = await createTestUser('ReportPostAuthor', 'reportpostauthor@example.com');
+    const post = await createTestPost(author.id);
+    const reporter = await createTestUser('ReportPostReporter', 'reportpostreporter@example.com');
+
+    const res = await request(app)
+      .post(`/posts/${post.id}/report`)
+      .set('Authorization', `Bearer ${reporter.token}`)
+      .send({ reason: 'spam' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.user_id).toBe(reporter.id);
+    expect(res.body.post_id).toBe(post.id);
+  });
+
+  test('should return 409 when the user reports the same post twice', async () => {
+    const author = await createTestUser('DupeReportPostAuthor', 'dupereportpostauthor@example.com');
+    const post = await createTestPost(author.id);
+    const reporter = await createTestUser('DupeReportPostUser', 'dupereportpostuser@example.com');
+
+    await request(app)
+      .post(`/posts/${post.id}/report`)
+      .set('Authorization', `Bearer ${reporter.token}`)
+      .send({ reason: 'spam' });
+    const res = await request(app)
+      .post(`/posts/${post.id}/report`)
+      .set('Authorization', `Bearer ${reporter.token}`)
+      .send({ reason: 'spam' });
+
+    expect(res.status).toBe(409);
+  });
+
+  // Error handling: a foreign key violation falls through to the generic catch
+  test('should return 500 when reporting a post that does not exist', async () => {
+    const actor = await createTestUser('BadFkReportUser', 'badfkreportuser@example.com');
+
+    const res = await request(app)
+      .post('/posts/999999999/report')
+      .set('Authorization', `Bearer ${actor.token}`)
+      .send({ reason: 'spam' });
+
+    expect(res.status).toBe(500);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// POST /posts/:id/pin
+// ─────────────────────────────────────────────────────────
+describe('POST /posts/:id/pin', () => {
+  // Valid partition: owner pins their post
+  test('should pin the post for its owner', async () => {
+    const owner = await createTestUser('PinOwner', 'pinowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    const res = await request(app)
+      .post(`/posts/${post.id}/pin`)
+      .set('Authorization', `Bearer ${owner.token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.pinned).toBe(true);
+  });
+
+  // Boundary: pinning again toggles it back off
+  test('should unpin an already pinned post', async () => {
+    const owner = await createTestUser('TogglePinOwner', 'togglepinowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    await request(app)
+      .post(`/posts/${post.id}/pin`)
+      .set('Authorization', `Bearer ${owner.token}`);
+    const res = await request(app)
+      .post(`/posts/${post.id}/pin`)
+      .set('Authorization', `Bearer ${owner.token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.pinned).toBe(false);
+  });
+
+  // Invalid partition: non-owner cannot pin another user's post
+  test("should return 404 when a non-owner tries to pin someone else's post", async () => {
+    const owner = await createTestUser('PinVictimOwner', 'pinvictimowner@example.com');
+    const post = await createTestPost(owner.id);
+
+    const intruder = await createTestUser('PinIntruder', 'pinintruder@example.com');
+
+    const res = await request(app)
+      .post(`/posts/${post.id}/pin`)
+      .set('Authorization', `Bearer ${intruder.token}`);
+
+    expect(res.status).toBe(404);
+  });
+
+  // Boundary: invalid (non-integer) post id
+  test('should return 400 for a non-integer post id', async () => {
+    const actor = await createTestUser('InvalidPinIdUser', 'invalidpinidsuser@example.com');
+
+    const res = await request(app)
+      .post('/posts/not-a-number/pin')
+      .set('Authorization', `Bearer ${actor.token}`);
+
+    expect(res.status).toBe(400);
+  });
+
+  // Error handling: an out of range post id 
+  test('should return 500 for a post id outside the integer range', async () => {
+    const actor = await createTestUser('PinOverflowUser', 'pinoverflowuser@example.com');
+
+    const res = await request(app)
+      .post('/posts/99999999999/pin')
+      .set('Authorization', `Bearer ${actor.token}`);
+
+    expect(res.status).toBe(500);
   });
 });

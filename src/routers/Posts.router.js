@@ -116,7 +116,7 @@ router.get('/reports', authenticateJWT, async (req, res, next) => {
       return res.status(403).json({ message: 'Admin access required.' });
     }
     const includeDismissed = req.query.includeDismissed === 'true';
-    const reports = await getAllCommentReports(includeDismissed);
+    const reports = await getAllReports(includeDismissed);
     res.status(200).json(reports);
   } catch (err) {
     next(err);
@@ -184,25 +184,23 @@ router.get('/saved/:user_id', authenticateJWT, (req, res, next) => {
   if (Number(req.params.user_id) !== req.user.id) {
     return res.status(403).json({ error: 'Not authorized to view these saved posts.' });
   }
-  const data = { 
-    user_id: req.params.user_id 
+  const data = {
+    user_id: req.params.user_id,
   };
   getSavedByUserID(data)
-  .then((post) => 
-    res.status(200).json(post))
-  .catch(next);
+    .then((post) => res.status(200).json(post))
+    .catch(next);
 });
 
 router.get('/reaction/:user_id', authenticateJWT, (req, res, next) => {
   if (Number(req.params.user_id) !== req.user.id) {
     return res.status(403).json({ error: 'Not authorized to view these reactions.' });
   }
-  const data = { 
-    user_id: req.params.user_id 
+  const data = {
+    user_id: req.params.user_id,
   };
   getReactionByUserID(data)
-    .then((post) => 
-      res.status(200).json(post))
+    .then((post) => res.status(200).json(post))
     .catch(next);
 });
 
@@ -757,7 +755,7 @@ router.post('/like', authenticateJWT, (req, res, next) => {
 router.put('/reaction/:id', authenticateJWT, (req, res) => {
   const data = {
     id: req.params.id,
-    user_id: req.user.id,      
+    user_id: req.user.id,
     reaction_type: req.body.reaction_type,
   };
   updateReaction(data)
@@ -804,21 +802,20 @@ router.post('/:id/report', authenticateJWT, (req, res) => {
     return res.status(400).json({ message: 'reason not found.' });
   }
   const data = {
-    comment_id: req.params.id,
+    post_id: req.params.id,
     user_id: req.user.id,
     reason: req.body.reason,
     description: req.body.description || '',
   };
-  insertCommentReport(data)
+  insertReport(data)
     .then((result) => res.status(201).json(result))
     .catch((error) => {
       if (error.code === '23505') {
-        return res.status(409).json({ message: 'You have already reported this comment.' });
+        return res.status(409).json({ message: 'You have already reported this post.' });
       }
-      console.error('Error insertCommentReport:', error);
+      console.error('Error insertReport:', error);
       res.status(500).json({ message: 'Failed to submit report.' });
     });
 });
-
 
 module.exports = router;

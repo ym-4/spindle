@@ -65,8 +65,11 @@ router.get('/user/:user_id', authenticateJWT, (req, res, next) => {
 // saving comments
 // GET saved comments by user
 router.get('/saved/:user_id', authenticateJWT, (req, res, next) => {
+  if (Number(req.params.user_id) !== req.user.id) {
+    return res.status(403).json({ error: 'Not authorized to view these saved comments.' });
+  }
   getSavedCommentsByUserID({ user_id: req.params.user_id })
-    .then((results) => res.status(200).json(results))
+    .then((r) => res.status(200).json(r))
     .catch(next);
 });
 
@@ -98,29 +101,25 @@ router.post('/saved', authenticateJWT, (req, res) => {
 });
 
 // Unsave a comment
-router.delete('/saved/:id', (req, res) => {
-  const data = { id: req.params.id };
-  deleteSavedCommentByID(data)
-    .then((results) => {
-      if (!results) {
-        return res.status(404).json({ error: 'Save not found' });
-      }
-      res.status(200).json(results);
-    })
-    .catch((error) => {
-      console.error('Error deleteSavedByID: ' + error);
-      res.status(500).json(error);
-    });
+router.delete('/saved/:id', authenticateJWT, async (req, res) => {
+  try {
+    const result = await deleteSavedCommentByID({ id: req.params.id, user_id: req.user.id });
+    if (!result) return res.status(404).json({ error: 'Save not found' });
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Error deleteSavedByID: ' + error);
+    res.status(500).json(error);
+  }
 });
 
 // get comment reactions by user
 router.get('/reaction/:user_id', authenticateJWT, (req, res, next) => {
-  const data = {
-    user_id: req.params.user_id,
-  };
+  if (Number(req.params.user_id) !== req.user.id) {
+    return res.status(403).json({ error: 'Not authorized to view these reactions.' });
+  }
 
-  getCommentReactionByUserID(data)
-    .then((results) => res.status(200).json(results))
+  getCommentReactionByUserID({ user_id: req.params.user_id })
+    .then((r) => res.status(200).json(r))
     .catch(next);
 });
 
@@ -188,12 +187,13 @@ router.post('/like', authenticateJWT, (req, res) => {
 });
 
 // Update comment reaction
-router.put('/reaction/:id', (req, res) => {
+router.put('/reaction/:id', authenticateJWT, (req, res) => {
   const data = {
     id: req.params.id,
-    user_id: req.body.user_id,
+    user_id: req.user.id,
     reaction_type: req.body.reaction_type,
   };
+
   updateCommentReaction(data)
     .then((results) => {
       if (!results) return res.status(404).json({ error: 'Reaction not found' });
@@ -206,11 +206,12 @@ router.put('/reaction/:id', (req, res) => {
 });
 
 // Delete comment reaction
-router.delete('/reaction/:id', (req, res) => {
+router.delete('/reaction/:id', authenticateJWT, (req, res) => {
   const data = {
     id: req.params.id,
-    user_id: req.body.user_id,
+    user_id: req.user.id,
   };
+
   deleteCommentReaction(data)
     .then((results) => {
       if (!results) return res.status(404).json({ error: 'Reaction not found' });

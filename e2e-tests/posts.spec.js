@@ -250,7 +250,10 @@ test.describe('Edit Post', () => {
 });
 
 // ── Post Polls ─────────────────────────────────────────────────
-async function addPostWithPoll(page, { title, content, category = CATEGORIES[0], pollQuestion, pollOptions }) {
+async function addPostWithPoll(
+  page,
+  { title, content, category = CATEGORIES[0], pollQuestion, pollOptions },
+) {
   await page.locator('.create-post-input').click();
   await expect(page.locator('#createPostModal')).toBeVisible();
   await page.locator('#postTitle').fill(title);
@@ -294,7 +297,9 @@ test.describe('Poll Tests', () => {
     const card = pollCardFor(page, 'E2E Poll Creation Post');
     await expect(card.locator('.poll-question')).toHaveText('Coffee or tea?', { timeout: 10000 });
     await expect(card.locator('.poll-option')).toHaveCount(2);
-    await expect(card.locator('.poll-option-label').first()).toHaveText('Coffee');
+
+    const labels = await card.locator('.poll-option-label').allTextContents();
+    expect(labels.sort()).toEqual(['Coffee', 'Tea']);
   });
 
   // Valid partition: voting on an option marks it as the user's choice and shows results
@@ -317,28 +322,28 @@ test.describe('Poll Tests', () => {
 
   // Boundary: switching a vote updates which option is marked as the user's choice
   test('should switch my vote when I click a different option', async ({ page }) => {
-  await addPostWithPoll(page, {
-    title: 'E2E Poll Switch Post',
-    content: 'Switch vote test content',
-    pollQuestion: 'Pizza or pasta?',
-    pollOptions: ['Pizza', 'Pasta'],
+    await addPostWithPoll(page, {
+      title: 'E2E Poll Switch Post',
+      content: 'Switch vote test content',
+      pollQuestion: 'Pizza or pasta?',
+      pollOptions: ['Pizza', 'Pasta'],
+    });
+
+    const card = pollCardFor(page, 'E2E Poll Switch Post');
+    await expect(card.locator('.poll-question')).toBeVisible({ timeout: 10000 });
+
+    await card.locator('.poll-option').filter({ hasText: 'Pizza' }).click();
+    await expect(
+      card.locator('.poll-option.user-voted').filter({ hasText: 'Pizza' }),
+    ).toBeVisible();
+
+    await card.locator('.poll-option').filter({ hasText: 'Pasta' }).click();
+
+    await expect(
+      card.locator('.poll-option.user-voted').filter({ hasText: 'Pasta' }),
+    ).toBeVisible();
+    await expect(card.locator('.poll-option.user-voted').filter({ hasText: 'Pizza' })).toHaveCount(
+      0,
+    );
   });
-
-  const card = pollCardFor(page, 'E2E Poll Switch Post');
-  await expect(card.locator('.poll-question')).toBeVisible({ timeout: 10000 });
-
-  await card.locator('.poll-option').filter({ hasText: 'Pizza' }).click();
-  await expect(
-    card.locator('.poll-option.user-voted').filter({ hasText: 'Pizza' }),
-  ).toBeVisible();
-
-  await card.locator('.poll-option').filter({ hasText: 'Pasta' }).click();
-
-  await expect(
-    card.locator('.poll-option.user-voted').filter({ hasText: 'Pasta' }),
-  ).toBeVisible();
-  await expect(
-    card.locator('.poll-option.user-voted').filter({ hasText: 'Pizza' }),
-  ).toHaveCount(0);
-});
 });

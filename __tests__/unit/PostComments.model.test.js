@@ -2,6 +2,7 @@ const pool = require('../../src/models/db');
 const {
   getAllComments,
   getCommentsByPostID,
+  getCommentsByUserID,
   insertComments,
   updateCommentsByID,
   deleteCommentsByID,
@@ -112,6 +113,52 @@ describe('PostComments.model - getCommentsByPostID', () => {
     pool.query.mockRejectedValue(new Error('connection lost'));
 
     await expect(getCommentsByPostID({ post_id: 1 })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── getCommentsByUserID ──────────────────────────────────
+describe('PostComments.model - getCommentsByUserID', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: returns a user's comments on non-anonymous posts
+  test("should return the user's comments with post context", async () => {
+    const fakeRows = [
+      { id: 1, content: 'Nice post!', post_title: 'My Post', post_is_anonymous: false },
+    ];
+    pool.query.mockResolvedValue({ rows: fakeRows });
+
+    const result = await getCommentsByUserID({ user_id: 5 });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('AND p.is_anonymous = FALSE'),
+      [5],
+    );
+    expect(result).toEqual(fakeRows);
+  });
+
+  // Boundary: user has no comments
+  test('should return an empty array when the user has no comments', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getCommentsByUserID({ user_id: 999 });
+
+    expect(result).toEqual([]);
+  });
+
+  // Boundary: user_id = 0
+  test('should pass user_id = 0 to the query (boundary value)', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getCommentsByUserID({ user_id: 0 });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [0]);
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getCommentsByUserID({ user_id: 5 })).rejects.toThrow('connection lost');
   });
 });
 
@@ -456,41 +503,37 @@ describe('PostComments.model - insertSavedComment', () => {
 describe('PostComments.model - deleteSavedCommentByID', () => {
   afterEach(() => jest.clearAllMocks());
 
-  // Valid partition: deletes an existing saved comment record
-  test('should delete the saved comment and return the deleted row', async () => {
-    const deletedSave = { id: 1, user_id: 5, comment_id: 10 };
+  // Valid partition: owner deletes their own saved comment
+  test('should delete the saved comment for its owner and return the deleted row', async () => {
+    const fakeRow = { id: 1, user_id: 5, comment_id: 10 };
+    pool.query.mockResolvedValue({ rows: [fakeRow] });
 
-    pool.query.mockResolvedValue({ rows: [deletedSave] });
-
-    const result = await deleteSavedCommentByID({ id: 1 });
+    const result = await deleteSavedCommentByID({ id: 1, user_id: 5 });
 
     expect(pool.query).toHaveBeenCalledWith(
-      'DELETE FROM "SavedComments" WHERE "id" = $1 RETURNING *',
-      [1],
+      'DELETE FROM "SavedComments" WHERE "id" = $1 AND user_id = $2 RETURNING *',
+      [1, 5],
     );
-
-    expect(result).toEqual(deletedSave);
-  });
-
-  // Boundary: non-existent save id
-  test('should return undefined when the saved comment does not exist', async () => {
-    pool.query.mockResolvedValue({ rows: [] });
-
-    const result = await deleteSavedCommentByID({ id: 999 });
-
-    expect(result).toBeUndefined();
+    expect(result).toEqual(fakeRow);
   });
 
   // Boundary: id = 0
   test('should pass id = 0 to the query (boundary value)', async () => {
     pool.query.mockResolvedValue({ rows: [] });
 
-    const result = await deleteSavedCommentByID({ id: 0 });
+    await deleteSavedCommentByID({ id: 0, user_id: 5 });
 
     expect(pool.query).toHaveBeenCalledWith(
-      'DELETE FROM "SavedComments" WHERE "id" = $1 RETURNING *',
-      [0],
+      'DELETE FROM "SavedComments" WHERE "id" = $1 AND user_id = $2 RETURNING *',
+      [0, 5],
     );
+  });
+
+  // Boundary: save doesn't exist, or belongs to a different user
+  test('should return undefined when the save does not belong to the user', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await deleteSavedCommentByID({ id: 1, user_id: 999 });
 
     expect(result).toBeUndefined();
   });
@@ -499,7 +542,7 @@ describe('PostComments.model - deleteSavedCommentByID', () => {
   test('should propagate database errors', async () => {
     pool.query.mockRejectedValue(new Error('connection lost'));
 
-    await expect(deleteSavedCommentByID({ id: 1 })).rejects.toThrow('connection lost');
+    await expect(deleteSavedCommentByID({ id: 1, user_id: 5 })).rejects.toThrow('connection lost');
   });
 });
 
@@ -851,12 +894,10 @@ describe('PostComments.model - insertCommentReport', () => {
 
     const result = await insertCommentReport({ comment_id: 5, user_id: 2, reason: 'spam' });
 
-    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO "CommentReports"'), [
-      5,
-      2,
-      'spam',
-      '',
-    ]);
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO "CommentReports"'),
+      [5, 2, 'spam', ''],
+    );
     expect(result).toEqual(fakeReport);
   });
 
