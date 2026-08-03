@@ -422,7 +422,10 @@ describe('POST /comments/:post_id', () => {
 
   // Valid partition: commenting on someone else's post notifies the post owner
   test('should notify the post owner when a different user comments', async () => {
-    const author = await createTestUser('NotifyOwnerSuccessAuthor', 'notifyownersuccessauthor@example.com');
+    const author = await createTestUser(
+      'NotifyOwnerSuccessAuthor',
+      'notifyownersuccessauthor@example.com',
+    );
     const post = await createTestPost(author.id);
     const commenter = await createTestUser(
       'NotifyOwnerSuccessCommenter',
@@ -1126,7 +1129,10 @@ describe('POST /comments/like', () => {
     );
     const commentId = rows[0].id;
 
-    const disliker = await createTestUser('NotifySuccessDisliker', 'notifysuccessdisliker@example.com');
+    const disliker = await createTestUser(
+      'NotifySuccessDisliker',
+      'notifysuccessdisliker@example.com',
+    );
 
     const res = await request(app)
       .post('/comments/like')

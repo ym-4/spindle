@@ -84,9 +84,7 @@ describe('GET /snake/score', () => {
       33,
     ]);
 
-    const res = await request(app)
-      .get('/snake/score')
-      .set('Authorization', `Bearer ${user.token}`);
+    const res = await request(app).get('/snake/score').set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.best_score).toBe(33);
@@ -96,9 +94,7 @@ describe('GET /snake/score', () => {
   test('should return 0 when the user has no score row yet', async () => {
     const user = await createTestUser('NeverPlayed', 'neverplayed@example.com');
 
-    const res = await request(app)
-      .get('/snake/score')
-      .set('Authorization', `Bearer ${user.token}`);
+    const res = await request(app).get('/snake/score').set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.best_score).toBe(0);

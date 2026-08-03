@@ -48,9 +48,7 @@ describe('GET /tags/tags', () => {
   test('should return 200 and an empty array when no tags exist', async () => {
     const user = await createTestUser('TagsEmptyUser', 'tagsemptyuser@example.com');
 
-    const res = await request(app)
-      .get('/tags/tags')
-      .set('Authorization', `Bearer ${user.token}`);
+    const res = await request(app).get('/tags/tags').set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
@@ -61,9 +59,7 @@ describe('GET /tags/tags', () => {
     const user = await createTestUser('TagsSortedUser', 'tagssorteduser@example.com');
     await pool.query('INSERT INTO "Tags" ("name") VALUES ($1), ($2)', ['beta', 'alpha']);
 
-    const res = await request(app)
-      .get('/tags/tags')
-      .set('Authorization', `Bearer ${user.token}`);
+    const res = await request(app).get('/tags/tags').set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(2);
@@ -76,9 +72,7 @@ describe('GET /tags/tags', () => {
     const user = await createTestUser('TagsFailUser', 'tagsfailuser@example.com');
     Tag.getAllTags = jest.fn().mockRejectedValue(new Error('boom'));
 
-    const res = await request(app)
-      .get('/tags/tags')
-      .set('Authorization', `Bearer ${user.token}`);
+    const res = await request(app).get('/tags/tags').set('Authorization', `Bearer ${user.token}`);
 
     expect(res.status).toBe(500);
     expect(res.body).toEqual({ error: 'Failed to fetch tags' });

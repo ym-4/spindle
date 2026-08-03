@@ -749,10 +749,9 @@ describe('Posts.model - getSortedPosts', () => {
 
     await getSortedPosts({ category: 'general' });
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('AND p.category = $1'),
-      ['general'],
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('AND p.category = $1'), [
+      'general',
+    ]);
   });
 
   test('should propagate database errors', async () => {
@@ -2254,7 +2253,7 @@ describe('Posts.model - togglePin', () => {
     expect(result).toEqual({ pinned: false });
   });
 
-  // Boundary: non-owner or non-existent post 
+  // Boundary: non-owner or non-existent post
   test('should return null when the post does not exist or is not owned by the user', async () => {
     pool.query.mockResolvedValue({ rows: [] });
 
@@ -2270,4 +2269,3 @@ describe('Posts.model - togglePin', () => {
     await expect(togglePin(10, 5)).rejects.toThrow('connection lost');
   });
 });
-
