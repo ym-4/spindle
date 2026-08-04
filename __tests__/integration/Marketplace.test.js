@@ -70,7 +70,6 @@ afterAll(async () => {
   for (const filePath of uploadedFiles) {
     fs.promises.unlink(filePath).catch(() => {});
   }
-  await closePool();
 });
 
 describe('POST /marketplace (create listing)', () => {

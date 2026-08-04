@@ -1,3 +1,5 @@
+/* global currentPage:writable, loadListings, loadUserListings */
+
 // Shared filter state used by both the search bar (searchBar-Marketplace.js) and
 // the listing loaders (insertMarketplaceItems.js). Must load BEFORE both of those
 // files so `SpindleFilters` and `refreshFilteredListings` exist when they're used.

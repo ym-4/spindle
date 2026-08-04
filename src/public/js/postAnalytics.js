@@ -1,3 +1,4 @@
+/* global Chart */
 // Post analytics page
 document.addEventListener('DOMContentLoaded', () => {
   if (!isLoggedIn()) {

@@ -1,6 +1,7 @@
 const express = require('express');
-const { getBadgesForUser, awardBadge } = require('../models/Badge.model');
-const { authenticateJWT } = require('../middlewares/auth.middleware');
+const { getBadgesForUser } = require('../models/Badge.model');
+// const { getBadgesForUser, awardBadge } = require('../models/Badge.model');
+// const { authenticateJWT } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 

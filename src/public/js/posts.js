@@ -1,4 +1,4 @@
-/* global fetchMethod, currentUrl*/
+/* global fetchMethod, currentUrl, setupSearchDropdown */
 
 //  individual posts view
 //  fetches GET /posts/:id, renders post
@@ -1601,7 +1601,7 @@ function setupCommentSubmit(postId) {
           loadComments(postId);
 
           // refresh
-          const mentionedBot = /\@pandabot/i.test(content || '');
+          const mentionedBot = /pandabot/i.test(content || '');
           if (mentionedBot) {
             let attempts = 0;
             const poll = setInterval(() => {
@@ -2264,7 +2264,7 @@ function toggleReplyBox(commentEl, comment, postId, rootParentId) {
 
           // PandaBot mentioned
           const mentionedBot =
-            /\@pandabot/i.test(content || '') || comment.author_name?.toLowerCase() === 'pandabot';
+            /pandabot/i.test(content || '') || comment.author_name?.toLowerCase() === 'pandabot';
 
           if (mentionedBot) {
             let attempts = 0;

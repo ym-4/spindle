@@ -1,7 +1,7 @@
 const pool = require('./db');
 
 // Get all whiteboard
-module.exports.getAllWhiteboards = async function getAllWhiteboards(data) {
+module.exports.getAllWhiteboards = async function getAllWhiteboards() {
   const { rows } = await pool.query('SELECT * FROM "WhiteboardDrawings"');
   return rows;
 };
