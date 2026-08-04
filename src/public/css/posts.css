@@ -1336,6 +1336,7 @@ body {
 
 .post-content.ql-editor p {
   margin-bottom: 0.25rem;
+  font-family: inherit;
 }
 
 .post-content.ql-editor p:first-child {
