@@ -9,7 +9,7 @@
 // Gets the channels for the group
 async function fetchGroupChannels() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/messages/channels/${groupId}`;
+    const url = `${currentUrl}/groups/messages/channels/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupDiscussionChannels', responseData);
@@ -34,7 +34,7 @@ async function fetchGroupChannels() {
 // Fetch messages by channel
 async function fetchGroupDiscussionByChannel(channel_name) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/messages/channel/${groupId}/${channel_name}`;
+    const url = `${currentUrl}/groups/messages/channel/${groupId}/${channel_name}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupDiscussionByChannel', responseData);
@@ -58,7 +58,7 @@ async function fetchGroupDiscussionByChannel(channel_name) {
 
 async function fetchGroupDiscussionMatch(groupId, currChannel, matchString) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/messages/match/${groupId}/${currChannel}/${matchString}`;
+    const url = `${currentUrl}/groups/messages/match/${groupId}/${currChannel}/${matchString}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupDiscussionMatch', responseData);
@@ -80,7 +80,7 @@ async function fetchGroupDiscussionMatch(groupId, currChannel, matchString) {
 
 async function fetchAllUsers() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/persons`;
+    const url = `${currentUrl}/persons`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchAllUsers', responseData);
@@ -104,7 +104,7 @@ async function fetchAllUsers() {
 // Fetch group details
 async function fetchGroupByGroupId(groupId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/group/${groupId}`;
+    const url = `${currentUrl}/groups/group/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupByGroupId', responseData);
@@ -128,7 +128,7 @@ async function fetchGroupByGroupId(groupId) {
 // Fetch group members
 async function fetchGroupMembers(groupId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/joined/${groupId}`;
+    const url = `${currentUrl}/groups/joined/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupMembers', responseData);
@@ -152,7 +152,7 @@ async function fetchGroupMembers(groupId) {
 // Fetch group announcements
 async function fetchGroupAnnouncements() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/announcements/${groupId}`;
+    const url = `${currentUrl}/groups/announcements/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupAnnouncements', responseData);
@@ -175,7 +175,7 @@ async function fetchGroupAnnouncements() {
 // Fetch group join requests
 async function fetchGroupJoinRequests() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/join-requests/${groupId}`;
+    const url = `${currentUrl}/groups/join-requests/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('fetchGroupJoinRequests', responseData);
@@ -201,7 +201,7 @@ async function fetchGroupJoinRequests() {
 
 async function createGroupDiscussionChannel(channel_name) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/messages/channel/${userId}`;
+    const url = `${currentUrl}/groups/messages/channel/${userId}`;
 
     const data = {
       group_id: groupId,
@@ -250,7 +250,7 @@ async function createGroupDiscussionChannel(channel_name) {
 
 async function createGroupDiscussionMessage(message) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/messages/send/${userId}`;
+    const url = `${currentUrl}/groups/messages/send/${userId}`;
 
     const data = {
       group_id: groupId,
@@ -293,7 +293,7 @@ async function createGroupDiscussionMessage(message) {
 
 async function updateGroupDiscussionMessage(messageId, newMessage) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/messages/edit/${userId}`;
+    const url = `${currentUrl}/groups/messages/edit/${userId}`;
 
     const data = {
       id: messageId,
@@ -335,7 +335,7 @@ async function updateGroupDiscussionMessage(messageId, newMessage) {
 
 async function deleteGroupDiscussionMessage(messageId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/messages/delete/${userId}`;
+    const url = `${currentUrl}/groups/messages/delete/${userId}`;
 
     const data = {
       id: messageId,
@@ -377,7 +377,7 @@ async function deleteGroupDiscussionMessage(messageId) {
 // Delete Group Channel
 async function deleteGroupDiscussionChannel(channel_name) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/messages/channel/${groupId}`;
+    const url = `${currentUrl}/groups/messages/channel/${groupId}`;
 
     const data = {
       channel_name: channel_name,
@@ -429,7 +429,7 @@ async function deleteGroupMembership() {
   };
 
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/leave/${data.group_id}`;
+    const url = `${currentUrl}/groups/leave/${data.group_id}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteGroupMembership', responseData);
@@ -474,7 +474,7 @@ async function deleteGroupMembership() {
 // Remove member
 async function deleteGroupMember(removedUsedId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/kick/${groupId}/${removedUsedId}`;
+    const url = `${currentUrl}/groups/kick/${groupId}/${removedUsedId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteGroupMembership', responseData);
@@ -519,7 +519,7 @@ async function deleteGroupMember(removedUsedId) {
 // Create group announcement
 async function createGroupAnnouncement(text) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/announcements/${groupId}`;
+    const url = `${currentUrl}/groups/announcements/${groupId}`;
 
     const data = {
       text: text,
@@ -561,7 +561,7 @@ async function createGroupAnnouncement(text) {
 // Update group announcement
 async function updateGroupAnnouncement(text, announcementId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/announcements/${groupId}/${announcementId}`;
+    const url = `${currentUrl}/groups/announcements/${groupId}/${announcementId}`;
 
     const data = {
       text: text,
@@ -609,7 +609,7 @@ async function updateGroupAnnouncement(text, announcementId) {
 
 async function deleteGroupAnnouncement(announcementId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/announcements/${groupId}/${announcementId}`;
+    const url = `${currentUrl}/groups/announcements/${groupId}/${announcementId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteGroupAnnouncement', responseData);
@@ -647,7 +647,7 @@ async function deleteGroupAnnouncement(announcementId) {
 // Update group description
 async function updateGroupDescription(description) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/description/${groupId}`;
+    const url = `${currentUrl}/groups/description/${groupId}`;
 
     const data = {
       description: description,
@@ -696,7 +696,7 @@ async function updateGroupDescription(description) {
 // Update group module
 async function updateGroupModule(module) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/module/${groupId}`;
+    const url = `${currentUrl}/groups/module/${groupId}`;
 
     const data = {
       module: module,
@@ -745,7 +745,7 @@ async function updateGroupModule(module) {
 // Update group publicity
 async function updateGroupPublicity(public) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/public/${groupId}`;
+    const url = `${currentUrl}/groups/public/${groupId}`;
 
     const data = {
       public: public,
@@ -794,7 +794,7 @@ async function updateGroupPublicity(public) {
 // user to admin
 async function updateRoleToAdmin(userBeingPromotedUserId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/roleToAdmin/${groupId}/${userBeingPromotedUserId}`;
+    const url = `${currentUrl}/groups/roleToAdmin/${groupId}/${userBeingPromotedUserId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateRoleToAdmin', responseData);
@@ -839,7 +839,7 @@ async function updateRoleToAdmin(userBeingPromotedUserId) {
 // admin to user
 async function updateRoleToUser(userBeingDemotedUserId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/roleToUser/${groupId}/${userBeingDemotedUserId}`;
+    const url = `${currentUrl}/groups/roleToUser/${groupId}/${userBeingDemotedUserId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('updateRoleToUser', responseData);
@@ -884,7 +884,7 @@ async function updateRoleToUser(userBeingDemotedUserId) {
 // Create join request
 async function createJoinRequest() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/join-requests/${groupId}`;
+    const url = `${currentUrl}/groups/join-requests/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('createJoinRequest', responseData);
@@ -922,7 +922,7 @@ async function createJoinRequest() {
 // Accept join request
 async function acceptJoinRequest(acceptedUserId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/join-requests/accept/${groupId}/${acceptedUserId}`;
+    const url = `${currentUrl}/groups/join-requests/accept/${groupId}/${acceptedUserId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('acceptJoinRequest', responseData);
@@ -967,7 +967,7 @@ async function acceptJoinRequest(acceptedUserId) {
 // Decline join request
 async function declineJoinRequest(declinedUserId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/join-requests/decline/${groupId}/${declinedUserId}`;
+    const url = `${currentUrl}/groups/join-requests/decline/${groupId}/${declinedUserId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('declineJoinRequest', responseData);
@@ -1012,7 +1012,7 @@ async function declineJoinRequest(declinedUserId) {
 // Delete join request
 async function deleteJoinRequest(beingDeletedUserId) {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/join-requests/${groupId}/${beingDeletedUserId}`;
+    const url = `${currentUrl}/groups/join-requests/${groupId}/${beingDeletedUserId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteJoinRequest', responseData);
@@ -1050,7 +1050,7 @@ async function deleteJoinRequest(beingDeletedUserId) {
 // Delete group (creator only)
 async function deleteGroup() {
   return new Promise((resolve, reject) => {
-    const url = `http://localhost:3000/groups/${groupId}`;
+    const url = `${currentUrl}/groups/${groupId}`;
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteGroup', responseData);

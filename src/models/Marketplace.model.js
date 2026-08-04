@@ -141,7 +141,9 @@ module.exports.updateItem = async function updateItem(id, data) {
 module.exports.setItemStatus = async function setItemStatus(id, status) {
   const allowed = ['active', 'sold'];
   if (!allowed.includes(status)) {
-    throw new Error(`Invalid status "${status}". Must be one of: ${allowed.join(', ')}`);
+    const err = new Error(`Invalid status "${status}". Must be one of: ${allowed.join(', ')}`);
+    err.status = 400;
+    throw err;
   }
   const { rows } = await pool.query(
     'UPDATE "MarketplaceItems" SET "status" = $1 WHERE "id" = $2 RETURNING *',
@@ -162,13 +164,17 @@ module.exports.setItemTags = async function setItemTags(itemId, tagNames) {
   await pool.query('DELETE FROM "ItemTags" WHERE "item_id" = $1', [itemId]);
 
   const attached = [];
+  const seenIds = new Set();
   for (const rawName of tagNames) {
     const tag = await findOrCreateTag(rawName);
     await pool.query(
       'INSERT INTO "ItemTags" ("item_id", "tag_id") VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [itemId, tag.id],
     );
-    attached.push(tag);
+    if (!seenIds.has(tag.id)) {
+      seenIds.add(tag.id);
+      attached.push(tag);
+    }
   }
   return attached;
 };
@@ -228,30 +234,34 @@ module.exports.getRecommendedItems = async function getRecommendedItems(itemId, 
   if (tagIds.length > 0) {
     const { rows } = await pool.query(
       `
-      SELECT m.*,
-        COALESCE(img.images, '[]') AS images,
-        COALESCE(tg.tags, '[]') AS tags,
-        COUNT(DISTINCT it."tag_id") AS match_count
-      FROM "MarketplaceItems" m
-      JOIN "ItemTags" it ON it."item_id" = m.id AND it."tag_id" = ANY($1::int[])
-      LEFT JOIN (
-        SELECT "item_id",
-          json_agg(json_build_object('id', "id", 'image_url', "image_url") ORDER BY "sort_order") AS images
-        FROM "ListingImages"
-        GROUP BY "item_id"
-      ) img ON img."item_id" = m.id
-      LEFT JOIN (
-        SELECT it2."item_id",
-          json_agg(json_build_object('id', t2."id", 'name', t2."name") ORDER BY t2."name") AS tags
-        FROM "ItemTags" it2
-        JOIN "Tags" t2 ON t2."id" = it2."tag_id"
-        GROUP BY it2."item_id"
-      ) tg ON tg."item_id" = m.id
-      WHERE m.id != $2
-      GROUP BY m.id, img.images, tg.tags
-      ORDER BY match_count DESC, random()
-      LIMIT $3
-    `,
+    SELECT m.*,
+      COALESCE(img.images, '[]') AS images,
+      COALESCE(tg.tags, '[]') AS tags,
+      mc.match_count AS match_count
+    FROM "MarketplaceItems" m
+    JOIN (
+      SELECT "item_id", COUNT(DISTINCT "tag_id") AS match_count
+      FROM "ItemTags"
+      WHERE "tag_id" = ANY($1::int[])
+      GROUP BY "item_id"
+    ) mc ON mc."item_id" = m.id
+    LEFT JOIN (
+      SELECT "item_id",
+        json_agg(json_build_object('id', "id", 'image_url', "image_url") ORDER BY "sort_order") AS images
+      FROM "ListingImages"
+      GROUP BY "item_id"
+    ) img ON img."item_id" = m.id
+    LEFT JOIN (
+      SELECT it2."item_id",
+        json_agg(json_build_object('id', t2."id", 'name', t2."name") ORDER BY t2."name") AS tags
+      FROM "ItemTags" it2
+      JOIN "Tags" t2 ON t2."id" = it2."tag_id"
+      GROUP BY it2."item_id"
+    ) tg ON tg."item_id" = m.id
+    WHERE m.id != $2
+    ORDER BY match_count DESC, random()
+    LIMIT $3
+  `,
       [tagIds, itemId, limit],
     );
 

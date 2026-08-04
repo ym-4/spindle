@@ -1,8 +1,5 @@
 const request = require('supertest');
 
-// Wrap the real model/service functions in jest.fn() so normal calls behave
-// exactly like the real (real-DB) implementation, but individual tests can
-// force a single call to reject to exercise the routers' generic catch blocks.
 jest.mock('../../src/models/Posts.model', () => {
   const actual = jest.requireActual('../../src/models/Posts.model');
   const mocked = {};
@@ -30,7 +27,6 @@ const { checkAndAwardBadges } = require('../../src/services/badgeService');
 // ── DB Setup / Teardown ──────────────────────────────────
 // Tables are created via the Jest globalSetup (configs/jest-integration-setup.js)
 // which runs scripts/reset.js before any test file executes.
-
 beforeEach(async () => {
   // Clean slate for every test
   await pool.query('DELETE FROM "PostTags"');

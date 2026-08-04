@@ -1,8 +1,8 @@
-const cors = require('cors'); // Might remove later
 const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
 const session = require('express-session');
+const cors = require('cors');
 
 const app = express();
 app.use(cors()); // Might remove later
@@ -69,10 +69,6 @@ app.use((req, res, next) => {
   }
   next();
 });
-
-// Parse incoming JSON request bodies (e.g. from POST/PUT requests)
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files (HTML, CSS, JS, images) from the 'public' folder.
 // e.g. src/public/index.html is accessible at http://localhost:<port>/

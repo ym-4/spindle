@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const res = await fetch('http://localhost:3000/payments/checkout', {
+        const res = await fetch(`${currentUrl}/payments/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),

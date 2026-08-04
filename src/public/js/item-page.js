@@ -135,7 +135,7 @@ function renderRecommendedCard(item) {
   const thumbnailSrc =
     item.images && item.images.length > 0
       ? item.images[0].image_url
-      : '../marketplace-uploads/1.png';
+      : '../uploads/marketplace-uploads/1.png';
   const tagsMarkup =
     item.tags && item.tags.length > 0
       ? `<div class="spindle-card-tags">${item.tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
@@ -184,7 +184,7 @@ function renderRecommendedCard(item) {
 }
 
 function loadRecommendedItems(itemId) {
-  fetchMethod(`http://localhost:3000/marketplace/${itemId}/recommended`, (status, data) => {
+  fetchMethod(`${currentUrl}/marketplace/${itemId}/recommended`, (status, data) => {
     const container = document.getElementById('recommended-container');
     const section = document.getElementById('recommended-section');
     if (!container || !section) return;
@@ -220,7 +220,7 @@ function renderRecommendedCard(item) {
   const thumbnailSrc =
     item.images && item.images.length > 0
       ? item.images[0].image_url
-      : '../marketplace-uploads/1.png';
+      : '../uploads/marketplace-uploads/1.png';
   const tagsMarkup =
     item.tags && item.tags.length > 0
       ? `<div class="spindle-card-tags">${item.tags.map((t) => `<span class="spindle-tag-badge">${escapeHtml(t.name)}</span>`).join('')}</div>`
@@ -269,7 +269,7 @@ function renderRecommendedCard(item) {
 }
 
 function loadRecommendedItems(itemId) {
-  fetchMethod(`http://localhost:3000/marketplace/${itemId}/recommended`, (status, data) => {
+  fetchMethod(`${currentUrl}/marketplace/${itemId}/recommended`, (status, data) => {
     const container = document.getElementById('recommended-container');
     const section = document.getElementById('recommended-section');
     if (!container || !section) return;
@@ -299,7 +299,7 @@ function loadItem() {
     return;
   }
 
-  fetchMethod(`http://localhost:3000/marketplace/${id}`, (status, data) => {
+  fetchMethod(`${currentUrl}/marketplace/${id}`, (status, data) => {
     if (status === 200 && data && data.id) {
       renderItem(data);
     } else {
