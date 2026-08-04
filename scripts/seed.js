@@ -192,73 +192,85 @@ const badges = [
     key: 'first_post',
     name: 'Explorer',
     description: 'Published your first post on Spindle',
-    imageUrl: '/images/badges/first_post.png',
+    imageUrl: '/images/badges/Explorer.png',
   },
   {
     key: 'first_comment',
     name: 'Icebreaker',
     description: 'Left your first comment',
-    imageUrl: '/images/badges/icebreaker.png',
+    imageUrl: '/images/badges/Icebreaker.png',
   },
   {
     key: 'social_butterfly',
     name: 'Social Butterfly',
     description: 'Made 25 friends',
-    imageUrl: '/images/badges/social_butterfly.png',
+    imageUrl: '/images/badges/Social_Butterfly.png',
   },
   {
     key: 'chatterbox',
     name: 'Chatterbox',
     description: 'Posted 10 comments',
-    imageUrl: '/images/badges/chatterbox.png',
+    imageUrl: '/images/badges/Chatterbox.png',
   },
   {
     key: 'prolific_poster',
     name: 'Busy Bee',
     description: 'Created 10 posts',
-    imageUrl: '/images/badges/prolific_poster.png',
+    imageUrl: '/images/badges/Busy_Bee.png',
   },
   {
     key: 'group_joiner',
     name: 'Alliance Formed',
     description: 'Joined your first study group',
-    imageUrl: '/images/badges/group_joiner.png',
+    imageUrl: '/images/badges/Alliance_Formed.png',
   },
   {
     key: 'liked_post',
     name: 'Sprout',
     description: 'Received your first like on a post',
-    imageUrl: '/images/badges/liked_post.png',
+    imageUrl: '/images/badges/Sprout.png',
   },
   {
     key: 'pandabot_user',
     name: 'Panda Pal',
     description: 'Summoned PandaBot for the first time',
-    imageUrl: '/images/badges/pandabot_user.png',
+    imageUrl: '/images/badges/Panda_Pal.png',
   },
   {
     key: 'fan_favorite',
     name: 'Fan Favorite',
     description: 'Received 100 total likes across your posts',
-    imageUrl: '/images/badges/fan_favorite.png',
+    imageUrl: '/images/badges/Fan_Favorite.png',
   },
   {
     key: 'rising_star',
     name: 'Rising Star',
     description: 'Had a post reach 20 likes',
-    imageUrl: '/images/badges/rising_star.png',
+    imageUrl: '/images/badges/Rising_Star.png',
   },
   {
     key: 'night_owl',
     name: 'Night Owl',
     description: 'Posted after midnight 20 times',
-    imageUrl: '/images/badges/night_owl.png',
+    imageUrl: '/images/badges/Night_Owl.png',
   },
   {
     key: 'pandabot_whisperer',
     name: 'Panda Whisperer',
     description: 'Mentioned PandaBot 50 times',
-    imageUrl: '/images/badges/panda_whisperer.png',
+    imageUrl: '/images/badges/Panda_Whisperer.png',
+  },
+  {
+    key: 'snake_charmer',
+    name: 'Snake Charmer',
+    description: 'Score more than 10 points in Snake',
+    imageUrl: '/images/badges/Snake_Charmer.png',
+  },
+  {
+    key: 'ssslytherin',
+    name: 'SSSlytherin',
+    description: 'Made it onto the Snake leaderboard',
+    imageUrl: '/images/badges/SSSlytherin.png',
   },
 ];
 
@@ -839,8 +851,6 @@ const marketplaceItems = [
     image: '/marketplace-uploads/1.png',
   },
 ];
-
-module.exports = marketplaceItems;
 
 module.exports = marketplaceItems;
 

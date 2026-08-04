@@ -1,4 +1,6 @@
 /* Brutalist / 3D auth modal — overrides auth.css for the auth modal panel */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap');
+
 :root {
   --brutal-primary: #000000;
   --brutal-secondary: #ffffff;
@@ -36,7 +38,7 @@
 }
 
 .auth-modal__panel h1 {
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   color: var(--brutal-primary);
   margin-bottom: 30px;
   font-size: 28px;
@@ -56,7 +58,7 @@
 .auth-tab {
   flex: 1;
   padding: 10px;
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   font-weight: bold;
   font-size: 14px;
   border: none;
@@ -88,7 +90,7 @@
 .field label {
   display: block;
   margin-bottom: 8px;
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   font-weight: bold;
   font-size: 13px;
   color: var(--brutal-primary);
@@ -100,8 +102,8 @@
   padding: 12px 15px !important;
   border: 2px solid var(--brutal-primary) !important;
   background: var(--brutal-secondary) !important;
-  font-family: 'Courier New', monospace;
-  font-size: 16px;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 18px;
   outline: none;
   transition: all 0.3s;
   border-radius: 0 !important;
@@ -118,7 +120,7 @@
   background: var(--brutal-accent) !important;
   color: var(--brutal-secondary) !important;
   border: 2px solid var(--brutal-primary) !important;
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
@@ -134,7 +136,7 @@
 }
 
 .auth-link-btn {
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   color: var(--brutal-primary) !important;
 }
 
@@ -146,7 +148,7 @@
   display: flex;
   align-items: center;
   color: var(--brutal-primary);
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   font-weight: bold;
   font-size: 14px;
   margin: 10px 0;
@@ -174,7 +176,7 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   font-weight: bold;
   font-size: 18px;
   transition: all 0.3s;
@@ -189,7 +191,7 @@
 .auth-footer-row {
   text-align: center;
   color: var(--brutal-primary);
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   font-size: 14px;
 }
 
@@ -205,7 +207,7 @@
 }
 
 .auth-message {
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   font-size: 13px;
   padding: 8px 12px;
   border: 2px solid transparent;
@@ -225,14 +227,14 @@
 }
 
 .auth-verify-hint {
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   font-size: 13px;
   color: var(--brutal-primary) !important;
   text-align: center;
 }
 
 .auth-remember {
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   font-size: 13px;
   display: flex;
   align-items: center;
@@ -267,7 +269,7 @@
 }
 
 .home-tagline {
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   font-weight: 800;
   font-size: 2rem;
   margin-bottom: 0.5rem;
@@ -335,7 +337,7 @@
 }
 
 .home-feature-card h4 {
-  font-family: 'Courier New', monospace;
+  font-family: 'Fredoka', sans-serif;
   font-weight: 700;
   font-size: 1rem;
   margin-bottom: 0.35rem;
