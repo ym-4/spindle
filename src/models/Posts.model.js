@@ -576,8 +576,11 @@ module.exports.insertSaved = async function insertSaved(data) {
 
 // delete a save
 module.exports.deleteSavedByID = async function deleteSavedByID(data) {
-  const VALUES = [data.id];
-  const { rows } = await pool.query('DELETE FROM "SavedPosts" WHERE "id" = $1 RETURNING *', VALUES);
+  const VALUES = [data.id, data.user_id];
+  const { rows } = await pool.query(
+    'DELETE FROM "SavedPosts" WHERE "id" = $1 AND user_id = $2 RETURNING *',
+    VALUES,
+  );
   return rows[0];
 };
 
@@ -732,7 +735,12 @@ module.exports.getSortedPosts = async function getSortedPosts(data) {
   }
 
   // Category filter
-  const categoryFilter = category ? `AND p.category = '${category}'` : '';
+  const params = [];
+  let categoryFilter = '';
+  if (category) {
+    params.push(category);
+    categoryFilter = `AND p.category = $${params.length}`;
+  }
 
   // Sort order
   const orderMap = {
@@ -778,6 +786,7 @@ module.exports.getSortedPosts = async function getSortedPosts(data) {
               p.attachment_url, p.gif_url, p.view_count,
               p.pinned, pp.id, per.name, per.profile_image
      ORDER BY p.pinned DESC, ${orderBy}`,
+    params,
   );
   return rows;
 };

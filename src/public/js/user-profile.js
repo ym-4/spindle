@@ -206,7 +206,7 @@ function renderView(profile) {
       <div class="pro-profile__stat"><strong>${stats.groups ?? 0}</strong><span>Groups</span></div>
     </div>
      <div class="pro-profile__section" id="badgesSection">
-      <h3>Badges</h3>
+      <h3>Achievements</h3>
       <div class="pro-profile__badges" id="badgesGrid">
         <span class="text-muted small">Loading badges…</span>
       </div>

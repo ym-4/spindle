@@ -100,6 +100,18 @@ async function checkTrigger(userId, trigger, context = {}) {
       if (rows[0].count >= 50) await tryAward(userId, 'pandabot_whisperer');
       break;
     }
+    case 'snake_played': {
+      // Snake Charmer badge
+      if (context.score > 10) await tryAward(userId, 'snake_charmer');
+
+      // SSSlytherin badge: made it onto the top 10 leaderboard
+      const { rows: rankRows } = await pool.query(
+        `SELECT COUNT(*)::int AS count FROM "SnakeScores" WHERE best_score > $1`,
+        [context.score],
+      );
+      if (rankRows[0].count < 10) await tryAward(userId, 'ssslytherin');
+      break;
+    }
   }
 }
 

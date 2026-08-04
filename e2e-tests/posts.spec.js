@@ -25,7 +25,6 @@ function postCards(page) {
 }
 
 // Waits for the feed's initial fetch to complete
-
 async function waitForFeedLoaded(page) {
   await expect(page.locator('#postsContainer .spinner-border')).toHaveCount(0, { timeout: 15000 });
 }
@@ -246,6 +245,105 @@ test.describe('Edit Post', () => {
     await expect(page.locator('#postDetailContainer')).toContainText(original.title);
     await expect(page.locator('#postDetailContainer')).not.toContainText(
       'This title should never be saved',
+    );
+  });
+});
+
+// ── Post Polls ─────────────────────────────────────────────────
+async function addPostWithPoll(
+  page,
+  { title, content, category = CATEGORIES[0], pollQuestion, pollOptions },
+) {
+  await page.locator('.create-post-input').click();
+  await expect(page.locator('#createPostModal')).toBeVisible();
+  await page.locator('#postTitle').fill(title);
+  await page.locator('#postCategory').selectOption(category);
+  await page.locator('#createPostModal .ql-editor').fill(content);
+
+  await page.locator('#pollToggleBtn').click();
+  await expect(page.locator('#pollBuilderPanel')).toBeVisible();
+  await page.locator('#pollQuestion').fill(pollQuestion);
+
+  const optionInputs = page.locator('.poll-option-input');
+  for (let i = 0; i < pollOptions.length; i++) {
+    await optionInputs.nth(i).fill(pollOptions[i]);
+  }
+
+  await page.locator('#submitPostBtn').click();
+  await expect(page.locator('#createPostModal')).toBeHidden();
+  await expect(postCards(page).filter({ hasText: title })).toBeVisible();
+
+  // Poll creation fires as a separate request after the post itself is
+  // created (see indexFeed.js), so the initially-rendered card may not yet
+  // reflect it. Reload to force a fresh fetch once it's had time to land.
+  await page.reload();
+  await waitForFeedLoaded(page);
+}
+
+function pollCardFor(page, title) {
+  return postCards(page).filter({ hasText: title });
+}
+
+test.describe('Poll Tests', () => {
+  // Valid partition: creating a post with a poll attaches and renders it
+  test('should allow me to create a post with a poll', async ({ page }) => {
+    await addPostWithPoll(page, {
+      title: 'E2E Poll Creation Post',
+      content: 'Which do you prefer?',
+      pollQuestion: 'Coffee or tea?',
+      pollOptions: ['Coffee', 'Tea'],
+    });
+
+    const card = pollCardFor(page, 'E2E Poll Creation Post');
+    await expect(card.locator('.poll-question')).toHaveText('Coffee or tea?', { timeout: 10000 });
+    await expect(card.locator('.poll-option')).toHaveCount(2);
+
+    const labels = await card.locator('.poll-option-label').allTextContents();
+    expect(labels.sort()).toEqual(['Coffee', 'Tea']);
+  });
+
+  // Valid partition: voting on an option marks it as the user's choice and shows results
+  test('should allow me to vote on a poll option and see the result', async ({ page }) => {
+    await addPostWithPoll(page, {
+      title: 'E2E Poll Vote Post',
+      content: 'Vote test content',
+      pollQuestion: 'Cats or dogs?',
+      pollOptions: ['Cats', 'Dogs'],
+    });
+
+    const card = pollCardFor(page, 'E2E Poll Vote Post');
+    await expect(card.locator('.poll-question')).toBeVisible({ timeout: 10000 });
+
+    await card.locator('.poll-option').first().click();
+
+    await expect(card.locator('.poll-option.user-voted')).toBeVisible();
+    await expect(card.locator('.poll-option.user-voted .poll-option-pct')).toHaveText('100%');
+  });
+
+  // Boundary: switching a vote updates which option is marked as the user's choice
+  test('should switch my vote when I click a different option', async ({ page }) => {
+    await addPostWithPoll(page, {
+      title: 'E2E Poll Switch Post',
+      content: 'Switch vote test content',
+      pollQuestion: 'Pizza or pasta?',
+      pollOptions: ['Pizza', 'Pasta'],
+    });
+
+    const card = pollCardFor(page, 'E2E Poll Switch Post');
+    await expect(card.locator('.poll-question')).toBeVisible({ timeout: 10000 });
+
+    await card.locator('.poll-option').filter({ hasText: 'Pizza' }).click();
+    await expect(
+      card.locator('.poll-option.user-voted').filter({ hasText: 'Pizza' }),
+    ).toBeVisible();
+
+    await card.locator('.poll-option').filter({ hasText: 'Pasta' }).click();
+
+    await expect(
+      card.locator('.poll-option.user-voted').filter({ hasText: 'Pasta' }),
+    ).toBeVisible();
+    await expect(card.locator('.poll-option.user-voted').filter({ hasText: 'Pizza' })).toHaveCount(
+      0,
     );
   });
 });
