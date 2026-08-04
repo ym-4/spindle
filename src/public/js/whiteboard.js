@@ -253,11 +253,12 @@ canvas.addEventListener('mousemove', (e) => {
         ctx.rect(startX, startY, x - startX, y - startY);
         break;
 
-      case 'circle':
+      case 'circle': {
         const radius = Math.sqrt((x - startX) ** 2 + (y - startY) ** 2);
 
         ctx.arc(startX, startY, radius, 0, Math.PI * 2);
         break;
+      }
     }
 
     ctx.stroke();

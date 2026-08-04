@@ -1,4 +1,4 @@
-/* global token, fetchMethod, groupId, displayToast, bootstrap */
+/* global token, fetchMethod, groupId, displayToast, bootstrap, createWhiteboard, userId, cytoscape, fetchGroupAndUserWhiteboards */
 
 // Token, userId and groupId is global in other js file
 // Global variables
@@ -266,7 +266,7 @@ function addEditorListeners() {
     // Validate URL
     try {
       new URL(url);
-    } catch (err) {
+    } catch {
       error.textContent = 'Please enter a valid URL.';
       error.classList.remove('d-none');
       return;
@@ -329,13 +329,14 @@ async function handleNewNoteFolder() {
   try {
     // Create folder
     const response = await createNoteFolder(folderName);
+    console.log(response);
 
     // Refresh data
     await fetchNoteData();
     displayFolderStructure();
 
     displayToast('success', 'Folder was created!');
-  } catch (err) {
+  } catch {
     displayToast('error', 'Folder with the same name already exists');
   }
 }
@@ -357,7 +358,7 @@ async function handleNewNote() {
     displayNote(response[0].id);
 
     displayToast('success', 'Note was created!');
-  } catch (err) {
+  } catch {
     displayToast('error', 'Note with the same name already exists');
   }
 }
@@ -1298,6 +1299,8 @@ async function updateNoteContent(data) {
 async function deleteNote(id) {
   return new Promise((resolve, reject) => {
     const url = `http://localhost:3000/notes/note/${id}`;
+
+    let data = {};
 
     const callback = (responseStatus, responseData) => {
       console.log('deleteNote', responseData);

@@ -1,4 +1,4 @@
-/* global fetchMethod, currentUrl, API_BASE, getApiBase */
+/* global fetchMethod, currentUrl, API_BASE, getApiBase, setupSearchDropdown */
 
 //  Spindle — Saved Posts Page
 //  GET /posts/saved/:user_id  → display saved posts

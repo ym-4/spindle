@@ -255,7 +255,7 @@ function injectWaHeader(title, opts = {}) {
             headers: { Authorization: `Bearer ${token}` },
           });
         }
-      } catch (err) {
+      } catch {
         console.error('Logout request failed, proceeding to clear local data...');
       }
 

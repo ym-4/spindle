@@ -705,7 +705,7 @@ async function handleCallSignal(data) {
       callState = 'active';
       setCallUiMode('active');
       document.getElementById('callStatus').textContent = `On call with ${selectedPeerName}`;
-    } catch (err) {
+    } catch {
       showToast('Could not connect call', true);
       hangUpCall('declined');
     }

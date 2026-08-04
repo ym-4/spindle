@@ -1,6 +1,6 @@
 /* global fetchMethod, currentUrl */
 
-xdocument.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
   let currentLoginName = '';
 
   const loginForm = document.getElementById('loginForm');

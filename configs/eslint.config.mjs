@@ -116,7 +116,7 @@ export default [
         renderSpindleSidebar: 'readonly',
         loadYourGroups: 'readonly',
         validatePostForm: 'readonly',
-        groupId: 'readonly',
+        groupId: 'writable',
 
         // ── Marketplace ─────────────────────────────────
         addToCart: 'readonly',

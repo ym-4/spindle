@@ -1,4 +1,4 @@
-/* global fetchMethod, DOMPurify, currentUrl, getApiBase, getToken, loadUserReactions, getStoredUser, initReactionButtons, setupReactionEvents, API_BASE, validatePostForm, bootstrap */
+/* global fetchMethod, DOMPurify, setupSearchDropdown, recordRecentlyViewed, getRecentlyViewed, currentUrl, getApiBase, getToken, loadUserReactions, getStoredUser, initReactionButtons, setupReactionEvents, API_BASE, validatePostForm, bootstrap */
 
 //  Spindle — Home Page
 

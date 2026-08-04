@@ -1,4 +1,4 @@
-/* global fetchMethod, currentUrl, displayToast */
+/* global fetchMethod, currentUrl, displayToast, token:writable */
 
 const locationPath = 'images/study-room-sprites/';
 

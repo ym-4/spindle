@@ -5,7 +5,7 @@ const { checkAndAwardBadges } = require('../services/badgeService');
 const {
   generatePandabotReply,
   getPandabotUserId,
-  PANDABOT_EMAIL,
+  // PANDABOT_EMAIL,
 } = require('../services/pandabot');
 const { getPostByID } = require('../models/Posts.model');
 const { getPersonByID } = require('../models/Person.model');
