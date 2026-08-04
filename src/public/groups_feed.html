@@ -592,7 +592,11 @@
                           </button>
 
                           <div class="dropdown">
-                            <button class="btn btn-light" data-bs-toggle="dropdown">
+                            <button
+                              class="btn btn-light"
+                              data-bs-toggle="dropdown"
+                              id="createNoteDropdownBtn"
+                            >
                               <i class="bi bi-plus-lg"></i>
                             </button>
 
@@ -1703,74 +1707,6 @@
             <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
 
             <button class="btn btn-success" id="newNoteBtn">Create Note</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Create Note Folder modal -->
-    <div class="modal fade" id="newNoteFolderModal" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="bi bi-folder-plus me-2"></i>
-              Create Note Folder
-            </h5>
-
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-
-          <div class="modal-body">
-            <label class="form-label">Folder Name</label>
-
-            <input
-              type="text"
-              id="noteFolderNameInput"
-              class="form-control"
-              placeholder="e.g. Lecture Notes"
-              maxlength="40"
-            />
-          </div>
-
-          <div class="modal-footer">
-            <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-
-            <button class="btn btn-primary" id="newNoteFolderBtn">Create Folder</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Create Note modal -->
-    <div class="modal fade" id="newNoteModal" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="bi bi-file-earmark-text me-2"></i>
-              Create Note
-            </h5>
-
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-
-          <div class="modal-body">
-            <label class="form-label">Note Name</label>
-
-            <input
-              type="text"
-              id="noteNameInput"
-              class="form-control"
-              placeholder="e.g. CICD Note 1"
-              maxlength="40"
-            />
-          </div>
-
-          <div class="modal-footer">
-            <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-
-            <button class="btn btn-primary" id="newNoteBtn">Create Note</button>
           </div>
         </div>
       </div>
