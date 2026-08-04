@@ -12,7 +12,6 @@
     "nodemon": "^3.1.14",
     "pg": "^8.20.0",
     "playwright": "1.58.2",
-    "tree": "^0.1.3",
     "ws": "^8.19.0"
   },
   "devDependencies": {
@@ -34,11 +33,10 @@
     "start": "dotenv -e .env.dev -- node ./src/server.js",
     "seed": "dotenv -e .env.dev -- node scripts/seed.js",
     "migration:reset": "dotenv -e .env.dev -- node scripts/reset.js",
-    "test:unit": "jest --testPathPatterns=__tests__/unit --runInBand --silent",
-    "test:integration": "dotenv -e .env.test -- jest --testPathPatterns=__tests__/integration --globalSetup=./configs/jest-integration-setup.js --runInBand --detectOpenHandles --silent",
-    "test:posts": "dotenv -e .env.test -- jest --testPathPatterns=__tests__/integration/Posts.routes.test.js --globalSetup=./configs/jest-integration-setup.js --runInBand --detectOpenHandles --coverage --collectCoverageFrom=src/routers/Posts.router.js",
-    "test:e2e": "node scripts/clean-test-results.js && dotenv -e .env.test -- playwright test --config=configs/playwright.config.js",
-    "test": "jest --testPathPatterns=__tests__/unit --silent && dotenv -e .env.test -- jest --testPathPatterns=__tests__/integration --globalSetup=./configs/jest-integration-setup.js --runInBand --silent && node scripts/clean-test-results.js && dotenv -e .env.test -- playwright test --config=configs/playwright.config.js",
+    "test:unit": "jest --testPathPatterns=__tests__/unit --silent",
+    "test:integration": "dotenv -e .env.test -- jest --testPathPatterns=__tests__/integration --globalSetup=./configs/jest-integration-setup.js --runInBand --silent",
+    "test:e2e": "node scripts/clean-test-results.js && dotenv -e .env.test -- npx playwright test --config=configs/playwright.config.js",
+    "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "test:trace": "npm run test:e2e -- --reporter=html --trace on",
     "lint": "eslint -c configs/eslint.config.mjs .",
     "lint:fix": "eslint -c configs/eslint.config.mjs . --fix",
