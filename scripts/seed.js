@@ -47,6 +47,7 @@ const posts = [
     title: 'First Confession',
     category: 'confession',
     content: 'I love pineapple pizza!',
+    view_count: 23,
   },
   {
     userEmail: 'bob@example.com',
@@ -1644,8 +1645,8 @@ async function seed() {
     if (userRes.rows.length > 0) {
       await pool.query(
         `INSERT INTO "Posts"
-          ("user_id", "title", "category", "content", "attachment_url", "gif_url", "is_anonymous", "visibility", "pinned")
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          ("user_id", "title", "category", "content", "attachment_url", "gif_url", "is_anonymous", "visibility", "pinned", "view_count")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          ON CONFLICT DO NOTHING`,
         [
           userRes.rows[0].id,
@@ -1657,6 +1658,7 @@ async function seed() {
           post.isAnonymous || false,
           post.visibility || 'everyone',
           post.pinned || false,
+          post.view_count,
         ],
       );
     }
