@@ -151,7 +151,7 @@ async function handleLogin(event) {
               document.getElementById('appealResult').className = 'small text-success mt-1';
               document.getElementById('appealMessage').disabled = true;
               document.getElementById('btnSubmitAppeal').disabled = true;
-            } catch (e) {
+            } catch {
               document.getElementById('appealResult').textContent = 'Failed to submit appeal.';
               document.getElementById('appealResult').className = 'small text-danger mt-1';
             }

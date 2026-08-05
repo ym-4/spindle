@@ -1,4 +1,4 @@
-/* global fetchMethod, displayToast */
+/* global fetchMethod, displayToast, userId:writable, token:writable */
 
 // Get stored user
 userId = null;

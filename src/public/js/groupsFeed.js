@@ -1,3 +1,4 @@
+/* global token:writable, channelName:writable */
 // Global variables
 let school;
 let userId;
@@ -146,7 +147,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // redirect to login if no token
   if (token == null) {
-    window.location.href = 'login.html';
+    window.location.href = 'home.html';
   }
 
   try {
@@ -333,7 +334,7 @@ async function handlecreateChannelButtonClicked() {
 async function handleCreateNewChannelButtonClicked() {
   let newChannelName = document.getElementById('channelNameInput').value;
   // FUTURE CHANGE: CURRENTLY THE CHECKED BUTTON FOR ADMIN ONLY GROUP DOESN'T WORK
-  let isAdminOnly = document.getElementById('isPrivateChannel').checked;
+  // let isAdminOnly = document.getElementById('isPrivateChannel').checked;
 
   // Remove spaces from channel replace with "-"
   channelName = newChannelName.split(' ').join('-');
@@ -578,6 +579,7 @@ function displayMembers() {
   document.getElementById('memberCountOffcanvas').innerText = members.length;
 
   let adminList = members.filter((member) => member.role == 'admin');
+  console.log(adminList);
   let tempHTMLAdmin = '';
   let tempHTMLUser = '';
   let tempHTMLCreator = '';
@@ -595,7 +597,7 @@ function displayMembers() {
 
   for (let i = 0; i < members.length; i++) {
     let currUser = users.find((user) => user.id == members[i].user_id);
-    let role = '';
+    let role;
     // true: curr user, false: other users
     let isCurrUser = currUser.id == userId;
 
@@ -750,6 +752,7 @@ function displayMemberSearchResults(results) {
   document.getElementById('memberCountOffcanvas').innerText = members.length;
 
   let adminList = members.filter((member) => member.role == 'admin');
+  console.log(adminList);
   let tempHTMLUser = '';
 
   let countUser = 0;
@@ -765,12 +768,11 @@ function displayMemberSearchResults(results) {
 
   for (let i = 0; i < results.length; i++) {
     let currUser = users.find((user) => user.id == results[i].user_id);
-    let role = '';
+    let role = 'User';
 
     // cycles through the colours
     let colorId = countUser % 7;
     let color = colours[colorId];
-    role = 'User';
 
     tempHTMLUser += `
             <div class="member-card user color-${color}">
