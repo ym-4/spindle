@@ -19,7 +19,10 @@ function uniqueTag(label) {
   // string assertions fail. Last 5 digits of RUN_ID + the counter is unique
   // enough within a single suite run and leaves plenty of room for the label.
   const shortId = `${RUN_ID}`.slice(-5) + uidCounter;
-  return `${label}${shortId}`.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
+  return `${label}${shortId}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 20);
 }
 
 // A real (tiny, valid) 1x1 PNG, so multer's fileFilter (which checks
@@ -56,7 +59,9 @@ function listingCards(page) {
 }
 
 function cardByTitle(page, title) {
-  return listingCards(page).filter({ has: page.locator('.spindle-card-title', { hasText: title }) });
+  return listingCards(page).filter({
+    has: page.locator('.spindle-card-title', { hasText: title }),
+  });
 }
 
 // Adds one confirmed tag oval via the real tag-add UI (click "+", type,
@@ -69,7 +74,10 @@ async function addTag(page, tag) {
   await input.press('Enter');
 }
 
-async function fillListingForm(page, { title, description, price, condition, location, tags = [], images = [] }) {
+async function fillListingForm(
+  page,
+  { title, description, price, condition, location, tags = [], images = [] },
+) {
   await page.locator('#listingTitle').fill(title);
   await page.locator('#listingDescription').fill(description);
   await page.locator('#listingPrice').fill(String(price));
@@ -189,7 +197,10 @@ test.describe('Marketplace Browse & Listings Grid', () => {
     await expect(card.locator('.spindle-badge')).toBeVisible();
 
     const itemId = await card.getAttribute('data-id');
-    await expect(card.locator('.spindle-card-link')).toHaveAttribute('href', `item.html?id=${itemId}`);
+    await expect(card.locator('.spindle-card-link')).toHaveAttribute(
+      'href',
+      `item.html?id=${itemId}`,
+    );
   });
 
   // Boundary: more than one page's worth of (search-scoped) results paginates correctly.
@@ -285,7 +296,9 @@ test.describe('Item Detail Page', () => {
   });
 
   // Valid partition: the "Chat with Seller" entry point never shows on your own listing.
-  test('should hide the "Chat with Seller" button on the viewer\'s own listing', async ({ page }) => {
+  test('should hide the "Chat with Seller" button on the viewer\'s own listing', async ({
+    page,
+  }) => {
     const listing = makeListing('Detail Own Listing Chat');
     const card = await createListing(page, listing);
     const itemId = await card.getAttribute('data-id');
@@ -300,7 +313,9 @@ test.describe('Item Detail Page', () => {
 // ══════════════════════════════════════════════════════════
 test.describe('Image Uploads', () => {
   // Valid partition: a single uploaded image previews on the form and becomes the card thumbnail.
-  test('should preview an uploaded image and show it as the listing thumbnail', async ({ page }) => {
+  test('should preview an uploaded image and show it as the listing thumbnail', async ({
+    page,
+  }) => {
     const listing = makeListing('Image Single', { images: [pngFile('photo.png')] });
 
     await page.goto(CREATE_LISTING_URL);
@@ -345,7 +360,9 @@ test.describe('Image Uploads', () => {
   test('should update the listing thumbnail when a different photo is set as the cover', async ({
     page,
   }) => {
-    const listing = makeListing('Image Cover', { images: [pngFile('first.png'), pngFile('second.png')] });
+    const listing = makeListing('Image Cover', {
+      images: [pngFile('first.png'), pngFile('second.png')],
+    });
 
     await page.goto(CREATE_LISTING_URL);
     await fillListingForm(page, listing);
@@ -508,7 +525,9 @@ test.describe('Search & Filters', () => {
 // ══════════════════════════════════════════════════════════
 test.describe('Cart', () => {
   // Valid partition: adding from the detail page confirms and updates the badge count.
-  test('should let a shopper add an item to their cart and update the cart badge', async ({ page }) => {
+  test('should let a shopper add an item to their cart and update the cart badge', async ({
+    page,
+  }) => {
     const listing = makeListing('Cart Add');
     await addItemToCartFromDetailPage(page, listing, 1);
 
@@ -605,7 +624,9 @@ test.describe('Checkout / Mock Payment Gateway', () => {
 
   // Error handling: a card ending in 0000 is the mock gateway's built-in decline
   // scenario — checkout should surface the error and leave the cart intact.
-  test('should show a payment error for a declined card and keep the cart intact', async ({ page }) => {
+  test('should show a payment error for a declined card and keep the cart intact', async ({
+    page,
+  }) => {
     const listing = makeListing('Checkout Decline', { price: '10' });
     const itemId = await addItemToCartFromDetailPage(page, listing, 1);
 
@@ -717,7 +738,9 @@ test.describe('Owner Listing Management', () => {
   });
 
   // Valid partition: marking a listing sold hides it from the public marketplace, and relisting undoes that.
-  test('should mark a listing as sold, hide it from the marketplace, then relist it', async ({ page }) => {
+  test('should mark a listing as sold, hide it from the marketplace, then relist it', async ({
+    page,
+  }) => {
     const listing = makeListing('Owner Mark Sold');
     await createListing(page, listing);
 
