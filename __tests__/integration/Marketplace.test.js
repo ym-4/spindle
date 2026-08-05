@@ -19,9 +19,9 @@ async function truncateAll() {
   );
 }
 
-async function closePool() {
-  await pool.end();
-}
+// async function closePool() {
+//   await pool.end();
+// }
 
 // A real (tiny, valid) 1x1 PNG, so multer's fileFilter (which checks
 // mimetype) and any future image-processing code have real bytes to work with.
