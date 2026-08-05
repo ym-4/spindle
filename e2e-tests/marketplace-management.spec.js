@@ -37,19 +37,18 @@ function listingCards(page) {
 }
 
 function cardByTitle(page, title) {
-  return listingCards(page).filter({
-    has: page.locator('.spindle-card-title', { hasText: title }),
-  });
+  return listingCards(page).filter({ has: page.locator('.spindle-card-title', { hasText: title }) });
 }
 
-async function fillListingForm(
-  page,
-  { title, description, price, condition, location, tags = [] },
-) {
+async function fillListingForm(page, { title, description, price, condition, location, tags = [] }) {
   await page.locator('#listingTitle').fill(title);
   await page.locator('#listingDescription').fill(description);
   await page.locator('#listingPrice').fill(String(price));
-  await page.locator(`#cond-${condition}`).check();
+  await page.locator(`#cond-${condition}`).waitFor({ state: 'attached' });
+  // The radio input itself is styled with display:none (custom badge-style
+  // selector), so click its associated <label> — the actual visible,
+  // clickable element — rather than checking the hidden input directly.
+  await page.locator(`label[for="cond-${condition}"]`).click();
   if (location) {
     await page.locator('#listingLocation').fill(location);
   }
@@ -61,6 +60,21 @@ async function fillListingForm(
   }
 }
 
+// Both marketplace.html and my_listings.html paginate at a fixed page size
+// (10/page) over whatever's currently filtered, and the backend's listing
+// query has no ORDER BY — so a specific listing (especially one created
+// earlier in this same suite run, alongside pre-existing/seeded data) isn't
+// reliably on page 1. Searching by the listing's (unique) title narrows the
+// filtered set down to just that one listing before we look for it, which
+// sidesteps pagination and ordering entirely regardless of how much other
+// data exists.
+async function findCardByTitle(page, title) {
+  await page.locator('#marketplaceSearch').fill(title);
+  const card = cardByTitle(page, title);
+  await expect(card).toBeVisible();
+  return card;
+}
+
 // Creates a listing end-to-end via the real form and waits for the redirect
 // back to the marketplace, then returns the resulting card locator.
 async function createListing(page, listing) {
@@ -68,9 +82,7 @@ async function createListing(page, listing) {
   await fillListingForm(page, listing);
   await page.locator('#submitListingBtn').click();
   await expect(page).toHaveURL(/marketplace\.html/);
-  const card = cardByTitle(page, listing.title);
-  await expect(card).toBeVisible();
-  return card;
+  return findCardByTitle(page, listing.title);
 }
 
 // Opens the Filters dropdown (hidden by default) so its inputs/chips are interactable.
@@ -88,8 +100,16 @@ test.describe('Marketplace page load', () => {
 
   test('should display the Add Listing and My Listings entry points', async ({ page }) => {
     await page.goto(MARKETPLACE_URL);
-    await expect(page.locator('a[href="create_listing.html"]')).toBeVisible();
-    await expect(page.locator('a[href="my_listings.html"]')).toBeVisible();
+    // Note: `a[href="create_listing.html"]` also matches the hidden
+    // empty-state CTA inside #no-listings-state ("Add a Listing"), which is
+    // present in the DOM even when d-none. Match on accessible name instead
+    // to target only the persistent toolbar link. Uses a substring regex
+    // rather than an exact match, since the icon's CSS ::before content gets
+    // folded into the computed accessible name (e.g. "<glyph> Add Listing") —
+    // the regex still won't match "Add a Listing" since that's a different
+    // word sequence.
+    await expect(page.getByRole('link', { name: /Add Listing/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: /My Listings/ })).toBeVisible();
   });
 });
 
@@ -182,7 +202,9 @@ test.describe('Create Listing', () => {
 
 // ── Item Detail Page ─────────────────────────────────────
 test.describe('Item Detail Page', () => {
-  test('should show the listing title, price, description, and meet-up spot', async ({ page }) => {
+  test('should show the listing title, price, description, and meet-up spot', async ({
+    page,
+  }) => {
     const listing = makeListing('Detail Page', { price: '30', location: 'Clementi MRT' });
     const card = await createListing(page, listing);
     const itemId = await card.getAttribute('data-id');
@@ -233,10 +255,17 @@ test.describe('Search & Filters', () => {
     await expect(cardByTitle(page, pricey.title)).toHaveCount(0);
   });
 
-  // Boundary: clearing the search restores the full, unfiltered listing set
+  // Boundary: clearing the search re-includes previously search-hidden results
   test('should restore all listings when the search is cleared', async ({ page }) => {
-    const cheap = makeListing('Search Clear Cheap', { price: '5' });
-    const pricey = makeListing('Search Clear Pricey', { price: '250' });
+    // Both listings share a run-specific label so we can re-scope pagination
+    // to just these two after clearing, instead of asserting on the fully
+    // unfiltered set — which may span more than one page once seeded/prior
+    // test data is accounted for (the backend's listing query has no ORDER
+    // BY, so pagination isn't reliable over the full, unfiltered dataset).
+    const sharedLabel = 'Search Clear Restore';
+    const sharedPrefix = `E2E ${sharedLabel} ${RUN_ID}`;
+    const cheap = makeListing(sharedLabel, { price: '5' });
+    const pricey = makeListing(sharedLabel, { price: '250' });
     await createListing(page, cheap);
     await createListing(page, pricey);
 
@@ -245,7 +274,9 @@ test.describe('Search & Filters', () => {
     await expect(cardByTitle(page, pricey.title)).toHaveCount(0);
 
     await page.locator('#search-clear-btn').click();
+    await expect(page.locator('#marketplaceSearch')).toHaveValue('');
 
+    await page.locator('#marketplaceSearch').fill(sharedPrefix);
     await expect(cardByTitle(page, cheap.title)).toBeVisible();
     await expect(cardByTitle(page, pricey.title)).toBeVisible();
   });
@@ -281,6 +312,9 @@ test.describe('Search & Filters', () => {
     await createListing(page, cheap);
 
     await page.goto(MARKETPLACE_URL);
+    // Scope to just this listing via search too, since the min-price filter
+    // alone doesn't bound pagination down to a single page.
+    await page.locator('#marketplaceSearch').fill(cheap.title);
     await openFilters(page);
     await page.locator('#filter-min-price').fill('100');
     await expect(cardByTitle(page, cheap.title)).toHaveCount(0);
@@ -300,7 +334,7 @@ test.describe('Owner Listing Management', () => {
     await createListing(page, listing);
 
     await page.goto(MY_LISTINGS_URL);
-    const card = cardByTitle(page, listing.title);
+    const card = await findCardByTitle(page, listing.title);
     await expect(card.locator('a', { hasText: 'Edit' })).toBeVisible();
     await expect(card.locator('.spindle-status-btn')).toContainText('Mark as Sold');
     await expect(card.locator('.spindle-delete-btn')).toBeVisible();
@@ -312,7 +346,7 @@ test.describe('Owner Listing Management', () => {
     await createListing(page, listing);
 
     await page.goto(MY_LISTINGS_URL);
-    const card = cardByTitle(page, listing.title);
+    const card = await findCardByTitle(page, listing.title);
     await card.locator('a', { hasText: 'Edit' }).click();
 
     await expect(page).toHaveURL(/create_listing\.html\?id=\d+/);
@@ -323,7 +357,7 @@ test.describe('Owner Listing Management', () => {
     await page.locator('#submitListingBtn').click();
 
     await expect(page).toHaveURL(/my_listings\.html/);
-    const updatedCard = cardByTitle(page, listing.title);
+    const updatedCard = await findCardByTitle(page, listing.title);
     await expect(updatedCard.locator('.spindle-card-price')).toContainText('99.00');
   });
 
@@ -335,12 +369,16 @@ test.describe('Owner Listing Management', () => {
     await createListing(page, listing);
 
     await page.goto(MY_LISTINGS_URL);
-    const card = cardByTitle(page, listing.title);
+    const card = await findCardByTitle(page, listing.title);
     page.once('dialog', (dialog) => dialog.accept());
     await card.locator('.spindle-status-btn').click();
     await expect(card.locator('.spindle-status-btn')).toContainText('Relist');
 
     await page.goto(MARKETPLACE_URL);
+    // Search-scope the "hidden" check too: without it, "not found" could
+    // just mean the listing landed on a different page, not that it's
+    // actually excluded as sold.
+    await page.locator('#marketplaceSearch').fill(listing.title);
     await expect(cardByTitle(page, listing.title)).toHaveCount(0);
   });
 
@@ -352,7 +390,7 @@ test.describe('Owner Listing Management', () => {
     await createListing(page, listing);
 
     await page.goto(MY_LISTINGS_URL);
-    const card = cardByTitle(page, listing.title);
+    const card = await findCardByTitle(page, listing.title);
     page.once('dialog', (dialog) => dialog.accept()); // mark as sold
     await card.locator('.spindle-status-btn').click();
     await expect(card.locator('.spindle-status-btn')).toContainText('Relist');
@@ -360,7 +398,7 @@ test.describe('Owner Listing Management', () => {
     await card.locator('.spindle-status-btn').click(); // relist, no confirm needed
 
     await page.goto(MARKETPLACE_URL);
-    await expect(cardByTitle(page, listing.title)).toBeVisible();
+    await findCardByTitle(page, listing.title);
   });
 
   // Error handling: cancelling the delete confirmation keeps the listing
@@ -369,7 +407,7 @@ test.describe('Owner Listing Management', () => {
     await createListing(page, listing);
 
     await page.goto(MY_LISTINGS_URL);
-    const card = cardByTitle(page, listing.title);
+    const card = await findCardByTitle(page, listing.title);
     page.once('dialog', (dialog) => dialog.dismiss());
     await card.locator('.spindle-delete-btn').click();
 
@@ -384,12 +422,12 @@ test.describe('Owner Listing Management', () => {
     await createListing(page, toDelete);
 
     await page.goto(MY_LISTINGS_URL);
-    const card = cardByTitle(page, toDelete.title);
+    const card = await findCardByTitle(page, toDelete.title);
     page.once('dialog', (dialog) => dialog.accept());
     await card.locator('.spindle-delete-btn').click();
 
     await expect(cardByTitle(page, toDelete.title)).toHaveCount(0);
-    await expect(cardByTitle(page, keep.title)).toBeVisible();
+    await findCardByTitle(page, keep.title);
   });
 
   // Boundary: a deleted listing's own item page should show the not-found state
@@ -399,7 +437,7 @@ test.describe('Owner Listing Management', () => {
     const itemId = await card.getAttribute('data-id');
 
     await page.goto(MY_LISTINGS_URL);
-    const ownerCard = cardByTitle(page, listing.title);
+    const ownerCard = await findCardByTitle(page, listing.title);
     page.once('dialog', (dialog) => dialog.accept());
     await ownerCard.locator('.spindle-delete-btn').click();
     await expect(ownerCard).toHaveCount(0);
