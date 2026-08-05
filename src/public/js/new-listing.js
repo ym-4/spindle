@@ -53,17 +53,30 @@ function createTagOval(prefillValue) {
   tagOvalContainer.insertBefore(oval, tagAddBtn);
   input.focus();
 
+  // Enter and blur both want to confirm the tag, but confirming removes
+  // `input` from the DOM (see confirmTag's oval.innerHTML = ''), which
+  // itself fires a native blur on the now-detached input — re-entering here
+  // a second time before the first call has returned. This flag makes
+  // confirmation idempotent so a tag is only ever pushed into currentTags
+  // once, however many of these fire.
+  let confirmed = false;
+  function confirmOnce() {
+    if (confirmed) return;
+    confirmed = true;
+    confirmTag(oval, input);
+  }
+
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault(); // critical — stops it bubbling up to a form submit
-      confirmTag(oval, input);
+      confirmOnce();
     }
     if (e.key === 'Escape') {
       oval.remove();
     }
   });
 
-  input.addEventListener('blur', () => confirmTag(oval, input));
+  input.addEventListener('blur', () => confirmOnce());
 }
 
 function renderConfirmedOval(oval, value) {
