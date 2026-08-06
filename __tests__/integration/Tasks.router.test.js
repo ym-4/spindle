@@ -8,41 +8,27 @@ const pool = require('../../src/models/db');
 
 beforeEach(async () => {
   // Clean slate for every test
-
-  await pool.query('DELETE FROM "GroupJoinRequests"');
-  await pool.query('DELETE FROM "GroupAnnouncements"');
-  await pool.query('DELETE FROM "GroupDiscussions"');
-  await pool.query('DELETE FROM "GroupMembers"');
-  await pool.query('DELETE FROM "Groups"');
-  await pool.query('DELETE FROM "GroupFolders"');
-
-  await pool.query('DELETE FROM "Notifications"');
-  await pool.query('DELETE FROM "Stories"');
-  await pool.query('DELETE FROM "MessageReadState"');
-  await pool.query('DELETE FROM "MessageReactions"');
-  await pool.query('DELETE FROM "CallLogs"');
-  await pool.query('DELETE FROM "PersonalMessages"');
-  await pool.query('DELETE FROM "FriendRequests"');
-  await pool.query('DELETE FROM "UserFriends"');
-  await pool.query('DELETE FROM "EmailVerificationCodes"');
-  await pool.query('DELETE FROM "TrustedDevices"');
-  await pool.query('DELETE FROM "UserSessions"');
-  await pool.query('DELETE FROM "Something"');
-  await pool.query('DELETE FROM "Person"');
+  await pool.query(`
+    DO $$ DECLARE
+      r RECORD;
+    BEGIN
+      FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';
+      END LOOP;
+    END $$;
+  `);
 });
 
 afterAll(async () => {
-  await pool.query('DELETE FROM "GroupJoinRequests"');
-  await pool.query('DELETE FROM "GroupAnnouncements"');
-  await pool.query('DELETE FROM "GroupDiscussions"');
-  await pool.query('DELETE FROM "GroupMembers"');
-  await pool.query('DELETE FROM "Groups"');
-  await pool.query('DELETE FROM "GroupFolders"');
-
-  await pool.query('DELETE FROM "PersonalMessages"');
-  await pool.query('DELETE FROM "Something"');
-  await pool.query('DELETE FROM "Person"');
-
+  await pool.query(`
+    DO $$ DECLARE
+      r RECORD;
+    BEGIN
+      FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';
+      END LOOP;
+    END $$;
+  `);
   await pool.end();
 });
 
