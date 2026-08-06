@@ -135,7 +135,7 @@ describe('Auth — email + login verification', () => {
   });
 
   test('verify-login rejects invalid code and unknown account', async () => {
-    const reg = await request(app)
+    await request(app)
       .post('/auth/register')
       .send({ name: 'vl', email: 'vl@test.com', password: 'secret1' });
     const wrong = await request(app)
