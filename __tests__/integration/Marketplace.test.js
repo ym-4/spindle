@@ -56,14 +56,6 @@ async function createItem(overrides = {}) {
   return res;
 }
 
-async function seedSeller() {
-  await pool.query(
-    `INSERT INTO "Person" ("id", "email", "name")
-     VALUES (1, 'seller@spindle.test', 'Test Seller')
-     ON CONFLICT ("id") DO NOTHING`,
-  );
-}
-
 beforeAll(async () => {
   await applySchema();
   await seedSeller();
