@@ -450,3 +450,104 @@ describe('Auth — admin edge branches', () => {
     expect(activity.status).toBe(200);
   });
 });
+
+describe('Auth.model — direct branch coverage', () => {
+  test('password helpers: bad stored, bad hex, mismatched', async () => {
+    expect(Auth.verifyPassword('x', '')).toBe(false);
+    expect(Auth.verifyPassword('x', 'no-colon')).toBe(false);
+    expect(Auth.verifyPassword('x', 'deadbeef:nothex')).toBe(false);
+    const okHash = Auth.hashPassword('correct');
+    expect(Auth.verifyPassword('correct', okHash)).toBe(true);
+    expect(Auth.verifyPassword('wrong', okHash)).toBe(false);
+  });
+
+  test('authenticate rejects missing, inactive, wrong password', async () => {
+    const hashed = Auth.hashPassword('pw');
+    const { rows } = await pool.query(
+      `INSERT INTO "Person" (name, email, hashed_password, role, email_verified)
+       VALUES ('authy', 'authy@test.com', $1, 'user', TRUE) RETURNING id`,
+      [hashed],
+    );
+    const id = rows[0].id;
+    expect(await Auth.authenticate('authy', 'pw')).toBeTruthy();
+    expect(await Auth.authenticate('noone', 'pw')).toBeNull();
+    expect(await Auth.authenticate('authy', 'badpw')).toBeNull();
+    await pool.query(`UPDATE "Person" SET is_active = FALSE WHERE id = $1`, [id]);
+    expect(await Auth.authenticate('authy', 'pw')).toBeNull();
+  });
+
+  test('findByUsername matches name or email', async () => {
+    const hashed = Auth.hashPassword('pw');
+    await pool.query(
+      `INSERT INTO "Person" (name, email, hashed_password, role, email_verified, display_name)
+       VALUES ('finder', 'finder@test.com', $1, 'user', TRUE, 'FinderOne') RETURNING id`,
+      [hashed],
+    );
+    const byName = await Auth.findByUsername('finder');
+    expect(byName).toBeTruthy();
+    const byEmail = await Auth.findByUsername('finder@test.com');
+    expect(byEmail).toBeTruthy();
+  });
+
+  test('trusted device roundtrip + revoke + missing token', async () => {
+    const hashed = Auth.hashPassword('pw');
+    const { rows } = await pool.query(
+      `INSERT INTO "Person" (name, email, hashed_password, role, email_verified) VALUES ('td', 'td@test.com', $1, 'user', TRUE) RETURNING id`,
+      [hashed],
+    );
+    const userId = rows[0].id;
+    expect(await Auth.findUserIdByTrustedToken('')).toBeNull();
+    expect(await Auth.findUserIdByTrustedToken(null)).toBeNull();
+
+    const token = await Auth.createTrustedDevice(userId);
+    expect(await Auth.findUserIdByTrustedToken(token)).toBe(userId);
+    await Auth.revokeTrustedDevices(userId);
+    expect(await Auth.findUserIdByTrustedToken(token)).toBeNull();
+  });
+
+  test('updatePassword: unknown user and wrong current', async () => {
+    expect(await Auth.updatePassword(999999, 'x', 'y')).toBe(false);
+    const hashed = Auth.hashPassword('oldpw');
+    const { rows } = await pool.query(
+      `INSERT INTO "Person" (name, email, hashed_password, role, email_verified) VALUES ('upw', 'upw@test.com', $1, 'user', TRUE) RETURNING id`,
+      [hashed],
+    );
+    expect(await Auth.updatePassword(rows[0].id, 'wrong', 'new')).toBe(false);
+    expect(await Auth.updatePassword(rows[0].id, 'oldpw', 'new')).toBe(true);
+  });
+
+  test('getUserProfile parses skill variants', async () => {
+    const hashed = Auth.hashPassword('pw');
+    const { rows } = await pool.query(
+      `INSERT INTO "Person" (name, email, hashed_password, role, email_verified, skills)
+       VALUES ('skilly', 'skilly@test.com', $1, 'user', TRUE, $2) RETURNING id`,
+      [hashed, JSON.stringify(['a', 'b'])],
+    );
+    const prof = await Auth.getUserProfile(rows[0].id);
+    expect(prof.skills).toEqual(['a', 'b']);
+    expect(await Auth.getUserProfile(999999)).toBeNull();
+  });
+
+  test('updatePublicProfile: no fields returns same profile, skills sanitized', async () => {
+    const hashed = Auth.hashPassword('pw');
+    const { rows } = await pool.query(
+      `INSERT INTO "Person" (name, email, hashed_password, role, email_verified) VALUES ('pub', 'pub@test.com', $1, 'user', TRUE) RETURNING id`,
+      [hashed],
+    );
+    await Auth.updatePublicProfile(rows[0].id, {});
+    const res = await Auth.updatePublicProfile(rows[0].id, {
+      display_name: 'Pub',
+      skills: [' js ', '', '  '],
+      headline: ' dev ',
+    });
+    expect(res.display_name).toBe('Pub');
+    expect(res.skills).toEqual(['js']);
+    const emptySkills = await Auth.updatePublicProfile(rows[0].id, { skills: 'not-an-array' });
+    expect(emptySkills.skills).toEqual([]);
+  });
+
+  test('getDismissedReports runs', async () => {
+    const rows = await Auth.getDismissedReports();
+    expect(Array.isArray(rows)).toBe(true);
+  });
+});
