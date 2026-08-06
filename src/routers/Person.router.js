@@ -59,32 +59,28 @@ router.post('/', (req, res, next) => {
     name: req.body.name,
     email: req.body.email,
     bio: req.body.bio,
-    password: req.body.password,
+    hashed_password: req.body.password,
   };
 
   getPersonByName(data)
-    .then((results) => {
+    .then(async (results) => {
       if (results.length > 0) {
         return res.status(409).json({
           message: 'Name already exists',
         });
       }
-      return getPersonByEmail(data);
-    })
-    .then((results) => {
-      if (results && results.length > 0) {
+      const byEmail = await getPersonByEmail(data);
+      if (byEmail && byEmail.length > 0) {
         return res.status(409).json({
           message: 'Email already exists',
         });
       }
-      return insertPerson(data);
-    })
-    .then((results) => {
-      if (!results) return;
+      const inserted = await insertPerson(data);
+      if (!inserted) return;
       res.status(201).json({
-        id: results[0].id,
-        name: results[0].name,
-        bio: results[0].bio,
+        id: inserted[0].id,
+        name: inserted[0].name,
+        bio: inserted[0].bio,
       });
     })
     .catch((error) => {
@@ -113,7 +109,7 @@ router.post(
 
     login(data)
       .then((results) => {
-        if (!results) {
+        if (!results || results.length === 0) {
           return res.status(404).json({
             message: 'User not found',
           });
