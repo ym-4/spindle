@@ -47,17 +47,17 @@ afterAll(async () => {
 });
 
 // ── Helper ───────────────────────────────────────────────
-async function seedPersons() {
-  await pool.query(
-    `INSERT INTO "Person" ("email","name") VALUES
-      ('alice@example.com','Alice'),
-      ('bob@example.com','Bob')`,
-  );
-}
+// async function seedPersons() {
+//   await pool.query(
+//     `INSERT INTO "Person" ("email","name") VALUES
+//       ('alice@example.com','Alice'),
+//       ('bob@example.com','Bob')`,
+//   );
+// }
 
-async function seedSomethings() {
-  await pool.query(`INSERT INTO "Something" ("name") VALUES ('Seed 1'),('Seed 2')`);
-}
+// async function seedSomethings() {
+//   await pool.query(`INSERT INTO "Something" ("name") VALUES ('Seed 1'),('Seed 2')`);
+// }
 
 async function registerAndVerify(name, email, password = 'secret') {
   const reg = await request(app).post('/auth/register').send({ name, email, password });
@@ -68,22 +68,22 @@ async function registerAndVerify(name, email, password = 'secret') {
   return { user: verify.body.user, token: verify.body.token };
 }
 
-async function loginAndVerify(username, password, rememberMe = false) {
-  const login = await request(app).post('/auth/login').send({ username, password });
-  if (login.body.needs2FA) {
-    const verify = await request(app).post('/auth/verify-login').send({
-      email: login.body.email,
-      code: login.body.previewCode,
-      remember_me: rememberMe,
-    });
-    return {
-      user: verify.body.user,
-      token: verify.body.token,
-      remember_token: verify.body.remember_token,
-    };
-  }
-  return { user: login.body.user, token: login.body.token };
-}
+// async function loginAndVerify(username, password, rememberMe = false) {
+//   const login = await request(app).post('/auth/login').send({ username, password });
+//   if (login.body.needs2FA) {
+//     const verify = await request(app).post('/auth/verify-login').send({
+//       email: login.body.email,
+//       code: login.body.previewCode,
+//       remember_me: rememberMe,
+//     });
+//     return {
+//       user: verify.body.user,
+//       token: verify.body.token,
+//       remember_token: verify.body.remember_token,
+//     };
+//   }
+//   return { user: login.body.user, token: login.body.token };
+// }
 
 // -----------------------------------------------------------------------
 // Integration Test 1 - GET /groups
@@ -130,7 +130,7 @@ describe('GET /groups', () => {
 
   // Boundary (BVA): zero rows – empty table returns an empty array
   test('should return no groups with status 200', async () => {
-    const user = await registerAndVerify('Alice', 'alice@example.com');
+    // const user = await registerAndVerify('Alice', 'alice@example.com');
 
     // Get groups
     const response = await request(app).get('/groups').expect(200);

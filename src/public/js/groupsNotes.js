@@ -1,9 +1,10 @@
-/* global token, fetchMethod, groupId, displayToast, bootstrap */
+/* global token, fetchMethod, groupId, displayToast, bootstrap, createWhiteboard, userId, cytoscape, fetchGroupAndUserWhiteboards */
 
 // Token, userId and groupId is global in other js file
 // Global variables
 let groupNotes = [];
 let groupFolders = [];
+let groupWhiteboards = [];
 let noteLinks = [];
 let folderStates = {};
 let quill;
@@ -15,9 +16,7 @@ let noteGraph = null;
 const newNoteFolderModal = new bootstrap.Modal(document.getElementById('newNoteFolderModal'));
 const newNoteModal = new bootstrap.Modal(document.getElementById('newNoteModal'));
 const insertLinkModal = new bootstrap.Modal(document.getElementById('insertLinkModal'));
-
-const newNoteFolderModal = new bootstrap.Modal(document.getElementById('newNoteFolderModal'));
-const newNoteModal = new bootstrap.Modal(document.getElementById('newNoteModal'));
+const newWhiteboardModal = new bootstrap.Modal(document.getElementById('createWhiteboardModal'));
 
 window.addEventListener('DOMContentLoaded', async () => {
   // Fetch data
@@ -73,7 +72,13 @@ function addListeners() {
 
   document.getElementById('newNoteFolderBtn').addEventListener('click', handleNewNoteFolder);
 
-  document.getElementById('createWhiteboardBtn').addEventListener('click', handleNewWhiteboard);
+  document.getElementById('createWhiteboardBtn').addEventListener('click', () => {
+    // Show modal (title, mode)
+    newWhiteboardModal.show();
+
+    const confirmWhiteboardBtn = document.getElementById('createWhiteboardConfirmBtn');
+    confirmWhiteboardBtn.addEventListener('click', handleNewWhiteboard);
+  });
 
   // For graph view
   document.getElementById('graphViewBtn').addEventListener('click', displayGraphView);
@@ -261,7 +266,7 @@ function addEditorListeners() {
     // Validate URL
     try {
       new URL(url);
-    } catch (err) {
+    } catch {
       error.textContent = 'Please enter a valid URL.';
       error.classList.remove('d-none');
       return;
@@ -324,13 +329,14 @@ async function handleNewNoteFolder() {
   try {
     // Create folder
     const response = await createNoteFolder(folderName);
+    console.log(response);
 
     // Refresh data
     await fetchNoteData();
     displayFolderStructure();
 
     displayToast('success', 'Folder was created!');
-  } catch (err) {
+  } catch {
     displayToast('error', 'Folder with the same name already exists');
   }
 }
@@ -352,15 +358,46 @@ async function handleNewNote() {
     displayNote(response[0].id);
 
     displayToast('success', 'Note was created!');
-  } catch (err) {
+  } catch {
     displayToast('error', 'Note with the same name already exists');
   }
 }
 
-// NOT DONE
-// Use whiteboard.js file
-function handleNewWhiteboard() {
-  console.log('new whiteboard');
+async function handleNewWhiteboard() {
+  // get data
+  const title = document.getElementById('whiteboardTitle').value.trim();
+
+  const mode = document.querySelector('input[name="whiteboardMode"]:checked').value;
+
+  // Make sure title isn't empty
+  if (!title) {
+    document.getElementById('whiteboardTitle').focus();
+
+    return;
+  }
+
+  const data = {
+    title: title,
+    mode: mode,
+    group_id: groupId,
+  };
+
+  try {
+    // Create whiteboard
+    const response = await createWhiteboard(data);
+
+    console.log('whiteboard response', response);
+
+    // Set items
+    localStorage.setItem('whiteboardID', response[0].id);
+    localStorage.setItem('whiteboardMode', mode);
+
+    // Redirect to whiteboard page
+    window.location.href = 'whiteboard.html';
+  } catch (err) {
+    console.error('Failed to create whiteboard:', err);
+    displayToast('error', 'Failed to create whiteboard.');
+  }
 }
 
 // -----------------------
@@ -616,6 +653,74 @@ function displayFolderStructure() {
 
     container.appendChild(folderDiv);
   }
+
+  // --------------------------------------------------
+  // Whiteboards folder
+  // --------------------------------------------------
+
+  if (groupWhiteboards.length > 0) {
+    if (folderStates['whiteboards'] === undefined) {
+      folderStates['whiteboards'] = true;
+    }
+
+    const expanded = folderStates['whiteboards'];
+
+    const folderDiv = document.createElement('div');
+    folderDiv.className = 'folder';
+
+    folderDiv.innerHTML = `
+    <div class="folder-header">
+      <i class="bi ${expanded ? 'bi-chevron-down' : 'bi-chevron-right'}"></i>
+
+      <i class="bi bi-easel2-fill text-primary"></i>
+
+      Whiteboards
+    </div>
+
+    <div
+      class="folder-items"
+      style="display:${expanded ? 'block' : 'none'}"
+    ></div>
+  `;
+
+    const items = folderDiv.querySelector('.folder-items');
+
+    // Display each whiteboard
+    groupWhiteboards.forEach((whiteboard) => {
+      const link = document.createElement('a');
+
+      link.className = 'wiki-file';
+
+      link.innerHTML = `
+      <i class="bi ${whiteboard.mode === 'pixel' ? 'bi-grid-3x3-gap-fill' : 'bi-easel2'}"></i>
+
+      ${whiteboard.title}
+    `;
+
+      link.onclick = () => {
+        localStorage.setItem('whiteboardID', whiteboard.id);
+        localStorage.setItem('whiteboardMode', whiteboard.mode);
+
+        window.location.href = 'whiteboard.html';
+      };
+
+      items.appendChild(link);
+    });
+
+    // Make Whiteboards folder collapsible
+    const header = folderDiv.querySelector('.folder-header');
+    const arrow = header.querySelector('.bi');
+
+    header.onclick = () => {
+      folderStates['whiteboards'] = !folderStates['whiteboards'];
+
+      items.style.display = folderStates['whiteboards'] ? 'block' : 'none';
+
+      arrow.className = folderStates['whiteboards'] ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
+    };
+
+    container.appendChild(folderDiv);
+  }
 }
 
 // Middle section - Actual note being shown
@@ -639,7 +744,6 @@ function displayNote(noteId) {
   displayFolderStructure();
 }
 
-// NOT DONE
 // Displays graph view
 // When zoomed out no note name, note names shown if zoomed in
 // TODO: Handle when a link to a note that doesn't exist occurs (like obsidian? or dont allow?)
@@ -828,6 +932,7 @@ function hideGraphView() {
 async function fetchNoteData() {
   groupNotes = await fetchGroupNotes();
   groupFolders = await fetchGroupFolders();
+  groupWhiteboards = await fetchGroupAndUserWhiteboards();
   noteLinks = await fetchNoteLinks();
 }
 
@@ -1195,6 +1300,8 @@ async function deleteNote(id) {
   return new Promise((resolve, reject) => {
     const url = `${currentUrl}/notes/note/${id}`;
 
+    let data = {};
+
     const callback = (responseStatus, responseData) => {
       console.log('deleteNote', responseData);
 
@@ -1227,7 +1334,7 @@ async function deleteNote(id) {
       }
     };
 
-    fetchMethod(url, callback, 'DELETE', null, token);
+    fetchMethod(url, callback, 'DELETE', data, token);
   });
 }
 

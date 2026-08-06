@@ -362,7 +362,8 @@ function feedApiBase() {
   }
 
   function speed() {
-    return Math.max(60, BASE_SPEED - (level - 1) * 12);
+    const level = Math.floor(score / 8);
+    return Math.max(105, BASE_SPEED - level * 7);
   }
 
   function stopLoop() {

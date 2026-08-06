@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticateJWT } = require('../middlewares/auth.middleware');
+const { checkAndAwardBadges } = require('../services/badgeService');
 
 const {
   getTopSnakeScores,
@@ -32,7 +33,10 @@ router.post('/score', authenticateJWT, (req, res, next) => {
   }
 
   upsertSnakeScore({ user_id: req.user.id, score })
-    .then((result) => res.status(200).json(result))
+    .then((result) => {
+      checkAndAwardBadges(req.user.id, ['snake_played'], { score: result.best_score });
+      res.status(200).json(result);
+    })
     .catch(next);
 });
 

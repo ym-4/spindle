@@ -132,9 +132,9 @@ module.exports.insertSavedComment = async function insertSavedComment(data) {
 
 // unsave comment
 module.exports.deleteSavedCommentByID = async function deleteSavedCommentByID(data) {
-  const VALUES = [data.id];
+  const VALUES = [data.id, data.user_id];
   const { rows } = await pool.query(
-    'DELETE FROM "SavedComments" WHERE "id" = $1 RETURNING *',
+    'DELETE FROM "SavedComments" WHERE "id" = $1 AND user_id = $2 RETURNING *',
     VALUES,
   );
   return rows[0];

@@ -1,4 +1,4 @@
-/* global fetchMethod, DOMPurify, currentUrl, getApiBase, getToken, loadUserReactions, getStoredUser, initReactionButtons, setupReactionEvents, API_BASE, validatePostForm, bootstrap */
+/* global fetchMethod, DOMPurify, setupSearchDropdown, recordRecentlyViewed, getRecentlyViewed, currentUrl, getApiBase, getToken, loadUserReactions, getStoredUser, initReactionButtons, setupReactionEvents, API_BASE, validatePostForm, bootstrap */
 
 //  Spindle — Home Page
 
@@ -59,7 +59,6 @@ function initFeedPage() {
     setupSortButton();
     setupCreatePost();
 
-    setupSearch();
     if (typeof setupSearchDropdown === 'function') setupSearchDropdown();
     setupAuthPopup();
     protectCreatePostUI();
@@ -1442,27 +1441,6 @@ function clearCreatePostForm() {
   if (tagHint) tagHint.textContent = '0 / 10 tags';
   const tagAuto = document.getElementById('tagAutocomplete');
   if (tagAuto) tagAuto.style.display = 'none';
-}
-
-// search bar
-function setupSearch() {
-  const input = document.getElementById('searchInput');
-  if (!input) return;
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const query = input.value.trim();
-      if (!query) return;
-
-      // query with # > tag search
-      const isTagSearch = query.startsWith('#');
-      const params = new URLSearchParams({ q: query });
-      if (isTagSearch) params.set('type', 'tag');
-
-      window.location.href = `search.html?${params.toString()}`;
-    }
-  });
 }
 
 function escapeHtml(str) {

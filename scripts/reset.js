@@ -10,9 +10,8 @@ const pool = new Pool({
 async function reset() {
   // Read and execute schema.sql (single source of truth for DB structure)
   const schemaSql = fs.readFileSync(path.join(__dirname, '..', 'schema.sql'), 'utf8');
-  console.log('Resetting database schema...');
   await pool.query(schemaSql);
-  console.log('Schema applied.');
+  console.log('Database cleared, Schema applied.');
 
   // Close pool before running seed script
   await pool.end();
