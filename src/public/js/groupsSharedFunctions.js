@@ -1,4 +1,4 @@
-/* global token, fetchMethod, userId, groupId */
+/* global token, fetchMethod, userId, groupId, channels:writable, currChannelMessages:writable, users:writable, group:writable, members:writable, currChannel */
 
 // Shared functions used across multiple groups_XX.js files
 

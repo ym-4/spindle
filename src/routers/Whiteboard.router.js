@@ -77,7 +77,7 @@ router.post('/', authenticateJWT, (req, res, next) => {
     return;
   }
 
-  if (mode !== 'whiteboard' && mode !== 'pixel') {
+  if (req.body.mode !== 'whiteboard' && req.body.mode !== 'pixel') {
     return res.status(400).json({ message: 'Error: Invalid mode' });
   }
 
@@ -110,7 +110,7 @@ router.put('/:id/drawing_data', authenticateJWT, (req, res, next) => {
   // Check that user created the whiteboard
   getWhiteboardsById(data)
     .then((whiteboard) => {
-      if (!whiteboard) {
+      if (whiteboard.length == 0) {
         return res.status(404).json({
           message: 'Whiteboard not found',
         });
@@ -145,12 +145,12 @@ router.put('/:id/title', authenticateJWT, (req, res, next) => {
   // Check that user created the whiteboard
   getWhiteboardsById(data)
     .then((whiteboard) => {
-      if (!whiteboard) {
+      if (whiteboard.length == 0) {
         return res.status(404).json({
           message: 'Whiteboard not found',
         });
       }
-      if (whiteboard.user_id === data.user_id) {
+      if (whiteboard[0].user_id === data.user_id) {
         updateWhiteboardsName(data)
           .then((results) => {
             return res.status(200).json(results);
@@ -173,12 +173,12 @@ router.delete('/:id', authenticateJWT, (req, res, next) => {
   // Check that user created the whiteboard
   getWhiteboardsById(data)
     .then((whiteboard) => {
-      if (!whiteboard) {
+      if (whiteboard.length == 0) {
         return res.status(404).json({
           message: 'Whiteboard not found',
         });
       }
-      if (whiteboard.user_id === data.user_id) {
+      if (whiteboard[0].user_id === data.user_id) {
         deleteWhiteboards(data)
           .then((results) => {
             if (!results) {

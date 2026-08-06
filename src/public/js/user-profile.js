@@ -166,6 +166,8 @@ function renderView(profile) {
       </div>
       <div class="pro-profile__friend-actions text-center" id="friendActions">${relActions(profile)}</div>
       ${!isOwnProfile ? `<div class="text-center mt-2">${reportBtn}</div>` : ''}`;
+    const rightSidebarPriv = document.getElementById('profileRightSidebar');
+    if (rightSidebarPriv) rightSidebarPriv.innerHTML = '';
     if (!isOwnProfile) {
       bindFriendActions(document.getElementById('friendActions'));
       document
@@ -203,6 +205,12 @@ function renderView(profile) {
       <div class="pro-profile__stat"><strong>${stats.friends ?? 0}</strong><span>Friends</span></div>
       <div class="pro-profile__stat"><strong>${stats.groups ?? 0}</strong><span>Groups</span></div>
     </div>
+     <div class="pro-profile__section" id="badgesSection">
+      <h3>Achievements</h3>
+      <div class="pro-profile__badges" id="badgesGrid">
+        <span class="text-muted small">Loading badges…</span>
+      </div>
+    </div>
     ${!isOwnProfile ? `<div class="pro-profile__friend-actions" id="friendActions">${relActions(profile)}</div>` : ''}
     <div class="pro-profile__section">
       <h3>About</h3>
@@ -218,6 +226,30 @@ function renderView(profile) {
       <h3>Links</h3>
       ${renderLinks(profile)}
     </div>`;
+
+  const rightSidebar = document.getElementById('profileRightSidebar');
+  if (rightSidebar) {
+    rightSidebar.innerHTML = `
+      <div class="pro-profile__section pro-profile__activity">
+        <h3><i class="fas fa-stream me-2"></i>Activity</h3>
+        <div class="pro-profile__tabs" id="profileActivityTabs">
+          <button class="pro-profile__tab active" data-tab="posts">
+            Posts 
+          </button>
+          <button class="pro-profile__tab" data-tab="comments">
+            Comments
+          </button>
+          <button class="pro-profile__tab" data-tab="liked">
+            Liked
+          </button>
+        </div>
+        <div id="profileTabContent" class="pro-profile__tab-content">
+          <div class="text-muted text-center py-3">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+          </div>
+        </div>
+      </div>`;
+  }
 
   if (!isOwnProfile) {
     bindFriendActions(document.getElementById('friendActions'));
@@ -437,15 +469,354 @@ async function loadUserProfile() {
       isOwnProfile = false;
     }
     currentProfile = profile;
+
+    const isPrivate = profile.is_private && !isOwnProfile && profile.relationship !== 'friends';
+
     document.title = `${profile.display_name || profile.name} — Spindle`;
     loading.classList.add('d-none');
     root.classList.remove('d-none');
     renderView(profile);
+    loadBadges(profile.id);
+    loadProfilePosts(profile.id, isPrivate);
   } catch (err) {
     loading.classList.add('d-none');
     errEl.textContent = err.message || 'Could not load profile.';
     errEl.classList.remove('d-none');
   }
+}
+
+async function loadBadges(userId) {
+  const grid = document.getElementById('badgesGrid');
+  if (!grid) return;
+
+  try {
+    const badges = await authFetch(`/badges/${userId}`);
+    if (!badges.length) {
+      grid.innerHTML = '<span class="text-muted small">No badges yet.</span>';
+      return;
+    }
+
+    grid.innerHTML = '';
+    badges.forEach((badge) => {
+      const el = document.createElement('div');
+      el.className = `pro-profile__badge${badge.unlocked ? '' : ' pro-profile__badge--locked'}`;
+      el.title = badge.unlocked
+        ? `${badge.name} — ${badge.description}`
+        : `${badge.name} (Locked) — ${badge.description}`;
+
+      el.innerHTML = `
+        <img src="${esc(badge.image_url)}" alt="${esc(badge.name)}">
+        <span class="pro-profile__badge-name">${esc(badge.name)}</span>
+        ${
+          badge.unlocked && badge.awarded_at
+            ? `<span class="pro-profile__badge-date">${new Date(badge.awarded_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</span>`
+            : ''
+        }`;
+
+      grid.appendChild(el);
+    });
+  } catch {
+    const grid2 = document.getElementById('badgesGrid');
+    if (grid2) grid2.innerHTML = '<span class="text-muted small">Could not load badges.</span>';
+  }
+}
+
+// Profile activity tabs
+function setupProfileTabs() {
+  const tabsEl = document.getElementById('profileActivityTabs');
+  if (!tabsEl) return;
+
+  tabsEl.querySelectorAll('.pro-profile__tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      tabsEl.querySelectorAll('.pro-profile__tab').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const tab = btn.dataset.tab;
+      const userId = currentProfile?.id;
+      if (!userId) return;
+
+      if (tab === 'posts') loadProfilePosts(userId);
+      if (tab === 'comments') loadProfileComments(userId);
+      if (tab === 'liked') loadProfileLiked(userId);
+    });
+  });
+}
+
+async function loadProfilePosts(userId, isPrivate = false) {
+  const container = document.getElementById('profileTabContent');
+  if (!container) return;
+
+  if (isPrivate) {
+    container.innerHTML =
+      '<p class="text-muted small text-center py-3">This profile is private.</p>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="text-muted text-center py-3">
+      <div class="spinner-border spinner-border-sm" role="status"></div>
+      Loading posts…
+    </div>`;
+
+  try {
+    const allPosts = await authFetch(`/posts/user/${userId}`);
+    const posts = (allPosts || []).filter((post) => !post.is_anonymous);
+
+    if (!posts.length) {
+      container.innerHTML = `
+        <div class="text-muted text-center py-4">
+          <i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>
+          No posts yet.
+        </div>`;
+      setupProfileTabs();
+      return;
+    }
+
+    container.innerHTML = '';
+
+    posts.forEach((post) => {
+      const card = buildProfilePostCard(post);
+      container.appendChild(card);
+    });
+
+    setupProfileTabs();
+  } catch {
+    container.innerHTML = '<p class="text-muted text-center py-3">Could not load posts.</p>';
+  }
+}
+
+async function loadProfileComments(userId) {
+  const container = document.getElementById('profileTabContent');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="text-muted text-center py-3">
+      <div class="spinner-border spinner-border-sm" role="status"></div>
+      Loading comments…
+    </div>`;
+
+  try {
+    const comments = await authFetch(`/comments/user/${userId}`);
+
+    if (!comments || !comments.length) {
+      container.innerHTML = `
+        <div class="text-muted text-center py-4">
+          <i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>
+          No comments yet.
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = '';
+    comments.forEach((comment) => container.appendChild(buildProfileCommentCard(comment)));
+  } catch {
+    container.innerHTML = '<p class="text-muted text-center py-3">Could not load comments.</p>';
+  }
+}
+
+async function loadProfileLiked(userId) {
+  const container = document.getElementById('profileTabContent');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="text-muted text-center py-3">
+      <div class="spinner-border spinner-border-sm" role="status"></div>
+      Loading liked posts…
+    </div>`;
+
+  try {
+    const posts = await authFetch(`/posts/liked/${userId}`);
+
+    if (!posts || !posts.length) {
+      container.innerHTML = `
+        <div class="text-muted text-center py-4">
+          <i class="fas fa-heart fa-2x mb-2 d-block"></i>
+          No liked posts yet.
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = '';
+    posts.forEach((post) => container.appendChild(buildProfilePostCard(post, false)));
+  } catch {
+    container.innerHTML = '<p class="text-muted text-center py-3">Could not load liked posts.</p>';
+  }
+}
+
+function buildProfilePostCard(post, allowInsights = true) {
+  const el = document.createElement('div');
+  el.className = 'pro-profile__post-card';
+
+  const categoryLabels = {
+    confession: 'Confession',
+    qna: 'Q&A',
+    general: 'General Talk',
+    events: 'Events',
+    news: 'News',
+    cca: 'CCA',
+    internship: 'Internship',
+    SOC: 'SOC',
+    ABE: 'ABE',
+    SB: 'SB',
+    CLS: 'CLS',
+    EEE: 'EEE',
+    MAD: 'MAD',
+    MAE: 'MAE',
+    SMA: 'SMA',
+  };
+  const categoryClasses = {
+    confession: 'category-confession',
+    qna: 'category-qna',
+    general: 'category-general',
+    events: 'category-events',
+    news: 'category-news',
+    internship: 'category-internship',
+    cca: 'category-cca',
+    SOC: 'category-SOC',
+    ABE: 'category-ABE',
+    SB: 'category-SB',
+    CLS: 'category-CLS',
+    EEE: 'category-EEE',
+    MAD: 'category-MAD',
+    MAE: 'category-MAE',
+    SMA: 'category-SMA',
+  };
+
+  const label = categoryLabels[post.category] || post.category || '';
+  const cls = categoryClasses[post.category] || 'category-general';
+
+  const date = post.created_at
+    ? new Date(post.created_at).toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '';
+
+  const plainContent = (post.content || '').replace(/<[^>]*>/g, '');
+  const preview = plainContent.length > 180 ? plainContent.slice(0, 180) + '…' : plainContent;
+
+  el.innerHTML = `
+    <div class="pro-profile__post-meta">
+      <span class="post-category ${cls}">${esc(label)}</span>
+      <span class="pro-profile__post-date">${esc(date)}</span>
+    </div>
+    <div class="pro-profile__post-title">${esc(post.title || '')}</div>
+    ${preview ? `<div class="pro-profile__post-preview">${esc(preview)}</div>` : ''}
+    <div class="pro-profile__post-footer">
+      <div class="pro-profile__post-stats">
+        <span><i class="far fa-eye"></i> ${post.view_count ?? 0}</span>
+        <span><i class="far fa-thumbs-up"></i> ${post.like_count ?? 0}</span>
+        <span><i class="far fa-comment"></i> ${post.comment_count ?? 0}</span>
+      </div>
+       ${
+         isOwnProfile && allowInsights
+           ? `
+        <button class="pro-profile__analytics-btn" data-post-id="${post.id}" title="View analytics"> View Insights
+        </button>`
+           : ''
+       }
+    </div>`;
+
+  el.style.cursor = 'pointer';
+
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('.pro-profile__analytics-btn')) return;
+    window.location.href = `posts.html?id=${post.id}`;
+  });
+
+  // Analytics
+  if (isOwnProfile && allowInsights) {
+    el.querySelector('.pro-profile__analytics-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.location.href = `postAnalytics.html?id=${post.id}`;
+    });
+  }
+
+  return el;
+}
+
+function buildProfileCommentCard(comment) {
+  const el = document.createElement('div');
+  el.className = 'pro-profile__post-card';
+  el.style.cursor = 'pointer';
+
+  const categoryLabels = {
+    confession: 'Confession',
+    qna: 'Q&A',
+    general: 'General Talk',
+    events: 'Events',
+    news: 'News',
+    cca: 'CCA',
+    internship: 'Internship',
+    SOC: 'SOC',
+    ABE: 'ABE',
+    SB: 'SB',
+    CLS: 'CLS',
+    EEE: 'EEE',
+    MAD: 'MAD',
+    MAE: 'MAE',
+    SMA: 'SMA',
+  };
+  const categoryClasses = {
+    confession: 'category-confession',
+    qna: 'category-qna',
+    general: 'category-general',
+    events: 'category-events',
+    news: 'category-news',
+    internship: 'category-internship',
+    cca: 'category-cca',
+    SOC: 'category-SOC',
+    ABE: 'category-ABE',
+    SB: 'category-SB',
+    CLS: 'category-CLS',
+    EEE: 'category-EEE',
+    MAD: 'category-MAD',
+    MAE: 'category-MAE',
+    SMA: 'category-SMA',
+  };
+
+  const label = categoryLabels[comment.post_category] || comment.post_category || '';
+  const cls = categoryClasses[comment.post_category] || 'category-general';
+
+  const date = comment.created_at
+    ? new Date(comment.created_at).toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '';
+
+  const preview =
+    (comment.content || '').length > 180 ? comment.content.slice(0, 180) + '…' : comment.content;
+
+  el.innerHTML = `
+    <div class="pro-profile__post-meta">
+      <span class="post-category ${cls}">${esc(label)}</span>
+      <span class="pro-profile__post-date">${esc(date)}</span>
+    </div>
+    <div class="pro-profile__comment-context">
+      <i class="fas fa-reply me-1"></i> On:
+      <strong>${esc(comment.post_title || 'a post')}</strong>
+    </div>
+    <div class="pro-profile__post-preview" style="margin-top:0.3rem;">
+      ${esc(preview)}
+    </div>
+    ${
+      comment.attachment_url
+        ? `
+    <div class="mt-2">
+      <img src="${esc(comment.attachment_url)}" alt="Attachment"
+        style="max-height:100px; border-radius:8px; object-fit:cover;">
+    </div>`
+        : ''
+    }`;
+
+  el.addEventListener('click', () => {
+    window.location.href = `posts.html?id=${comment.post_id}#comment-${comment.id}`;
+  });
+
+  return el;
 }
 
 document.addEventListener('DOMContentLoaded', loadUserProfile);

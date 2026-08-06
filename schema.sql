@@ -42,8 +42,8 @@ CREATE TABLE "Person" (
   "role" user_role NOT NULL DEFAULT 'user',
   "email_verified" BOOLEAN NOT NULL DEFAULT FALSE,
   "is_active" BOOLEAN NOT NULL DEFAULT TRUE,
-  "deleted_at" TIMESTAMP,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "deleted_at" TIMESTAMPTZ,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "Person_pkey" PRIMARY KEY ("id")
 );
 
@@ -52,8 +52,8 @@ CREATE TABLE "EmailVerificationCodes" (
   "email" TEXT NOT NULL,
   "code" VARCHAR(6) NOT NULL,
   "purpose" VARCHAR(20) NOT NULL DEFAULT 'email_verify',
-  "expires_at" TIMESTAMP NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "expires_at" TIMESTAMPTZ NOT NULL,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "EmailVerificationCodes_pkey" PRIMARY KEY ("id")
 );
 
@@ -61,8 +61,8 @@ CREATE TABLE "TrustedDevices" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
   "token_hash" TEXT NOT NULL,
-  "expires_at" TIMESTAMP NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "expires_at" TIMESTAMPTZ NOT NULL,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "TrustedDevices_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "TrustedDevices_token_hash_key" UNIQUE ("token_hash"),
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
@@ -74,8 +74,8 @@ CREATE TABLE "UserSessions" (
   "device_label" TEXT DEFAULT 'Unknown device',
   "user_agent" TEXT,
   "ip_address" TEXT,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  "last_active" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  "last_active" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "UserSessions_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
@@ -92,14 +92,15 @@ CREATE TABLE "Posts" (
   "user_id" INT NOT NULL,
   "title" VARCHAR(255) NOT NULL, 
   "category" post_categories NOT NULL, 
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-  "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, 
+  "updated_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   "content" TEXT NOT NULL,
   "attachment_url" TEXT,
   "gif_url" TEXT,
   "is_anonymous" BOOLEAN DEFAULT FALSE,
   "visibility" TEXT DEFAULT 'everyone',
   "pinned" BOOLEAN DEFAULT FALSE,
+  "view_count" INT DEFAULT 0,
   CONSTRAINT "Posts_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
@@ -123,7 +124,7 @@ CREATE TABLE "PostPolls" (
   "id" SERIAL NOT NULL,
   "post_id" INT NOT NULL,
   "question" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "PostPolls_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("post_id") REFERENCES "Posts"("id") ON DELETE CASCADE
 );
@@ -142,12 +143,23 @@ CREATE TABLE "PollVotes" (
   "poll_id" INT NOT NULL,
   "option_id" INT NOT NULL,
   "user_id" INT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "PollVotes_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("poll_id") REFERENCES "PostPolls"("id") ON DELETE CASCADE,
   FOREIGN KEY ("option_id") REFERENCES "PollOptions"("id") ON DELETE CASCADE,
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   UNIQUE ("poll_id", "user_id")
+);
+
+CREATE TABLE "Tags" (
+  "id" SERIAL PRIMARY KEY,
+  "name" VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE "PostTags" (
+  "post_id" INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
+  "tag_id"  INT NOT NULL REFERENCES "Tags"("id")  ON DELETE CASCADE,
+  PRIMARY KEY ("post_id", "tag_id")
 );
 
 CREATE TABLE "PostComments" (
@@ -156,7 +168,8 @@ CREATE TABLE "PostComments" (
   "post_id" INT NOT NULL,
   "parent_comment_id" INT NULL,
   "content" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "attachment_url" TEXT,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "PostComments_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("post_id") REFERENCES "Posts"("id") ON DELETE CASCADE,
@@ -170,7 +183,7 @@ CREATE TABLE "PostReactions" (
   "post_id" INT NOT NULL,
   "user_id" INT NOT NULL,
   "reaction_type" reaction_types NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY ("post_id") REFERENCES "Posts"("id") ON DELETE CASCADE,
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   CONSTRAINT "PostReactions_pkey" PRIMARY KEY ("id"),
@@ -182,7 +195,7 @@ CREATE TABLE "CommentReactions" (
   "comment_id" INT NOT NULL,
   "user_id" INT NOT NULL,
   "reaction_type" reaction_types NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY ("comment_id") REFERENCES "PostComments"("id") ON DELETE CASCADE,
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   CONSTRAINT "CommentReactions_pkey" PRIMARY KEY ("id"),
@@ -193,7 +206,7 @@ CREATE TABLE "SavedPosts" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
   "post_id" INT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   FOREIGN KEY ("post_id") REFERENCES "Posts"("id") ON DELETE CASCADE,
   CONSTRAINT "SavedPosts_pkey" PRIMARY KEY ("id"), 
@@ -204,22 +217,39 @@ CREATE TABLE "SavedComments" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
   "comment_id" INT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   FOREIGN KEY ("comment_id") REFERENCES "PostComments"("id") ON DELETE CASCADE,
   CONSTRAINT "SavedComments_pkey" PRIMARY KEY ("id"),
   UNIQUE("user_id", "comment_id")
 );
 
-CREATE TABLE "Reports" (
-  "id"        SERIAL PRIMARY KEY,
-  "post_id"   INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
-  "user_id"   INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
-  "reason"    VARCHAR(100) NOT NULL,
+CREATE TABLE "PostReports" (
+  "id" SERIAL PRIMARY KEY,
+  "post_id" INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
+  "user_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "reason" VARCHAR(100) NOT NULL,
   "description" TEXT DEFAULT '',
   "dismissed" BOOLEAN DEFAULT FALSE,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   UNIQUE ("post_id", "user_id")
+);
+
+CREATE TABLE "CommentReports" (
+  "id" SERIAL PRIMARY KEY,
+  "comment_id" INT NOT NULL REFERENCES "PostComments"("id") ON DELETE CASCADE,
+  "user_id" INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "reason" VARCHAR(100) NOT NULL,
+  "description" TEXT DEFAULT '',
+  "dismissed" BOOLEAN DEFAULT FALSE,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE ("comment_id", "user_id")
+);
+
+CREATE TABLE "SnakeScores" (
+  "user_id" INT PRIMARY KEY REFERENCES "Person"("id") ON DELETE CASCADE,
+  "best_score" INT NOT NULL DEFAULT 0,
+  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 -- -------------------------------------------------------------------------------------
 --                                  GROUPS
@@ -247,7 +277,7 @@ CREATE TABLE "GroupJoinRequests" (
   "user_id" INT NOT NULL,
   "group_id" INT NOT NULL, 
   "status" join_status NOT NULL DEFAULT 'pending', 
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, 
   CONSTRAINT "GroupJoinRequest_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
   FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE, 
@@ -271,7 +301,7 @@ CREATE TABLE "GroupDiscussions" (
   "user_id" INT NOT NULL,
   "channel_name" TEXT NOT NULL,
   "message" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, 
   CONSTRAINT "GroupDiscussions_pkey" PRIMARY KEY ("id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
@@ -281,7 +311,7 @@ CREATE TABLE "GroupFiles" (
   "id" SERIAL NOT NULL,
   "user_id" INT NOT NULL,
   "name" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   "group_id" INT NOT NULL,
   "file_path" TEXT NOT NULL,
   "folder_name" TEXT NOT NULL,
@@ -295,7 +325,7 @@ CREATE TABLE "GroupFolders" (
   "group_id" INT NOT NULL,
   "name" TEXT NOT NULL,
   "created_by" INT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (group_id) REFERENCES "Groups"(id) ON DELETE CASCADE, 
   UNIQUE(group_id, name)
 );
@@ -305,22 +335,10 @@ CREATE TABLE "GroupAnnouncements" (
   "user_id" INT NOT NULL,
   "group_id" INT NOT NULL,
   "text" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "GroupAnnouncements_pkey" PRIMARY KEY ("announcement_id"), 
   FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE
-);
-
-CREATE TABLE "GroupDeadlines" (
-  "id" SERIAL NOT NULL,
-  "group_id" INT NOT NULL,
-  "title" TEXT NOT NULL,
-  "deadline_date" TIMESTAMPTZ NOT NULL,
-  "created_by" INT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "GroupDeadlines_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("created_by") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 CREATE TYPE task_status AS ENUM (
@@ -337,8 +355,8 @@ CREATE TABLE "GroupTasks" (
   "title" TEXT NOT NULL,
   "description" TEXT DEFAULT '',
   "status" task_status NOT NULL DEFAULT 'todo',
-  "due_date" TIMESTAMP,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "due_date" TIMESTAMPTZ,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY ("group_id")
     REFERENCES "Groups"("id") ON DELETE CASCADE,
@@ -356,7 +374,7 @@ CREATE TABLE "GroupTaskItems" (
   "text" TEXT NOT NULL,
   "completed" BOOLEAN DEFAULT FALSE,
   "completed_by" INT,
-  "completed_at" TIMESTAMP,
+  "completed_at" TIMESTAMPTZ,
 
   FOREIGN KEY ("task_id")
     REFERENCES "GroupTasks"("id") ON DELETE CASCADE,
@@ -378,8 +396,8 @@ CREATE TABLE "WhiteboardDrawings" (
     "mode" modes NOT NULL,
     "drawing_data" JSONB NOT NULL,
     "image" TEXT,
-    "created_at" TIMESTAMP DEFAULT NOW(),
-    "updated_at" TIMESTAMP DEFAULT NOW(),
+    "created_at" TIMESTAMPTZ DEFAULT NOW(),
+    "updated_at" TIMESTAMPTZ DEFAULT NOW(),
     FOREIGN KEY ("user_id")
       REFERENCES "Person"("id") ON DELETE CASCADE,
     FOREIGN KEY ("group_id")
@@ -399,7 +417,7 @@ CREATE TABLE "NoteFolders" (
   "name" TEXT NOT NULL,
   "color" VARCHAR(20) DEFAULT '#ffffff',
   "icon" VARCHAR(50) DEFAULT 'folder',
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY ("group_id")
     REFERENCES "Groups"("id") ON DELETE CASCADE,
@@ -416,8 +434,8 @@ CREATE TABLE "Notes" (
   "template" TEXT DEFAULT NULL,
   "is_pinned" BOOLEAN DEFAULT FALSE,
   "is_archived" BOOLEAN DEFAULT FALSE,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY ("user_id")
     REFERENCES "Person"("id") ON DELETE CASCADE,
@@ -438,7 +456,7 @@ EXECUTE FUNCTION set_updated_at();
 CREATE TABLE "NoteLinks" (
   "source_note_id" INT NOT NULL,
   "target_note_id" INT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
   PRIMARY KEY ("source_note_id", "target_note_id"),
   FOREIGN KEY ("source_note_id")
@@ -489,7 +507,21 @@ CREATE TABLE "UserCharacterParts" (
 ----------------------------------------------------------------------------------------
 --                                  USER
 -- -------------------------------------------------------------------------------------
+CREATE TABLE "Badges" (
+  "id" SERIAL PRIMARY KEY,
+  "key" TEXT NOT NULL UNIQUE,  
+  "name" TEXT NOT NULL,
+  "description" TEXT NOT NULL,
+  "image_url" TEXT NOT NULL       
+);
 
+CREATE TABLE "UserBadges" (
+  "id" SERIAL PRIMARY KEY,
+  "user_id" INT  NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "badge_id" INT  NOT NULL REFERENCES "Badges"("id") ON DELETE CASCADE,
+  "awarded_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE ("user_id", "badge_id")
+);
 
 CREATE TABLE "UserSettings" (
   "user_id" INT NOT NULL,
@@ -521,8 +553,7 @@ CREATE TABLE "FriendRequests" (
   "sender_id" INT NOT NULL,
   "receiver_id" INT NOT NULL,
   "status" friend_request_status NOT NULL DEFAULT 'pending',
-  "message" TEXT DEFAULT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "FriendRequests_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("sender_id") REFERENCES "Person"("id") ON DELETE CASCADE,
   FOREIGN KEY ("receiver_id") REFERENCES "Person"("id") ON DELETE CASCADE,
@@ -598,7 +629,7 @@ CREATE TABLE IF NOT EXISTS "Orders" (
   "total_amount" NUMERIC(10,2) NOT NULL,
   "status" order_status NOT NULL DEFAULT 'pending',
   "payment_ref" TEXT,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS "OrderItems" (
@@ -613,81 +644,30 @@ CREATE TABLE IF NOT EXISTS "OrderItems" (
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON "OrderItems"("order_id");
 
 -- -------------------------------------------------------------------------------------
---                                  Chatroom
+--                                  Reports / Deadlines / Chat / Study Sessions
 -- -------------------------------------------------------------------------------------
 
-CREATE TABLE "Chatroom" (
-  "id" SERIAL NOT NULL,
-  "name" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  CONSTRAINT "Chatroom_pkey" PRIMARY KEY ("id")
-);
-
-CREATE TABLE "ChatroomMessages" (
-  "id" SERIAL NOT NULL,
-  "user_id" INT NOT NULL,
-  "chatroom_id" INT NOT NULL,
-  "message" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  CONSTRAINT "ChatroomMessages_pkey" PRIMARY KEY ("id"), 
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
-  FOREIGN KEY ("chatroom_id") REFERENCES "Chatroom"("id") ON DELETE CASCADE
-);
-
--- -------------------------------------------------------------------------------------
---                                  Friends
--- -------------------------------------------------------------------------------------
-
-CREATE TABLE "UserFriends" (
-  "user_id" INT NOT NULL,
-  "friend_id" INT NOT NULL,
-  "status" TEXT DEFAULT 'pending',
-  "is_favorite" BOOLEAN DEFAULT FALSE,
-  CONSTRAINT "UserFriends_pkey" PRIMARY KEY ("user_id", "friend_id"),
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
-  FOREIGN KEY ("friend_id") REFERENCES "Person"("id") ON DELETE CASCADE
-);
-
--- Direct personal messages between users (WhatsApp-style PMs)
-CREATE TABLE "PersonalMessages" (
-  "id" SERIAL NOT NULL,
-  "sender_id" INT NOT NULL,
-  "recipient_id" INT NOT NULL,
-  "body" TEXT DEFAULT '',
-  "image_url" TEXT,
-  "reply_to_id" INT,
-  "edited_at" TIMESTAMP,
-  "deleted_at" TIMESTAMP,
+CREATE TABLE "Reports" (
+  "id"        SERIAL PRIMARY KEY,
+  "post_id"   INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
+  "user_id"   INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "reason"    VARCHAR(100) NOT NULL,
+  "description" TEXT DEFAULT '',
+  "dismissed" BOOLEAN DEFAULT FALSE,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "PersonalMessages_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("sender_id") REFERENCES "Person"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("recipient_id") REFERENCES "Person"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("reply_to_id") REFERENCES "PersonalMessages"("id") ON DELETE SET NULL,
-  CHECK ("sender_id" <> "recipient_id")
+  UNIQUE ("post_id", "user_id")
 );
 
-CREATE INDEX "PersonalMessages_conversation_idx"
-  ON "PersonalMessages" ("sender_id", "recipient_id", "created_at");
-
-CREATE TABLE "MessageReadState" (
-  "user_id" INT NOT NULL,
-  "peer_id" INT NOT NULL,
-  "last_read_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "MessageReadState_pkey" PRIMARY KEY ("user_id", "peer_id"),
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("peer_id") REFERENCES "Person"("id") ON DELETE CASCADE
-);
-
-CREATE TABLE "MessageReactions" (
+CREATE TABLE "GroupDeadlines" (
   "id" SERIAL NOT NULL,
-  "message_id" INT NOT NULL,
-  "user_id" INT NOT NULL,
-  "emoji" VARCHAR(16) NOT NULL,
+  "group_id" INT NOT NULL,
+  "title" TEXT NOT NULL,
+  "deadline_date" TIMESTAMPTZ NOT NULL,
+  "created_by" INT NOT NULL,
   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "MessageReactions_pkey" PRIMARY KEY ("id"),
-  CONSTRAINT "MessageReactions_message_user_key" UNIQUE ("message_id", "user_id"),
-  FOREIGN KEY ("message_id") REFERENCES "PersonalMessages"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+  CONSTRAINT "GroupDeadlines_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("created_by") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 CREATE TABLE "ChatMute" (
@@ -708,135 +688,6 @@ CREATE TABLE "ChatPin" (
   FOREIGN KEY ("peer_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
-CREATE TABLE "CallLogs" (
-  "id" SERIAL NOT NULL,
-  "caller_id" INT NOT NULL,
-  "callee_id" INT NOT NULL,
-  "call_type" VARCHAR(10) NOT NULL DEFAULT 'voice',
-  "status" VARCHAR(20) NOT NULL,
-  "duration_sec" INT DEFAULT 0,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "CallLogs_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("caller_id") REFERENCES "Person"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("callee_id") REFERENCES "Person"("id") ON DELETE CASCADE
-);
-
-CREATE TABLE "Notifications" (
-  "id" SERIAL NOT NULL,
-  "user_id" INT NOT NULL,
-  "type" VARCHAR(32) NOT NULL,
-  "title" TEXT NOT NULL,
-  "body" TEXT DEFAULT '',
-  "ref_id" INT,
-  "read" BOOLEAN NOT NULL DEFAULT FALSE,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "Notifications_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
-);
-
-CREATE INDEX "Notifications_user_idx" ON "Notifications" ("user_id", "read", "created_at" DESC);
-
-CREATE TABLE "Stories" (
-  "id" SERIAL NOT NULL,
-  "user_id" INT NOT NULL,
-  "media_url" TEXT NOT NULL,
-  "caption" TEXT DEFAULT '',
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  "expires_at" TIMESTAMP NOT NULL,
-  CONSTRAINT "Stories_pkey" PRIMARY KEY ("id")
-);
--- -------------------------------------------------------------------------------------
---                             Other (for later sprints)
--- -------------------------------------------------------------------------------------
-
-CREATE TABLE "Timetable" (
-  "id" SERIAL NOT NULL, 
-  "user_id" INT NOT NULL,
-  "subject" TEXT NOT NULL,
-  "day_of_week" INT NOT NULL,
-  "start_time" INT NOT NULL,
-  "end_time" INT NOT NULL,
-  "location" TEXT NOT NULL,
-  CONSTRAINT "Timetable_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
-);
-
-CREATE TABLE "AILogs" (
-  "id" SERIAL NOT NULL, 
-  "user_id" INT NOT NULL,
-  "prompt" TEXT NOT NULL,
-  "response" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "AILogs_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
-);
-
-CREATE TABLE "Events" (
-  "id" SERIAL NOT NULL, 
-  "creator_id" INT NOT NULL,
-  "title" TEXT NOT NULL,
-  "description" TEXT NOT NULL,
-  "event_date" TIMESTAMP NOT NULL,
-  "location" TEXT NOT NULL,
-  "category" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "Events_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
-);
-
-CREATE TABLE "Flashcards" (
-  "id" SERIAL NOT NULL, 
-  "user_id" INT NOT NULL,
-  "title" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "Flashcards_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
-);
-
-CREATE TABLE "FlashcardItems" (
-  "id" SERIAL NOT NULL, 
-  "flashcard_id" INT NOT NULL,
-  "front" TEXT NOT NULL,
-  "back" TEXT NOT NULL,
-  CONSTRAINT "FlashcardItems_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("flashcard_id") REFERENCES "Flashcards"("id") ON DELETE CASCADE
-);
-
-CREATE TABLE "Quizzes" (
-  "id" SERIAL NOT NULL, 
-  "creator_id" INT NOT NULL,
-  "title" TEXT NOT NULL,
-  "description" TEXT NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "Quizzes_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
-);
-
-CREATE TABLE "QuizQuestions" (
-  "id" SERIAL NOT NULL, 
-  "quiz_id" INT NOT NULL,
-  "question" TEXT NOT NULL,
-  "option_a" TEXT NOT NULL,
-  "option_b" TEXT NOT NULL,
-  "option_c" TEXT NOT NULL,
-  "option_d" TEXT NOT NULL,
-  "correct_option" TEXT NOT NULL,
-  CONSTRAINT "QuizQuestions_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("quiz_id") REFERENCES "Quizzes"("id") ON DELETE CASCADE
-);
-
-CREATE TABLE "QuizAttempts" (
-  "id" SERIAL NOT NULL, 
-  "quiz_id" INT NOT NULL,
-  "user_id" INT NOT NULL,
-  "score" INT NOT NULL,
-  "attempted_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "QuizAttempts_pkey" PRIMARY KEY ("id"),
-  FOREIGN KEY ("quiz_id") REFERENCES "Quizzes"("id") ON DELETE CASCADE, 
-  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
-);
-
--- Study Sessions (CA3 complex feature)
 CREATE TABLE IF NOT EXISTS "StudySessions" (
   "id" SERIAL NOT NULL,
   "host_id" INT NOT NULL,
@@ -883,6 +734,208 @@ CREATE TABLE IF NOT EXISTS "SessionRecordings" (
   CONSTRAINT "SessionRecordings_pkey" PRIMARY KEY ("id"),
   FOREIGN KEY ("session_id") REFERENCES "StudySessions"("id") ON DELETE CASCADE,
   FOREIGN KEY ("uploaded_by") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+-- -------------------------------------------------------------------------------------
+--                                  Chatroom
+-- -------------------------------------------------------------------------------------
+
+CREATE TABLE "Chatroom" (
+  "id" SERIAL NOT NULL,
+  "name" TEXT NOT NULL,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT "Chatroom_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "ChatroomMessages" (
+  "id" SERIAL NOT NULL,
+  "user_id" INT NOT NULL,
+  "chatroom_id" INT NOT NULL,
+  "message" TEXT NOT NULL,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT "ChatroomMessages_pkey" PRIMARY KEY ("id"), 
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  FOREIGN KEY ("chatroom_id") REFERENCES "Chatroom"("id") ON DELETE CASCADE
+);
+
+-- -------------------------------------------------------------------------------------
+--                                  Friends
+-- -------------------------------------------------------------------------------------
+
+CREATE TABLE "UserFriends" (
+  "user_id" INT NOT NULL,
+  "friend_id" INT NOT NULL,
+  "status" TEXT DEFAULT 'pending',
+  CONSTRAINT "UserFriends_pkey" PRIMARY KEY ("user_id", "friend_id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE, 
+  FOREIGN KEY ("friend_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+-- Direct personal messages between users (WhatsApp-style PMs)
+CREATE TABLE "PersonalMessages" (
+  "id" SERIAL NOT NULL,
+  "sender_id" INT NOT NULL,
+  "recipient_id" INT NOT NULL,
+  "body" TEXT NOT NULL,
+  "edited_at" TIMESTAMPTZ,
+  "deleted_at" TIMESTAMPTZ,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "PersonalMessages_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("sender_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("recipient_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  CHECK ("sender_id" <> "recipient_id")
+);
+
+CREATE INDEX "PersonalMessages_conversation_idx"
+  ON "PersonalMessages" ("sender_id", "recipient_id", "created_at");
+
+CREATE TABLE "MessageReadState" (
+  "user_id" INT NOT NULL,
+  "peer_id" INT NOT NULL,
+  "last_read_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "MessageReadState_pkey" PRIMARY KEY ("user_id", "peer_id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("peer_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "MessageReactions" (
+  "id" SERIAL NOT NULL,
+  "message_id" INT NOT NULL,
+  "user_id" INT NOT NULL,
+  "emoji" VARCHAR(16) NOT NULL,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "MessageReactions_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "MessageReactions_message_user_key" UNIQUE ("message_id", "user_id"),
+  FOREIGN KEY ("message_id") REFERENCES "PersonalMessages"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "CallLogs" (
+  "id" SERIAL NOT NULL,
+  "caller_id" INT NOT NULL,
+  "callee_id" INT NOT NULL,
+  "call_type" VARCHAR(10) NOT NULL DEFAULT 'voice',
+  "status" VARCHAR(20) NOT NULL,
+  "duration_sec" INT DEFAULT 0,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "CallLogs_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("caller_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("callee_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "Notifications" (
+  "id" SERIAL NOT NULL,
+  "user_id" INT NOT NULL,
+  "type" VARCHAR(32) NOT NULL,
+  "title" TEXT NOT NULL,
+  "body" TEXT DEFAULT '',
+  "ref_id" INT,
+  "read" BOOLEAN NOT NULL DEFAULT FALSE,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Notifications_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE INDEX "Notifications_user_idx" ON "Notifications" ("user_id", "read", "created_at" DESC);
+
+CREATE TABLE "Stories" (
+  "id" SERIAL NOT NULL,
+  "user_id" INT NOT NULL,
+  "media_url" TEXT NOT NULL,
+  "caption" TEXT DEFAULT '',
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  "expires_at" TIMESTAMPTZ NOT NULL,
+  CONSTRAINT "Stories_pkey" PRIMARY KEY ("id")
+);
+-- -------------------------------------------------------------------------------------
+--                             Other (for later sprints)
+-- -------------------------------------------------------------------------------------
+
+CREATE TABLE "Timetable" (
+  "id" SERIAL NOT NULL, 
+  "user_id" INT NOT NULL,
+  "subject" TEXT NOT NULL,
+  "day_of_week" INT NOT NULL,
+  "start_time" INT NOT NULL,
+  "end_time" INT NOT NULL,
+  "location" TEXT NOT NULL,
+  CONSTRAINT "Timetable_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "AILogs" (
+  "id" SERIAL NOT NULL, 
+  "user_id" INT NOT NULL,
+  "prompt" TEXT NOT NULL,
+  "response" TEXT NOT NULL,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "AILogs_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "Events" (
+  "id" SERIAL NOT NULL, 
+  "creator_id" INT NOT NULL,
+  "title" TEXT NOT NULL,
+  "description" TEXT NOT NULL,
+  "event_date" TIMESTAMPTZ NOT NULL,
+  "location" TEXT NOT NULL,
+  "category" TEXT NOT NULL,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Events_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "Flashcards" (
+  "id" SERIAL NOT NULL, 
+  "user_id" INT NOT NULL,
+  "title" TEXT NOT NULL,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Flashcards_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "FlashcardItems" (
+  "id" SERIAL NOT NULL, 
+  "flashcard_id" INT NOT NULL,
+  "front" TEXT NOT NULL,
+  "back" TEXT NOT NULL,
+  CONSTRAINT "FlashcardItems_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("flashcard_id") REFERENCES "Flashcards"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "Quizzes" (
+  "id" SERIAL NOT NULL, 
+  "creator_id" INT NOT NULL,
+  "title" TEXT NOT NULL,
+  "description" TEXT NOT NULL,
+  "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Quizzes_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("creator_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "QuizQuestions" (
+  "id" SERIAL NOT NULL, 
+  "quiz_id" INT NOT NULL,
+  "question" TEXT NOT NULL,
+  "option_a" TEXT NOT NULL,
+  "option_b" TEXT NOT NULL,
+  "option_c" TEXT NOT NULL,
+  "option_d" TEXT NOT NULL,
+  "correct_option" TEXT NOT NULL,
+  CONSTRAINT "QuizQuestions_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("quiz_id") REFERENCES "Quizzes"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "QuizAttempts" (
+  "id" SERIAL NOT NULL, 
+  "quiz_id" INT NOT NULL,
+  "user_id" INT NOT NULL,
+  "score" INT NOT NULL,
+  "attempted_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "QuizAttempts_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("quiz_id") REFERENCES "Quizzes"("id") ON DELETE CASCADE, 
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
 );
 
 -- Indexes

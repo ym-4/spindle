@@ -80,6 +80,7 @@ export default [
         getWsUrl: 'readonly',
         connectSocket: 'readonly',
         onWs: 'readonly',
+        sendWs: 'readonly',
         sendChatMessage: 'readonly',
         sendCallInvite: 'readonly',
         sendCallAccept: 'readonly',
@@ -116,7 +117,7 @@ export default [
         renderSpindleSidebar: 'readonly',
         loadYourGroups: 'readonly',
         validatePostForm: 'readonly',
-        groupId: 'readonly',
+        groupId: 'writable',
 
         // ── Marketplace ─────────────────────────────────
         addToCart: 'readonly',

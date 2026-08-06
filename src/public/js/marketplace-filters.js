@@ -1,3 +1,5 @@
+/* global currentPage:writable, loadListings, loadUserListings */
+
 // Shared filter state used by both the search bar (searchBar-Marketplace.js) and
 // the listing loaders (insertMarketplaceItems.js). Must load BEFORE both of those
 // files so `SpindleFilters` and `refreshFilteredListings` exist when they're used.
@@ -167,7 +169,7 @@ function initMarketplaceFilters() {
   });
 
   // Populate tag chips from the server (Tags.router.js mounted at /tags, route is /tags -> /tags/tags)
-  fetchMethod('${currentUrl}/tags/tags', (status, data) => {
+  fetchMethod(`${currentUrl}/tags/tags`, (status, data) => {
     if (status === 200 && Array.isArray(data)) {
       renderTagFilterChips(data);
     } else {

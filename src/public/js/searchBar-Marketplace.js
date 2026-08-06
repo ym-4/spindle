@@ -1,3 +1,5 @@
+/* global SpindleFilters, refreshFilteredListings */
+
 // Wires the text search box into the shared SpindleFilters state (see
 // marketplace-filters.js). Price + tag filters are handled by that same file;
 // this just keeps the search box's own "type to filter by name" behavior,

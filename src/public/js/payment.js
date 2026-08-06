@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const res = await fetch('${currentUrl}/payments/checkout', {
+        const res = await fetch(`${currentUrl}/payments/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('paymentSuccess').classList.remove('d-none');
 
         clearCart(localStorage.loggedInUserId);
-      } catch (err) {
+      } catch {
         errorBox.textContent = 'Could not reach the payment service.';
         errorBox.classList.remove('d-none');
         payBtn.disabled = false;

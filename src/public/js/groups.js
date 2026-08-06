@@ -547,12 +547,14 @@ function displayGroups(groups, container, currPage) {
     let members = groupObj ? groupObj.member : [];
 
     // CHANGE currentSchool to respective group icon if implemented
+    let currSchool = currentSchool.toUpperCase();
+
     tempHTML += `
             <div class="group-card" data-group-id="${currGroup.id}">
                 <div class="group-top">
 
                     <div class="group-info">
-                        <img src="images/Groups_${currentSchool}_Building.png" class="group-icon">
+                        <img src="images/Groups_${currSchool}_Building.png" class="group-icon">
                         <h3>${currGroup.name}</h3>
                     </div>
 
@@ -751,7 +753,7 @@ function fetchGroupsBySchool(school) {
 
         // Token expired
       } else if (responseStatus == 401) {
-        window.location.href = './login.html';
+        window.location.href = './home.html';
       } else {
         reject(responseData);
       }
@@ -772,7 +774,7 @@ function fetchJoinedGroups() {
         joinedGroups = responseData;
         resolve(responseData);
       } else if (responseStatus == 401) {
-        window.location.href = './login.html';
+        window.location.href = './home.html';
       } else {
         reject(responseData);
       }
@@ -794,7 +796,7 @@ function fetchGroupMembers(groupId) {
 
         // Token expired
       } else if (responseStatus == 401) {
-        window.location.href = './login.html';
+        window.location.href = './home.html';
       } else {
         reject(responseData);
       }
@@ -849,7 +851,7 @@ function createGroup(data) {
 
         // Token expired
       } else if (responseStatus == 401) {
-        window.location.href = './login.html';
+        window.location.href = './home.html';
 
         // name conflict
       } else if (responseStatus == 409) {
@@ -895,7 +897,7 @@ function createMember(data) {
 
         // Token expired
       } else if (responseStatus == 401) {
-        window.location.href = './login.html';
+        window.location.href = './home.html';
 
         // user is already a member
       } else if (responseStatus == 409) {
@@ -943,7 +945,7 @@ function createGeneralChannel(groupId) {
 
         // Token expired
       } else if (responseStatus == 401) {
-        window.location.href = './login.html';
+        window.location.href = './home.html';
 
         // bad request: missing info
       } else if (responseStatus == 400) {
@@ -1030,7 +1032,7 @@ function deleteMember(data) {
 
         // Token expired
       } else if (responseStatus == 401) {
-        window.location.href = './login.html';
+        window.location.href = './home.html';
 
         // user cannot leave
       } else if (responseStatus == 409) {

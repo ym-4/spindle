@@ -15,7 +15,8 @@ const hashedDefaultPassword = hashPassword(DEFAULT_PASSWORD);
 const hashedAdminPassword = hashPassword(ADMIN_PASSWORD);
 
 const persons = [
-  { email: 'alice@example.com', name: 'Alice' },
+  { email: 'pandabot@spindle.internal', name: 'PandaBot' },
+  { email: 'alice@example.com', name: 'Alice', profile_image: '/uploads/avatars/user-2.png' },
   { email: 'bob@example.com', name: 'Bob' },
   { email: 'carol@example.com', name: 'Carol' },
   { email: 'dave@example.com', name: 'Dave' },
@@ -35,14 +36,13 @@ const persons = [
   { email: 'yvonne@example.com', name: 'Yvonne' },
   { email: 'zara@example.com', name: 'Zara' },
   { email: 'leo@example.com', name: 'Leo' },
-  { email: 'beni@example.com', name: 'Beni' },
+  { email: 'beni@example.com', name: 'Ben' },
   { email: 'emataso@example.com', name: 'Emataso' },
   { email: 'hinano@example.com', name: 'Hinano' },
 ];
 
 const somethings = [{ name: 'Seed 1' }, { name: 'Seed 2' }];
 
-// seed data for discussion pg
 // Example posts
 const posts = [
   {
@@ -50,6 +50,7 @@ const posts = [
     title: 'First Confession',
     category: 'confession',
     content: 'I love pineapple pizza!',
+    view_count: 23,
   },
   {
     userEmail: 'bob@example.com',
@@ -62,6 +63,117 @@ const posts = [
     title: 'General Thoughts',
     category: 'general',
     content: 'Postgres is powerful.',
+  },
+  {
+    userEmail: 'dave@example.com',
+    title: 'Best Spot to Study on Campus?',
+    category: 'general',
+    content: 'Curious where everyone likes to study best — vote below!',
+  },
+  {
+    userEmail: 'grace@example.com',
+    title: 'Favourite Programming Language for CS1010?',
+    category: 'SOC',
+    content: 'We get to pick our own language for the final project. What should I go with?',
+  },
+  {
+    userEmail: 'ivan@example.com',
+    title: 'Anyone else stressed about finals?',
+    category: 'confession',
+    content: 'I have 4 exams in 3 days and I am not okay 😭',
+    isAnonymous: true,
+  },
+  {
+    userEmail: 'heidi@example.com',
+    title: 'Internship at a fintech startup - AMA',
+    category: 'internship',
+    content: 'Just wrapped up a 6-month internship, happy to answer questions!',
+  },
+  {
+    userEmail: 'frank@example.com',
+    title: 'Freshman Orientation Camp 2026 Sign-ups Open',
+    category: 'events',
+    content: 'Sign-ups for Freshman Orientation Camp are now open! Link in comments.',
+  },
+  {
+    userEmail: 'judy@example.com',
+    title: 'Robotics Club Recruitment',
+    category: 'cca',
+    content: 'We are recruiting new members for the robotics club this semester!',
+  },
+  {
+    userEmail: 'oscar@example.com',
+    title: 'PSA: Library extended hours during exam period',
+    category: 'news',
+    content: 'The library will be open 24 hours starting next week for exam season.',
+  },
+];
+
+// Example tags
+const popularTags = [
+  'study',
+  'exam-tips',
+  'internship',
+  'career',
+  'cca',
+  'robotics',
+  'events',
+  'orientation',
+  'programming',
+  'cs1010',
+  'database',
+  'library',
+  'fintech',
+  'confession',
+  'food',
+  'psa',
+  'help',
+  'recruitment',
+];
+
+// Example tags attached to post
+const postTags = [
+  { postTitle: 'First Confession', tags: ['food', 'confession'] },
+  { postTitle: 'General Thoughts', tags: ['database', 'postgres'] },
+  {
+    postTitle: 'Favourite Programming Language for CS1010?',
+    tags: ['programming', 'cs1010', 'help'],
+  },
+  {
+    postTitle: 'Internship at a fintech startup - AMA',
+    tags: ['internship', 'fintech', 'career'],
+  },
+  { postTitle: 'Robotics Club Recruitment', tags: ['robotics', 'cca', 'recruitment'] },
+  {
+    postTitle: 'PSA: Library extended hours during exam period',
+    tags: ['library', 'psa', 'exam-tips'],
+  },
+];
+
+// Exmaple polls
+const postPolls = [
+  {
+    postTitle: 'Best Spot to Study on Campus?',
+    question: 'Where do you usually study best?',
+    options: ['Library', 'Canteen', 'Dorm Room', 'Outdoor Benches'],
+    votes: [
+      { userEmail: 'alice@example.com', option: 'Library' },
+      { userEmail: 'bob@example.com', option: 'Library' },
+      { userEmail: 'carol@example.com', option: 'Canteen' },
+      { userEmail: 'dave@example.com', option: 'Dorm Room' },
+      { userEmail: 'eve@example.com', option: 'Library' },
+    ],
+  },
+  {
+    postTitle: 'Favourite Programming Language for CS1010?',
+    question: 'Which language would you pick for your final project?',
+    options: ['Python', 'Java', 'JavaScript', 'C++'],
+    votes: [
+      { userEmail: 'frank@example.com', option: 'Python' },
+      { userEmail: 'grace@example.com', option: 'Python' },
+      { userEmail: 'heidi@example.com', option: 'JavaScript' },
+      { userEmail: 'ivan@example.com', option: 'C++' },
+    ],
   },
 ];
 
@@ -77,8 +189,126 @@ const reactions = [
   { userEmail: 'grace@example.com', postTitle: 'Need Help', reactionType: 'dislike' },
 ];
 
+// Example badges
+const badges = [
+  {
+    key: 'first_post',
+    name: 'Explorer',
+    description: 'Published your first post on Spindle',
+    imageUrl: '/images/badges/Explorer.png',
+  },
+  {
+    key: 'first_comment',
+    name: 'Icebreaker',
+    description: 'Left your first comment',
+    imageUrl: '/images/badges/Icebreaker.png',
+  },
+  {
+    key: 'social_butterfly',
+    name: 'Social Butterfly',
+    description: 'Made 25 friends',
+    imageUrl: '/images/badges/Social_Butterfly.png',
+  },
+  {
+    key: 'chatterbox',
+    name: 'Chatterbox',
+    description: 'Posted 10 comments',
+    imageUrl: '/images/badges/Chatterbox.png',
+  },
+  {
+    key: 'prolific_poster',
+    name: 'Busy Bee',
+    description: 'Created 10 posts',
+    imageUrl: '/images/badges/Busy_Bee.png',
+  },
+  {
+    key: 'group_joiner',
+    name: 'Alliance Formed',
+    description: 'Joined your first study group',
+    imageUrl: '/images/badges/Alliance_Formed.png',
+  },
+  {
+    key: 'liked_post',
+    name: 'Sprout',
+    description: 'Received your first like on a post',
+    imageUrl: '/images/badges/Sprout.png',
+  },
+  {
+    key: 'pandabot_user',
+    name: 'Panda Pal',
+    description: 'Summoned PandaBot for the first time',
+    imageUrl: '/images/badges/Panda_Pal.png',
+  },
+  {
+    key: 'fan_favorite',
+    name: 'Fan Favorite',
+    description: 'Received 100 total likes across your posts',
+    imageUrl: '/images/badges/Fan_Favorite.png',
+  },
+  {
+    key: 'rising_star',
+    name: 'Rising Star',
+    description: 'Had a post reach 20 likes',
+    imageUrl: '/images/badges/Rising_Star.png',
+  },
+  {
+    key: 'night_owl',
+    name: 'Night Owl',
+    description: 'Posted after midnight 20 times',
+    imageUrl: '/images/badges/Night_Owl.png',
+  },
+  {
+    key: 'pandabot_whisperer',
+    name: 'Panda Whisperer',
+    description: 'Mentioned PandaBot 50 times',
+    imageUrl: '/images/badges/Panda_Whisperer.png',
+  },
+  {
+    key: 'snake_charmer',
+    name: 'Snake Charmer',
+    description: 'Score more than 10 points in Snake',
+    imageUrl: '/images/badges/Snake_Charmer.png',
+  },
+  {
+    key: 'ssslytherin',
+    name: 'SSSlytherin',
+    description: 'Made it onto the Snake leaderboard',
+    imageUrl: '/images/badges/SSSlytherin.png',
+  },
+];
+
 // Example saved posts
 const savedPosts = [{ userEmail: 'heidi@example.com', postTitle: 'General Thoughts' }];
+
+// Example for analytics
+const analyticsReactions = [
+  { userEmail: 'bob@example.com', reactionType: 'like', daysAgo: 9 },
+  { userEmail: 'carol@example.com', reactionType: 'like', daysAgo: 8 },
+  { userEmail: 'dave@example.com', reactionType: 'like', daysAgo: 8 },
+  { userEmail: 'eve@example.com', reactionType: 'like', daysAgo: 7 },
+  { userEmail: 'grace@example.com', reactionType: 'dislike', daysAgo: 6 },
+  { userEmail: 'heidi@example.com', reactionType: 'like', daysAgo: 6 },
+  { userEmail: 'ivan@example.com', reactionType: 'like', daysAgo: 5 },
+  { userEmail: 'judy@example.com', reactionType: 'like', daysAgo: 5 },
+  { userEmail: 'mallory@example.com', reactionType: 'like', daysAgo: 4 },
+  { userEmail: 'oscar@example.com', reactionType: 'dislike', daysAgo: 4 },
+  { userEmail: 'peggy@example.com', reactionType: 'like', daysAgo: 3 },
+  { userEmail: 'trent@example.com', reactionType: 'like', daysAgo: 3 },
+  { userEmail: 'victor@example.com', reactionType: 'like', daysAgo: 2 },
+  { userEmail: 'walter@example.com', reactionType: 'like', daysAgo: 1 },
+  { userEmail: 'xavier@example.com', reactionType: 'like', daysAgo: 1 },
+  { userEmail: 'yvonne@example.com', reactionType: 'dislike', daysAgo: 0 },
+  { userEmail: 'zara@example.com', reactionType: 'like', daysAgo: 0 },
+];
+
+const analyticsSaves = [
+  { userEmail: 'leo@example.com', daysAgo: 7 },
+  { userEmail: 'beni@example.com', daysAgo: 6 },
+  { userEmail: 'emataso@example.com', daysAgo: 4 },
+  { userEmail: 'hinano@example.com', daysAgo: 3 },
+  { userEmail: 'frank@example.com', daysAgo: 1 },
+  { userEmail: 'judy@example.com', daysAgo: 0 },
+];
 
 // Marketplace items
 const marketplaceItems = [
@@ -640,6 +870,22 @@ const groups = [
     public: true,
   },
   {
+    name: 'Public Test Group',
+    creatorEmail: 'carol@example.com',
+    description: 'For E2E testing.',
+    school: 'SOC',
+    module: 'CS1020',
+    public: true,
+  },
+  {
+    name: 'Private Test Group',
+    creatorEmail: 'carol@example.com',
+    description: 'For E2E testing.',
+    school: 'SOC',
+    module: 'CS2040',
+    public: false,
+  },
+  {
     name: 'SOC Algorithms',
     creatorEmail: 'bob@example.com',
     description: 'Algorithms and data structures.',
@@ -740,6 +986,10 @@ const groupMembers = [
   { groupName: 'SOC Study Buddies', userEmail: 'dave@example.com', role: 'user' },
   { groupName: 'SOC Study Buddies', userEmail: 'eve@example.com', role: 'user' },
   { groupName: 'SOC Study Buddies', userEmail: 'beni@example.com', role: 'user' },
+
+  // Test groups
+  { groupName: 'Public Test Group', userEmail: 'carol@example.com', role: 'admin' },
+  { groupName: 'Private Test Group', userEmail: 'carol@example.com', role: 'admin' },
 
   // ===== SOC Algorithms =====
   { groupName: 'SOC Algorithms', userEmail: 'bob@example.com', role: 'admin' },
@@ -1328,11 +1578,9 @@ const characters = [
 async function seed() {
   console.log('Seeding data...');
 
-  // Ensure Person table is clean regardless of DROP SCHEMA behavior in Neon
-  await pool.query(`SET lock_timeout = 15000; TRUNCATE "Person" CASCADE`);
-  const preAliceRes = await pool.query(`SELECT id, email FROM "Person"`);
-  console.log(`[DEBUG] Person rows after TRUNCATE: ${preAliceRes.rows.length}`);
   // Insert persons
+  // Ensure clean slate regardless of DROP SCHEMA behavior in Neon / concurrent CI runs
+  await pool.query(`SET lock_timeout = 15000; TRUNCATE "Person" CASCADE`);
   for (const person of persons) {
     const hashedPassword = await bcrypt.hash(
       person.hashed_password?.toString() || 'password123',
@@ -1340,15 +1588,11 @@ async function seed() {
     );
 
     await pool.query(
-      `INSERT INTO "Person" ("email", "name", "hashed_password") VALUES ($1, $2, $3) ON CONFLICT ("email") DO NOTHING`,
-      [person.email, person.name, hashedPassword],
+      `INSERT INTO "Person" ("email", "name", "hashed_password", "profile_image") VALUES ($1, $2, $3, $4) ON CONFLICT ("email") DO NOTHING`,
+      [person.email, person.name, hashedPassword, person.profile_image],
     );
   }
   console.log(`Inserted ${persons.length} persons.`);
-  const postAliceRes = await pool.query(
-    `SELECT id, email FROM "Person" WHERE email = 'alice@example.com'`,
-  );
-  console.log(`[DEBUG] Alice after insert: id=${postAliceRes.rows[0]?.id}`);
 
   // Insert somethings (batch)
   if (somethings.length > 0) {
@@ -1370,10 +1614,16 @@ async function seed() {
   );
   await pool.query(
     `UPDATE "Person" SET hashed_password = $1, email_verified = TRUE, role = 'user'
-     WHERE email != 'admin@campushub.sp'`,
+     WHERE email != 'admin@campushub.sp' AND email != 'pandabot@spindle.internal'`,
     [hashedDefaultPassword],
   );
   console.log('Set passwords (password123) and verified emails for all users.');
+
+  await pool.query(
+    `UPDATE "Person" SET display_name = 'PandaBot 🐼', bio = 'bot'
+     WHERE email = 'pandabot@spindle.internal'`,
+  );
+  console.log('⍝ʕ´•ᴥ•`ʔ⍝   PandaBot is online!');
 
   const aliceRes = await pool.query(`SELECT id FROM "Person" WHERE email = 'alice@example.com'`);
   const bobRes = await pool.query(`SELECT id FROM "Person" WHERE email = 'bob@example.com'`);
@@ -1413,20 +1663,130 @@ async function seed() {
   // Discussion board extras
   console.log('Seed data inserted successfully.');
 
-  // homepg function
   // Insert posts
   for (const post of posts) {
     const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [post.userEmail]);
     if (userRes.rows.length > 0) {
       await pool.query(
-        `INSERT INTO "Posts" ("user_id", "title", "category", "content")
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO "Posts"
+          ("user_id", "title", "category", "content", "attachment_url", "gif_url", "is_anonymous", "visibility", "pinned", "view_count")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          ON CONFLICT DO NOTHING`,
-        [userRes.rows[0].id, post.title, post.category, post.content],
+        [
+          userRes.rows[0].id,
+          post.title,
+          post.category,
+          post.content,
+          post.attachmentUrl || null,
+          post.gifUrl || null,
+          post.isAnonymous || false,
+          post.visibility || 'everyone',
+          post.pinned || false,
+          post.view_count,
+        ],
       );
     }
   }
   console.log(`Inserted ${posts.length} posts.`);
+
+  // Insert tag
+  for (const tagName of popularTags) {
+    await pool.query(`INSERT INTO "Tags" ("name") VALUES ($1) ON CONFLICT ("name") DO NOTHING`, [
+      tagName,
+    ]);
+  }
+  console.log(`Inserted ${popularTags.length} tags.`);
+
+  // Attach tags to posts
+  for (const pt of postTags) {
+    const postRes = await pool.query(`SELECT id FROM "Posts" WHERE title = $1`, [pt.postTitle]);
+    if (postRes.rows.length === 0) continue;
+    const postId = postRes.rows[0].id;
+
+    for (const tagName of pt.tags) {
+      const tagRes = await pool.query(
+        `INSERT INTO "Tags" ("name") VALUES ($1)
+         ON CONFLICT ("name") DO UPDATE SET name = EXCLUDED.name
+         RETURNING id`,
+        [tagName],
+      );
+      const tagId = tagRes.rows[0].id;
+
+      await pool.query(
+        `INSERT INTO "PostTags" ("post_id", "tag_id") VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [postId, tagId],
+      );
+    }
+  }
+  console.log(`Tagged ${postTags.length} posts.`);
+
+  // Insert polls (with options and a few sample votes)
+  for (const poll of postPolls) {
+    const postRes = await pool.query(`SELECT id FROM "Posts" WHERE title = $1`, [poll.postTitle]);
+    if (postRes.rows.length === 0) continue;
+    const postId = postRes.rows[0].id;
+
+    let pollId;
+    const existingPoll = await pool.query(`SELECT id FROM "PostPolls" WHERE post_id = $1`, [
+      postId,
+    ]);
+    if (existingPoll.rows.length > 0) {
+      pollId = existingPoll.rows[0].id;
+    } else {
+      const insertedPoll = await pool.query(
+        `INSERT INTO "PostPolls" ("post_id", "question") VALUES ($1, $2) RETURNING id`,
+        [postId, poll.question],
+      );
+      pollId = insertedPoll.rows[0].id;
+    }
+
+    const optionIds = {};
+    for (const optionText of poll.options) {
+      const existingOption = await pool.query(
+        `SELECT id FROM "PollOptions" WHERE poll_id = $1 AND option_text = $2`,
+        [pollId, optionText],
+      );
+      if (existingOption.rows.length > 0) {
+        optionIds[optionText] = existingOption.rows[0].id;
+      } else {
+        const insertedOption = await pool.query(
+          `INSERT INTO "PollOptions" ("poll_id", "option_text") VALUES ($1, $2) RETURNING id`,
+          [pollId, optionText],
+        );
+        optionIds[optionText] = insertedOption.rows[0].id;
+      }
+    }
+
+    for (const vote of poll.votes || []) {
+      const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+        vote.userEmail,
+      ]);
+      const optionId = optionIds[vote.option];
+      if (userRes.rows.length === 0 || !optionId) continue;
+
+      await pool.query(
+        `INSERT INTO "PollVotes" ("poll_id", "option_id", "user_id") VALUES ($1, $2, $3)
+         ON CONFLICT ("poll_id", "user_id") DO NOTHING`,
+        [pollId, optionId, userRes.rows[0].id],
+      );
+    }
+
+    // Recalculate vote_count
+    await pool.query(
+      `UPDATE "PollOptions" po
+       SET vote_count = COALESCE(sub.count, 0)
+       FROM (
+         SELECT o.id AS option_id, COUNT(pv.id)::int AS count
+         FROM "PollOptions" o
+         LEFT JOIN "PollVotes" pv ON pv.option_id = o.id
+         WHERE o.poll_id = $1
+         GROUP BY o.id
+       ) sub
+       WHERE po.id = sub.option_id`,
+      [pollId],
+    );
+  }
+  console.log(`Inserted ${postPolls.length} polls.`);
 
   // Insert comments
   for (const comment of comments) {
@@ -1481,6 +1841,95 @@ async function seed() {
   }
   console.log(`Inserted ${savedPosts.length} saved posts.`);
 
+  // Insert analytics data
+  const analyticsPostRes = await pool.query(`SELECT id FROM "Posts" WHERE title = $1`, [
+    'First Confession',
+  ]);
+  if (analyticsPostRes.rows.length > 0) {
+    const analyticsPostId = analyticsPostRes.rows[0].id;
+
+    for (const r of analyticsReactions) {
+      const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [r.userEmail]);
+      if (userRes.rows.length === 0) continue;
+
+      await pool.query(
+        `INSERT INTO "PostReactions" ("post_id", "user_id", "reaction_type", "created_at")
+         VALUES ($1, $2, $3, NOW() - ($4 || ' days')::interval)
+         ON CONFLICT ("post_id", "user_id") DO NOTHING`,
+        [analyticsPostId, userRes.rows[0].id, r.reactionType, r.daysAgo],
+      );
+    }
+    console.log(`Inserted ${analyticsReactions.length} analytics reactions.`);
+
+    for (const s of analyticsSaves) {
+      const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [s.userEmail]);
+      if (userRes.rows.length === 0) continue;
+
+      await pool.query(
+        `INSERT INTO "SavedPosts" ("user_id", "post_id", "created_at")
+         VALUES ($1, $2, NOW() - ($3 || ' days')::interval)
+         ON CONFLICT ("user_id", "post_id") DO NOTHING`,
+        [userRes.rows[0].id, analyticsPostId, s.daysAgo],
+      );
+    }
+    console.log(`Inserted ${analyticsSaves.length} analytics saves.`);
+  } else {
+    console.warn('Could not find "First Confession" post — skipped analytics seed data.');
+  }
+
+  // insert badges
+  for (const badge of badges) {
+    await pool.query(
+      `INSERT INTO "Badges" (key, name, description, image_url)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (key) DO NOTHING`,
+      [badge.key, badge.name, badge.description, badge.imageUrl],
+    );
+  }
+  console.log(`Inserted ${badges.length} badges.`);
+  // // Insert groups
+  // for (const group of groups) {
+  //   const creatorRes = await pool.query(
+  //     `SELECT id FROM "Person" WHERE email = $1`,
+  //     [group.creatorEmail]
+  //   );
+
+  //   if (creatorRes.rows.length > 0) {
+  //     await pool.query(
+  //       `INSERT INTO "Groups"
+  //       ("name", "creator_id", "description", "school", "module", "public")
+  //       VALUES ($1, $2, $3, $4, $5, $6)
+  //       ON CONFLICT ("name") DO NOTHING`,
+  //       [
+  //         group.name,
+  //         creatorRes.rows[0].id,
+  //         group.description,
+  //         group.school,
+  //         group.module,
+  //         group.public,
+  //       ]
+  //     );
+  //   }
+  // }
+
+  // console.log(`Inserted ${groups.length} groups.`);
+
+  //   // Insert group members
+  // for (const gm of groupMembers) {
+  //   const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [gm.userEmail]);
+  //   const groupRes = await pool.query(`SELECT id FROM "Groups" WHERE name = $1`, [gm.groupName]);
+
+  //   if (userRes.rows.length > 0 && groupRes.rows.length > 0) {
+  //     await pool.query(
+  //       `INSERT INTO "GroupMembers" ("group_id", "user_id", "role")
+  //        VALUES ($1, $2, $3)
+  //        ON CONFLICT DO NOTHING`,
+  //       [groupRes.rows[0].id, userRes.rows[0].id, gm.role],
+  //     );
+  //   }
+  // }
+  // console.log(`Inserted ${groupMembers.length} group members.`);
+
   // Insert marketplace items
   const sellerRes = await pool.query(`SELECT id, email FROM "Person" WHERE email = $1`, [
     'alice@example.com',
@@ -1488,17 +1937,22 @@ async function seed() {
   console.log(`[DEBUG] sellerRes rows: ${sellerRes.rows.length}, id: ${sellerRes.rows[0]?.id}`);
   if (sellerRes.rows.length > 0) {
     const sellerId = sellerRes.rows[0].id;
-    console.log(`[DEBUG] Using sellerId=${sellerId} for marketplace items`);
-    for (const item of marketplaceItems) {
-      await pool.query(
-        `INSERT INTO "MarketplaceItems" ("seller_id", "name", "description", "price", "quality",  "meetup")
+    try {
+      for (const item of marketplaceItems) {
+        await pool.query(
+          `INSERT INTO "MarketplaceItems" ("seller_id", "name", "description", "price", "quality",  "meetup")
        VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT DO NOTHING`,
-        [sellerId, item.name, item.description, item.price, item.quality, item.meetup],
-      );
+          [sellerId, item.name, item.description, item.price, item.quality, item.meetup],
+        );
+      }
+      console.log(`Inserted ${marketplaceItems.length} marketplace items.`);
+    } catch (err) {
+      console.warn(`[WARN] Skipped marketplace items seed: ${err.message}`);
     }
+  } else {
+    console.warn('[WARN] No seller found for marketplace items; skipping.');
   }
-  console.log(`Inserted ${marketplaceItems.length} marketplace items.`);
 
   // Insert groups
   for (const group of groups) {
@@ -1516,8 +1970,8 @@ async function seed() {
       [group.name, userRes.rows[0].id, group.description, group.school, group.module, group.public],
     );
   }
-
   console.log(`Inserted ${groups.length} groups.`);
+
   // Insert group members
   for (const member of groupMembers) {
     const userRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [

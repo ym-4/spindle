@@ -40,12 +40,10 @@ const {
   deleteGroupJoinRequest,
   getGroupJoinRequestByGroupAndUser,
   getGroupJoinRequestByUser,
-  getGroupDeadlines,
-  insertGroupDeadline,
-  deleteGroupDeadline,
 } = require('../models/Groups.model');
 
 const { authenticateJWT } = require('../middlewares/auth.middleware');
+const { checkAndAwardBadges } = require('../services/badgeService');
 
 const router = express.Router();
 
@@ -142,13 +140,14 @@ router.post('/create/:creator_id', authenticateJWT, (req, res, next) => {
 
             // Add group creator to group's member list
             insertGroupMember(data)
-              .then((results) => {
+              .then(() => {
+                checkAndAwardBadges(data.creator_id, ['group_joined']);
                 // Add group creator to admin list
                 updateMemberRoleToAdmin({
                   user_being_promoted_user_id: data.creator_id,
                   group_id: group.id,
                 })
-                  .then((results) => res.status(201).json(group))
+                  .then(() => res.status(201).json(group))
                   .catch(next);
               })
               .catch(next);
@@ -407,6 +406,7 @@ router.post('/join/:group_id', authenticateJWT, (req, res, next) => {
               // Insert Group Member
               insertGroupMember(data)
                 .then((results) => {
+                  checkAndAwardBadges(data.user_id, ['group_joined']);
                   return res.status(201).json(results);
                 })
                 .catch(next);
@@ -442,7 +442,7 @@ router.delete('/leave/:group_id', authenticateJWT, (req, res, next) => {
         } else {
           // Let user leave
           deleteGroupMemberByUserId(data)
-            .then((results) => {
+            .then(() => {
               res.status(204).send();
             })
             .catch(next);
@@ -480,7 +480,7 @@ router.delete('/kick/:group_id/:removed_user_id', authenticateJWT, (req, res, ne
             } else {
               // Let user leave
               deleteGroupMemberByUserId({ group_id: data.group_id, user_id: data.removed_user_id })
-                .then((results) => {
+                .then(() => {
                   res.status(204).send();
                 })
                 .catch(next);
@@ -781,7 +781,7 @@ router.delete('/messages/delete/:user_id', authenticateJWT, (req, res, next) => 
       if (match.length > 0) {
         // Delete message
         deleteGroupDiscussionByID(data)
-          .then((results) => {
+          .then(() => {
             return res.status(204).send();
           })
           .catch(next);
@@ -1061,7 +1061,10 @@ router.put(
                 group_id: data.group_id,
                 user_id: data.user_id,
               })
-                .then((results) => res.status(200).json(results))
+                .then((results) => {
+                  checkAndAwardBadges(data.user_id, ['group_joined']);
+                  res.status(200).json(results);
+                })
                 .catch(next);
             })
             .catch(next);
@@ -1139,62 +1142,5 @@ router.delete(
       .catch(next);
   },
 );
-
-// ------------------------------------------------------------------
-// 							Group Deadlines
-// ------------------------------------------------------------------
-
-// GET deadlines for a group
-router.get('/deadlines/:group_id', authenticateJWT, (req, res, next) => {
-  const data = { group_id: req.params.group_id };
-  getGroupDeadlines(data)
-    .then((deadlines) => res.status(200).json(deadlines))
-    .catch(next);
-});
-
-// POST create a deadline (group member only)
-router.post('/deadlines/:group_id', authenticateJWT, (req, res, next) => {
-  if (!req.body?.title || !req.body?.deadline_date) {
-    return res.status(400).json({ message: 'title and deadline_date are required' });
-  }
-  const data = {
-    group_id: req.params.group_id,
-    title: req.body.title,
-    deadline_date: req.body.deadline_date,
-    created_by: req.user.id,
-  };
-  getGroupMemberByGroupID(data)
-    .then((members) => {
-      if (!members.find((m) => m.user_id == data.created_by)) {
-        return res.status(403).json({ message: 'You are not a member of this group' });
-      }
-      insertGroupDeadline(data)
-        .then((result) => res.status(201).json(result))
-        .catch(next);
-    })
-    .catch(next);
-});
-
-// DELETE a deadline (creator or group admin only)
-router.delete('/deadlines/:group_id/:deadline_id', authenticateJWT, (req, res, next) => {
-  const data = {
-    id: req.params.deadline_id,
-    group_id: req.params.group_id,
-    user_id: req.user.id,
-  };
-  getAllGroupAdmin(data)
-    .then((admins) => {
-      if (!admins.find((a) => a.user_id == data.user_id)) {
-        return res.status(403).json({ message: 'Only admins can delete deadlines' });
-      }
-      deleteGroupDeadline(data)
-        .then((result) => {
-          if (result.length === 0) return res.status(404).json({ message: 'Deadline not found' });
-          res.status(204).send();
-        })
-        .catch(next);
-    })
-    .catch(next);
-});
 
 module.exports = router;

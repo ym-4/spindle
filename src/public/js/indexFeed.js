@@ -1,4 +1,4 @@
-/* global fetchMethod, DOMPurify, currentUrl, getApiBase, getToken, loadUserReactions, getStoredUser, initReactionButtons, setupReactionEvents, API_BASE, validatePostForm, bootstrap */
+/* global fetchMethod, DOMPurify, setupSearchDropdown, recordRecentlyViewed, getRecentlyViewed, currentUrl, getApiBase, getToken, loadUserReactions, getStoredUser, initReactionButtons, setupReactionEvents, API_BASE, validatePostForm, bootstrap */
 
 //  Spindle — Home Page
 
@@ -38,12 +38,15 @@ let currentCategory = 'all';
 let savedPostIds = new Set();
 let quillEditor = null;
 let pollActive = false;
+let selectedTags = [];
+let currentSort = 'newest';
+let currentTimeframe = 'all';
 
 function initFeedPage() {
   setupCreatePostAvatar();
 
   loadUserReactions();
-  loadSuggestedGroups();
+  loadRecentlyViewedWidget();
 
   loadSavedIds().then(() => {
     loadPosts();
@@ -53,17 +56,20 @@ function initFeedPage() {
     populateFeedUser();
 
     setupCategoryPills();
+    setupSortButton();
     setupCreatePost();
 
-    setupSearch();
+    if (typeof setupSearchDropdown === 'function') setupSearchDropdown();
     setupAuthPopup();
     protectCreatePostUI();
 
+    //create post form buttons
     setupAttachmentUpload();
     setupGifPicker();
     setupGifSearch();
     setupQuillEditor();
     setupPollBuilder();
+    setupTagInput();
   } catch (err) {
     console.error('Feed setup error:', err);
   }
@@ -92,15 +98,15 @@ async function populateFeedUser() {
 
   const name = user?.display_name || user?.name || 'User';
   const initial = name.charAt(0).toUpperCase();
+  const profileImage = user?.profile_image || user?.avatar || null;
 
   const avatar = document.querySelector('.create-post-box .post-avatar');
-  if (avatar) avatar.textContent = initial;
-
-  const postAs = document.getElementById('postAs');
-  if (postAs) {
-    postAs.innerHTML = `
-      <option value="named">${escapeHtml(name)}</option>
-      <option value="Anonymous">Anonymous</option>`;
+  if (avatar) {
+    if (profileImage) {
+      avatar.innerHTML = `<img src="${profileImage}" class="avatar-img" alt="${escapeHtml(name)}">`;
+    } else {
+      avatar.textContent = initial;
+    }
   }
 }
 
@@ -117,6 +123,15 @@ function setupGifPicker() {
     panel.classList.toggle('open');
     if (panel.classList.contains('open')) {
       document.getElementById('gifSearchInput')?.focus();
+
+      const results = document.getElementById('giphyResults');
+      if (results && results.innerHTML.trim() === '') {
+        results.innerHTML = `
+          <div class="gif-grid-empty">
+            <i class="fas fa-search mb-2 d-block" style="font-size:1.2rem;"></i>
+            Search GIFs
+          </div>`;
+      }
     }
   });
 
@@ -300,6 +315,11 @@ function showConfirm(title, message, onConfirm) {
   );
 }
 
+//  login required modal
+function showLoginRequiredModal() {
+  document.getElementById('authOverlay').classList.remove('d-none');
+}
+
 //  Timestamp
 function formatTimestamp(createdAt, updatedAt) {
   const created = new Date(createdAt);
@@ -387,6 +407,14 @@ function getAvatarInitial(post) {
   return 'U';
 }
 
+// profile picture
+function getAvatarContent(post) {
+  if (!post.is_anonymous && post.author_avatar) {
+    return `<img src="${post.author_avatar}" class="avatar-img" alt="${escapeHtml(post.author_name || 'User')}">`;
+  }
+  return getAvatarInitial(post);
+}
+
 function getAuthorName(post) {
   if (post.is_anonymous) {
     return 'Anonymous';
@@ -399,15 +427,26 @@ function setupCreatePostAvatar() {
 
   if (!avatar) return;
 
+  let profileImage = null;
+  try {
+    const stored = JSON.parse(localStorage.getItem('pineappleUser') || '{}');
+    profileImage = stored?.profile_image || stored?.avatar || null;
+  } catch {
+    /* ignore */
+  }
+
   const displayName = localStorage.getItem('displayName');
-  if (displayName && displayName.trim()) {
+
+  if (profileImage) {
+    avatar.innerHTML = `<img src="${profileImage}" class="avatar-img" alt="${escapeHtml(displayName || 'User')}">`;
+  } else if (displayName && displayName.trim()) {
     avatar.textContent = displayName.charAt(0).toUpperCase();
   } else {
     avatar.textContent = '\uD83D\uDC3C';
   }
 }
 
-// post card
+// displayed post card
 function buildPostCard(post) {
   const { timeStr, wasEdited } = formatTimestamp(post.created_at, post.updated_at);
 
@@ -430,6 +469,9 @@ function buildPostCard(post) {
     <li><a class="dropdown-item edit-post-btn" href="#" data-post-id="${post.id}">
       <i class="fas fa-pen me-2"></i>Edit post
     </a></li>
+    <li><a class="dropdown-item insights-post-btn" href="#" data-post-id="${post.id}">
+      <i class="fas fa-chart-bar me-2"></i>View Insights
+    </a></li>
     <li><button class="dropdown-item text-danger delete-post-btn" data-post-id="${post.id}">
       <i class="fas fa-trash-alt me-2"></i>Delete post
     </button></li>`
@@ -440,11 +482,13 @@ function buildPostCard(post) {
   card.dataset.postId = post.id;
   card.dataset.postType = post.category;
 
+  const canViewProfile = !post.is_anonymous && post.user_id;
+
   card.innerHTML = `
     <div class="post-header">
-      <div class="post-avatar">${getAvatarInitial(post)}</div>
+      <div class="post-avatar${canViewProfile ? ' post-owner-link' : ''}">${getAvatarContent(post)}</div>
       <div class="post-author">
-        <div class="post-author-name">${getAuthorName(post)}</div>
+        <div class="post-author-name${canViewProfile ? ' post-owner-link' : ''}">${getAuthorName(post)}</div>
         <div class="post-timestamp">
           ${timeStr}
           ${wasEdited ? `<span class="post-edited-tag text-muted">·&nbsp;&nbsp;edited</span>` : ''}
@@ -468,6 +512,8 @@ function buildPostCard(post) {
       ${post.pinned ? '<span class="badge bg-info text-dark" style="font-size:0.65rem;"><i class="fas fa-thumbtack me-1"></i>Pinned</span>' : ''}
     </div>
 
+    ${post.title ? `<div class="post-title">${escapeHtml(post.title)}</div>` : ''}
+
     <div class="post-content">
         ${DOMPurify.sanitize(post.content)}
     </div>
@@ -486,6 +532,7 @@ function buildPostCard(post) {
         : ''
     }
     ${post.poll_id ? renderPollCard(post, post.id) : ''}
+    <div class="post-tags" id="postTags-${post.id}"></div>
 
     <div class="post-actions">
       <button class="post-action-btn like-btn" data-post-id="${post.id}">
@@ -507,13 +554,24 @@ function buildPostCard(post) {
 
   card.addEventListener('click', (e) => {
     if (e.target.closest('.post-actions') || e.target.closest('.dropdown')) return;
+    recordRecentlyViewed(post);
     window.location.href = `posts.html?id=${post.id}`;
   });
 
   card.querySelector('.comment-btn').addEventListener('click', (e) => {
     e.stopPropagation();
+    recordRecentlyViewed(post);
     window.location.href = `posts.html?id=${post.id}`;
   });
+
+  if (canViewProfile) {
+    card.querySelectorAll('.post-owner-link').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `profile.html?id=${post.user_id}`;
+      });
+    });
+  }
 
   card.querySelector('.post-menu-btn').addEventListener('click', (e) => e.stopPropagation());
   card.querySelector('.share-btn').addEventListener('click', (e) => {
@@ -551,14 +609,24 @@ function buildPostCard(post) {
   // report
   card.querySelector('.report-post-btn')?.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (!isLoggedIn) {
+      showLoginRequiredModal();
+    }
     openReportModal(post.id, post.user_id);
   });
+
   // owner actions
   if (isOwner) {
     card.querySelector('.edit-post-btn').addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       window.location.href = `posts.html?id=${post.id}&edit=true`;
+    });
+
+    card.querySelector('.insights-post-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = `postAnalytics.html?id=${post.id}`;
     });
 
     card.querySelector('.delete-post-btn').addEventListener('click', (e) => {
@@ -575,6 +643,8 @@ function buildPostCard(post) {
   if (post.poll_id) {
     loadAndRenderPoll(post.id, card);
   }
+  // load tags
+  loadPostTags(post.id, card);
 
   return card;
 }
@@ -599,7 +669,6 @@ function deletePost(postId, cardEl) {
   );
 }
 
-// render posts
 function renderPosts(posts) {
   const container = document.getElementById('postsContainer');
   container.innerHTML = '';
@@ -628,14 +697,19 @@ function sortNewestFirst(posts) {
   return posts.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }
 
+// fetch APIs
 function loadPosts() {
   showPostsLoading();
   resetHotPostsLoading();
-  fetchMethod(`${feedApiBase()}/posts`, (status, data) => {
+
+  const params = new URLSearchParams({ sort: currentSort });
+  if (currentTimeframe !== 'all') params.set('timeframe', currentTimeframe);
+
+  fetchMethod(`${feedApiBase()}/posts/sorted?${params.toString()}`, (status, data) => {
     try {
       if (status === 200 && Array.isArray(data)) {
-        renderPosts(sortNewestFirst(data));
-        renderTop3(data);
+        renderPosts(data);
+        loadHotPostsSidebar();
       } else {
         showPostsError();
         renderTop3([]);
@@ -643,18 +717,31 @@ function loadPosts() {
     } catch (err) {
       console.error('loadPosts error:', err);
       showPostsError();
-      renderTop3([]);
     }
   });
 }
 
 function loadPostsByCategory(category) {
   showPostsLoading();
-  fetchMethod(`${feedApiBase()}/posts/tag/${category}`, (status, data) => {
+
+  const params = new URLSearchParams({ sort: currentSort, category });
+  if (currentTimeframe !== 'all') params.set('timeframe', currentTimeframe);
+
+  fetchMethod(`${feedApiBase()}/posts/sorted?${params.toString()}`, (status, data) => {
     if (status === 200 && Array.isArray(data)) {
-      renderPosts(sortNewestFirst(data));
+      renderPosts(data);
     } else {
       showPostsError();
+    }
+  });
+}
+
+function loadHotPostsSidebar() {
+  fetchMethod(`${feedApiBase()}/posts/hot`, (status, data) => {
+    if (status === 200 && Array.isArray(data)) {
+      renderTop3(data);
+    } else {
+      renderTop3([]);
     }
   });
 }
@@ -802,11 +889,137 @@ function loadAndRenderPoll(postId, cardEl) {
   });
 }
 
+function loadPostTags(postId, cardEl) {
+  fetchMethod(`${feedApiBase()}/posts/${postId}/tags`, (status, tags) => {
+    if (status !== 200 || !Array.isArray(tags) || !tags.length) return;
+
+    const container = cardEl
+      ? cardEl.querySelector(`#postTags-${postId}`)
+      : document.getElementById(`postTags-${postId}`);
+    if (!container) return;
+
+    container.innerHTML = '';
+    tags.forEach((tag) => {
+      const span = document.createElement('span');
+      span.className = 'post-tag';
+      span.textContent = `#${tag.name}`;
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `search.html?q=${encodeURIComponent('#' + tag.name)}&type=tag`;
+      });
+      container.appendChild(span);
+    });
+  });
+}
+
 function resetHotPostsLoading() {
   const container = document.getElementById('top5Container');
   if (!container) return;
   container.innerHTML = `<div class="list-group-item text-muted small text-center py-3">
     <div class="spinner-border spinner-border-sm" role="status"></div></div>`;
+}
+
+function setupSortButton() {
+  const btn = document.getElementById('sortPillBtn');
+  const dropdown = document.getElementById('sortDropdown');
+  const label = document.getElementById('sortPillLabel');
+  if (!btn || !dropdown) return;
+
+  console.log(label);
+
+  const SORT_OPTIONS = [
+    { value: 'hot', label: 'Hot', icon: 'fa-fire' },
+    { value: 'top', label: 'Top', icon: 'fa-trophy' },
+    { value: 'newest', label: 'Newest', icon: 'fa-clock' },
+    { value: 'oldest', label: 'Oldest', icon: 'fa-clock-rotate-left' },
+  ];
+
+  const TIMEFRAMES = [
+    { value: 'today', label: 'Today' },
+    { value: 'week', label: 'This week' },
+    { value: 'month', label: 'This month' },
+    { value: 'year', label: 'This year' },
+    { value: 'all', label: 'All time' },
+  ];
+
+  function renderDropdown() {
+    dropdown.innerHTML = '';
+
+    const sortLabel = document.createElement('div');
+    sortLabel.className = 'sort-dropdown-section-label';
+    sortLabel.textContent = 'Sort by';
+    dropdown.appendChild(sortLabel);
+
+    SORT_OPTIONS.forEach((opt) => {
+      const btn2 = document.createElement('button');
+      btn2.className = opt.value === currentSort ? 'active' : '';
+      btn2.innerHTML = `<i class="fas ${opt.icon}"></i>${opt.label}`;
+      btn2.addEventListener('click', () => {
+        currentSort = opt.value;
+        btn.classList.add('active');
+        renderDropdown();
+
+        if (opt.value !== 'newest' && opt.value !== 'oldest') return;
+        applySort();
+      });
+      dropdown.appendChild(btn2);
+    });
+
+    if (currentSort === 'hot' || currentSort === 'top') {
+      const divider = document.createElement('div');
+      divider.className = 'sort-divider';
+      dropdown.appendChild(divider);
+
+      const tfLabel = document.createElement('div');
+      tfLabel.className = 'sort-dropdown-section-label';
+      tfLabel.textContent = 'Time range';
+      dropdown.appendChild(tfLabel);
+
+      const tfRow = document.createElement('div');
+      tfRow.className = 'sort-timeframe-row';
+
+      TIMEFRAMES.forEach((tf) => {
+        const tfBtn = document.createElement('button');
+        tfBtn.className = `sort-timeframe-btn${tf.value === currentTimeframe ? ' active' : ''}`;
+        tfBtn.textContent = tf.label;
+        tfBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentTimeframe = tf.value;
+          renderDropdown();
+          applySort();
+        });
+        tfRow.appendChild(tfBtn);
+      });
+
+      dropdown.appendChild(tfRow);
+    } else {
+      currentTimeframe = 'all';
+    }
+  }
+
+  function applySort() {
+    dropdown.style.display = 'none';
+    if (currentCategory === 'all') loadPosts();
+    else loadPostsByCategory(currentCategory);
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = dropdown.style.display === 'block';
+    if (isOpen) {
+      dropdown.style.display = 'none';
+      return;
+    }
+    renderDropdown();
+    closeAllDropdowns();
+    dropdown.style.display = 'block';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
 }
 
 function setupCategoryPills() {
@@ -868,6 +1081,7 @@ function setupCategoryPills() {
       return;
     }
     updateDropdownPosition();
+    closeAllDropdowns();
     dropdown.style.display = 'block';
   });
 
@@ -930,6 +1144,9 @@ function openReportModal(postId, authorUserId) {
   currentReportUserId = authorUserId;
   currentReportReason = null;
   const overlay = document.getElementById('reportModalOverlay');
+
+  console.log(overlay);
+
   const reasonsContainer = document.getElementById('reportReasonsContainer');
   const thanksContainer = document.getElementById('reportThanks');
   const descStep = document.getElementById('reportDescriptionStep');
@@ -953,6 +1170,9 @@ function openReportModal(postId, authorUserId) {
 function showReportDescriptionStep(reason) {
   currentReportReason = reason;
   const overlay = document.getElementById('reportModalOverlay');
+
+  console.log(overlay);
+
   const reasonsContainer = document.getElementById('reportReasonsContainer');
   const descStep = document.getElementById('reportDescriptionStep');
   const modalSub = document.getElementById('reportModalSub');
@@ -1035,42 +1255,6 @@ document.getElementById('reportModalOverlay')?.addEventListener('click', (e) => 
   if (e.target === e.currentTarget) closeReportModal();
 });
 
-function renderTop3(posts) {
-  const container = document.getElementById('top5Container');
-  if (!container) return;
-
-  const list = Array.isArray(posts) ? posts : [];
-  const top3 = list
-    .slice()
-    .sort(
-      (a, b) =>
-        (b.like_count || 0) - (a.like_count || 0) ||
-        (b.comment_count || 0) - (a.comment_count || 0),
-    )
-    .slice(0, 3);
-
-  container.innerHTML = '';
-
-  if (top3.length === 0) {
-    container.innerHTML = `<div class="list-group-item text-muted small text-center py-3">No posts yet.</div>`;
-    return;
-  }
-
-  top3.forEach((post, index) => {
-    const item = document.createElement('a');
-    item.href = '#';
-    item.className = 'list-group-item list-group-item-action py-2';
-    item.innerHTML = `
-      <div class="text-muted mb-1" style="font-size:0.75rem;">Trending #${index + 1}</div>
-      <div class="fw-bold" style="font-size:0.9rem;">${escapeHtml(post.title)}</div>`;
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      window.location.href = `posts.html?id=${post.id}`;
-    });
-    container.appendChild(item);
-  });
-}
-
 function setupCreatePost() {
   const submitBtn = document.getElementById('submitPostBtn');
   if (!submitBtn) return;
@@ -1134,6 +1318,10 @@ function setupCreatePost() {
     formData.append('is_anonymous', isAnonymous);
     formData.append('visibility', document.getElementById('postVisibility').value);
 
+    if (selectedTags.length > 0) {
+      formData.append('tags', JSON.stringify(selectedTags));
+    }
+
     // Poll data — submitted after post is created
     const pollQuestion = document.getElementById('pollQuestion')?.value.trim();
     const pollOptionEls = document.querySelectorAll('.poll-option-input');
@@ -1148,7 +1336,7 @@ function setupCreatePost() {
       formData.append('gif_url', selectedGiphyUrl);
     }
 
-    fetch(`${API_BASE}/posts`, {
+    fetch(`${feedApiBase()}/posts`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -1204,111 +1392,71 @@ function setupCreatePost() {
   });
 }
 
-// search bar
-function setupSearch() {
-  const input = document.getElementById('searchInput');
-  if (!input) return;
+function clearCreatePostForm() {
+  const errEl = document.getElementById('postModalError');
+  if (errEl) errEl.style.display = 'none';
 
-  let debounceTimer;
+  document.getElementById('postTitle').value = '';
+  document.getElementById('postContent').value = '';
+  document.getElementById('postCategory').value = 'confession';
+  document.getElementById('postAnonymous').checked = false;
+  document.getElementById('submitPostBtn').disabled = true;
 
-  input.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    const query = input.value.trim();
-    if (!query) {
-      loadPosts();
-      return;
-    }
-    debounceTimer = setTimeout(() => runSearch(query), 400);
-  });
+  // Reset attachment
+  uploadedAttachmentUrl = null;
+  selectedGiphyUrl = null;
 
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      clearTimeout(debounceTimer);
-      const query = input.value.trim();
-      if (query) runSearch(query);
-    }
-  });
-}
+  const attachmentInput = document.getElementById('postAttachment');
+  if (attachmentInput) attachmentInput.value = '';
 
-function runSearch(query) {
-  showPostsLoading();
-  fetchMethod(`${feedApiBase()}/search?q=${encodeURIComponent(query)}`, (status, data) => {
-    if (status !== 200) {
-      showPostsError();
-      return;
-    }
-    renderSearchResults(data, query);
-  });
-}
+  const preview = document.getElementById('attachmentPreviewContainer');
+  if (preview) preview.innerHTML = '';
 
-function renderSearchResults(results, query) {
-  const container = document.getElementById('postsContainer');
-  container.innerHTML = '';
+  // Reset GIF picker
+  const gifPanel = document.getElementById('gifPickerPanel');
+  const gifSearch = document.getElementById('gifSearchInput');
+  const gifResults = document.getElementById('giphyResults');
 
-  if (!results || results.length === 0) {
-    container.innerHTML = `
-      <div class="post-card text-center py-4 text-muted">
-        <i class="fas fa-search fa-2x mb-2 d-block"></i>
-        No results found for "<strong>${escapeHtml(query)}</strong>"
-      </div>`;
-    return;
+  if (gifPanel) gifPanel.classList.remove('open');
+  if (gifSearch) gifSearch.value = '';
+  if (gifResults)
+    gifResults.innerHTML = `
+    <div class="gif-grid-empty">
+      <i class="fas fa-search mb-2 d-block" style="font-size:1.2rem;"></i>
+      Search GIFs
+    </div>`;
+
+  // Reset Quill
+  if (quillEditor) {
+    quillEditor.setContents([]);
   }
 
-  const header = document.createElement('div');
-  header.className = 'text-muted mb-2 px-1';
-  header.style.fontSize = '0.9rem';
-  header.innerHTML = `<i class="fas fa-search me-1"></i> ${results.length} result${results.length !== 1 ? 's' : ''} for "<strong>${escapeHtml(query)}</strong>"`;
-  container.appendChild(header);
+  // Reset poll
+  pollActive = false;
+  const pollPanel = document.getElementById('pollBuilderPanel');
+  const pollQ = document.getElementById('pollQuestion');
+  const pollOpts = document.getElementById('pollOptionsContainer');
+  const pollBtn = document.getElementById('pollToggleBtn');
+  if (pollPanel) pollPanel.style.display = 'none';
+  if (pollQ) pollQ.value = '';
+  if (pollBtn) pollBtn.classList.remove('active');
+  if (pollOpts) {
+    pollOpts.innerHTML = `
+      <input type="text" class="form-control mb-2 poll-option-input" placeholder="Option 1">
+      <input type="text" class="form-control mb-2 poll-option-input" placeholder="Option 2">
+    `;
+  }
 
-  results.forEach((result) => {
-    if (result.result_type === 'post') container.appendChild(buildPostCard(result));
-    else if (result.result_type === 'group') container.appendChild(buildGroupResult(result));
-    else if (result.result_type === 'user') container.appendChild(buildUserResult(result));
-  });
-}
-
-function buildGroupResult(group) {
-  const el = document.createElement('div');
-  el.className = 'post-card';
-  el.style.cursor = 'pointer';
-  el.innerHTML = `
-    <div class="post-header">
-      <div class="post-avatar" style="background:var(--secondary-color);">
-        <i class="fas fa-users" style="font-size:1rem;"></i>
-      </div>
-      <div class="post-author">
-        <div class="post-author-name">${escapeHtml(group.title)}</div>
-        <div class="post-timestamp">Study Group · by ${escapeHtml(group.author_name)}</div>
-      </div>
-      <span class="post-category category-general">Group</span>
-    </div>
-    <div class="post-content text-muted" style="font-size:0.9rem;">
-      ${escapeHtml(group.description || 'No description available.')}
-    </div>`;
-  el.addEventListener('click', () => {
-    window.location.href = `study-groups.html?id=${group.id}`;
-  });
-  return el;
-}
-
-function buildUserResult(user) {
-  const el = document.createElement('div');
-  el.className = 'post-card';
-  el.style.cursor = 'pointer';
-  el.innerHTML = `
-    <div class="post-header">
-      <div class="post-avatar">${escapeHtml(user.title.charAt(0).toUpperCase())}</div>
-      <div class="post-author">
-        <div class="post-author-name">${escapeHtml(user.title)}</div>
-        <div class="post-timestamp">User</div>
-      </div>
-      <span class="post-category" style="background:#f0f0f0;color:#555;">Profile</span>
-    </div>`;
-  el.addEventListener('click', () => {
-    window.location.href = `profile.html?id=${user.id}`;
-  });
-  return el;
+  // Reset tags
+  selectedTags = [];
+  const tagWrapper = document.getElementById('tagInputWrapper');
+  if (tagWrapper) tagWrapper.querySelectorAll('.tag-chip').forEach((el) => el.remove());
+  const tagInput = document.getElementById('tagTextInput');
+  if (tagInput) tagInput.value = '';
+  const tagHint = document.getElementById('tagCountHint');
+  if (tagHint) tagHint.textContent = '0 / 10 tags';
+  const tagAuto = document.getElementById('tagAutocomplete');
+  if (tagAuto) tagAuto.style.display = 'none';
 }
 
 function escapeHtml(str) {
@@ -1372,57 +1520,6 @@ function showModalError(message) {
   errEl.style.display = 'block';
 }
 
-function clearCreatePostForm() {
-  const errEl = document.getElementById('postModalError');
-  if (errEl) errEl.style.display = 'none';
-
-  document.getElementById('postTitle').value = '';
-  document.getElementById('postContent').value = '';
-  document.getElementById('postCategory').value = 'confession';
-  document.getElementById('postAnonymous').checked = false;
-  document.getElementById('submitPostBtn').disabled = true;
-
-  // Reset attachment
-  uploadedAttachmentUrl = null;
-  selectedGiphyUrl = null;
-
-  const attachmentInput = document.getElementById('postAttachment');
-  if (attachmentInput) attachmentInput.value = '';
-
-  const preview = document.getElementById('attachmentPreviewContainer');
-  if (preview) preview.innerHTML = '';
-
-  // Reset GIF picker
-  const gifPanel = document.getElementById('gifPickerPanel');
-  const gifSearch = document.getElementById('gifSearchInput');
-  const gifResults = document.getElementById('giphyResults');
-
-  if (gifPanel) gifPanel.classList.remove('open');
-  if (gifSearch) gifSearch.value = '';
-  if (gifResults) gifResults.innerHTML = '';
-
-  // Reset Quill
-  if (quillEditor) {
-    quillEditor.setContents([]);
-  }
-
-  // Reset poll
-  pollActive = false;
-  const pollPanel = document.getElementById('pollBuilderPanel');
-  const pollQ = document.getElementById('pollQuestion');
-  const pollOpts = document.getElementById('pollOptionsContainer');
-  const pollBtn = document.getElementById('pollToggleBtn');
-  if (pollPanel) pollPanel.style.display = 'none';
-  if (pollQ) pollQ.value = '';
-  if (pollBtn) pollBtn.classList.remove('active');
-  if (pollOpts) {
-    pollOpts.innerHTML = `
-      <input type="text" class="form-control mb-2 poll-option-input" placeholder="Option 1">
-      <input type="text" class="form-control mb-2 poll-option-input" placeholder="Option 2">
-    `;
-  }
-}
-
 function feedIsLoggedIn() {
   return !!feedToken();
 }
@@ -1475,6 +1572,8 @@ function protectCreatePostUI() {
       clearCreatePostForm();
       const action = btn.dataset.action;
 
+      console.log(modal);
+
       if (action === 'ask') {
         // Preselect Q&A
         document.getElementById('postCategory').value = 'qna';
@@ -1492,64 +1591,6 @@ function protectCreatePostUI() {
 // =========================
 // Groups display
 // =========================
-function loadSuggestedGroups() {
-  const container = document.getElementById('suggestedGroupsContainer');
-  if (!container) return;
-
-  const token = feedToken();
-  fetchMethod(
-    `${feedApiBase()}/groups/suggested`,
-    (status, data) => {
-      container.innerHTML = '';
-
-      if (status === 401) {
-        console.warn('Suggested groups unauthorized. Leftover session tokens cleared.');
-        return;
-      }
-
-      if (status !== 200 || !data || !data.length) {
-        container.innerHTML = `
-        <div class="list-group-item text-muted small text-center py-3">
-          No suggestions available.
-        </div>`;
-        return;
-      }
-
-      data.forEach((group) => {
-        const item = document.createElement('div');
-        item.className = 'list-group-item';
-        item.innerHTML = `
-        <div class="d-flex align-items-center mb-2">
-          <div class="post-avatar me-2" style="width:40px;height:40px;font-size:0.8rem;">
-            ${escapeHtml(group.school)}
-          </div>
-          <div class="flex-grow-1">
-            <strong style="font-size:0.9rem;">${escapeHtml(group.name)}</strong>
-            <div class="small text-muted">${group.member_count} member${group.member_count !== 1 ? 's' : ''}</div>
-          </div>
-        </div>
-        <button class="btn btn-sm btn-primary w-100 join-group-btn" data-group-id="${group.id}">
-          Join Group
-        </button>
-      `;
-
-        item.querySelector('.join-group-btn').addEventListener('click', () => {
-          if (!feedIsLoggedIn()) {
-            showAuthPopup();
-            return;
-          }
-          window.location.href = `groups.html?id=${group.id}`;
-        });
-
-        container.appendChild(item);
-      });
-    },
-    'GET',
-    null,
-    token,
-  );
-}
-
 function loadYourGroups() {
   const token = feedToken();
   const section = document.getElementById('yourGroupsSection');
@@ -1630,6 +1671,76 @@ function renderYourGroups(groups) {
     <span>See all groups</span>
   `;
   container.appendChild(seeAll);
+}
+
+// =========================
+// right sidebar
+// =========================
+function renderTop3(posts) {
+  const container = document.getElementById('top5Container');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  const list = Array.isArray(posts) ? posts : [];
+
+  if (!list.length) {
+    container.innerHTML = `<div class="list-group-item text-muted small text-center py-3">No trending posts right now.</div>`;
+    return;
+  }
+
+  list.slice(0, 3).forEach((post, index) => {
+    const item = document.createElement('a');
+    item.href = '#';
+    item.className = 'list-group-item list-group-item-action py-2';
+
+    item.innerHTML = `
+      <div class="d-flex align-items-center gap-1 mb-1">
+        <span class="text-muted" style="font-size:0.72rem;">Trending #${index + 1}</span>
+      </div>
+      <div class="fw-bold" style="font-size:0.88rem; line-height:1.3;">${escapeHtml(post.title)}</div>
+      <div class="text-muted mt-1" style="font-size:0.75rem;">
+        <span><i class="far fa-thumbs-up me-1"></i>${post.like_count ?? 0}</span>
+        <span class="ms-2"><i class="far fa-comment me-1"></i>${post.comment_count ?? 0}</span>
+      </div>`;
+
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      recordRecentlyViewed(post);
+      window.location.href = `posts.html?id=${post.id}`;
+    });
+    container.appendChild(item);
+  });
+}
+
+function loadRecentlyViewedWidget() {
+  const card = document.getElementById('recentlyViewedCard');
+  const container = document.getElementById('recentlyViewedContainer');
+  if (!card || !container) return;
+
+  const recent = getRecentlyViewed(3);
+
+  if (!recent.length) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+  container.innerHTML = '';
+
+  recent.forEach((post) => {
+    const item = document.createElement('a');
+    item.href = '#';
+    item.className = 'list-group-item list-group-item-action py-2';
+    item.innerHTML = `
+      <div class="text-muted mb-1" style="font-size:0.75rem;">${getCategoryLabel ? getCategoryLabel(post.category) : post.category || ''}</div>
+      <div class="fw-bold" style="font-size:0.9rem;">${escapeHtml(post.title)}</div>`;
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = `posts.html?id=${post.id}`;
+    });
+    container.appendChild(item);
+  });
 }
 
 // =========================
@@ -1828,11 +1939,136 @@ async function searchGiphy(query) {
   }
 }
 
+// Tag input
+function setupTagInput() {
+  const wrapper = document.getElementById('tagInputWrapper');
+  const input = document.getElementById('tagTextInput');
+  const autocomplete = document.getElementById('tagAutocomplete');
+  const hint = document.getElementById('tagCountHint');
+
+  if (!wrapper || !input) return;
+
+  let debounce;
+
+  wrapper.addEventListener('click', () => input.focus());
+
+  input.addEventListener('input', () => {
+    const query = input.value.replace(/^#/, '').trim();
+    updateTagHint();
+    if (!query) {
+      autocomplete.style.display = 'none';
+      return;
+    }
+
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      fetchMethod(
+        `${feedApiBase()}/posts/tags/search?q=${encodeURIComponent(query)}`,
+        (status, data) => {
+          if (status !== 200 || !data.length) {
+            autocomplete.style.display = 'none';
+            return;
+          }
+          renderAutocomplete(data, query);
+        },
+      );
+    }, 250);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
+      e.preventDefault();
+      addTag(input.value.replace(/^#/, '').trim());
+    }
+    if (e.key === 'Backspace' && !input.value && selectedTags.length) {
+      removeTag(selectedTags[selectedTags.length - 1]);
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target) && e.target !== input) {
+      autocomplete.style.display = 'none';
+    }
+  });
+
+  function renderAutocomplete(tags, query) {
+    autocomplete.innerHTML = '';
+    const exactMatch = tags.some((t) => t.name === query.toLowerCase());
+
+    if (!exactMatch) {
+      const createItem = document.createElement('div');
+      createItem.className = 'tag-autocomplete-item';
+      createItem.innerHTML = `<span>Create <strong>#${escapeHtml(query)}</strong></span>`;
+      createItem.addEventListener('click', () => {
+        addTag(query);
+        autocomplete.style.display = 'none';
+      });
+      autocomplete.appendChild(createItem);
+    }
+
+    tags.forEach((tag) => {
+      const item = document.createElement('div');
+      item.className = 'tag-autocomplete-item';
+      item.innerHTML = `
+        <span>#${escapeHtml(tag.name)}</span>
+        <span class="tag-usage">${tag.usage_count} post${tag.usage_count !== 1 ? 's' : ''}</span>
+      `;
+      item.addEventListener('click', () => {
+        addTag(tag.name);
+        autocomplete.style.display = 'none';
+      });
+      autocomplete.appendChild(item);
+    });
+
+    autocomplete.style.display = 'block';
+  }
+
+  function addTag(name) {
+    const clean = name.toLowerCase().trim().replace(/\s+/g, '');
+    if (!clean || selectedTags.includes(clean) || selectedTags.length >= 10) return;
+    selectedTags.push(clean);
+    renderChips();
+    input.value = '';
+    autocomplete.style.display = 'none';
+    updateTagHint();
+  }
+
+  function removeTag(name) {
+    selectedTags = selectedTags.filter((t) => t !== name);
+    renderChips();
+    updateTagHint();
+  }
+
+  function renderChips() {
+    wrapper.querySelectorAll('.tag-chip').forEach((el) => el.remove());
+    selectedTags.forEach((name) => {
+      const chip = document.createElement('div');
+      chip.className = 'tag-chip';
+      chip.innerHTML = `
+        #${escapeHtml(name)}
+        <button type="button" class="tag-chip-remove" title="Remove">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      chip.querySelector('.tag-chip-remove').addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeTag(name);
+      });
+      wrapper.insertBefore(chip, input);
+    });
+  }
+
+  function updateTagHint() {
+    if (hint) hint.textContent = `${selectedTags.length} / 10 tags`;
+  }
+}
+
 // Share dropdown
 let activeShareDropdown = null;
+document.addEventListener('show.bs.dropdown', (e) => closeAllDropdowns(e.target));
 
 function openShareDropdown(btn, postId) {
-  // Close any already-open dropdown
+  // Close any already open dropdown
   if (activeShareDropdown) {
     activeShareDropdown.remove();
     activeShareDropdown = null;
@@ -1895,169 +2131,16 @@ function closeShareDropdown() {
   }
 }
 
-// =========================
-// Quick Links
-// =========================
-const helpCenterLink = document.getElementById('helpCenterLink');
-const privacyLink = document.getElementById('privacyLink');
-const guidelinesLink = document.getElementById('guidelinesLink');
+function closeAllDropdowns(exceptToggle) {
+  const sortDropdown = document.getElementById('sortDropdown');
+  if (sortDropdown) sortDropdown.style.display = 'none';
+  const moreDropdown = document.getElementById('moreDropdown');
+  if (moreDropdown) moreDropdown.style.display = 'none';
 
-const infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
-
-const modalTitle = document.getElementById('infoModalTitle');
-const modalBody = document.getElementById('infoModalBody');
-
-function openInfoModal(title, content) {
-  modalTitle.textContent = title;
-  modalBody.innerHTML = content;
-  infoModal.show();
+  document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
+    const toggle = menu.previousElementSibling;
+    if (toggle && toggle !== exceptToggle) {
+      bootstrap.Dropdown.getInstance(toggle)?.hide();
+    }
+  });
 }
-
-helpCenterLink?.addEventListener('click', (e) => {
-  e.preventDefault();
-
-  openInfoModal(
-    'Help Center',
-    `
-    <h6>Frequently Asked Questions</h6>
-    <p><strong>How do I create a post?</strong><br>
-    To share your thoughts, click on the "What's on your mind?" field, add your text or media, and then select <em>Post</em>. Your content will appear in the community feed.</p>
-    <p><strong>Can I post anonymously?</strong><br>
-    Yes. Before submitting, enable the <em>Anonymous</em> option. This ensures your identity is hidden from other users, though Spindle may still retain internal records for security purposes.</p>
-    <p><strong>How do I join study groups?</strong><br>
-    Navigate to the <em>Study Groups</em> section from the main menu. Browse available groups and click <em>Join</em> to become a member. Some groups may require approval from moderators.</p>
-    <p><strong>How do I save or bookmark posts?</strong><br>
-    Click the bookmark icon beneath any post to save it. You can access your saved posts later from your profile under the <em>Saved</em> tab.</p>
-    <p><strong>How do I manage my account settings?</strong><br>
-    Go to your profile and select <em>Settings</em>. From there, you can update your email, change your password, adjust privacy preferences, and manage notifications.</p>
-    <p><strong>What happens to deleted posts?</strong><br>
-    When you delete a post, it is removed from public view immediately. However, copies may remain in backup storage for a limited time as part of our security and compliance processes.</p>
-    <p><strong>How do I report inappropriate content?</strong><br>
-    Click the three-dot menu on the post or comment and select <em>Report</em>. Our moderation team will review the report and take appropriate action.</p>
-    <p><strong>Can I deactivate or delete my account?</strong><br>
-    Yes. Visit <em>Settings</em> → <em>Account</em> → <em>Deactivate/Delete</em>. Deactivation allows you to return later, while deletion permanently removes your account and associated data (subject to legal retention requirements).</p>
-
-    <hr>
-    <h6>Getting Started</h6>
-    <p>
-    New to Spindle? Begin by creating your account, customizing your profile, and exploring communities that match your interests. Visit the <em>Quick Start Guide</em> for step-by-step instructions.
-    </p>
-    <h6>Community Guidelines</h6>
-    <p>
-    To keep Spindle safe and welcoming, please follow our <em>Community Rules</em>. Respect others, avoid harmful content, and report inappropriate behavior. Violations may result in warnings or account suspension.
-    </p>
-    <h6>Account & Privacy</h6>
-    <p>
-    You can manage your account settings under <em>Profile → Settings</em>. Options include updating your email, changing your password, adjusting privacy preferences, and controlling notifications. For details on how we protect your data, see our Privacy Policy.
-    </p>
-    <h6>Moderation & Reporting</h6>
-    <p>
-    Our moderation team works to ensure a safe environment. If you encounter harmful or inappropriate content, use the <em>Report</em> option. Reports are reviewed promptly, and appropriate action will be taken.
-    </p>
-    <h6>Technical Support</h6>
-    <p>
-    If you experience technical issues such as login errors, app crashes, or missing features, check the <em>Troubleshooting Guide</em>. If the issue persists, contact our support team.
-    </p>
-    <hr>
-    <p class="text-muted mb-0">
-    Need further assistance? Contact the Spindle Support Team at <a href="mailto:support@spindleapp.com">support@spindleapp.com</a>.
-    </p>
-
-    `,
-  );
-});
-
-privacyLink?.addEventListener('click', (e) => {
-  e.preventDefault();
-
-  openInfoModal(
-    'Privacy Policy',
-    `
-    <p>
-      Spindle values your trust and is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our services.
-    </p>
-    <h5>Information We Collect</h5>
-    <ul>
-      <li><strong>Account Information:</strong> We collect only the information necessary to create and maintain your account, such as your username, email address, and password.</li>
-      <li><strong>Content:</strong> Posts, comments, and files you upload are stored securely and used solely within the platform.</li>
-      <li><strong>Usage Data:</strong> We may collect information about how you interact with Spindle, including log data, device information, and preferences, to improve user experience.</li>
-    </ul>
-    <h5>How We Use Your Information</h5>
-    <ul>
-      <li>To provide, maintain, and improve our services.</li>
-      <li>To protect the security and integrity of the platform.</li>
-      <li>To personalize your experience and deliver relevant content.</li>
-      <li>To comply with legal obligations and enforce our policies.</li>
-    </ul>
-    <h5>Data Protection</h5>
-    <ul>
-      <li><strong>Password Security:</strong> All passwords are encrypted using industry-standard methods.</li>
-      <li><strong>Anonymous Posting:</strong> When you choose to post anonymously, your identity is hidden from other users.</li>
-      <li><strong>File Usage:</strong> Uploaded files are used exclusively within the platform and are not shared externally.</li>
-    </ul>
-    <h5>Data Sharing</h5>
-    <ul>
-      <li>We do not sell or rent your personal information to third parties.</li>
-      <li>We may share limited information with trusted service providers who assist us in operating the platform, subject to strict confidentiality agreements.</li>
-      <li>We may disclose information if required by law or to protect the rights, safety, and security of our users and services.</li>
-    </ul>
-    <h5>Your Rights</h5>
-    <ul>
-      <li>You have the right to access, update, or delete your account information.</li>
-      <li>You may request a copy of the personal data we hold about you.</li>
-      <li>You can adjust your privacy settings within the platform at any time.</li>
-    </ul>
-    <h5>Changes to This Policy</h5>
-    <p>
-      We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. Updates will be posted here, and the "Last Updated" date will be revised accordingly.
-    </p>
-    <p class="text-muted mb-0">
-      Last updated: May 2026
-    </p>
-    `,
-  );
-});
-
-guidelinesLink?.addEventListener('click', (e) => {
-  e.preventDefault();
-
-  openInfoModal(
-    'Community Guidelines',
-    `
-    <p>
-      Spindle is committed to maintaining a safe, respectful, and productive environment for all users. By participating in the platform, you agree to follow these guidelines to help us keep Spindle welcoming and useful for everyone.
-    </p>
-
-    <h5>Respect and Conduct</h5>
-    <ul>
-      <li><strong>Be respectful:</strong> Treat fellow students and community members with courtesy and consideration.</li>
-      <li><strong>No harassment or hate speech:</strong> Harassment, bullying, discrimination, or hate speech of any kind is strictly prohibited.</li>
-      <li><strong>Constructive participation:</strong> Engage in discussions thoughtfully and avoid disruptive behavior.</li>
-    </ul>
-
-    <h5>Content Standards</h5>
-    <ul>
-      <li><strong>No illegal or harmful content:</strong> Do not post content that promotes illegal activity, violence, or harm.</li>
-      <li><strong>Stay relevant:</strong> Keep discussions aligned with the category or group you are posting in.</li>
-      <li><strong>No spam:</strong> Avoid posting advertisements, repetitive content, or duplicate posts.</li>
-      <li><strong>Respect academic integrity:</strong> Do not share or encourage cheating, plagiarism, or violations of school policies.</li>
-    </ul>
-
-    <h5>Privacy and Safety</h5>
-    <ul>
-      <li><strong>Protect personal information:</strong> Do not share sensitive personal details about yourself or others.</li>
-      <li><strong>Anonymous posting:</strong> Use the anonymous option responsibly to contribute without revealing your identity.</li>
-      <li><strong>Reporting issues:</strong> If you encounter harmful or inappropriate content, use the <em>Report</em> feature to notify moderators.</li>
-    </ul>
-
-    <h5>Enforcement</h5>
-    <p>
-      Violations of these guidelines may result in content removal, warnings, temporary restrictions, or permanent account suspension. Enforcement decisions are made at the discretion of the moderation team to protect the integrity of the community.
-    </p>
-
-    <p class="text-muted mb-0">
-      Last updated: May 2026
-    </p>
-    `,
-  );
-});

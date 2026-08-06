@@ -6,6 +6,29 @@ module.exports.getAllComments = async function getAllComments() {
   return rows;
 };
 
+// GET Comments by userId
+module.exports.getCommentsByUserID = async function getCommentsByUserID(data) {
+  const { rows } = await pool.query(
+    `SELECT
+       pc.id,
+       pc.content,
+       pc.created_at,
+       pc.post_id,
+       pc.parent_comment_id,
+       pc.attachment_url,
+       p.title AS post_title,
+       p.category AS post_category,
+       p.is_anonymous AS post_is_anonymous
+     FROM "PostComments" pc
+     JOIN "Posts" p ON p.id = pc.post_id
+     WHERE pc.user_id = $1
+       AND p.is_anonymous = FALSE
+     ORDER BY pc.created_at DESC`,
+    [data.user_id],
+  );
+  return rows;
+};
+
 // GET Comments by post_id (all comments under a post)
 module.exports.getCommentsByPostID = async function getCommentsByPostID(data) {
   const VALUES = [data.post_id];
@@ -13,10 +36,15 @@ module.exports.getCommentsByPostID = async function getCommentsByPostID(data) {
     `
     SELECT 
       pc.*,
-      p.name AS author_name
+      p.name AS author_name,
+      p.profile_image AS author_avatar,
+      COUNT(DISTINCT cr.id) FILTER (WHERE cr.reaction_type = 'like')::int AS like_count,
+      COUNT(DISTINCT cr.id) FILTER (WHERE cr.reaction_type = 'dislike')::int AS dislike_count
     FROM "PostComments" pc
     JOIN "Person" p ON pc.user_id = p.id
+    LEFT JOIN "CommentReactions" cr ON cr.comment_id = pc.id
     WHERE pc.post_id = $1
+    GROUP BY pc.id, p.name, p.profile_image
     ORDER BY 
       COALESCE(pc.parent_comment_id, pc.id),  
       pc.parent_comment_id NULLS FIRST,    
@@ -27,18 +55,17 @@ module.exports.getCommentsByPostID = async function getCommentsByPostID(data) {
   return rows;
 };
 
-// GET Comments by userID?? WIP
-module.exports.getCommentsByUserID = async function getCommentsByUserID(data) {
-  const VALUES = [data.user_id];
-  const { rows } = await pool.query('SELECT * FROM "PostComments" WHERE email = ?', VALUES);
-  return rows;
-};
-
 // Create new Comments
 module.exports.insertComments = async function insertComments(data) {
-  const VALUES = [data.user_id, data.post_id, data.content, data.parent_comment_id || null];
+  const VALUES = [
+    data.user_id,
+    data.post_id,
+    data.content,
+    data.parent_comment_id || null,
+    data.attachment_url || null,
+  ];
   const { rows } = await pool.query(
-    'INSERT INTO "PostComments" (user_id, post_id, content, parent_comment_id) VALUES ($1, $2, $3, $4) RETURNING id',
+    'INSERT INTO "PostComments" (user_id, post_id, content, parent_comment_id, attachment_url) VALUES ($1, $2, $3, $4, $5) RETURNING id',
     VALUES,
   );
   return rows[0];
@@ -46,9 +73,9 @@ module.exports.insertComments = async function insertComments(data) {
 
 // update Comments by ID (owner only)
 module.exports.updateCommentsByID = async function updateCommentsByID(data) {
-  const VALUES = [data.content, data.id, data.user_id];
+  const VALUES = [data.content, data.attachment_url, data.id, data.user_id];
   const { rows } = await pool.query(
-    'UPDATE "PostComments" SET "content" = $1 WHERE "id" = $2 AND "user_id" = $3 RETURNING *',
+    'UPDATE "PostComments" SET "content" = $1, "attachment_url" = $2 WHERE "id" = $3 AND "user_id" = $4 RETURNING *',
     VALUES,
   );
   return rows[0];
@@ -105,9 +132,9 @@ module.exports.insertSavedComment = async function insertSavedComment(data) {
 
 // unsave comment
 module.exports.deleteSavedCommentByID = async function deleteSavedCommentByID(data) {
-  const VALUES = [data.id];
+  const VALUES = [data.id, data.user_id];
   const { rows } = await pool.query(
-    'DELETE FROM "SavedComments" WHERE "id" = $1 RETURNING *',
+    'DELETE FROM "SavedComments" WHERE "id" = $1 AND user_id = $2 RETURNING *',
     VALUES,
   );
   return rows[0];
@@ -149,6 +176,7 @@ module.exports.deleteCommentReaction = async function deleteCommentReaction(data
   );
   return rows[0];
 };
+
 // Delete comment by post owner
 module.exports.deleteCommentByPostOwner = async function deleteCommentByPostOwner(data) {
   const { rows } = await pool.query(
@@ -156,4 +184,30 @@ module.exports.deleteCommentByPostOwner = async function deleteCommentByPostOwne
     [data.id, data.user_id],
   );
   return rows[0] || null;
+};
+
+// reporting a comment
+module.exports.insertCommentReport = async function insertCommentReport(data) {
+  const VALUES = [data.comment_id, data.user_id, data.reason, data.description || ''];
+  const { rows } = await pool.query(
+    'INSERT INTO "CommentReports" (comment_id, user_id, reason, description) VALUES ($1, $2, $3, $4) RETURNING *',
+    VALUES,
+  );
+  return rows[0];
+};
+
+module.exports.getAllCommentReports = async function getAllCommentReports(includeDismissed) {
+  const { rows } = await pool.query(
+    `SELECT cr.id, cr.comment_id, cr.reason, cr.description, cr.created_at, cr.dismissed,
+            u.id AS reporter_id, u.name AS reporter_name, u.email AS reporter_email,
+            pc.content AS comment_content, pc.post_id AS post_id, pc.user_id AS comment_author_id,
+            ca.name AS comment_author_name
+     FROM "CommentReports" cr
+     JOIN "Person" u ON cr.user_id = u.id
+     JOIN "PostComments" pc ON cr.comment_id = pc.id
+     LEFT JOIN "Person" ca ON pc.user_id = ca.id
+     ${includeDismissed ? '' : 'WHERE (cr.dismissed IS NULL OR cr.dismissed = FALSE)'}
+     ORDER BY cr.created_at DESC`,
+  );
+  return rows;
 };

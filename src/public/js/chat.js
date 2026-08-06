@@ -382,7 +382,7 @@ function setReplyTo(msgId, body, imageUrl) {
 
 function sendTypingSignal() {
   if (!selectedPeerId) return;
-  sendWsMessage({ type: 'typing', toUserId: selectedPeerId });
+  sendWs({ type: 'typing', toUserId: selectedPeerId });
 }
 
 function showTypingIndicator(name) {
@@ -1027,7 +1027,7 @@ async function handleCallSignal(data) {
       callState = 'active';
       setCallUiMode('active');
       document.getElementById('callStatus').textContent = `On call with ${selectedPeerName}`;
-    } catch (err) {
+    } catch {
       showToast('Could not connect call', true);
       hangUpCall('declined');
     }

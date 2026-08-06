@@ -611,7 +611,11 @@
                           </button>
 
                           <div class="dropdown">
-                            <button class="btn btn-light" data-bs-toggle="dropdown">
+                            <button
+                              class="btn btn-light"
+                              data-bs-toggle="dropdown"
+                              id="createNoteDropdownBtn"
+                            >
                               <i class="bi bi-plus-lg"></i>
                             </button>
 
@@ -1793,6 +1797,105 @@
       </div>
     </div>
 
+    <!-- Create Whiteboard Modal -->
+    <div
+      class="modal fade"
+      id="createWhiteboardModal"
+      tabindex="-1"
+      aria-labelledby="createWhiteboardModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <!-- Header -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="createWhiteboardModalLabel">Create New Whiteboard</h5>
+
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <!-- Body -->
+          <div class="modal-body">
+            <!-- Title -->
+            <div class="mb-4">
+              <label for="whiteboardTitle" class="form-label fw-semibold"> Whiteboard Title </label>
+
+              <input
+                type="text"
+                class="form-control"
+                id="whiteboardTitle"
+                placeholder="e.g. Revision Mindmap"
+                required
+              />
+            </div>
+
+            <!-- Mode -->
+            <div>
+              <label class="form-label fw-semibold"> Choose a Mode </label>
+
+              <div class="row g-3">
+                <!-- Whiteboard -->
+                <div class="col-6">
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="whiteboardMode"
+                    id="modeWhiteboard"
+                    value="whiteboard"
+                    autocomplete="off"
+                    checked
+                  />
+
+                  <label class="btn btn-outline-warning w-100 p-3 mode-option" for="modeWhiteboard">
+                    <i class="bi bi-easel2 fs-2 d-block mb-2"></i>
+
+                    <strong class="d-block"> Whiteboard </strong>
+
+                    <small class="text-muted"> Draw and sketch freely </small>
+                  </label>
+                </div>
+
+                <!-- Pixel Art -->
+                <div class="col-6">
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="whiteboardMode"
+                    id="modePixel"
+                    value="pixel"
+                    autocomplete="off"
+                  />
+
+                  <label class="btn btn-outline-warning w-100 p-3 mode-option" for="modePixel">
+                    <i class="bi bi-grid-3x3-gap fs-2 d-block mb-2"></i>
+
+                    <strong class="d-block"> Pixel Art </strong>
+
+                    <small class="text-muted"> Create pixel-based drawings </small>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+            <button type="button" class="btn btn-primary" id="createWhiteboardConfirmBtn">
+              <i class="bi bi-plus-lg me-1"></i>
+              Create
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="js/api.js"></script>
     <script src="js/getCurrentURL.js"></script>
     <script src="js/spindle-page.js" defer></script>
@@ -1804,6 +1907,7 @@
     <script src="js/groupsTasks.js" defer></script>
     <script src="js/groupsFiles.js" defer></script>
     <script src="js/groupsNotes.js" defer></script>
+    <script src="js/whiteboard.js" defer></script>
     <script src="js/spindle-sidebar.js" defer></script>
     <script src="js/wa-nav.js"></script>
     <script src="js/socket-client.js"></script>

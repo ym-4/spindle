@@ -98,11 +98,93 @@
       });
   };
 
+  function getSidebarOverlay() {
+    let overlay = document.getElementById('sidebarOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'sidebarOverlay';
+      overlay.className = 'sidebar-overlay';
+      document.body.appendChild(overlay);
+    }
+    return overlay;
+  }
+
+  function closeSidebar() {
+    const sidebar = document.querySelector('aside.sidebar');
+    if (!sidebar) return;
+    sidebar.classList.remove('mobile-open');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (overlay) overlay.classList.remove('visible');
+    document.body.style.overflow = '';
+  }
+
+  function openSidebar() {
+    const sidebar = document.querySelector('aside.sidebar');
+    if (!sidebar) return;
+    sidebar.classList.add('mobile-open');
+    const overlay = getSidebarOverlay();
+    overlay.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function toggleSidebar() {
+    const sidebar = document.querySelector('aside.sidebar');
+    if (!sidebar) return;
+    if (sidebar.classList.contains('mobile-open')) {
+      closeSidebar();
+    } else {
+      openSidebar();
+    }
+  }
+
+  function createSidebarToggle() {
+    if (document.getElementById('sidebarToggleBtn')) return;
+    const brandLink = document.querySelector('.navbar-brand');
+    if (!brandLink) return;
+
+    const button = document.createElement('button');
+    button.id = 'sidebarToggleBtn';
+    button.type = 'button';
+    button.className = 'sidebar-toggle-btn';
+    button.setAttribute('aria-label', 'Toggle navigation');
+    button.innerHTML = '<i class="fas fa-bars"></i>';
+    brandLink.insertAdjacentElement('beforebegin', button);
+    button.addEventListener('click', toggleSidebar);
+  }
+
+  function initSidebarToggle() {
+    createSidebarToggle();
+    const overlay = getSidebarOverlay();
+    overlay.addEventListener('click', closeSidebar);
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeSidebar();
+      }
+    });
+
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 768) {
+        closeSidebar();
+      }
+    });
+
+    const sidebar = document.querySelector('aside.sidebar');
+    if (sidebar) {
+      sidebar.addEventListener('click', function (event) {
+        if (event.target.closest('.sidebar-item') && window.innerWidth <= 768) {
+          closeSidebar();
+        }
+      });
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     const aside = document.querySelector('aside.sidebar');
     if (!aside || aside.dataset.spindleKeep) return;
 
     aside.innerHTML = renderSpindleSidebar(document.body.dataset.page);
     loadYourGroups();
+    initSidebarToggle();
   });
 })();

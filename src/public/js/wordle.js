@@ -154,7 +154,7 @@ async function submitGuess() {
       currentRow++;
       currentGuess = '';
     }
-  } catch (err) {
+  } catch {
     showMessage('Network error — try again.');
   } finally {
     isSubmitting = false;

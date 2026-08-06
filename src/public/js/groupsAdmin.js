@@ -434,8 +434,8 @@ function displayGroupMembers(search = '') {
     .forEach((member) => {
       const user = users.find((u) => u.id == member.user_id);
 
-      let badge = '';
-      let actions = '';
+      let badge;
+      let actions;
 
       if (group.creator_id == member.user_id) {
         badge = `<span class="badge bg-warning">Creator</span>`;

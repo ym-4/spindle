@@ -6,16 +6,39 @@ const {
   insertPost,
   updatePostByID,
   deletePostByID,
+  getRelatedPosts,
+  getHotPosts,
+  getPostsByUserID,
+  searchAllPosts,
+  getSortedPosts,
   insertPoll,
   insertPollOption,
   updatePollQuestion,
   getPollByPostID,
   insertPollVote,
+  getUserPollVote,
+  deleteUserPollVote,
+  deletePollByPostID,
   getSavedByUserID,
   insertSaved,
+  deleteSavedByID,
   getReactionByUserID,
   insertLike,
   updateReaction,
+  getLikedPostsByUserID,
+  deleteReaction,
+  upsertTag,
+  insertPostTags,
+  getTagsByPostID,
+  deletePostTags,
+  searchTags,
+  incrementPostView,
+  getPostAnalytics,
+  getPostEngagementOverTime,
+  getUserPostsAnalytics,
+  insertReport,
+  getAllReports,
+  togglePin,
 } = require('../../src/models/Posts.model');
 
 // ── Mocking ──────────────────────────────────────────────
@@ -526,6 +549,218 @@ describe('Posts.model - deletePostByID', () => {
   });
 });
 
+// ── getRelatedPosts ───────────────────────────────────────
+describe('Posts.model - getRelatedPosts', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('should return related posts by shared category or tags', async () => {
+    const fakeRows = [{ id: 2, title: 'Related Post', shared_tag_count: 2 }];
+    pool.query.mockResolvedValue({ rows: fakeRows });
+
+    const result = await getRelatedPosts({ category: 'confession', id: 1 });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WITH current_tags'), [
+      'confession',
+      1,
+    ]);
+    expect(result).toEqual(fakeRows);
+  });
+
+  test('should return an empty array when no related posts exist', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getRelatedPosts({ category: 'general', id: 999 });
+
+    expect(result).toEqual([]);
+  });
+
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getRelatedPosts({ category: 'general', id: 1 })).rejects.toThrow(
+      'connection lost',
+    );
+  });
+});
+
+// ── getHotPosts ───────────────────────────────────────
+describe('Posts.model - getHotPosts', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('should return the top 3 hot posts ordered by hot_score', async () => {
+    const fakeRows = [
+      { id: 1, hot_score: 9.5 },
+      { id: 2, hot_score: 5.2 },
+    ];
+    pool.query.mockResolvedValue({ rows: fakeRows });
+
+    const result = await getHotPosts();
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('ORDER BY hot_score DESC'));
+    expect(result).toEqual(fakeRows);
+  });
+
+  test('should return an empty array when there are no recent posts', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getHotPosts();
+
+    expect(result).toEqual([]);
+  });
+
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getHotPosts()).rejects.toThrow('connection lost');
+  });
+});
+
+// ── getPostsByUserID ───────────────────────────────────────
+describe('Posts.model - getPostsByUserID', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test("should return a user's posts with engagement counts", async () => {
+    const fakeRows = [{ id: 1, title: 'My Post', like_count: 3, comment_count: 1 }];
+    pool.query.mockResolvedValue({ rows: fakeRows });
+
+    const result = await getPostsByUserID({ user_id: 5 });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), expect.arrayContaining([]));
+    expect(result).toEqual(fakeRows);
+  });
+
+  test('should return an empty array when the user has no posts', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getPostsByUserID({ user_id: 999 });
+
+    expect(result).toEqual([]);
+  });
+
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getPostsByUserID({ user_id: 5 })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── searchAllPosts ───────────────────────────────────────
+describe('Posts.model - searchAllPosts', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('should build a search filter when search is provided', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchAllPosts({ search: 'exam stress' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('ILIKE $1'), ['%exam stress%']);
+  });
+
+  test('should map a known category alias (q&a) to its enum value', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchAllPosts({ category: 'Q&A' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('p.category = $1'), ['qna']);
+  });
+
+  test('should ignore an unrecognized category instead of filtering by it', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchAllPosts({ category: 'not-a-real-category' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.not.stringContaining('p.category ='), []);
+  });
+
+  test('should apply a date filter when a positive hour value is given', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchAllPosts({ date: '24' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining("INTERVAL '24 hours'"), []);
+  });
+
+  test('should ignore a non-positive date value', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchAllPosts({ date: '-5' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.not.stringContaining('INTERVAL'), []);
+  });
+
+  test('should return all posts when no filters are provided', async () => {
+    pool.query.mockResolvedValue({ rows: [{ id: 1 }] });
+
+    const result = await searchAllPosts({});
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), []);
+    expect(result).toEqual([{ id: 1 }]);
+  });
+
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(searchAllPosts({ search: 'x' })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── getSortedPosts ───────────────────────────────────────
+describe('Posts.model - getSortedPosts', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('should default to newest-first when no sort is given', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getSortedPosts({});
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('p.created_at DESC'), []);
+  });
+
+  test('should apply the hot sort order with weighted engagement', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getSortedPosts({ sort: 'hot' });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('COUNT(DISTINCT pr.id) * 2'),
+      [],
+    );
+  });
+
+  test('should apply a timeframe filter only for top/hot sorts, not newest', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getSortedPosts({ sort: 'newest', timeframe: 'week' });
+
+    const sql = pool.query.mock.calls[0][0];
+    expect(sql).not.toContain('AND p.created_at >=');
+  });
+
+  test('should apply a week timeframe filter for a top sort', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getSortedPosts({ sort: 'top', timeframe: 'week' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining("INTERVAL '7 days'"), []);
+  });
+
+  test('should apply a category filter when a category is provided', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getSortedPosts({ category: 'general' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('AND p.category = $1'), [
+      'general',
+    ]);
+  });
+
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getSortedPosts({})).rejects.toThrow('connection lost');
+  });
+});
+
 // =========================
 // Polls
 // =========================
@@ -544,7 +779,7 @@ describe('Posts.model - insertPoll', () => {
     });
 
     expect(pool.query).toHaveBeenCalledWith(
-      'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id',
+      'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id, post_id, question',
       [5, 'What is your favourite programming language?'],
     );
     expect(result).toEqual(fakePoll);
@@ -561,7 +796,7 @@ describe('Posts.model - insertPoll', () => {
     });
 
     expect(pool.query).toHaveBeenCalledWith(
-      'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id',
+      'INSERT INTO "PostPolls" (post_id, question) VALUES ($1, $2) RETURNING id, post_id, question',
       [1, ''],
     );
     expect(result).toEqual(fakePoll);
@@ -943,6 +1178,108 @@ describe('Posts.model - insertPollVote', () => {
   });
 });
 
+// ── getUserPollVote ──────────────────────────────────────
+describe('Posts.model - getUserPollVote', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: user has voted on this poll
+  test("should return the user's vote for the poll", async () => {
+    const fakeVote = { id: 1, poll_id: 3, option_id: 7, user_id: 5 };
+    pool.query.mockResolvedValue({ rows: [fakeVote] });
+
+    const result = await getUserPollVote({ poll_id: 3, user_id: 5 });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE poll_id = $1 AND user_id = $2'),
+      [3, 5],
+    );
+    expect(result).toEqual(fakeVote);
+  });
+
+  // Boundary: user has not voted
+  test('should return null when the user has not voted', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getUserPollVote({ poll_id: 3, user_id: 999 });
+
+    expect(result).toBeNull();
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getUserPollVote({ poll_id: 3, user_id: 5 })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── deleteUserPollVote ───────────────────────────────────
+describe('Posts.model - deleteUserPollVote', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: deletes the user's existing vote
+  test("should delete the user's vote and return the row", async () => {
+    const fakeVote = { id: 1, poll_id: 3, option_id: 7, user_id: 5 };
+    pool.query.mockResolvedValue({ rows: [fakeVote] });
+
+    const result = await deleteUserPollVote({ poll_id: 3, user_id: 5 });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [3, 5]);
+    expect(result).toEqual(fakeVote);
+  });
+
+  // Boundary: no vote exists to delete
+  test('should return null when there is no vote to delete', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await deleteUserPollVote({ poll_id: 3, user_id: 999 });
+
+    expect(result).toBeNull();
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(deleteUserPollVote({ poll_id: 3, user_id: 5 })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── deletePollByPostID ───────────────────────────────────
+describe('Posts.model - deletePollByPostID', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: deletes the poll attached to a post
+  test('should delete the poll for the post and return the row', async () => {
+    const fakePoll = { id: 1, post_id: 10, question: 'Coffee or tea?' };
+    pool.query.mockResolvedValue({ rows: [fakePoll] });
+
+    const result = await deletePollByPostID({ post_id: 10 });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('DELETE FROM "PostPolls"'),
+      [10],
+    );
+    expect(result).toEqual(fakePoll);
+  });
+
+  // Boundary: post has no poll to delete
+  test('should return null when the post has no poll', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await deletePollByPostID({ post_id: 999 });
+
+    expect(result).toBeNull();
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(deletePollByPostID({ post_id: 10 })).rejects.toThrow('connection lost');
+  });
+});
+
 // =========================
 // Saves
 // =========================
@@ -1079,6 +1416,38 @@ describe('Posts.model - insertSaved', () => {
         post_id: 10,
       }),
     ).rejects.toThrow('connection lost');
+  });
+});
+
+// ── deleteSavedByID ──────────────────────────────────────
+describe('Posts.model - deleteSavedByID', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: owner deletes their own saved post
+  test('should delete the saved post for its owner and return the row', async () => {
+    const fakeRow = { id: 1, user_id: 5, post_id: 10 };
+    pool.query.mockResolvedValue({ rows: [fakeRow] });
+
+    const result = await deleteSavedByID({ id: 1, user_id: 5 });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('AND user_id = $2'), [1, 5]);
+    expect(result).toEqual(fakeRow);
+  });
+
+  // Boundary: save doesn't exist, or belongs to a different user
+  test('should return undefined when the save does not belong to the user', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await deleteSavedByID({ id: 1, user_id: 999 });
+
+    expect(result).toBeUndefined();
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(deleteSavedByID({ id: 1, user_id: 5 })).rejects.toThrow('connection lost');
   });
 });
 
@@ -1337,4 +1706,566 @@ describe('Posts.model - updateReaction', () => {
   });
 });
 
-// reports model wip
+// ── deleteReaction ───────────────────────────────────────
+describe('Posts.model - deleteReaction', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: owner deletes their own reaction
+  test('should delete the reaction for its owner and return the row', async () => {
+    const fakeRow = { id: 1, user_id: 5, post_id: 10, reaction_type: 'like' };
+    pool.query.mockResolvedValue({ rows: [fakeRow] });
+
+    const result = await deleteReaction({ id: 1, user_id: 5 });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('"user_id" = $2'), // lowercase "and" in the real query, so just match the placeholder
+      [1, 5],
+    );
+    expect(result).toEqual(fakeRow);
+  });
+
+  // Boundary: reaction doesn't exist, or belongs to a different user
+  test('should return undefined when the reaction does not belong to the user', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await deleteReaction({ id: 1, user_id: 999 });
+
+    expect(result).toBeUndefined();
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(deleteReaction({ id: 1, user_id: 5 })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── getLikedPostsByUserID ─────────────────────────────────
+describe('Posts.model - getLikedPostsByUserID', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: returns posts the user has liked, with engagement counts
+  test('should return the posts liked by the user', async () => {
+    const fakeRows = [{ id: 1, title: 'Liked Post', my_reaction: 'like' }];
+    pool.query.mockResolvedValue({ rows: fakeRows });
+
+    const result = await getLikedPostsByUserID({ user_id: 5 });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), expect.any(Array));
+    expect(result).toEqual(fakeRows);
+  });
+
+  // Boundary: user hasn't liked anything
+  test('should return an empty array when the user has liked nothing', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getLikedPostsByUserID({ user_id: 999 });
+
+    expect(result).toEqual([]);
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getLikedPostsByUserID({ user_id: 5 })).rejects.toThrow('connection lost');
+  });
+});
+
+// =========================
+// Tags
+// =========================
+// ── upsertTag ────────────────────────────────────────────
+describe('Posts.model - upsertTag', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: a new tag name is inserted
+  test('should insert a new tag and return the row', async () => {
+    const fakeTag = { id: 1, name: 'campuslife' };
+    pool.query.mockResolvedValue({ rows: [fakeTag] });
+
+    const result = await upsertTag({ name: 'CampusLife' });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('ON CONFLICT (name) DO UPDATE'),
+      ['campuslife'],
+    );
+    expect(result).toEqual(fakeTag);
+  });
+
+  // Boundary: name is lowercased and trimmed before hitting the query
+  test('should lowercase and trim the tag name before querying', async () => {
+    pool.query.mockResolvedValue({ rows: [{ id: 2, name: 'finals' }] });
+
+    await upsertTag({ name: '  Finals  ' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), ['finals']);
+  });
+
+  // Valid partition: an existing tag name
+  test('should resolve to the existing row when the tag name already exists', async () => {
+    const existingTag = { id: 3, name: 'confession' };
+    pool.query.mockResolvedValue({ rows: [existingTag] });
+
+    const result = await upsertTag({ name: 'confession' });
+
+    expect(result).toEqual(existingTag);
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(upsertTag({ name: 'broken' })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── insertPostTags ───────────────────────────────────────
+describe('Posts.model - insertPostTags', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: attaches multiple tag ids to a post
+  test('should insert multiple post-tag links with correct placeholders', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await insertPostTags({ post_id: 10, tag_ids: [1, 2, 3] });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('VALUES ($1, $2), ($1, $3), ($1, $4)'),
+      [10, 1, 2, 3],
+    );
+  });
+
+  // Valid partition: a single tag id
+  test('should insert a single post-tag link', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await insertPostTags({ post_id: 10, tag_ids: [5] });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('VALUES ($1, $2)'), [10, 5]);
+  });
+
+  // Boundary: an empty tag_ids array should not query
+  test('should not query the database when tag_ids is empty', async () => {
+    const result = await insertPostTags({ post_id: 10, tag_ids: [] });
+
+    expect(pool.query).not.toHaveBeenCalled();
+    expect(result).toBeUndefined();
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('constraint violation'));
+
+    await expect(insertPostTags({ post_id: 10, tag_ids: [1] })).rejects.toThrow(
+      'constraint violation',
+    );
+  });
+});
+
+// ── getTagsByPostID ──────────────────────────────────────
+describe('Posts.model - getTagsByPostID', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: returns tags attached to the post
+  test('should return all tags attached to the post', async () => {
+    const fakeTags = [
+      { id: 1, name: 'confession' },
+      { id: 2, name: 'internship' },
+    ];
+    pool.query.mockResolvedValue({ rows: fakeTags });
+
+    const result = await getTagsByPostID({ post_id: 10 });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE pt.post_id = $1'), [10]);
+    expect(result).toEqual(fakeTags);
+  });
+
+  // Boundary: a post with no tags
+  test('should return an empty array when the post has no tags', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getTagsByPostID({ post_id: 999 });
+
+    expect(result).toEqual([]);
+  });
+
+  // Boundary: post_id = 0
+  test('should pass post_id = 0 to the query (boundary value)', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getTagsByPostID({ post_id: 0 });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [0]);
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getTagsByPostID({ post_id: 10 })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── deletePostTags ───────────────────────────────────────
+describe('Posts.model - deletePostTags', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: removes all tag links for a post and returns them
+  test('should delete all tag links for the post and return the deleted rows', async () => {
+    const deletedRows = [{ post_id: 10, tag_id: 1 }];
+    pool.query.mockResolvedValue({ rows: deletedRows });
+
+    const result = await deletePostTags({ post_id: 10 });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('DELETE FROM "PostTags"'),
+      [10],
+    );
+    expect(result).toEqual(deletedRows);
+  });
+
+  // Boundary: post has no tags attached
+  test('should return an empty array when the post had no tags', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await deletePostTags({ post_id: 999 });
+
+    expect(result).toEqual([]);
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(deletePostTags({ post_id: 10 })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── searchTags ───────────────────────────────────────────
+describe('Posts.model - searchTags', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: returns tags matching the prefix
+  test('should return tags matching the prefix ordered by usage', async () => {
+    const fakeTags = [
+      { id: 1, name: 'confession', usage_count: 12 },
+      { id: 2, name: 'confused', usage_count: 3 },
+    ];
+    pool.query.mockResolvedValue({ rows: fakeTags });
+
+    const result = await searchTags({ query: 'conf' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('ILIKE $1'), ['conf%']);
+    expect(result).toEqual(fakeTags);
+  });
+
+  // Boundary: query is in lowercase
+  test('should lowercase the query before starting the search', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchTags({ query: 'CONF' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), ['conf%']);
+  });
+
+  // Boundary: no tags match the prefix
+  test('should return an empty array when no tags match', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await searchTags({ query: 'zzz' });
+
+    expect(result).toEqual([]);
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(searchTags({ query: 'conf' })).rejects.toThrow('connection lost');
+  });
+});
+
+// =========================
+// Analytics
+// =========================
+// ── incrementPostView ────────────────────────────────────
+describe('Posts.model - incrementPostView', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: increments and returns the new view count
+  test('should increment the view count and return the new value', async () => {
+    pool.query.mockResolvedValue({ rows: [{ view_count: 43 }] });
+
+    const result = await incrementPostView(10);
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('SET view_count = view_count + 1'),
+      [10],
+    );
+    expect(result).toBe(43);
+  });
+
+  // Boundary: post does not exist, defaults to 0
+  test('should default to 0 when the post does not exist', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await incrementPostView(999999);
+
+    expect(result).toBe(0);
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(incrementPostView(10)).rejects.toThrow('connection lost');
+  });
+});
+
+// ── getPostAnalytics ─────────────────────────────────────
+describe('Posts.model - getPostAnalytics', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: owner retrieves analytics for their own post
+  test("should return the post's analytics for its owner", async () => {
+    const fakeAnalytics = {
+      id: 10,
+      title: 'My Post',
+      view_count: 50,
+      like_count: 5,
+      dislike_count: 1,
+      comment_count: 3,
+      save_count: 2,
+    };
+    pool.query.mockResolvedValue({ rows: [fakeAnalytics] });
+
+    const result = await getPostAnalytics({ post_id: 10, user_id: 5 });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE p.id = $1 AND p.user_id = $2'),
+      [10, 5],
+    );
+    expect(result).toEqual(fakeAnalytics);
+  });
+
+  // Boundary: post doesn't exist or doesn't belong to this user
+  test('should return null when the post does not belong to the user', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getPostAnalytics({ post_id: 10, user_id: 999 });
+
+    expect(result).toBeNull();
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getPostAnalytics({ post_id: 10, user_id: 5 })).rejects.toThrow('connection lost');
+  });
+});
+
+// ── getPostEngagementOverTime ────────────────────────────
+describe('Posts.model - getPostEngagementOverTime', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: returns daily engagement results
+  test('should return engagement rows grouped by day', async () => {
+    const fakeRows = [
+      { day: '2026-07-01', likes: 3, dislikes: 0, saves: 1 },
+      { day: '2026-07-02', likes: 5, dislikes: 1, saves: 0 },
+    ];
+    pool.query.mockResolvedValue({ rows: fakeRows });
+
+    const result = await getPostEngagementOverTime({ post_id: 10, user_id: 5 });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('ORDER BY day ASC'), [10, 5]);
+    expect(result).toEqual(fakeRows);
+  });
+
+  // Boundary: no engagement recorded for the post
+  test('should return an empty array when there is no engagement data', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getPostEngagementOverTime({ post_id: 10, user_id: 5 });
+
+    expect(result).toEqual([]);
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getPostEngagementOverTime({ post_id: 10, user_id: 5 })).rejects.toThrow(
+      'connection lost',
+    );
+  });
+});
+
+// ── getUserPostsAnalytics ────────────────────────────────
+describe('Posts.model - getUserPostsAnalytics', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: returns analytics for all of the user's posts
+  test("should return analytics summaries for all of the user's posts", async () => {
+    const fakeRows = [
+      { id: 1, title: 'Post A', view_count: 20 },
+      { id: 2, title: 'Post B', view_count: 5 },
+    ];
+    pool.query.mockResolvedValue({ rows: fakeRows });
+
+    const result = await getUserPostsAnalytics({ user_id: 5 });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('AND p.is_anonymous = FALSE'),
+      [5],
+    );
+    expect(result).toEqual(fakeRows);
+  });
+
+  // Boundary: user has no posts
+  test('should return an empty array when the user has no posts', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getUserPostsAnalytics({ user_id: 5 });
+
+    expect(result).toEqual([]);
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getUserPostsAnalytics({ user_id: 5 })).rejects.toThrow('connection lost');
+  });
+});
+
+// =========================
+// Reports
+// =========================
+// ── insertReport ────────────────────────────────────
+describe('Posts.model - insertReport', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: a new report is inserted and returned
+  test('should insert a post report and return it', async () => {
+    const fakeReport = { id: 1, post_id: 10, user_id: 5, reason: 'spam' };
+    pool.query.mockResolvedValue({ rows: [fakeReport] });
+
+    const result = await insertReport({ post_id: 10, user_id: 5, reason: 'spam' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO "PostReports"'), [
+      10,
+      5,
+      'spam',
+      '',
+    ]);
+    expect(result).toEqual(fakeReport);
+  });
+
+  // Boundary: description omitted defaults to an empty string
+  test('should default description to an empty string when omitted', async () => {
+    pool.query.mockResolvedValue({ rows: [{ id: 1 }] });
+
+    await insertReport({ post_id: 10, user_id: 5, reason: 'spam' });
+
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [10, 5, 'spam', '']);
+  });
+
+  // Error handling: duplicate-report constraint violation propagates
+  test('should propagate duplicate-report constraint errors', async () => {
+    const err = new Error('duplicate key value');
+    err.code = '23505';
+    pool.query.mockRejectedValue(err);
+
+    await expect(insertReport({ post_id: 10, user_id: 5, reason: 'spam' })).rejects.toThrow(
+      'duplicate key value',
+    );
+  });
+});
+
+// ── getAllReports ────────────────────────────────────
+describe('Posts.model - getAllReports', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: excludes dismissed reports by default
+  test('should exclude dismissed reports by default', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getAllReports(false);
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE (r.dismissed IS NULL OR r.dismissed = FALSE)'),
+    );
+  });
+
+  // Boundary: includes dismissed reports when requested
+  test('should include dismissed reports when requested', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await getAllReports(true);
+
+    expect(pool.query).toHaveBeenCalledWith(expect.not.stringContaining('WHERE (r.dismissed'));
+  });
+
+  // Boundary: no reports exist
+  test('should return an empty array when there are no reports', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await getAllReports(false);
+
+    expect(result).toEqual([]);
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(getAllReports(false)).rejects.toThrow('connection lost');
+  });
+});
+
+// ── togglePin ────────────────────────────────────
+describe('Posts.model - togglePin', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Valid partition: pinning an unpinned post
+  test('should pin an unpinned post and return the new pinned state', async () => {
+    pool.query.mockResolvedValue({ rows: [{ pinned: true }] });
+
+    const result = await togglePin(10, 5);
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('NOT COALESCE(pinned, FALSE)'),
+      [10, 5],
+    );
+    expect(result).toEqual({ pinned: true });
+  });
+
+  // Boundary: toggling again unpins it
+  test('should unpin an already-pinned post', async () => {
+    pool.query.mockResolvedValue({ rows: [{ pinned: false }] });
+
+    const result = await togglePin(10, 5);
+
+    expect(result).toEqual({ pinned: false });
+  });
+
+  // Boundary: non-owner or non-existent post
+  test('should return null when the post does not exist or is not owned by the user', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    const result = await togglePin(999999, 5);
+
+    expect(result).toBeNull();
+  });
+
+  // Error handling: database error propagates to the caller
+  test('should propagate database errors', async () => {
+    pool.query.mockRejectedValue(new Error('connection lost'));
+
+    await expect(togglePin(10, 5)).rejects.toThrow('connection lost');
+  });
+});

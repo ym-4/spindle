@@ -11,7 +11,6 @@ const {
   getAllTaskItems,
   getTaskItemsByID,
   getTaskItemsByTaskID,
-  getTaskItemsByUserAndGroupID,
   insertTaskItems,
   updateTaskItems,
   deleteTaskItems,
@@ -138,7 +137,7 @@ router.delete('/tasks/:id', authenticateJWT, (req, res, next) => {
     .then((tasks) => {
       if (tasks.length > 0) {
         deleteTasks(data)
-          .then((results) => {
+          .then(() => {
             res.status(204).json();
           })
           .catch(next);
@@ -306,7 +305,7 @@ router.delete('/taskItems/:id', authenticateJWT, (req, res, next) => {
         id: data.id,
       });
     })
-    .then((result) => {
+    .then(() => {
       // If a response has already been sent, don't send another one
       if (res.headersSent) {
         return;
