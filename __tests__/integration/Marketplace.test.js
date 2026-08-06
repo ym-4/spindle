@@ -19,9 +19,9 @@ async function truncateAll() {
   );
 }
 
-async function closePool() {
-  await pool.end();
-}
+// async function closePool() {
+//   await pool.end();
+// }
 
 // A real (tiny, valid) 1x1 PNG, so multer's fileFilter (which checks
 // mimetype) and any future image-processing code have real bytes to work with.
@@ -56,6 +56,14 @@ async function createItem(overrides = {}) {
   return res;
 }
 
+async function seedSeller() {
+  await pool.query(
+    `INSERT INTO "Person" ("id", "email", "name")
+     VALUES (1, 'seller@spindle.test', 'Test Seller')
+     ON CONFLICT ("id") DO NOTHING`,
+  );
+}
+
 beforeAll(async () => {
   await applySchema();
   await seedSeller();
@@ -70,7 +78,6 @@ afterAll(async () => {
   for (const filePath of uploadedFiles) {
     fs.promises.unlink(filePath).catch(() => {});
   }
-  await closePool();
 });
 
 describe('POST /marketplace (create listing)', () => {

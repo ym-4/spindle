@@ -206,7 +206,7 @@ function renderView(profile) {
       <div class="pro-profile__stat"><strong>${stats.groups ?? 0}</strong><span>Groups</span></div>
     </div>
      <div class="pro-profile__section" id="badgesSection">
-      <h3>Badges</h3>
+      <h3>Achievements</h3>
       <div class="pro-profile__badges" id="badgesGrid">
         <span class="text-muted small">Loading badges…</span>
       </div>
@@ -515,7 +515,7 @@ async function loadBadges(userId) {
 
       grid.appendChild(el);
     });
-  } catch (e) {
+  } catch {
     const grid2 = document.getElementById('badgesGrid');
     if (grid2) grid2.innerHTML = '<span class="text-muted small">Could not load badges.</span>';
   }
@@ -580,7 +580,7 @@ async function loadProfilePosts(userId, isPrivate = false) {
     });
 
     setupProfileTabs();
-  } catch (e) {
+  } catch {
     container.innerHTML = '<p class="text-muted text-center py-3">Could not load posts.</p>';
   }
 }
@@ -609,7 +609,7 @@ async function loadProfileComments(userId) {
 
     container.innerHTML = '';
     comments.forEach((comment) => container.appendChild(buildProfileCommentCard(comment)));
-  } catch (e) {
+  } catch {
     container.innerHTML = '<p class="text-muted text-center py-3">Could not load comments.</p>';
   }
 }
@@ -638,7 +638,7 @@ async function loadProfileLiked(userId) {
 
     container.innerHTML = '';
     posts.forEach((post) => container.appendChild(buildProfilePostCard(post, false)));
-  } catch (e) {
+  } catch {
     container.innerHTML = '<p class="text-muted text-center py-3">Could not load liked posts.</p>';
   }
 }

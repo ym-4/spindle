@@ -5,7 +5,7 @@ const { checkAndAwardBadges } = require('../services/badgeService');
 const {
   generatePandabotReply,
   getPandabotUserId,
-  PANDABOT_EMAIL,
+  // PANDABOT_EMAIL,
 } = require('../services/pandabot');
 const { getPostByID } = require('../models/Posts.model');
 const { getPersonByID } = require('../models/Person.model');
@@ -65,8 +65,11 @@ router.get('/user/:user_id', authenticateJWT, (req, res, next) => {
 // saving comments
 // GET saved comments by user
 router.get('/saved/:user_id', authenticateJWT, (req, res, next) => {
+  if (Number(req.params.user_id) !== req.user.id) {
+    return res.status(403).json({ error: 'Not authorized to view these saved comments.' });
+  }
   getSavedCommentsByUserID({ user_id: req.params.user_id })
-    .then((results) => res.status(200).json(results))
+    .then((r) => res.status(200).json(r))
     .catch(next);
 });
 
@@ -98,29 +101,25 @@ router.post('/saved', authenticateJWT, (req, res) => {
 });
 
 // Unsave a comment
-router.delete('/saved/:id', (req, res) => {
-  const data = { id: req.params.id };
-  deleteSavedCommentByID(data)
-    .then((results) => {
-      if (!results) {
-        return res.status(404).json({ error: 'Save not found' });
-      }
-      res.status(200).json(results);
-    })
-    .catch((error) => {
-      console.error('Error deleteSavedByID: ' + error);
-      res.status(500).json(error);
-    });
+router.delete('/saved/:id', authenticateJWT, async (req, res) => {
+  try {
+    const result = await deleteSavedCommentByID({ id: req.params.id, user_id: req.user.id });
+    if (!result) return res.status(404).json({ error: 'Save not found' });
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Error deleteSavedByID: ' + error);
+    res.status(500).json(error);
+  }
 });
 
 // get comment reactions by user
 router.get('/reaction/:user_id', authenticateJWT, (req, res, next) => {
-  const data = {
-    user_id: req.params.user_id,
-  };
+  if (Number(req.params.user_id) !== req.user.id) {
+    return res.status(403).json({ error: 'Not authorized to view these reactions.' });
+  }
 
-  getCommentReactionByUserID(data)
-    .then((results) => res.status(200).json(results))
+  getCommentReactionByUserID({ user_id: req.params.user_id })
+    .then((r) => res.status(200).json(r))
     .catch(next);
 });
 
@@ -188,12 +187,13 @@ router.post('/like', authenticateJWT, (req, res) => {
 });
 
 // Update comment reaction
-router.put('/reaction/:id', (req, res) => {
+router.put('/reaction/:id', authenticateJWT, (req, res) => {
   const data = {
     id: req.params.id,
-    user_id: req.body.user_id,
+    user_id: req.user.id,
     reaction_type: req.body.reaction_type,
   };
+
   updateCommentReaction(data)
     .then((results) => {
       if (!results) return res.status(404).json({ error: 'Reaction not found' });
@@ -206,11 +206,12 @@ router.put('/reaction/:id', (req, res) => {
 });
 
 // Delete comment reaction
-router.delete('/reaction/:id', (req, res) => {
+router.delete('/reaction/:id', authenticateJWT, (req, res) => {
   const data = {
     id: req.params.id,
-    user_id: req.body.user_id,
+    user_id: req.user.id,
   };
+
   deleteCommentReaction(data)
     .then((results) => {
       if (!results) return res.status(404).json({ error: 'Reaction not found' });
@@ -220,17 +221,6 @@ router.delete('/reaction/:id', (req, res) => {
       console.error('Error deleteCommentReaction: ' + error);
       res.status(500).json(error);
     });
-});
-
-// Get Comments by post ID
-router.get('/:post_id', (req, res, next) => {
-  const data = {
-    post_id: req.params.post_id,
-  };
-
-  getCommentsByPostID(data)
-    .then((Comments) => res.status(200).json(Comments))
-    .catch(next);
 });
 
 // notifications for @mentions
@@ -427,8 +417,13 @@ router.delete('/:id', authenticateJWT, (req, res) => {
 // Get all comment reports (admin only)
 router.get('/reports', authenticateJWT, async (req, res, next) => {
   try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Forbidden action' });
+    }
+
     const includeDismissed = req.query.includeDismissed === 'true';
     const reports = await getAllCommentReports(includeDismissed);
+
     res.status(200).json(reports);
   } catch (err) {
     next(err);
@@ -436,27 +431,39 @@ router.get('/reports', authenticateJWT, async (req, res, next) => {
 });
 
 // Report a comment
-router.post('/:id/report', (req, res) => {
-  if (!req.body.user_id || !req.body.reason) {
-    return res.status(400).json({ message: 'user_id and reason not found.' });
+router.post('/:id/report', authenticateJWT, async (req, res) => {
+  if (!req.body.reason) {
+    return res.status(400).json({ message: 'Reason not found.' });
   }
 
   const data = {
     comment_id: req.params.id,
-    user_id: req.body.user_id,
+    user_id: req.user.id,
     reason: req.body.reason,
     description: req.body.description || '',
   };
 
-  insertCommentReport(data)
-    .then((result) => res.status(201).json(result))
-    .catch((error) => {
-      if (error.code === '23505') {
-        return res.status(409).json({ message: 'You have already reported this comment.' });
-      }
-      console.error('Error insertCommentReport:', error);
-      res.status(500).json({ message: 'Failed to submit report.' });
-    });
+  try {
+    const result = await insertCommentReport(data);
+    res.status(201).json(result);
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ message: 'You have already reported this comment.' });
+    }
+    console.error('Error insertCommentReport:', error);
+    res.status(500).json({ message: 'Failed to submit report.' });
+  }
+});
+
+// Get Comments by post ID
+router.get('/:post_id', (req, res, next) => {
+  const data = {
+    post_id: req.params.post_id,
+  };
+
+  getCommentsByPostID(data)
+    .then((Comments) => res.status(200).json(Comments))
+    .catch(next);
 });
 
 module.exports = router;

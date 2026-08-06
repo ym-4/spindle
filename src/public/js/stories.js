@@ -23,7 +23,7 @@ function getLoggedUserId() {
       loggedUserId = u.id;
       return u.id;
     }
-  } catch (e) {}
+  } catch {}
   var id = localStorage.getItem('loggedInUserId');
   if (id) {
     loggedUserId = parseInt(id);
@@ -57,7 +57,7 @@ function initials(name) {
 function getUserData() {
   try {
     return getStoredUser();
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -83,7 +83,7 @@ async function loadStories() {
   try {
     var data = await authFetch('/stories');
     allStories = data.stories || [];
-  } catch (e) {
+  } catch {
     allStories = [];
   }
 
@@ -456,7 +456,7 @@ document.getElementById('sendBtn')?.addEventListener('click', async function () 
     }
     clearComposer();
     await loadStories();
-  } catch (err) {
+  } catch {
     alert('Network error posting status.');
     btn.disabled = false;
   }
@@ -502,7 +502,7 @@ document.getElementById('saveDraftBtn')?.addEventListener('click', async functio
     }
     clearComposer();
     loadDrafts();
-  } catch (err) {
+  } catch {
     alert('Network error saving draft.');
     btn.disabled = false;
   }
@@ -572,7 +572,7 @@ async function loadDrafts() {
         discardDraft(parseInt(btn.dataset.id));
       });
     });
-  } catch (e) {
+  } catch {
     section.classList.add('hidden');
   }
 }
@@ -594,7 +594,7 @@ async function resumeDraft(draftId) {
     document.getElementById('composerCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
     document.getElementById('captionInput').focus();
     checkSendReady();
-  } catch (e) {}
+  } catch {}
 }
 
 async function publishDraft(draftId) {
@@ -604,7 +604,7 @@ async function publishDraft(draftId) {
       loadDrafts();
       await loadStories();
     }
-  } catch (e) {}
+  } catch {}
 }
 
 async function discardDraft(draftId) {
@@ -612,7 +612,7 @@ async function discardDraft(draftId) {
   try {
     await authFetch('/stories/draft/' + draftId, { method: 'DELETE' });
     loadDrafts();
-  } catch (e) {}
+  } catch {}
 }
 
 /* Get current story's index within its author's story sequence */
@@ -930,7 +930,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (me && me.id && typeof setAuth === 'function' && getToken()) {
       setAuth(me, getToken());
     }
-  } catch (e) {
+  } catch {
     /* use cached data */
   }
   loadStories();

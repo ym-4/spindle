@@ -140,7 +140,7 @@ router.post('/create/:creator_id', authenticateJWT, (req, res, next) => {
 
             // Add group creator to group's member list
             insertGroupMember(data)
-              .then((results) => {
+              .then(() => {
                 checkAndAwardBadges(data.creator_id, ['group_joined']);
                 // Add group creator to admin list
                 updateMemberRoleToAdmin({

@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('paymentSuccess').classList.remove('d-none');
 
         clearCart(localStorage.loggedInUserId);
-      } catch (err) {
+      } catch {
         errorBox.textContent = 'Could not reach the payment service.';
         errorBox.classList.remove('d-none');
         payBtn.disabled = false;

@@ -255,7 +255,7 @@ function injectWaHeader(title, opts = {}) {
             headers: { Authorization: `Bearer ${token}` },
           });
         }
-      } catch (err) {
+      } catch {
         console.error('Logout request failed, proceeding to clear local data...');
       }
 
@@ -429,33 +429,53 @@ function showBadgeUnlockPopup(title, description) {
 
   const popup = document.createElement('div');
   popup.id = 'badgeUnlockPopup';
+
+  const badgeName = title.replace(/^Badge unlocked:\s*/i, '');
+
   popup.innerHTML = `
-    <div class="badge-unlock-icon">🏅</div>
-    <div class="badge-unlock-text">
-      <div class="badge-unlock-title">${esc(title)}</div>
-      <div class="badge-unlock-desc">${esc(description)}</div>
-    </div>`;
+    <div class="badge-unlock-image">
+      <img
+        src="/images/badges/${badgeName.replace(/\s+/g, '_')}.png"
+        alt="${badgeName}"
+      >
+    </div>
+
+    <div class="badge-unlock-label">
+      BADGE UNLOCKED
+    </div>
+
+    <div class="badge-unlock-title">
+      ${title}
+    </div>
+
+    <div class="badge-unlock-desc">
+      ${description}
+    </div>
+
+    <div class="badge-unlock-footer">
+      View in Profile →
+    </div>
+  `;
 
   document.body.appendChild(backdrop);
   document.body.appendChild(popup);
 
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      backdrop.classList.add('badge-unlock--visible');
-      popup.classList.add('badge-unlock--visible');
-    });
+    backdrop.classList.add('badge-unlock--visible');
+    popup.classList.add('badge-unlock--visible');
   });
 
   const dismiss = () => {
     backdrop.classList.remove('badge-unlock--visible');
     popup.classList.remove('badge-unlock--visible');
+
     setTimeout(() => {
       backdrop.remove();
       popup.remove();
-    }, 400);
+    }, 350);
   };
 
-  const autoDismiss = setTimeout(dismiss, 4000);
+  const autoDismiss = setTimeout(dismiss, 4500);
 
   const dismissNow = () => {
     clearTimeout(autoDismiss);
@@ -463,7 +483,10 @@ function showBadgeUnlockPopup(title, description) {
   };
 
   backdrop.addEventListener('click', dismissNow);
-  popup.addEventListener('click', dismissNow);
+  popup.addEventListener('click', () => {
+    dismissNow();
+    window.location.href = 'profile.html';
+  });
 }
 
 function initAppShell(pageTitle, pageKey, opts = {}) {

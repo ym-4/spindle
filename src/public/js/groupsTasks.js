@@ -381,7 +381,8 @@ async function toggleSubtask(e) {
     displayGroupTasks();
 
     displayToast('success', 'Task updated!');
-  } catch (err) {
+  } catch (e) {
+    console.log(e);
     displayToast('error', 'You did not create or get assigned to this task');
   }
 }
@@ -580,13 +581,14 @@ function filterTask(task) {
     case 'unassigned':
       return task.assignee_id == null;
 
-    case 'today':
+    case 'today': {
       if (!task.due_date) return false;
 
       const due = new Date(task.due_date);
       due.setHours(0, 0, 0, 0);
 
       return due.getTime() === today.getTime();
+    }
 
     case 'overdue':
       if (!task.due_date) return false;

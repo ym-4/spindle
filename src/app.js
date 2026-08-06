@@ -2,8 +2,10 @@ const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
 const session = require('express-session');
+const cors = require('cors');
 
 const app = express();
+app.use(cors()); // Might remove later
 
 // Session handler for the wordle
 app.use(
@@ -22,7 +24,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files (HTML, CSS, JS, images) from the 'public' folder.
 // e.g. src/public/index.html is accessible at http://localhost:<port>/
 app.use(express.static(path.join(__dirname, 'public')));
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 // Import route handlers
 const personRouter = require('./routers/Person.router');
@@ -102,7 +104,6 @@ app.use('/whiteboards', whiteboardRouter);
 app.use('/notes', notesRouter);
 app.use('/snake', SnakeRouter);
 app.use('/somethings', somethingRouter);
-app.use('/wordle', wordleRouter);
 app.use('/study-room', studyRoomRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));

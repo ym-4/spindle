@@ -650,7 +650,7 @@ function recordRecentlyViewed(post) {
   let list = [];
   try {
     list = JSON.parse(localStorage.getItem(key)) || [];
-  } catch (e) {
+  } catch {
     list = [];
   }
 
@@ -673,7 +673,7 @@ function getRecentlyViewed(limit = 3) {
   try {
     const list = JSON.parse(localStorage.getItem(key)) || [];
     return list.slice(0, limit);
-  } catch (e) {
+  } catch {
     return [];
   }
 }

@@ -1,4 +1,4 @@
-/* global fetchMethod, bootstrap, removeFromCart, addToCart */
+/* global fetchMethod, bootstrap, removeFromCart, addToCart, SpindleFilters */
 
 // Escape user-submitted text before it's dropped into innerHTML.
 function escapeHtml(str) {

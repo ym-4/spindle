@@ -306,7 +306,7 @@ router.delete('/taskItems/:id', authenticateJWT, (req, res, next) => {
         id: data.id,
       });
     })
-    .then((result) => {
+    .then(() => {
       // If a response has already been sent, don't send another one
       if (res.headersSent) {
         return;

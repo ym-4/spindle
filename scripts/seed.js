@@ -14,28 +14,28 @@ const hashedAdminPassword = hashPassword(ADMIN_PASSWORD);
 const persons = [
   { email: 'pandabot@spindle.internal', name: 'PandaBot' },
   { email: 'alice@example.com', name: 'Alice', profile_image: '/uploads/avatars/user-2.png' },
-  { email: 'bob@example.com', name: 'Bob' },
-  { email: 'carol@example.com', name: 'Carol' },
-  { email: 'dave@example.com', name: 'Dave' },
-  { email: 'eve@example.com', name: 'Eve' },
-  { email: 'frank@example.com', name: 'Frank' },
-  { email: 'grace@example.com', name: 'Grace' },
-  { email: 'heidi@example.com', name: 'Heidi' },
-  { email: 'ivan@example.com', name: 'Ivan' },
-  { email: 'judy@example.com', name: 'Judy' },
-  { email: 'mallory@example.com', name: 'Mallory' },
-  { email: 'oscar@example.com', name: 'Oscar' },
-  { email: 'peggy@example.com', name: 'Peggy' },
-  { email: 'trent@example.com', name: 'Trent' },
-  { email: 'victor@example.com', name: 'Victor' },
-  { email: 'walter@example.com', name: 'Walter' },
-  { email: 'xavier@example.com', name: 'Xavier' },
-  { email: 'yvonne@example.com', name: 'Yvonne' },
-  { email: 'zara@example.com', name: 'Zara' },
-  { email: 'leo@example.com', name: 'Leo' },
-  { email: 'beni@example.com', name: 'Beni' },
-  { email: 'emataso@example.com', name: 'Emataso' },
-  { email: 'hinano@example.com', name: 'Hinano' },
+  { email: 'bob@example.com', name: 'Bob', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'carol@example.com', name: 'Carol', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'dave@example.com', name: 'Dave', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'eve@example.com', name: 'Eve', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'frank@example.com', name: 'Frank', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'grace@example.com', name: 'Grace', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'heidi@example.com', name: 'Heidi', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'ivan@example.com', name: 'Ivan', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'judy@example.com', name: 'Judy', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'mallory@example.com', name: 'Mallory', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'oscar@example.com', name: 'Oscar', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'peggy@example.com', name: 'Peggy', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'trent@example.com', name: 'Trent', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'victor@example.com', name: 'Victor', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'walter@example.com', name: 'Walter', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'xavier@example.com', name: 'Xavier', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'yvonne@example.com', name: 'Yvonne', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'zara@example.com', name: 'Zara', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'leo@example.com', name: 'Leo', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'beni@example.com', name: 'Beni', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'emataso@example.com', name: 'Emataso', profile_image: '/uploads/avatars/user-2.png' },
+  { email: 'hinano@example.com', name: 'Hinano', profile_image: '/uploads/avatars/user-2.png' },
 ];
 
 const somethings = [{ name: 'Seed 1' }, { name: 'Seed 2' }];
@@ -47,6 +47,7 @@ const posts = [
     title: 'First Confession',
     category: 'confession',
     content: 'I love pineapple pizza!',
+    view_count: 23,
   },
   {
     userEmail: 'bob@example.com',
@@ -192,73 +193,85 @@ const badges = [
     key: 'first_post',
     name: 'Explorer',
     description: 'Published your first post on Spindle',
-    imageUrl: '/images/badges/first_post.png',
+    imageUrl: '/images/badges/Explorer.png',
   },
   {
     key: 'first_comment',
     name: 'Icebreaker',
     description: 'Left your first comment',
-    imageUrl: '/images/badges/icebreaker.png',
+    imageUrl: '/images/badges/Icebreaker.png',
   },
   {
     key: 'social_butterfly',
     name: 'Social Butterfly',
     description: 'Made 25 friends',
-    imageUrl: '/images/badges/social_butterfly.png',
+    imageUrl: '/images/badges/Social_Butterfly.png',
   },
   {
     key: 'chatterbox',
     name: 'Chatterbox',
     description: 'Posted 10 comments',
-    imageUrl: '/images/badges/chatterbox.png',
+    imageUrl: '/images/badges/Chatterbox.png',
   },
   {
     key: 'prolific_poster',
     name: 'Busy Bee',
     description: 'Created 10 posts',
-    imageUrl: '/images/badges/prolific_poster.png',
+    imageUrl: '/images/badges/Busy_Bee.png',
   },
   {
     key: 'group_joiner',
     name: 'Alliance Formed',
     description: 'Joined your first study group',
-    imageUrl: '/images/badges/group_joiner.png',
+    imageUrl: '/images/badges/Alliance_Formed.png',
   },
   {
     key: 'liked_post',
     name: 'Sprout',
     description: 'Received your first like on a post',
-    imageUrl: '/images/badges/liked_post.png',
+    imageUrl: '/images/badges/Sprout.png',
   },
   {
     key: 'pandabot_user',
     name: 'Panda Pal',
     description: 'Summoned PandaBot for the first time',
-    imageUrl: '/images/badges/pandabot_user.png',
+    imageUrl: '/images/badges/Panda_Pal.png',
   },
   {
     key: 'fan_favorite',
     name: 'Fan Favorite',
     description: 'Received 100 total likes across your posts',
-    imageUrl: '/images/badges/fan_favorite.png',
+    imageUrl: '/images/badges/Fan_Favorite.png',
   },
   {
     key: 'rising_star',
     name: 'Rising Star',
     description: 'Had a post reach 20 likes',
-    imageUrl: '/images/badges/rising_star.png',
+    imageUrl: '/images/badges/Rising_Star.png',
   },
   {
     key: 'night_owl',
     name: 'Night Owl',
     description: 'Posted after midnight 20 times',
-    imageUrl: '/images/badges/night_owl.png',
+    imageUrl: '/images/badges/Night_Owl.png',
   },
   {
     key: 'pandabot_whisperer',
     name: 'Panda Whisperer',
     description: 'Mentioned PandaBot 50 times',
-    imageUrl: '/images/badges/panda_whisperer.png',
+    imageUrl: '/images/badges/Panda_Whisperer.png',
+  },
+  {
+    key: 'snake_charmer',
+    name: 'Snake Charmer',
+    description: 'Score more than 10 points in Snake',
+    imageUrl: '/images/badges/Snake_Charmer.png',
+  },
+  {
+    key: 'ssslytherin',
+    name: 'SSSlytherin',
+    description: 'Made it onto the Snake leaderboard',
+    imageUrl: '/images/badges/SSSlytherin.png',
   },
 ];
 
@@ -842,8 +855,6 @@ const marketplaceItems = [
 
 module.exports = marketplaceItems;
 
-module.exports = marketplaceItems;
-
 // Seed data for groups
 // Example Groups
 const groups = [
@@ -855,6 +866,22 @@ const groups = [
     school: 'SOC',
     module: 'CS1010',
     public: true,
+  },
+  {
+    name: 'Public Test Group',
+    creatorEmail: 'carol@example.com',
+    description: 'For E2E testing.',
+    school: 'SOC',
+    module: 'CS1020',
+    public: true,
+  },
+  {
+    name: 'Private Test Group',
+    creatorEmail: 'carol@example.com',
+    description: 'For E2E testing.',
+    school: 'SOC',
+    module: 'CS2040',
+    public: false,
   },
   {
     name: 'SOC Algorithms',
@@ -957,6 +984,10 @@ const groupMembers = [
   { groupName: 'SOC Study Buddies', userEmail: 'dave@example.com', role: 'user' },
   { groupName: 'SOC Study Buddies', userEmail: 'eve@example.com', role: 'user' },
   { groupName: 'SOC Study Buddies', userEmail: 'beni@example.com', role: 'user' },
+
+  // Test groups
+  { groupName: 'Public Test Group', userEmail: 'carol@example.com', role: 'admin' },
+  { groupName: 'Private Test Group', userEmail: 'carol@example.com', role: 'admin' },
 
   // ===== SOC Algorithms =====
   { groupName: 'SOC Algorithms', userEmail: 'bob@example.com', role: 'admin' },
@@ -1634,8 +1665,8 @@ async function seed() {
     if (userRes.rows.length > 0) {
       await pool.query(
         `INSERT INTO "Posts"
-          ("user_id", "title", "category", "content", "attachment_url", "gif_url", "is_anonymous", "visibility", "pinned")
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          ("user_id", "title", "category", "content", "attachment_url", "gif_url", "is_anonymous", "visibility", "pinned", "view_count")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          ON CONFLICT DO NOTHING`,
         [
           userRes.rows[0].id,
@@ -1647,6 +1678,7 @@ async function seed() {
           post.isAnonymous || false,
           post.visibility || 'everyone',
           post.pinned || false,
+          post.view_count,
         ],
       );
     }
