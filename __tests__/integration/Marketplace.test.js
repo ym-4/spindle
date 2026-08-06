@@ -33,6 +33,14 @@ const PNG_1PX = Buffer.from(
 
 const uploadedFiles = []; // track real files written to disk so we can clean them up
 
+async function seedSeller() {
+  await pool.query(
+    `INSERT INTO "Person" ("id", "email", "name")
+     VALUES (1, 'seller@spindle.test', 'Test Seller')
+     ON CONFLICT ("id") DO NOTHING`,
+  );
+}
+
 async function createItem(overrides = {}) {
   const res = await request(app)
     .post('/marketplace')
@@ -46,14 +54,6 @@ async function createItem(overrides = {}) {
       ...overrides,
     });
   return res;
-}
-
-async function seedSeller() {
-  await pool.query(
-    `INSERT INTO "Person" ("id", "email", "name")
-     VALUES (1, 'seller@spindle.test', 'Test Seller')
-     ON CONFLICT ("id") DO NOTHING`,
-  );
 }
 
 beforeAll(async () => {
