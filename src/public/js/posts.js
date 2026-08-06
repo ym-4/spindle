@@ -829,6 +829,7 @@ function renderPost(post) {
     document.querySelector('.pin-post-btn').addEventListener('click', async () => {
       try {
         const data = await authFetch(`/posts/${post.id}/pin`, { method: 'POST' });
+        console.log(data);
         loadPost(post.id);
       } catch (err) {
         alert(err.message || 'Failed to toggle pin.');
@@ -1068,6 +1069,8 @@ function renderPostEditMode(post) {
     const title = document.getElementById('editTitle').value.trim();
     const content = document.getElementById('editContent').value.trim();
     const category = document.getElementById('editCategory').value;
+
+    console.log(category);
 
     const errEl = document.getElementById('editError');
 
@@ -1399,6 +1402,8 @@ function sortCommentsForDisplay(comments, sortType, allComments = comments) {
     allComments.filter((entry) => parseInt(entry.parent_comment_id) === parseInt(comment.id))
       .length;
   const isOwnComment = (comment) => loggedInUserId && parseInt(comment.user_id) === loggedInUserId;
+
+  console.log(getReplyCount);
 
   return list.sort((a, b) => {
     const aOwn = isOwnComment(a);
@@ -3366,6 +3371,8 @@ function openReportModal(id, type = 'post') {
   const thanksEl = overlay.querySelector('#reportThanks');
   const mainActions = overlay.querySelector('#reportMainActions');
   const cancelBtn = overlay.querySelector('#reportCancelBtn');
+
+  console.log(mainActions);
 
   function submitReport(reason, description) {
     const token = localStorage.getItem('token');

@@ -60,6 +60,8 @@ async function loadProfile() {
   const content = document.getElementById('profileContent');
   const user = getStoredUser();
 
+  console.log(content);
+
   if (!isLoggedIn()) {
     redirectToLogin('profile.html');
     return;
