@@ -191,6 +191,37 @@ function applySpindleFilters(data) {
   return data.filter((item) => SpindleFilters.matches(item));
 }
 
+// prev/next buttons are static elements reused across every loadListings()/
+// loadUserListings() call, unlike the page-num buttons which get torn down
+// and rebuilt each time. Re-attaching a click listener on every call stacks
+// duplicate handlers on the same node. Cloning the node drops any listeners
+// bound to the old one, so we always start from a clean element before
+// binding the current call's handler.
+function bindPaginationNav(totalPages, loadFn) {
+  const prevBtn = document.getElementById('prev-page-btn');
+  const nextBtn = document.getElementById('next-page-btn');
+
+  const freshPrev = prevBtn.cloneNode(true);
+  prevBtn.replaceWith(freshPrev);
+  freshPrev.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      container.innerHTML = '';
+      loadFn();
+    }
+  });
+
+  const freshNext = nextBtn.cloneNode(true);
+  nextBtn.replaceWith(freshNext);
+  freshNext.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      container.innerHTML = '';
+      loadFn();
+    }
+  });
+}
+
 // The public marketplace never shows sold items — that's a fixed business
 // rule, not something the shopper can toggle, so it's applied here directly
 // rather than through SpindleFilters (which only holds user-chosen filters).
@@ -230,20 +261,7 @@ async function loadListings() {
       nextItem.before(li);
     }
 
-    document.getElementById('prev-page-btn').addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
-    document.getElementById('next-page-btn').addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
+    bindPaginationNav(totalPages, loadListings);
 
     // Render this page's items
     if (filtered.length === 0) {
@@ -298,20 +316,7 @@ async function loadUserListings() {
       nextItem.before(li);
     }
 
-    document.getElementById('prev-page-btn').addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
-    document.getElementById('next-page-btn').addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
+    bindPaginationNav(totalPages, loadListings);
 
     // Render this page's items
     if (userListings.length === 0) {
