@@ -55,6 +55,7 @@ const SnakeRouter = require('./routers/Snake.router');
 const somethingRouter = require('./routers/Something.router');
 const studyRoomRouter = require('./routers/StudyRoom.router');
 const sessionsRouter = require('./routers/Sessions.router');
+const uploadRouter = require('./routers/Upload.router');
 
 // Allow Live Server / local dev frontends to call the API on another port
 app.use((req, res, next) => {
@@ -109,6 +110,7 @@ app.use('/somethings', somethingRouter);
 app.use('/study-room', studyRoomRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/upload', uploadRouter);
 app.use('/giphy', giphyRouter);
 
 // 404 handler — if no route above matched the request,
