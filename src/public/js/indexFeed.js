@@ -315,6 +315,11 @@ function showConfirm(title, message, onConfirm) {
   );
 }
 
+//  login required modal
+function showLoginRequiredModal() {
+  document.getElementById('authOverlay').classList.remove('d-none');
+}
+
 //  Timestamp
 function formatTimestamp(createdAt, updatedAt) {
   const created = new Date(createdAt);
@@ -604,6 +609,9 @@ function buildPostCard(post) {
   // report
   card.querySelector('.report-post-btn')?.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (!isLoggedIn) {
+      showLoginRequiredModal();
+    }
     openReportModal(post.id, post.user_id);
   });
 

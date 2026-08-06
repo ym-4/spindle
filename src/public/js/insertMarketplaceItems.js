@@ -171,12 +171,55 @@ const emptyState = document.getElementById('no-listings-state');
 
 const LISTINGS_PER_PAGE = 10;
 
+// loadListings()/loadUserListings() are each triggered from multiple places
+// (initial page load, search input, filter changes, pagination clicks) and
+// none of them wait for a previous call's fetches to finish. Without this
+// guard, a load triggered right after another (e.g. typing in the search box
+// the instant the page finishes loading) results in two overlapping fetches
+// that both render into #listings-container — neither one re-clears it
+// before appending — producing duplicate cards for the same item. Every
+// call bumps the token and stamps its own callbacks with it; a callback that
+// resolves after a newer call has started sees a mismatched token and bails
+// out instead of rendering stale/duplicate results.
+let loadRequestToken = 0;
+
 // Applies the shared SpindleFilters state (search text, price range, tags) if
 // present. Falls back to returning everything unfiltered if filters.js hasn't
 // loaded on this page, so this stays safe to call from anywhere.
 function applySpindleFilters(data) {
   if (typeof SpindleFilters === 'undefined') return data;
   return data.filter((item) => SpindleFilters.matches(item));
+}
+
+// prev/next buttons are static elements reused across every loadListings()/
+// loadUserListings() call, unlike the page-num buttons which get torn down
+// and rebuilt each time. Re-attaching a click listener on every call stacks
+// duplicate handlers on the same node. Cloning the node drops any listeners
+// bound to the old one, so we always start from a clean element before
+// binding the current call's handler.
+function bindPaginationNav(totalPages, loadFn) {
+  const prevBtn = document.getElementById('prev-page-btn');
+  const nextBtn = document.getElementById('next-page-btn');
+
+  const freshPrev = prevBtn.cloneNode(true);
+  prevBtn.replaceWith(freshPrev);
+  freshPrev.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      container.innerHTML = '';
+      loadFn();
+    }
+  });
+
+  const freshNext = nextBtn.cloneNode(true);
+  nextBtn.replaceWith(freshNext);
+  freshNext.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      container.innerHTML = '';
+      loadFn();
+    }
+  });
 }
 
 // The public marketplace never shows sold items — that's a fixed business
@@ -187,12 +230,19 @@ function hideSoldItems(data) {
 }
 
 async function loadListings() {
-  // Update Page Navigation Bar
+  const requestToken = ++loadRequestToken;
   fetchMethod(`${currentUrl}/marketplace/`, (status, data) => {
+    if (requestToken !== loadRequestToken) return; // a newer load has since started
+    if (status !== 200) {
+      console.error('Failed to load listings:', status, data);
+      return;
+    }
+
     const filtered = applySpindleFilters(hideSoldItems(data));
     let totalListings = filtered.length;
     let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
 
+    // Update Page Navigation Bar
     const controls = document.getElementById('pagination-controls');
     const nextItem = document.getElementById('next-page-item');
 
@@ -211,57 +261,43 @@ async function loadListings() {
       nextItem.before(li);
     }
 
-    document.getElementById('prev-page-btn').addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
-    document.getElementById('next-page-btn').addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
-  });
+    bindPaginationNav(totalPages, loadListings);
 
-  // Fetch and Load Listings
-  fetchMethod(`${currentUrl}/marketplace/`, (status, data) => {
-    if (status === 200) {
-      const filtered = applySpindleFilters(hideSoldItems(data));
-
-      if (filtered.length == 0 || !filtered) {
-        emptyState.classList.remove('d-none');
-      } else {
-        emptyState.classList.add('d-none');
-
-        for (
-          let i = (currentPage - 1) * LISTINGS_PER_PAGE;
-          i < LISTINGS_PER_PAGE * currentPage;
-          i++
-        ) {
-          if (!filtered[i]) continue;
-          addListing({ ...filtered[i], mode: 'browse' });
-        }
-      }
+    // Render this page's items
+    if (filtered.length === 0) {
+      emptyState.classList.remove('d-none');
     } else {
-      console.error('Failed to load listings:', status, data);
+      emptyState.classList.add('d-none');
+
+      for (
+        let i = (currentPage - 1) * LISTINGS_PER_PAGE;
+        i < LISTINGS_PER_PAGE * currentPage;
+        i++
+      ) {
+        if (!filtered[i]) continue;
+        addListing({ ...filtered[i], mode: 'browse' });
+      }
     }
   });
 }
 
 // Fetch users Listings
 async function loadUserListings() {
-  // Update Page Navigation Bar
+  const requestToken = ++loadRequestToken;
   fetchMethod(`${currentUrl}/marketplace/`, (status, data) => {
+    if (requestToken !== loadRequestToken) return; // a newer load has since started
+    if (status !== 200) {
+      console.error('Failed to load listings:', status, data);
+      return;
+    }
+
     const userListings = applySpindleFilters(
       data.filter((item) => item.seller_id == localStorage.loggedInUserId),
     );
     let totalListings = userListings.length;
     let totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
 
+    // Update Page Navigation Bar
     const controls = document.getElementById('pagination-controls');
     const nextItem = document.getElementById('next-page-item');
 
@@ -280,45 +316,22 @@ async function loadUserListings() {
       nextItem.before(li);
     }
 
-    document.getElementById('prev-page-btn').addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
-    document.getElementById('next-page-btn').addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        container.innerHTML = '';
-        loadListings();
-      }
-    });
-  });
+    bindPaginationNav(totalPages, loadListings);
 
-  // Fetch and Load Listings
-  fetchMethod(`${currentUrl}/marketplace/`, (status, data) => {
-    if (status === 200) {
-      const userListings = applySpindleFilters(
-        data.filter((item) => item.seller_id == localStorage.loggedInUserId),
-      );
-
-      if (userListings.length == 0) {
-        emptyState.classList.remove('d-none');
-      } else {
-        emptyState.classList.add('d-none');
-
-        for (
-          let i = (currentPage - 1) * LISTINGS_PER_PAGE;
-          i < LISTINGS_PER_PAGE * currentPage;
-          i++
-        ) {
-          if (!userListings[i]) continue;
-          addListing({ ...userListings[i], mode: 'owner' });
-        }
-      }
+    // Render this page's items
+    if (userListings.length === 0) {
+      emptyState.classList.remove('d-none');
     } else {
-      console.error('Failed to load listings:', status, data);
+      emptyState.classList.add('d-none');
+
+      for (
+        let i = (currentPage - 1) * LISTINGS_PER_PAGE;
+        i < LISTINGS_PER_PAGE * currentPage;
+        i++
+      ) {
+        if (!userListings[i]) continue;
+        addListing({ ...userListings[i], mode: 'owner' });
+      }
     }
   });
 }
