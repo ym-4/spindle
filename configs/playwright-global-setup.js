@@ -10,7 +10,7 @@ const TEST_USER = { username: 'alice@example.com', password: 'password123' };
 module.exports = async () => {
   console.log('Setting environment to test');
   console.log('Running migrations for test environment...');
-  execSync('node scripts/reset.js', { stdio: 'inherit', env: process.env });
+  execSync('dotenv -e .env.test -- node scripts/reset.js', { stdio: 'inherit' });
 
   console.log('Logging in test user...');
   const loginRes = await fetch(`${BASE_URL}/auth/login`, {
