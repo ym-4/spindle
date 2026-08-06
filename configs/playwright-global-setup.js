@@ -11,6 +11,7 @@ module.exports = async () => {
   console.log('Setting environment to test');
   console.log('Running migrations for test environment...');
   execSync('dotenv -e .env.test -- node scripts/reset.js', { stdio: 'inherit' });
+  // execSync('node scripts/reset.js', { stdio: 'inherit', env: process.env });
 
   console.log('Logging in test user...');
   const loginRes = await fetch(`${BASE_URL}/auth/login`, {

@@ -703,7 +703,8 @@ module.exports.searchAllPosts = async function searchAllPosts({ search, category
   if (mappedCategory) {
     sql += ` AND p.category = $${idx}`;
     params.push(mappedCategory);
-    idx++;
+    // Fixes Linting: The value assigned to 'idx' is not used in subsequent statements
+    // idx++;
   }
   if (date) {
     const hours = parseInt(date, 10);

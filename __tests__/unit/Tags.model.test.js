@@ -2,8 +2,11 @@ const pool = require('../../src/models/db');
 const {
   findOrCreateTag,
   getAllTags,
-  getListingsByTag,
-  setListingTags,
+  // To fix linting:
+  // 5:3  error  'getListingsByTag' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  // 6:3  error  'setListingTags' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  // getListingsByTag,
+  // setListingTags,
 } = require('../../src/models/Tags.model');
 
 // ── Mocking ──────────────────────────────────────────────

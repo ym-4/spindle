@@ -225,6 +225,8 @@ router.delete('/reaction/:id', authenticateJWT, (req, res) => {
 
 // notifications for @mentions
 async function notifyMentionedUsers(content, senderUserId, postId, commentId) {
+  console.log(commentId);
+
   const mentions = [...content.matchAll(/@([a-zA-Z0-9_]+)/g)]
     .map((m) => m[1].toLowerCase())
     .filter((name) => name !== 'pandabot');

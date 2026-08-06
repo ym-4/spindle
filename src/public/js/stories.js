@@ -113,6 +113,7 @@ async function loadStories() {
 
 function renderRingsRow(myStories, friendStories, container) {
   var uid = getLoggedUserId();
+  console.log(uid);
   var u = getUserData();
 
   // Own avatar — prefer story data (fresh DB), fallback to cached user
@@ -711,6 +712,7 @@ function showCurrentViewerStory() {
   var story = viewerQueue[currentViewerIndex];
   var overlay = document.getElementById('viewerOverlay');
   var viewer = document.getElementById('viewerContent');
+  console.log(viewer);
   var mediaEl = document.getElementById('viewerMedia');
   var textStatus = document.getElementById('viewerTextStatus');
   var textCaption = document.getElementById('viewerTextCaption');

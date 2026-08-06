@@ -26,12 +26,13 @@
   function byId(id) {
     return document.getElementById(id);
   }
-  function hasClass(el, c) {
-    return el.classList.contains(c);
-  }
-  function toggleClass(el, c, force) {
-    el.classList.toggle(c, force);
-  }
+  // Not used
+  // function hasClass(el, c) {
+  //   return el.classList.contains(c);
+  // }
+  // function toggleClass(el, c, force) {
+  //   el.classList.toggle(c, force);
+  // }
 
   // ---- Theme ----
   function applyTheme(theme) {

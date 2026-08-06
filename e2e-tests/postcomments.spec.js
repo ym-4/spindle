@@ -41,9 +41,10 @@ async function waitForCommentsLoaded(page) {
   });
 }
 
-function allComments(page) {
-  return page.locator('.comment-item');
-}
+// To fix linting: 'allComments' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+// function allComments(page) {
+//   return page.locator('.comment-item');
+// }
 
 function topLevelComments(page) {
   return page.locator('.comment-item:not(.comment-reply)');

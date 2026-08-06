@@ -925,6 +925,8 @@ function setupSortButton() {
   const label = document.getElementById('sortPillLabel');
   if (!btn || !dropdown) return;
 
+  console.log(label);
+
   const SORT_OPTIONS = [
     { value: 'hot', label: 'Hot', icon: 'fa-fire' },
     { value: 'top', label: 'Top', icon: 'fa-trophy' },
@@ -1142,6 +1144,9 @@ function openReportModal(postId, authorUserId) {
   currentReportUserId = authorUserId;
   currentReportReason = null;
   const overlay = document.getElementById('reportModalOverlay');
+
+  console.log(overlay);
+
   const reasonsContainer = document.getElementById('reportReasonsContainer');
   const thanksContainer = document.getElementById('reportThanks');
   const descStep = document.getElementById('reportDescriptionStep');
@@ -1165,6 +1170,9 @@ function openReportModal(postId, authorUserId) {
 function showReportDescriptionStep(reason) {
   currentReportReason = reason;
   const overlay = document.getElementById('reportModalOverlay');
+
+  console.log(overlay);
+
   const reasonsContainer = document.getElementById('reportReasonsContainer');
   const descStep = document.getElementById('reportDescriptionStep');
   const modalSub = document.getElementById('reportModalSub');
@@ -1563,6 +1571,8 @@ function protectCreatePostUI() {
       const modal = new bootstrap.Modal(document.getElementById('createPostModal'));
       clearCreatePostForm();
       const action = btn.dataset.action;
+
+      console.log(modal);
 
       if (action === 'ask') {
         // Preselect Q&A

@@ -647,7 +647,7 @@ function recordRecentlyViewed(post) {
   const key = recentlyViewedKey();
   if (!key || !post?.id) return; // not logged in, or no recents
 
-  let list = [];
+  let list;
   try {
     list = JSON.parse(localStorage.getItem(key)) || [];
   } catch {
