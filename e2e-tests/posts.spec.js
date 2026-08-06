@@ -51,7 +51,7 @@ async function deletePost(page, title) {
   await expect(postCards(page).filter({ hasText: title })).toHaveCount(0);
 }
 
-// From the feed, open a post's dropdown and click "Edit post", landing on posts.html?id=<id>&edit=true with the edit mode open
+// opens a post's dropdown and click "Edit post"
 async function goToEditPage(page, title) {
   const card = postCards(page).filter({ hasText: title });
   await card.locator('.post-menu-btn').click();

@@ -13,7 +13,6 @@ test.beforeEach(async ({ page }) => {
 });
 
 // ── Helpers ──────────────────────────────────────────────
-
 async function createTestPost(page, overrides = {}) {
   const userId = await page.evaluate(() => localStorage.getItem('loggedInUserId'));
 
@@ -31,6 +30,7 @@ async function createTestPost(page, overrides = {}) {
 
 async function goToPost(page, postId) {
   await page.goto(`${API_BASE}/posts.html?id=${postId}`);
+  await expect(page.locator('#commentsSection')).toBeVisible({ timeout: 15000 });
   await waitForCommentsLoaded(page);
 }
 
