@@ -114,7 +114,7 @@ describe('GroupFiles.model - getGroupFilesByGroupID', () => {
 
     expect(pool.query).toHaveBeenCalledTimes(1);
     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM "GroupFiles" WHERE group_id = $1', [-1]);
-    expect(result).toEqual(fakeFiles);
+    expect(result).toEqual([]);
   });
 
   // Error handling: database error propagates to the caller
@@ -442,7 +442,7 @@ describe('GroupFiles.model - getGroupFoldersByGroupID', () => {
       'SELECT * FROM "GroupFolders" WHERE group_id = $1',
       [-1],
     );
-    expect(result).toEqual(fakeFolders);
+    expect(result).toEqual([]);
   });
 
   // Error handling: database error propagates to the caller

@@ -1,5 +1,16 @@
 const pool = require('./db');
 
+(async function migrateFriendsSchema() {
+  try {
+    await pool.query(`ALTER TABLE "FriendRequests" ADD COLUMN IF NOT EXISTS message TEXT`);
+    await pool.query(
+      `ALTER TABLE "UserFriends" ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT FALSE`,
+    );
+  } catch {
+    /* tables may not exist yet (test setup) */
+  }
+})();
+
 function avatarColor(id) {
   const colors = ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#ec4899', '#06b6d4'];
   return colors[id % colors.length];
@@ -85,16 +96,18 @@ async function mutualFriendsCount(userId, otherId) {
 }
 
 module.exports.searchUsers = async function searchUsers(viewerId, query) {
-  const q = `%${query.trim()}%`;
+  const prefix = `${query.trim()}%`;
+  const wordPrefix = `% ${query.trim()}%`;
+  const substr = `%${query.trim()}%`;
   const { rows } = await pool.query(
     `SELECT id, name, display_name, email, avatar, profile_image, bio
      FROM "Person"
      WHERE role = 'user' AND is_active = TRUE AND deleted_at IS NULL
        AND id != $1
-       AND (name ILIKE $2 OR email ILIKE $2 OR COALESCE(display_name, '') ILIKE $2)
+       AND ((name ILIKE $2 OR name ILIKE $3 OR COALESCE(display_name, '') ILIKE $2 OR COALESCE(display_name, '') ILIKE $3) OR email ILIKE $4)
      ORDER BY name
      LIMIT 20`,
-    [viewerId, q],
+    [viewerId, prefix, wordPrefix, substr],
   );
 
   const results = [];
@@ -135,22 +148,29 @@ module.exports.getPublicProfile = async function getPublicProfile(viewerId, targ
   };
 };
 
-module.exports.listFriends = async function listFriends(userId) {
+module.exports.listFriends = async function listFriends(userId, sortBy) {
+  let orderClause = 'p.name';
+  if (sortBy === 'recent') orderClause = 'friends_since DESC NULLS LAST';
+  else if (sortBy === 'group')
+    orderClause =
+      '(SELECT COUNT(*) FROM "GroupMembers" g1 JOIN "GroupMembers" g2 ON g1.group_id = g2.group_id WHERE g1.user_id = uf.user_id AND g2.user_id = uf.friend_id) DESC';
+
   const { rows } = await pool.query(
     `SELECT p.id, p.name, p.display_name, p.email, p.avatar, p.profile_image, p.bio,
-            uf.friend_id, fr.created_at AS friends_since
+            uf.friend_id, uf.is_favorite, fr.created_at AS friends_since
      FROM "UserFriends" uf
      JOIN "Person" p ON p.id = uf.friend_id
      LEFT JOIN "FriendRequests" fr ON fr.status = 'accepted'
        AND ((fr.sender_id = uf.user_id AND fr.receiver_id = uf.friend_id)
          OR (fr.sender_id = uf.friend_id AND fr.receiver_id = uf.user_id))
      WHERE uf.user_id = $1
-     ORDER BY p.name`,
+     ORDER BY uf.is_favorite DESC, ${orderClause}`,
     [userId],
   );
   return rows.map((r) =>
     formatUser(r, {
       relationship: 'friends',
+      is_favorite: r.is_favorite,
       friends_since: r.friends_since,
       mutual_friends: 0,
     }),
@@ -160,7 +180,7 @@ module.exports.listFriends = async function listFriends(userId) {
 module.exports.listRequests = async function listRequests(userId, tab) {
   const isReceived = tab === 'received';
   const { rows } = await pool.query(
-    `SELECT fr.id, fr.sender_id, fr.receiver_id, fr.created_at,
+    `SELECT fr.id, fr.sender_id, fr.receiver_id, fr.message, fr.created_at,
             p.id AS person_id, p.name, p.display_name, p.avatar, p.profile_image, p.bio
      FROM "FriendRequests" fr
      JOIN "Person" p ON p.id = ${isReceived ? 'fr.sender_id' : 'fr.receiver_id'}
@@ -171,6 +191,7 @@ module.exports.listRequests = async function listRequests(userId, tab) {
 
   return rows.map((r) => ({
     request_id: r.id,
+    message: r.message,
     created_at: r.created_at,
     user: formatUser({
       id: r.person_id,
@@ -184,7 +205,7 @@ module.exports.listRequests = async function listRequests(userId, tab) {
   }));
 };
 
-module.exports.sendRequest = async function sendRequest(senderId, receiverId) {
+module.exports.sendRequest = async function sendRequest(senderId, receiverId, message) {
   if (senderId === receiverId)
     throw Object.assign(new Error('Cannot add yourself.'), { status: 400 });
 
@@ -199,11 +220,11 @@ module.exports.sendRequest = async function sendRequest(senderId, receiverId) {
   }
 
   const { rows } = await pool.query(
-    `INSERT INTO "FriendRequests" (sender_id, receiver_id, status)
-     VALUES ($1, $2, 'pending')
-     ON CONFLICT (sender_id, receiver_id) DO UPDATE SET status = 'pending', created_at = NOW()
+    `INSERT INTO "FriendRequests" (sender_id, receiver_id, status, message)
+     VALUES ($1, $2, 'pending', $3)
+     ON CONFLICT (sender_id, receiver_id) DO UPDATE SET status = 'pending', created_at = NOW(), message = COALESCE($3, "FriendRequests".message)
      RETURNING id`,
-    [senderId, receiverId],
+    [senderId, receiverId, message || null],
   );
 
   const sender = await pool.query(`SELECT name, display_name FROM "Person" WHERE id = $1`, [
@@ -272,3 +293,61 @@ module.exports.unfriend = async function unfriend(userId, friendId) {
 };
 
 module.exports.getRelationship = getRelationship;
+
+module.exports.mutualFriendsList = async function mutualFriendsList(userId, otherId) {
+  const { rows } = await pool.query(
+    `SELECT p.id, p.name, p.display_name, p.avatar, p.profile_image
+     FROM "Person" p
+     JOIN "UserFriends" a ON a.friend_id = p.id AND a.user_id = $1
+     JOIN "UserFriends" b ON b.friend_id = p.id AND b.user_id = $2
+     ORDER BY p.name`,
+    [userId, otherId],
+  );
+  return rows.map((r) => formatUser(r, {}));
+};
+
+module.exports.suggestedFriends = async function suggestedFriends(userId) {
+  const { rows } = await pool.query(
+    `SELECT p.id, p.name, p.display_name, p.email, p.avatar, p.profile_image, p.bio,
+            COUNT(DISTINCT gm.group_id)::int AS shared_groups
+     FROM "Person" p
+     JOIN "GroupMembers" gm ON gm.user_id = p.id
+     WHERE gm.group_id IN (
+       SELECT group_id FROM "GroupMembers" WHERE user_id = $1
+     )
+     AND p.id != $1
+     AND p.id NOT IN (
+       SELECT friend_id FROM "UserFriends" WHERE user_id = $1
+     )
+     AND p.id NOT IN (
+       SELECT CASE WHEN sender_id = $1 THEN receiver_id ELSE sender_id END
+       FROM "FriendRequests"
+       WHERE (sender_id = $1 OR receiver_id = $1) AND status = 'pending'
+     )
+     AND p.role = 'user' AND p.is_active = TRUE AND p.deleted_at IS NULL
+     GROUP BY p.id
+     ORDER BY shared_groups DESC, p.name
+     LIMIT 10`,
+    [userId],
+  );
+
+  const results = [];
+  for (const row of rows) {
+    const mutual = await mutualFriendsCount(userId, row.id);
+    results.push(formatUser(row, { mutual_friends: mutual, shared_groups: row.shared_groups }));
+  }
+  return results;
+};
+
+module.exports.toggleFavorite = async function toggleFavorite(userId, friendId) {
+  const { rows } = await pool.query(
+    `UPDATE "UserFriends" SET is_favorite = NOT is_favorite
+     WHERE user_id = $1 AND friend_id = $2
+     RETURNING is_favorite`,
+    [userId, friendId],
+  );
+  if (rows.length === 0) throw Object.assign(new Error('Not friends.'), { status: 404 });
+  return rows[0].is_favorite;
+};
+
+module.exports.mutualFriendsCount = mutualFriendsCount;

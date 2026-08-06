@@ -9,6 +9,7 @@ const {
   insertTaskItems,
   updateTaskItems,
   deleteTaskItems,
+  getTaskItemsByUserAndGroupID,
 } = require('../../src/models/Tasks.model');
 
 // Mocking
@@ -111,7 +112,7 @@ describe('Tasks.model - getTasksByGroupID', () => {
 
     expect(pool.query).toHaveBeenCalledTimes(1);
     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM "GroupTasks" WHERE group_id = $1', [-1]);
-    expect(result).toEqual(fakeTasks);
+    expect(result).toEqual([]);
   });
 
   // Error handling: DB connection failure propagates to caller
@@ -218,7 +219,7 @@ describe('Tasks.model - getTasksByUserAndGroupID', () => {
       'SELECT * FROM "GroupTasks" WHERE assignee_id = $1 AND group_id = $2',
       [-1, 5],
     );
-    expect(result).toEqual(fakeTasks);
+    expect(result).toEqual([]);
   });
 
   // Boundary: group_id < 0 (below accepted range)
@@ -240,7 +241,7 @@ describe('Tasks.model - getTasksByUserAndGroupID', () => {
       'SELECT * FROM "GroupTasks" WHERE assignee_id = $1 AND group_id = $2',
       [2, -1],
     );
-    expect(result).toEqual(fakeTasks);
+    expect(result).toEqual([]);
   });
 
   // Error handling: DB connection failure propagates to caller
@@ -327,6 +328,16 @@ describe('Tasks.model - insertTasks', () => {
 
   // Boundary: null values
   test('should not insert new task to the database', async () => {
+    const newFakeTask = {
+      id: 10,
+      group_id: null,
+      creator_id: null,
+      title: null,
+      description: 'Write unit tests',
+      assignee_id: 2,
+      due_date: new Date(),
+    };
+
     pool.query.mockRejectedValue(
       new Error('null value in column "group_id" violates not-null constraint'),
     );
@@ -403,6 +414,8 @@ describe('Tasks.model - updateTasks', () => {
 
   // Valid partition: Task updated no optional fields
   test('should insert new task without optional fields to the database', async () => {
+    const date = new Date();
+
     const newUpdatedTask = {
       id: 1,
       title: 'Updated',

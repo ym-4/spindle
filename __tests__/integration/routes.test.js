@@ -7,26 +7,20 @@ const pool = require('../../src/models/db');
 // which runs scripts/reset.js before any test file executes.
 
 beforeEach(async () => {
-  // Clean slate for every test
-  await pool.query('DELETE FROM "Notifications"');
-  await pool.query('DELETE FROM "Stories"');
-  await pool.query('DELETE FROM "MessageReadState"');
-  await pool.query('DELETE FROM "MessageReactions"');
-  await pool.query('DELETE FROM "CallLogs"');
-  await pool.query('DELETE FROM "PersonalMessages"');
-  await pool.query('DELETE FROM "FriendRequests"');
-  await pool.query('DELETE FROM "UserFriends"');
-  await pool.query('DELETE FROM "EmailVerificationCodes"');
-  await pool.query('DELETE FROM "TrustedDevices"');
-  await pool.query('DELETE FROM "UserSessions"');
-  await pool.query('DELETE FROM "Something"');
-  await pool.query('DELETE FROM "Person"');
+  // Clean slate for every test — truncate ALL tables in public schema with CASCADE
+  // to avoid FK ordering issues and missing-table problems
+  await pool.query(`
+    DO $$ DECLARE
+      r RECORD;
+    BEGIN
+      FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';
+      END LOOP;
+    END $$;
+  `);
 });
 
 afterAll(async () => {
-  await pool.query('DELETE FROM "PersonalMessages"');
-  await pool.query('DELETE FROM "Something"');
-  await pool.query('DELETE FROM "Person"');
   await pool.end();
 });
 

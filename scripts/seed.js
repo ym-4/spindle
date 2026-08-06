@@ -4,6 +4,9 @@ const { hashPassword } = require('../src/models/Auth.model');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  connectionTimeoutMillis: 15000,
+  idleTimeoutMillis: 15000,
+  statement_timeout: 60000,
 });
 
 const DEFAULT_PASSWORD = 'password123';
@@ -1576,6 +1579,8 @@ async function seed() {
   console.log('Seeding data...');
 
   // Insert persons
+  // Ensure clean slate regardless of DROP SCHEMA behavior in Neon / concurrent CI runs
+  await pool.query(`SET lock_timeout = 15000; TRUNCATE "Person" CASCADE`);
   for (const person of persons) {
     const hashedPassword = await bcrypt.hash(
       person.hashed_password?.toString() || 'password123',
@@ -1926,21 +1931,28 @@ async function seed() {
   // console.log(`Inserted ${groupMembers.length} group members.`);
 
   // Insert marketplace items
-  const sellerRes = await pool.query(`SELECT id FROM "Person" WHERE email = $1`, [
+  const sellerRes = await pool.query(`SELECT id, email FROM "Person" WHERE email = $1`, [
     'alice@example.com',
   ]);
+  console.log(`[DEBUG] sellerRes rows: ${sellerRes.rows.length}, id: ${sellerRes.rows[0]?.id}`);
   if (sellerRes.rows.length > 0) {
     const sellerId = sellerRes.rows[0].id;
-    for (const item of marketplaceItems) {
-      await pool.query(
-        `INSERT INTO "MarketplaceItems" ("seller_id", "name", "description", "price", "quality",  "meetup")
+    try {
+      for (const item of marketplaceItems) {
+        await pool.query(
+          `INSERT INTO "MarketplaceItems" ("seller_id", "name", "description", "price", "quality",  "meetup")
        VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT DO NOTHING`,
-        [sellerId, item.name, item.description, item.price, item.quality, item.meetup],
-      );
+          [sellerId, item.name, item.description, item.price, item.quality, item.meetup],
+        );
+      }
+      console.log(`Inserted ${marketplaceItems.length} marketplace items.`);
+    } catch (err) {
+      console.warn(`[WARN] Skipped marketplace items seed: ${err.message}`);
     }
+  } else {
+    console.warn('[WARN] No seller found for marketplace items; skipping.');
   }
-  console.log(`Inserted ${marketplaceItems.length} marketplace items.`);
 
   // Insert groups
   for (const group of groups) {

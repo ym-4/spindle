@@ -1,5 +1,6 @@
 const express = require('express');
 const createError = require('http-errors');
+const upload = require('../middlewares/upload');
 const {
   listContacts,
   markConversationRead,
@@ -13,6 +14,12 @@ const {
   setReaction,
   removeReaction,
   getMessageReactions,
+  muteConversation,
+  unmuteConversation,
+  isMuted,
+  pinChat,
+  unpinChat,
+  getConversationReadState,
 } = require('../models/Message.model');
 const Friends = require('../models/Friends.model');
 const { authenticateJWT } = require('../middlewares/auth.middleware');
@@ -49,6 +56,7 @@ router.get('/with/:userId', async (req, res, next) => {
     const since = req.query.since || null;
     const messages = await getConversation(req.user.id, otherUserId, since);
     await markConversationRead(req.user.id, otherUserId);
+    const readState = await getConversationReadState(req.user.id, otherUserId);
     res.status(200).json({
       otherUser: {
         id: otherUser.id,
@@ -56,23 +64,60 @@ router.get('/with/:userId', async (req, res, next) => {
         avatar: otherUser.avatar,
       },
       messages,
+      readState,
     });
   } catch (err) {
     next(err);
   }
 });
 
-router.post('/', async (req, res, next) => {
+router.get('/with/:userId/search', async (req, res, next) => {
+  try {
+    const otherUserId = Number.parseInt(req.params.userId, 10);
+    const q = req.query.q?.trim()?.toLowerCase();
+    if (Number.isNaN(otherUserId) || !q) {
+      return res.status(400).json({ error: 'Invalid user id or query.' });
+    }
+    const pool = require('../models/db');
+    const { rows } = await pool.query(
+      `SELECT m.id, m.body, m.created_at
+       FROM "PersonalMessages" m
+       WHERE ((m.sender_id = $1 AND m.recipient_id = $2) OR (m.sender_id = $2 AND m.recipient_id = $1))
+         AND m.deleted_at IS NULL
+         AND LOWER(m.body) LIKE $3
+       ORDER BY m.created_at ASC`,
+      [req.user.id, otherUserId, `%${q}%`],
+    );
+    res.status(200).json({ results: rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/read-state/:userId', async (req, res, next) => {
+  try {
+    const peerId = Number.parseInt(req.params.userId, 10);
+    if (Number.isNaN(peerId)) return res.status(400).json({ error: 'Invalid user id.' });
+    const readState = await getConversationReadState(req.user.id, peerId);
+    res.status(200).json({ readState });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/', upload.single('image'), async (req, res, next) => {
   try {
     const recipientId = Number.parseInt(req.body?.recipientId, 10);
-    const body = req.body?.body?.trim();
+    const body = req.body?.body?.trim() || '';
+    const replyToId = req.body?.replyToId ? Number.parseInt(req.body.replyToId, 10) : null;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     if (Number.isNaN(recipientId)) {
       return res.status(400).json({ error: 'Recipient id is required.' });
     }
 
-    if (!body) {
-      return res.status(400).json({ error: 'Message body cannot be empty.' });
+    if (!body && !imageUrl) {
+      return res.status(400).json({ error: 'Message body or image is required.' });
     }
 
     if (recipientId === req.user.id) {
@@ -88,18 +133,20 @@ router.post('/', async (req, res, next) => {
       return res.status(403).json({ error: 'Add them as a friend before messaging.' });
     }
 
-    const message = await sendMessage(req.user.id, recipientId, body);
+    const message = await sendMessage(req.user.id, recipientId, body, imageUrl, replyToId);
     try {
       const { sendToUser } = require('../realtime/wsHub');
       sendToUser(recipientId, { type: 'message', message });
-      const Notification = require('../models/Notification.model');
-      const sender = await Friends.getPublicProfile(recipientId, req.user.id);
-      await Notification.create(recipientId, {
-        type: 'message',
-        title: `New message from ${sender?.display_name || sender?.name}`,
-        body: body.slice(0, 120),
-        ref_id: req.user.id,
-      });
+      if (body) {
+        const Notification = require('../models/Notification.model');
+        const sender = await Friends.getPublicProfile(recipientId, req.user.id);
+        await Notification.create(recipientId, {
+          type: 'message',
+          title: `New message from ${sender?.display_name || sender?.name}`,
+          body: body.slice(0, 120),
+          ref_id: req.user.id,
+        });
+      }
     } catch {
       /* ws optional */
     }
@@ -191,6 +238,61 @@ router.delete('/:messageId/reactions', async (req, res, next) => {
     if (Number.isNaN(messageId)) return res.status(400).json({ error: 'Invalid message id.' });
     await removeReaction(messageId, req.user.id);
     res.status(200).json({ message: 'Reaction removed.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/mute/:peerId', async (req, res, next) => {
+  try {
+    const peerId = Number.parseInt(req.params.peerId, 10);
+    if (Number.isNaN(peerId)) return res.status(400).json({ error: 'Invalid peer id.' });
+    const muted = await isMuted(req.user.id, peerId);
+    res.status(200).json({ muted });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/mute/:peerId', async (req, res, next) => {
+  try {
+    const peerId = Number.parseInt(req.params.peerId, 10);
+    if (Number.isNaN(peerId)) return res.status(400).json({ error: 'Invalid peer id.' });
+    await muteConversation(req.user.id, peerId);
+    res.status(200).json({ muted: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/mute/:peerId', async (req, res, next) => {
+  try {
+    const peerId = Number.parseInt(req.params.peerId, 10);
+    if (Number.isNaN(peerId)) return res.status(400).json({ error: 'Invalid peer id.' });
+    await unmuteConversation(req.user.id, peerId);
+    res.status(200).json({ muted: false });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/pin/:peerId', async (req, res, next) => {
+  try {
+    const peerId = Number.parseInt(req.params.peerId, 10);
+    if (Number.isNaN(peerId)) return res.status(400).json({ error: 'Invalid peer id.' });
+    await pinChat(req.user.id, peerId);
+    res.status(200).json({ pinned: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/pin/:peerId', async (req, res, next) => {
+  try {
+    const peerId = Number.parseInt(req.params.peerId, 10);
+    if (Number.isNaN(peerId)) return res.status(400).json({ error: 'Invalid peer id.' });
+    await unpinChat(req.user.id, peerId);
+    res.status(200).json({ pinned: false });
   } catch (err) {
     next(err);
   }

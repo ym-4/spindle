@@ -80,6 +80,7 @@ export default [
         getWsUrl: 'readonly',
         connectSocket: 'readonly',
         onWs: 'readonly',
+        sendWs: 'readonly',
         sendChatMessage: 'readonly',
         sendCallInvite: 'readonly',
         sendCallAccept: 'readonly',
