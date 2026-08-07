@@ -51,7 +51,7 @@ module.exports.insertPerson = async function insertPerson(data) {
 module.exports.login = async function login(data) {
   const VALUES = [data.name];
   const { rows } = await pool.query(
-    'SELECT id, email, name, avatar FROM "Person" WHERE name = $1',
+    'SELECT id, email, name, avatar, hashed_password FROM "Person" WHERE name = $1',
     VALUES,
   );
   return rows;

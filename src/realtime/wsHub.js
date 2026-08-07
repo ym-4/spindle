@@ -274,7 +274,7 @@ function attachWebSocket(server) {
     });
   });
 
-  return { sendToUser, pushNotification };
+  return { sendToUser, pushNotification, wss };
 }
 
 module.exports = { attachWebSocket, sendToUser, pushNotification };

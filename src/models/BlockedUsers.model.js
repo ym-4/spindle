@@ -3,6 +3,14 @@ const pool = require('./db');
 module.exports.insertBlock = async function insertBlock(data) {
   try {
     await pool.query(
+      `CREATE TABLE IF NOT EXISTS "BlockedUsers" (
+        blocker_id INTEGER NOT NULL,
+        blocked_id INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        PRIMARY KEY (blocker_id, blocked_id)
+      )`,
+    );
+    await pool.query(
       `ALTER TABLE "BlockedUsers" ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()`,
     );
   } catch {}
