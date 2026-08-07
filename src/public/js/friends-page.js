@@ -349,7 +349,7 @@ function loadOnline() {
   });
   if (online.length === 0) {
     list.innerHTML =
-      '<div class="friends-empty"><div class="friends-empty-icon"><i class="fas fa-wifi-slash"></i></div><p>No friends currently online</p><p class="small text-muted">When friends are active online, they\'ll show up here.</p></div>';
+      '<div class="friends-empty"><div class="friends-empty-icon"><i class="fas fa-users-slash"></i></div><p>No friends currently online</p><p class="small text-muted">When friends are active online, they\'ll show up here.</p></div>';
     return;
   }
   list.innerHTML = online

@@ -6,22 +6,30 @@ const Tag = require('../../src/models/Tags.model');
 
 // ── DB Setup / Teardown ──────────────────────────────────
 beforeEach(async () => {
-  await pool.query('DELETE FROM "ItemTags"');
-  await pool.query('DELETE FROM "Tags"');
-  await pool.query('DELETE FROM "MarketplaceItems"');
-  await pool.query('DELETE FROM "UserSessions"');
-  await pool.query('DELETE FROM "Person"');
+  await pool.query(`
+    DO $$ DECLARE
+      r RECORD;
+    BEGIN
+      FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';
+      END LOOP;
+    END $$;
+  `);
 
   Tag.getListingsByTag = jest.fn();
   Tag.setListingTags = jest.fn();
 });
 
 afterAll(async () => {
-  await pool.query('DELETE FROM "ItemTags"');
-  await pool.query('DELETE FROM "Tags"');
-  await pool.query('DELETE FROM "MarketplaceItems"');
-  await pool.query('DELETE FROM "UserSessions"');
-  await pool.query('DELETE FROM "Person"');
+  await pool.query(`
+    DO $$ DECLARE
+      r RECORD;
+    BEGIN
+      FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';
+      END LOOP;
+    END $$;
+  `);
   await pool.end();
 });
 

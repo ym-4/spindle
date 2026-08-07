@@ -57,6 +57,7 @@
       "!src/server.js",
       "!src/public/**"
     ],
-    "coverageDirectory": "coverage-report"
+    "coverageDirectory": "coverage-report",
+    "maxWorkers": 1
   }
 }

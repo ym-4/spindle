@@ -1,4 +1,4 @@
-/* global authFetch, getToken, getStoredUser, onWs, sendWs */
+/* global API_BASE, authFetch, getToken, getStoredUser, onWs, sendWs */
 
 // ── State ──
 let sessions = [];
@@ -430,8 +430,13 @@ async function startRecording() {
       const formData = new FormData();
       formData.append('file', blob, `session-${activeSessionId}-${Date.now()}.webm`);
       try {
-        const res = await authFetch('/upload', { method: 'POST', body: formData });
+        const res = await fetch(`${API_BASE}/upload`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${getToken()}` },
+          body: formData,
+        });
         const body = await res.json();
+        if (!res.ok) throw new Error(body.error || 'Upload failed');
         if (body.filePath) {
           await api(`/${activeSessionId}/recordings`, {
             method: 'POST',

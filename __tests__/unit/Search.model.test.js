@@ -28,7 +28,26 @@ describe('Search.model - searchAll (query term handling)', () => {
     });
 
     const [sql, params] = pool.query.mock.calls[0];
-    expect(sql).toContain('WHERE (p.title ILIKE $1 OR p.content ILIKE $1)');
+    expect(sql).toContain('p.title ILIKE $1 OR p.content ILIKE $1');
+    expect(params).toEqual(['%react%']);
+  });
+
+  test('should also match posts via a tag name using the same $1 term', async () => {
+    pool.query.mockResolvedValue({ rows: [] });
+
+    await searchAll({
+      query: 'react',
+      category: null,
+      date_from: null,
+      date_to: null,
+      sort: 'newest',
+    });
+
+    const [sql, params] = pool.query.mock.calls[0];
+    expect(sql).toContain('EXISTS (');
+    expect(sql).toContain('FROM "PostTags" pt');
+    expect(sql).toContain('JOIN "Tags" t ON t.id = pt.tag_id');
+    expect(sql).toContain('t.name ILIKE $1');
     expect(params).toEqual(['%react%']);
   });
 

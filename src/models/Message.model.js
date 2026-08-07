@@ -122,7 +122,7 @@ module.exports.getConversation = async function getConversation(userId, otherUse
   const params = [userId, otherUserId];
   let sinceClause = '';
   if (since) {
-    sinceClause = ' AND created_at > $3';
+    sinceClause = ' AND m.created_at > $3';
     params.push(since);
   }
   const { rows } = await pool.query(
