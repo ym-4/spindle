@@ -46,11 +46,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ── API ──
 async function api(path, opts = {}) {
   const res = await authFetch(`/sessions${path}`, opts);
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `HTTP ${res.status}`);
+  if (res && res.error) {
+    throw new Error(res.error);
   }
-  return res.json();
+  return res;
 }
 
 // ── Load sessions ──
