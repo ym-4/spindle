@@ -49,7 +49,14 @@ module.exports.searchAll = async function searchAll(data) {
            per.name AS author_name, NULL AS description, NULL::int AS post_id
     FROM "Posts" p
     JOIN "Person" per ON p.user_id = per.id
-    WHERE (p.title ILIKE $1 OR p.content ILIKE $1)
+    WHERE (
+      p.title ILIKE $1 OR p.content ILIKE $1
+      OR EXISTS (
+        SELECT 1 FROM "PostTags" pt
+        JOIN "Tags" t ON t.id = pt.tag_id
+        WHERE pt.post_id = p.id AND t.name ILIKE $1
+      )
+    )
     ${postCategoryFilter}
     ${postDateFilter}
 
@@ -87,23 +94,6 @@ module.exports.searchAll = async function searchAll(data) {
            per.name AS author_name, NULL AS description, NULL::int AS post_id
     FROM "Person" per
     WHERE per.name ILIKE $1
-
-    UNION ALL
-
-    SELECT 'post' AS result_type,
-           p.id,
-           p.title,
-           p.content,
-           p.category,
-           p.created_at,
-           per.name AS author_name,
-           NULL AS description,
-           NULL::int AS post_id
-    FROM "Posts" p
-    JOIN "PostTags" pt ON pt.post_id = p.id
-    JOIN "Tags"     t  ON t.id       = pt.tag_id
-    JOIN "Person"  per ON per.id     = p.user_id
-    WHERE t.name ILIKE $1
 
     ORDER BY ${orderBy}
     `,
