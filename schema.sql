@@ -644,6 +644,99 @@ CREATE TABLE IF NOT EXISTS "OrderItems" (
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON "OrderItems"("order_id");
 
 -- -------------------------------------------------------------------------------------
+--                                  Reports / Deadlines / Chat / Study Sessions
+-- -------------------------------------------------------------------------------------
+
+CREATE TABLE "Reports" (
+  "id"        SERIAL PRIMARY KEY,
+  "post_id"   INT NOT NULL REFERENCES "Posts"("id") ON DELETE CASCADE,
+  "user_id"   INT NOT NULL REFERENCES "Person"("id") ON DELETE CASCADE,
+  "reason"    VARCHAR(100) NOT NULL,
+  "description" TEXT DEFAULT '',
+  "dismissed" BOOLEAN DEFAULT FALSE,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE ("post_id", "user_id")
+);
+
+CREATE TABLE "GroupDeadlines" (
+  "id" SERIAL NOT NULL,
+  "group_id" INT NOT NULL,
+  "title" TEXT NOT NULL,
+  "deadline_date" TIMESTAMPTZ NOT NULL,
+  "created_by" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "GroupDeadlines_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("group_id") REFERENCES "Groups"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("created_by") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "ChatMute" (
+  "user_id" INT NOT NULL,
+  "peer_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "ChatMute_pkey" PRIMARY KEY ("user_id", "peer_id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("peer_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "ChatPin" (
+  "user_id" INT NOT NULL,
+  "peer_id" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "ChatPin_pkey" PRIMARY KEY ("user_id", "peer_id"),
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("peer_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "StudySessions" (
+  "id" SERIAL NOT NULL,
+  "host_id" INT NOT NULL,
+  "title" TEXT NOT NULL DEFAULT '',
+  "description" TEXT DEFAULT '',
+  "scheduled_at" TIMESTAMP NOT NULL,
+  "status" VARCHAR(20) NOT NULL DEFAULT 'scheduled',
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "StudySessions_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("host_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "SessionParticipants" (
+  "id" SERIAL NOT NULL,
+  "session_id" INT NOT NULL,
+  "user_id" INT NOT NULL,
+  "status" VARCHAR(20) NOT NULL DEFAULT 'invited',
+  "joined_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "SessionParticipants_pkey" PRIMARY KEY ("id"),
+  UNIQUE ("session_id", "user_id"),
+  FOREIGN KEY ("session_id") REFERENCES "StudySessions"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "SessionTasks" (
+  "id" SERIAL NOT NULL,
+  "session_id" INT NOT NULL,
+  "text" TEXT NOT NULL DEFAULT '',
+  "is_done" BOOLEAN NOT NULL DEFAULT FALSE,
+  "created_by" INT NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "SessionTasks_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("session_id") REFERENCES "StudySessions"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("created_by") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "SessionRecordings" (
+  "id" SERIAL NOT NULL,
+  "session_id" INT NOT NULL,
+  "uploaded_by" INT NOT NULL,
+  "file_path" TEXT NOT NULL DEFAULT '',
+  "duration_sec" INT DEFAULT 0,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "SessionRecordings_pkey" PRIMARY KEY ("id"),
+  FOREIGN KEY ("session_id") REFERENCES "StudySessions"("id") ON DELETE CASCADE,
+  FOREIGN KEY ("uploaded_by") REFERENCES "Person"("id") ON DELETE CASCADE
+);
+
+-- -------------------------------------------------------------------------------------
 --                                  Chatroom
 -- -------------------------------------------------------------------------------------
 

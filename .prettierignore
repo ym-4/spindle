@@ -4,3 +4,5 @@ playwright-report
 coverage
 reports
 data
+
+src/public/groups_feed.html

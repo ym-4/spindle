@@ -86,3 +86,14 @@ function sendCallSignal(toUserId, signal, callType, callId) {
 function endCall(toUserId, callId) {
   sendWs({ type: 'call:end', toUserId, callId });
 }
+
+function sendSessionCallSignal(sessionId, signal, callType) {
+  sendWs({ type: 'session:call_signal', sessionId, signal, callType });
+}
+
+function sendSessionScreenshare(sessionId, started) {
+  sendWs({
+    type: started ? 'session:screenshare_started' : 'session:screenshare_stopped',
+    sessionId,
+  });
+}

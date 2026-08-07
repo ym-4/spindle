@@ -15,6 +15,7 @@
     />
     <link rel="stylesheet" href="css/posts.css" />
     <link rel="stylesheet" href="css/spindle-notif.css" />
+    <link rel="stylesheet" href="css/auth.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Freckle+Face&display=swap"
       rel="stylesheet"
@@ -32,8 +33,8 @@
         <div class="navbar-right">
           <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
           <a href="profile.html" class="btn-navbar-profile" id="profileButton"
-            ><i class="fas fa-user-circle"></i>
-          </a>
+            ><i class="fas fa-user-circle"></i> Profile</a
+          >
           <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
         </div>
       </div>
@@ -42,48 +43,90 @@
     <div class="main-container">
       <aside class="sidebar"></aside>
       <main class="content-area">
-        <h1 class="h4 mb-3">Friends</h1>
-        <p class="text-muted small mb-3">
-          Find people, manage requests. New friends appear in <a href="chat.html">Chats</a>.
-        </p>
-
-        <div class="card mb-3">
-          <div class="card-body">
-            <label class="form-label fw-semibold">Find people</label>
-            <input
-              type="search"
-              id="friendSearch"
-              class="form-control"
-              placeholder="Search by name or email…"
-              autocomplete="off"
-            />
-            <p id="friendSearchHint" class="small text-muted mt-2 mb-0">
-              Click a name to view their profile, or tap Add to send a request.
-            </p>
-            <ul id="findPeopleList" class="list-group list-group-flush mt-2"></ul>
-          </div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <h1 class="h4 mb-0">Friends</h1>
         </div>
 
-        <div class="card">
-          <div class="card-body">
-            <div class="d-flex gap-3 border-bottom pb-2 mb-2">
-              <button
-                type="button"
-                class="btn btn-link p-0 text-decoration-none fw-semibold friend-tab active"
-                data-req-tab="received"
-              >
-                Received
-              </button>
-              <button
-                type="button"
-                class="btn btn-link p-0 text-decoration-none text-muted friend-tab"
-                data-req-tab="sent"
-              >
-                Sent
-              </button>
-            </div>
-            <ul id="friendRequestsList" class="list-group list-group-flush"></ul>
+        <!-- Tab bar -->
+        <div class="friends-page-tabs" id="friendsTabs">
+          <button class="friends-page-tab active" data-friend-tab="online">
+            <i
+              class="fas fa-circle"
+              style="color: #22c55e; font-size: 0.55rem; vertical-align: middle; margin-right: 4px"
+            ></i>
+            Online
+          </button>
+          <button class="friends-page-tab" data-friend-tab="all">
+            <i class="fas fa-users"></i> All Friends
+            <span class="friends-page-tab-badge" id="allFriendsBadge">0</span>
+          </button>
+          <button class="friends-page-tab" data-friend-tab="pending">
+            <i class="fas fa-clock"></i> Pending
+            <span class="friends-page-tab-badge" id="pendingBadge">0</span>
+          </button>
+          <button class="friends-page-tab" data-friend-tab="blocked">
+            <i class="fas fa-ban"></i> Blocked
+          </button>
+          <button class="friends-page-tab" data-friend-tab="add">
+            <i class="fas fa-user-plus"></i> Add Friend
+          </button>
+        </div>
+
+        <!-- Online tab -->
+        <div class="friend-tab-panel" id="tabOnline">
+          <p class="text-muted small mb-2"><i class="fas fa-wifi"></i> Friends currently online</p>
+          <div id="onlineFriendsList"></div>
+        </div>
+
+        <!-- All Friends tab -->
+        <div class="friend-tab-panel d-none" id="tabAll">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <input
+              type="search"
+              id="allFriendsSearch"
+              class="friends-search-box"
+              placeholder="Filter friends…"
+              style="margin-bottom: 0"
+            />
+            <select class="friends-sort-select" id="friendsSort">
+              <option value="">Favorites first</option>
+              <option value="recent">Recently added</option>
+              <option value="name">Alphabetical A-Z</option>
+              <option value="group">By shared groups</option>
+            </select>
           </div>
+          <div id="allFriendsList"></div>
+        </div>
+
+        <!-- Pending tab -->
+        <div class="friend-tab-panel d-none" id="tabPending">
+          <div class="friends-sub-tabs">
+            <button class="friends-sub-tab active" data-pending-tab="received">Received</button>
+            <button class="friends-sub-tab" data-pending-tab="sent">Sent</button>
+          </div>
+          <div id="pendingRequestsList"></div>
+        </div>
+
+        <!-- Blocked tab -->
+        <div class="friend-tab-panel d-none" id="tabBlocked">
+          <p class="text-muted small mb-2"><i class="fas fa-ban"></i> Users you've blocked</p>
+          <div id="blockedUsersList"></div>
+        </div>
+
+        <!-- Add Friend tab -->
+        <div class="friend-tab-panel d-none" id="tabAdd">
+          <input
+            type="search"
+            id="friendSearch"
+            class="friends-search-box"
+            placeholder="Search by name or email…"
+            autocomplete="off"
+          />
+          <div id="searchResults"></div>
+
+          <h5 class="mt-4 mb-2"><i class="fas fa-lightbulb"></i> Suggested</h5>
+          <p class="text-muted small">People in your study groups</p>
+          <div id="suggestedFriends" class="suggested-grid"></div>
         </div>
       </main>
     </div>

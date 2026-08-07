@@ -54,6 +54,7 @@ const notesRouter = require('./routers/Notes.router');
 const SnakeRouter = require('./routers/Snake.router');
 const somethingRouter = require('./routers/Something.router');
 const studyRoomRouter = require('./routers/StudyRoom.router');
+const sessionsRouter = require('./routers/Sessions.router');
 
 // Allow Live Server / local dev frontends to call the API on another port
 app.use((req, res, next) => {
@@ -95,6 +96,7 @@ app.use('/marketplace', marketplaceRouter);
 app.use('/cart', cartRouter);
 app.use('/wordle', wordleRouter);
 app.use('/tags', tagsRouter);
+app.use('/sessions', sessionsRouter);
 app.use('/payments', paymentsRouter);
 app.use('/block', blockRouter);
 app.use('/badges', badgeRouter);

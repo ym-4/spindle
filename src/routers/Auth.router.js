@@ -82,7 +82,7 @@ router.post('/register', async (req, res, next) => {
       return res.status(409).json({ error: 'Email is already registered.' });
     }
 
-    const isAdminCreate = role === 'admin';
+    const isAdminCreate = role === 'admin' || role === 'user';
     if (isAdminCreate) {
       const newUser = await Auth.createUser({
         name: name.trim(),

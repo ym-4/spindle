@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Study Sessions — Spindle</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/wa.css" />
+    <link rel="stylesheet" href="css/study-sessions.css" />
+    <link rel="stylesheet" href="css/spindle-notif.css" />
+    <script src="js/api.js"></script>
+    <script src="js/page-guard.js"></script>
+  </head>
+  <body class="ss-page">
+    <nav class="navbar">
+      <div class="container-fluid px-0 d-flex align-items-center">
+        <a class="navbar-brand" href="index.html">
+          <img src="images/Logo_Panda.png" alt="Spindle Logo" class="brand-logo" />
+          <span class="brand-name">spindle</span>
+        </a>
+        <div class="navbar-right">
+          <div id="spindleNotifSlot" class="spindle-notif-slot"></div>
+          <a href="profile.html" class="btn-navbar-profile" id="profileButton"
+            ><i class="fas fa-user-circle"></i> Profile</a
+          >
+          <button class="btn-navbar-logout" id="logoutButton" type="button">Log Out</button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="ss-shell">
+      <aside class="ss-sidebar" id="ssSidebar">
+        <div class="ss-sidebar-header">
+          <h2>Study Sessions</h2>
+          <button type="button" class="ss-btn ss-btn--primary" id="btnNewSession">
+            <i class="fas fa-plus"></i> New Session
+          </button>
+        </div>
+        <div class="ss-sidebar-tabs">
+          <button type="button" class="ss-tab active" data-tab="upcoming">Upcoming</button>
+          <button type="button" class="ss-tab" data-tab="past">Past</button>
+        </div>
+        <div class="ss-list-wrap">
+          <ul id="ssSessionList" class="ss-list"></ul>
+        </div>
+      </aside>
+
+      <section class="ss-main" id="ssMain">
+        <div id="ssEmpty" class="ss-empty">
+          <i class="fas fa-calendar-check ss-empty-icon"></i>
+          <p>Select a study session or create a new one</p>
+        </div>
+
+        <div id="ssActive" class="ss-active hidden">
+          <div class="ss-detail-header">
+            <button type="button" class="wa-icon-btn ss-back-btn" id="btnBackToList" title="Back">
+              <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="ss-detail-title">
+              <h3 id="ssDetailTitle"></h3>
+              <span id="ssDetailMeta" class="ss-detail-meta"></span>
+            </div>
+            <div class="ss-detail-actions">
+              <button
+                type="button"
+                class="ss-btn ss-btn--sm ss-btn--outline"
+                id="btnStartCall"
+                title="Start voice call"
+              >
+                <i class="fas fa-phone"></i>
+              </button>
+              <button
+                type="button"
+                class="ss-btn ss-btn--sm ss-btn--outline"
+                id="btnStartVideo"
+                title="Start video call"
+              >
+                <i class="fas fa-video"></i>
+              </button>
+              <button
+                type="button"
+                class="ss-btn ss-btn--sm ss-btn--outline"
+                id="btnEditSession"
+                title="Edit"
+              >
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="ss-body">
+            <div class="ss-section">
+              <h4>Description</h4>
+              <p id="ssDetailDesc" class="ss-detail-desc"></p>
+            </div>
+
+            <div class="ss-section">
+              <div class="ss-section-header">
+                <h4>Tasks <span id="ssTaskCount" class="ss-badge"></span></h4>
+                <button type="button" class="ss-btn ss-btn--sm ss-btn--ghost" id="btnAddTask">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+              </div>
+              <ul id="ssTaskList" class="ss-task-list"></ul>
+              <div id="ssTaskForm" class="ss-task-form hidden">
+                <input
+                  type="text"
+                  id="ssTaskInput"
+                  placeholder="e.g. Finish Ch.3 exercises"
+                  autocomplete="off"
+                />
+                <button type="button" class="ss-btn ss-btn--primary ss-btn--sm" id="ssTaskSubmit">
+                  Add
+                </button>
+                <button type="button" class="ss-btn ss-btn--sm ss-btn--ghost" id="ssTaskCancel">
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <div class="ss-section">
+              <h4>Participants</h4>
+              <ul id="ssParticipantList" class="ss-participant-list"></ul>
+            </div>
+
+            <div class="ss-section">
+              <h4>Recordings</h4>
+              <ul id="ssRecordingList" class="ss-recording-list"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Call overlay -->
+    <div id="ssCallOverlay" class="ss-call-overlay hidden">
+      <div class="ss-call-card">
+        <p id="ssCallStatus" class="ss-call-status">Connecting…</p>
+        <div id="ssCallVideoWrap" class="ss-call-videos hidden">
+          <video id="ssLocalVideo" autoplay muted playsinline class="ss-call-local"></video>
+          <video id="ssRemoteVideo" autoplay playsinline class="ss-call-remote"></video>
+          <video id="ssScreenShareVideo" autoplay playsinline class="ss-call-screen hidden"></video>
+        </div>
+        <div class="ss-call-controls" id="ssCallControls">
+          <button type="button" class="ss-call-ctrl" id="ssBtnMute" title="Mute">
+            <i class="fas fa-microphone"></i>
+          </button>
+          <button type="button" class="ss-call-ctrl" id="ssBtnToggleVideo" title="Camera">
+            <i class="fas fa-video"></i>
+          </button>
+          <button type="button" class="ss-call-ctrl" id="ssBtnScreenShare" title="Share screen">
+            <i class="fas fa-desktop"></i>
+          </button>
+          <button
+            type="button"
+            class="ss-call-ctrl ss-call-ctrl--end"
+            id="ssBtnEndCall"
+            title="End"
+          >
+            <i class="fas fa-phone-slash"></i>
+          </button>
+        </div>
+        <div id="ssCallIncoming" class="ss-call-incoming hidden">
+          <p id="ssCallIncomingText">Incoming call…</p>
+          <button type="button" class="ss-btn ss-btn--primary" id="ssBtnAcceptCall">Accept</button>
+          <button type="button" class="ss-btn ss-btn--outline" id="ssBtnDeclineCall">
+            Decline
+          </button>
+        </div>
+        <button type="button" class="ss-btn ss-btn--ghost hidden" id="ssBtnCancelRinging">
+          Cancel
+        </button>
+        <div id="ssCallTaskPopup" class="ss-call-task-popup hidden">
+          <p><strong>Session tasks — tick them off during the call</strong></p>
+          <ul id="ssCallTaskList"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Session Modal -->
+    <div id="ssNewSessionModal" class="ss-modal-overlay hidden">
+      <div class="ss-modal">
+        <div class="ss-modal-header">
+          <h3>New Study Session</h3>
+          <button type="button" class="ss-btn ss-btn--ghost" id="btnCloseModal">&times;</button>
+        </div>
+        <div class="ss-modal-body">
+          <label>Title</label>
+          <input type="text" id="ssFormTitle" class="ss-input" placeholder="Session title" />
+          <label>Description</label>
+          <textarea id="ssFormDesc" class="ss-input" placeholder="What will you study?"></textarea>
+          <label>Date & Time</label>
+          <input type="datetime-local" id="ssFormDatetime" class="ss-input" />
+          <label>Invite friends (by user ID, comma-separated)</label>
+          <input type="text" id="ssFormInvitees" class="ss-input" placeholder="e.g. 3, 7, 12" />
+        </div>
+        <div class="ss-modal-footer">
+          <button type="button" class="ss-btn ss-btn--outline" id="btnCancelSession">Cancel</button>
+          <button type="button" class="ss-btn ss-btn--primary" id="btnCreateSession">
+            Create Session
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recording Modal -->
+    <div id="ssRecordingModal" class="ss-modal-overlay hidden">
+      <div class="ss-modal">
+        <div class="ss-modal-header">
+          <h3>Record Session</h3>
+          <button type="button" class="ss-btn ss-btn--ghost" id="btnCloseRecModal">&times;</button>
+        </div>
+        <div class="ss-modal-body">
+          <p id="ssRecStatus">Click Start to begin recording your screen and audio.</p>
+          <video id="ssRecPreview" autoplay muted playsinline class="ss-rec-preview hidden"></video>
+        </div>
+        <div class="ss-modal-footer">
+          <button
+            type="button"
+            class="ss-btn ss-btn--outline"
+            id="ssBtnStartRec"
+            title="Start recording"
+          >
+            <i class="fas fa-circle"></i> Start Recording
+          </button>
+          <button
+            type="button"
+            class="ss-btn ss-btn--primary hidden"
+            id="ssBtnStopRec"
+            title="Stop recording"
+          >
+            <i class="fas fa-square"></i> Stop & Upload
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/wa-nav.js"></script>
+    <script src="js/socket-client.js"></script>
+    <script src="js/study-sessions.js"></script>
+  </body>
+</html>

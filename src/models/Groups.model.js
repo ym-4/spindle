@@ -314,8 +314,8 @@ module.exports.getGroupAnnouncementsByGroupID = async function getGroupAnnouncem
   return rows;
 };
 
-// GET all group announcements
-module.exports.getGroupAnnouncements = async function getGroupAnnouncements() {
+// GET all group announcements by group_id
+module.exports.getGroupAnnouncements = async function getGroupAnnouncements(data) {
   await ensureGroupAnnouncementsTable();
   const { rows } = await pool.query('SELECT * FROM "GroupAnnouncements"');
   return rows;
@@ -405,6 +405,42 @@ module.exports.updateGroupJoinRequest = async function updateGroupJoinRequest(da
   const VALUES = [data.group_id, data.user_id, data.status];
   const { rows } = await pool.query(
     'UPDATE "GroupJoinRequests" SET status = $3 WHERE group_id = $1 AND user_id = $2 RETURNING *',
+    VALUES,
+  );
+  return rows;
+};
+
+// -----------------------------------------------------------------------------------------------------
+//                          GroupDeadlines Table
+// -----------------------------------------------------------------------------------------------------
+
+module.exports.getGroupDeadlines = async function getGroupDeadlines(data) {
+  const VALUES = [data.group_id];
+  const { rows } = await pool.query(
+    `SELECT gd.*, p.name AS created_by_name
+     FROM "GroupDeadlines" gd
+     JOIN "Person" p ON p.id = gd.created_by
+     WHERE gd.group_id = $1
+     ORDER BY gd.deadline_date ASC`,
+    VALUES,
+  );
+  return rows;
+};
+
+module.exports.insertGroupDeadline = async function insertGroupDeadline(data) {
+  const VALUES = [data.group_id, data.title, data.deadline_date, data.created_by];
+  const { rows } = await pool.query(
+    `INSERT INTO "GroupDeadlines" (group_id, title, deadline_date, created_by)
+     VALUES ($1, $2, $3, $4) RETURNING *`,
+    VALUES,
+  );
+  return rows;
+};
+
+module.exports.deleteGroupDeadline = async function deleteGroupDeadline(data) {
+  const VALUES = [data.id, data.group_id];
+  const { rows } = await pool.query(
+    `DELETE FROM "GroupDeadlines" WHERE id = $1 AND group_id = $2 RETURNING *`,
     VALUES,
   );
   return rows;

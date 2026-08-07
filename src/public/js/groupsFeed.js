@@ -15,17 +15,17 @@ let fullSchoolName = [
 ];
 
 // Stores all user data (id, email, name, avatar)
-let users = [];
+let users;
 // Stores token
-let token = [];
+let token;
 // Stores channel names
-let channels = [];
+let channels;
 // Store current channel name
-let currChannel = [];
+let currChannel;
 // Store announcements
-let announcements = [];
+let announcements;
 // Store current group data
-let group = [];
+let group;
 /* Sample data
     creator_id: 1
     description: "A group for SOC students to revise and share notes."
@@ -37,7 +37,7 @@ let group = [];
 */
 
 // Store group members
-let members = [];
+let members;
 /*
     group_id
     role
@@ -45,7 +45,7 @@ let members = [];
 */
 
 // Stores the current channel messages
-let currChannelMessages = [];
+let currChannelMessages;
 /*  Sample data 
     channel_name: "general"
     created_at: "2026-05-25T13:24:54.620Z"
@@ -56,10 +56,10 @@ let currChannelMessages = [];
 */
 
 // Stores current message clicked
-let message = [];
+let message;
 
 // Admin list
-let adminMembers = [];
+let adminMembers;
 
 // HTML Templates
 

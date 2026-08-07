@@ -11,7 +11,6 @@ const {
   getAllTaskItems,
   getTaskItemsByID,
   getTaskItemsByTaskID,
-  // getTaskItemsByUserAndGroupID,
   insertTaskItems,
   updateTaskItems,
   deleteTaskItems,

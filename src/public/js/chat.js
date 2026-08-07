@@ -11,7 +11,12 @@ let incomingCallerId = null;
 let incomingCallerName = '';
 let callStartedAt = null;
 let isMicMuted = false;
+let screenTrack = null;
 let msgMenuTargetId = null;
+let replyToId = null;
+let typingTimer = null;
+let chatSearchResults = [];
+let chatSearchIndex = -1;
 
 const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
 
@@ -74,15 +79,40 @@ async function logCallEntry(peerId, status, direction, durationSec = 0) {
   }
 }
 
+function renderReplyQuote(msg) {
+  if (!msg.reply_to_id) return '';
+  const name = msg.reply_sender_id === currentUserId ? 'You' : selectedPeerName;
+  const replyBody = esc(msg.reply_body || '');
+  const replyImg = msg.reply_image_url
+    ? `<img src="${mediaUrl(msg.reply_image_url)}" class="wa-reply-preview-thumb" />`
+    : '';
+  return `<div class="wa-reply-quote"><span>${esc(name)}</span>${replyImg} ${replyBody}</div>`;
+}
+
+function renderReadReceipt(msg) {
+  if (msg.sender_id !== currentUserId) return '';
+  if (!msg.created_at) return '';
+  if (msg.read_at) {
+    return `<span class="wa-read-tick wa-read-tick--seen" title="Seen"><i class="fas fa-check-double"></i></span>`;
+  }
+  return `<span class="wa-read-tick" title="Delivered"><i class="fas fa-check"></i></span>`;
+}
+
 function renderBubbleContent(msg) {
   const deleted = !!msg.deleted_at;
   const body = deleted ? '[Message deleted]' : esc(msg.body);
   const edited = msg.edited_at && !deleted ? ' <small class="wa-edited">edited</small>' : '';
+  const imgHtml =
+    msg.image_url && !deleted
+      ? `<img src="${mediaUrl(msg.image_url)}" class="wa-msg-image" alt="Image" />`
+      : '';
+  const quoteHtml = renderReplyQuote(msg);
   const reactions = (msg.reactions || [])
     .filter((r) => r && r.emoji)
     .map((r) => `<span class="wa-reaction-chip">${r.emoji}</span>`)
     .join('');
-  return `${body}${edited}<div class="wa-bubble-reactions">${reactions}</div><time>${new Date(msg.created_at).toLocaleTimeString()}</time>`;
+  const receipt = renderReadReceipt(msg);
+  return `${quoteHtml}${body}${edited}${imgHtml}<div class="wa-bubble-reactions">${reactions}</div><time>${receipt} ${new Date(msg.created_at).toLocaleTimeString()}</time>`;
 }
 
 function buildBubbleRow(msg) {
@@ -96,7 +126,18 @@ function buildBubbleRow(msg) {
   bubble.innerHTML = renderBubbleContent(msg);
   row.appendChild(bubble);
 
-  if (out && !msg.deleted_at) {
+  if (!msg.deleted_at) {
+    const replyBtn = document.createElement('button');
+    replyBtn.type = 'button';
+    replyBtn.className = 'wa-bubble-reply-btn';
+    replyBtn.setAttribute('aria-label', 'Reply');
+    replyBtn.innerHTML = '<i class="fas fa-reply"></i>';
+    replyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setReplyTo(msg.id, msg.body, msg.image_url);
+    });
+    row.appendChild(replyBtn);
+
     const menuBtn = document.createElement('button');
     menuBtn.type = 'button';
     menuBtn.className = 'wa-bubble-menu-btn';
@@ -130,19 +171,6 @@ function updateBubbleInDom(msg) {
   if (!row) return;
   const bubble = row.querySelector('.wa-bubble');
   if (bubble) bubble.innerHTML = renderBubbleContent(msg);
-  const oldBtn = row.querySelector('.wa-bubble-menu-btn');
-  if (msg.deleted_at && oldBtn) oldBtn.remove();
-  if (msg.sender_id === currentUserId && !msg.deleted_at && !oldBtn) {
-    const menuBtn = document.createElement('button');
-    menuBtn.type = 'button';
-    menuBtn.className = 'wa-bubble-menu-btn';
-    menuBtn.textContent = '⋮';
-    menuBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openMsgMenuForMessage(msg, menuBtn);
-    });
-    row.appendChild(menuBtn);
-  }
 }
 
 function formatPreview(text, max = 36) {
@@ -158,8 +186,17 @@ function unreadBadgeHtml(count) {
 }
 
 function setChatView(open) {
-  document.getElementById('chatEmpty').classList.toggle('is-hidden', open);
-  document.getElementById('chatActive').classList.toggle('is-open', open);
+  const empty = document.getElementById('chatEmpty');
+  const active = document.getElementById('chatActive');
+  empty?.classList.toggle('is-hidden', open);
+  active?.classList.toggle('is-open', open);
+  if (!open) {
+    selectedPeerId = null;
+    selectedPeerName = '';
+    replyToId = null;
+    document.getElementById('replyPreview')?.classList.add('hidden');
+    document.getElementById('chatHeaderStatus').textContent = '';
+  }
 }
 
 async function loadContacts() {
@@ -178,11 +215,17 @@ async function loadContacts() {
         const previewHtml = preview
           ? `<span class="wa-chat-preview">${esc(preview)}</span>`
           : '<span class="wa-chat-preview">Tap to chat</span>';
+        const pinIcon = c.is_pinned
+          ? '<span class="wa-pin-icon"><i class="fas fa-thumbtack"></i></span>'
+          : '';
+        const muteIcon = c.is_muted
+          ? '<span class="wa-mute-icon"><i class="fas fa-bell-slash"></i></span>'
+          : '';
         return `
     <li class="wa-list-item ${c.id === selectedPeerId ? 'active' : ''} ${c.unread_count > 0 ? 'has-unread' : ''}" data-id="${c.id}" data-name="${esc(c.display_name || c.name)}">
       ${avatarHtml(c)}
       <div class="wa-list-body">
-        <strong>${esc(c.display_name || c.name)}</strong>
+        <strong>${pinIcon}${esc(c.display_name || c.name)} ${muteIcon}</strong>
         ${previewHtml}
       </div>
       ${unreadBadgeHtml(c.unread_count)}
@@ -213,12 +256,43 @@ function updateChatsTabBadge(contacts) {
   }
 }
 
+async function loadReadState(peerId) {
+  try {
+    const data = await authFetch(`/messages/read-state/${peerId}`);
+    if (data.readState) {
+      document.querySelectorAll(`.wa-bubble-row--out[data-msg-id]`).forEach((row) => {
+        const msgId = row.dataset.msgId;
+        const bubble = row.querySelector('.wa-bubble');
+        if (bubble) {
+          const time = bubble.querySelector('time');
+          if (time) {
+            const msgTime = new Date(bubble.querySelector('time')?.textContent?.trim() || 0);
+            if (!isNaN(msgTime) && new Date(data.readState) > msgTime) {
+              const tick = time.querySelector('.wa-read-tick');
+              if (tick) {
+                tick.className = 'wa-read-tick wa-read-tick--seen';
+                tick.title = 'Seen';
+                tick.innerHTML = '<i class="fas fa-check-double"></i>';
+              }
+            }
+          }
+        }
+      });
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 async function openChat(userId, name) {
   selectedPeerId = userId;
   selectedPeerName = name;
+  replyToId = null;
+  document.getElementById('replyPreview')?.classList.add('hidden');
   setChatView(true);
   document.getElementById('chatHeaderName').textContent = name;
   document.getElementById('chatHeaderAvatar').innerHTML = avatarHtml({ name }).trim();
+  document.getElementById('chatHeaderStatus').textContent = '';
   document.getElementById('chatMessages').innerHTML = '<p class="wa-empty">Loading…</p>';
   document.querySelectorAll('#chatContactList .wa-list-item').forEach((el) => {
     const isActive = Number(el.dataset.id) === userId;
@@ -228,6 +302,14 @@ async function openChat(userId, name) {
       el.querySelector('.wa-chat-unread')?.remove();
     }
   });
+
+  document.getElementById('chatHeaderAvatar').onclick = () => {
+    window.location.href = `profile.html?id=${userId}`;
+  };
+  document.getElementById('chatHeaderNameWrap').onclick = () => {
+    window.location.href = `profile.html?id=${userId}`;
+  };
+
   try {
     const data = await authFetch(`/messages/with/${userId}`);
     document.getElementById('chatMessages').innerHTML = '';
@@ -236,6 +318,13 @@ async function openChat(userId, name) {
       document.getElementById('chatMessages').innerHTML =
         '<p class="wa-empty">No messages yet — say hi!</p>';
     }
+    if (data.readState) {
+      setTimeout(() => loadReadState(userId), 500);
+    }
+    const muteStatus = await authFetch(`/messages/mute/${userId}`)
+      .then(() => false)
+      .catch(() => false);
+    updateMenuMuteState(userId);
     loadContacts();
   } catch (err) {
     document.getElementById('chatMessages').innerHTML =
@@ -247,14 +336,62 @@ async function openChat(userId, name) {
 async function sendMessage() {
   const input = document.getElementById('chatInput');
   const body = input.value.trim();
-  if (!body || !selectedPeerId) return;
+  const imageInput = document.getElementById('chatImageInput');
+  const file = imageInput?.files?.[0];
+  if ((!body && !file) || !selectedPeerId) return;
+
+  const formData = new FormData();
+  formData.append('recipientId', selectedPeerId);
+  if (body) formData.append('body', body);
+  if (replyToId) formData.append('replyToId', replyToId);
+  if (file) formData.append('image', file);
+
   input.value = '';
+  imageInput.value = '';
+  replyToId = null;
+  document.getElementById('replyPreview')?.classList.add('hidden');
+  document.getElementById('chatImagePreview')?.classList.add('hidden');
+
   try {
-    const res = await sendChatMessage(selectedPeerId, body);
-    if (res?.message) appendBubble(res.message);
+    const token = getToken();
+    const res = await fetch(`${API_BASE}/messages`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    if (data.message) appendBubble(data.message);
   } catch (err) {
     showToast(err.message, true);
   }
+}
+
+function setReplyTo(msgId, body, imageUrl) {
+  replyToId = msgId;
+  const preview = document.getElementById('replyPreview');
+  const text = document.getElementById('replyPreviewText');
+  if (text) {
+    text.textContent = imageUrl
+      ? `${(body || 'Image').slice(0, 60)} [Image]`
+      : (body || '').slice(0, 100);
+  }
+  preview?.classList.remove('hidden');
+  document.getElementById('chatInput')?.focus();
+}
+
+function sendTypingSignal() {
+  if (!selectedPeerId) return;
+  sendWs({ type: 'typing', toUserId: selectedPeerId });
+}
+
+function showTypingIndicator(name) {
+  const el = document.getElementById('chatTypingIndicator');
+  const span = document.getElementById('typingName');
+  if (span) span.textContent = name;
+  el?.classList.remove('hidden');
+  clearTimeout(el._typingTimer);
+  el._typingTimer = setTimeout(() => el?.classList.add('hidden'), 3000);
 }
 
 function openMsgMenuForMessage(msg, anchorOrEvent) {
@@ -310,6 +447,7 @@ function bindMsgMenu() {
     const btn = e.target.closest('[data-action], [data-emoji]');
     if (!btn || !msgMenuTargetId) return;
     const id = msgMenuTargetId;
+    const msg = window.__msgMenuTarget || { id, body: '', sender_id: currentUserId };
     closeMsgMenu();
     if (btn.dataset.emoji) {
       try {
@@ -335,7 +473,6 @@ function bindMsgMenu() {
       }
       return;
     }
-    const msg = window.__msgMenuTarget || { id, body: '', sender_id: currentUserId };
     const bubble = document.querySelector(`.wa-bubble-row[data-msg-id="${id}"] .wa-bubble`);
     const text = msg.body || bubble?.textContent?.replace(/edited/gi, '').trim() || '';
     if (btn.dataset.action === 'copy') {
@@ -351,8 +488,160 @@ function bindMsgMenu() {
       } catch (err) {
         showToast(err.message, true);
       }
+    } else if (btn.dataset.action === 'reply') {
+      setReplyTo(id, msg.body, msg.image_url);
     }
   });
+}
+
+async function chatSearch(query) {
+  if (!selectedPeerId || !query.trim()) return;
+  try {
+    const data = await authFetch(
+      `/messages/with/${selectedPeerId}/search?q=${encodeURIComponent(query.trim())}`,
+    );
+    chatSearchResults = data.results || [];
+    chatSearchIndex = -1;
+    const count = document.getElementById('chatSearchCount');
+    count.textContent = `${chatSearchResults.length} results`;
+    document
+      .querySelectorAll('.wa-bubble-row')
+      .forEach((r) => r.classList.remove('wa-search-highlight'));
+  } catch {
+    /* ignore */
+  }
+}
+
+function navigateSearchResult(dir) {
+  if (chatSearchResults.length === 0) return;
+  chatSearchIndex += dir;
+  if (chatSearchIndex < 0) chatSearchIndex = 0;
+  if (chatSearchIndex >= chatSearchResults.length) chatSearchIndex = chatSearchResults.length - 1;
+  const msgId = chatSearchResults[chatSearchIndex]?.id;
+  if (!msgId) return;
+  document
+    .querySelectorAll('.wa-bubble-row')
+    .forEach((r) => r.classList.remove('wa-search-highlight'));
+  const el = document.querySelector(`.wa-bubble-row[data-msg-id="${msgId}"]`);
+  if (el) {
+    el.classList.add('wa-search-highlight');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+async function updateMenuMuteState(peerId) {
+  try {
+    const { muted } = await authFetch(`/messages/mute/${peerId}`).catch(() => ({ muted: false }));
+    document.querySelector('[data-action="mute"]')?.classList.toggle('hidden', muted);
+    document.querySelector('[data-action="unmute"]')?.classList.toggle('hidden', !muted);
+  } catch {
+    /* ignore */
+  }
+}
+
+function setupChatMenu() {
+  const menu = document.getElementById('chatDropdownMenu');
+  document.getElementById('btnChatMenu')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu?.classList.toggle('hidden');
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#chatDropdownMenu') && !e.target.closest('#btnChatMenu')) {
+      menu?.classList.add('hidden');
+    }
+  });
+  menu?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn || !selectedPeerId) return;
+    menu?.classList.add('hidden');
+    const action = btn.dataset.action;
+    if (action === 'mute') {
+      await authFetch(`/messages/mute/${selectedPeerId}`, { method: 'POST' });
+      showToast('Chat muted');
+      updateMenuMuteState(selectedPeerId);
+      loadContacts();
+    } else if (action === 'unmute') {
+      await authFetch(`/messages/mute/${selectedPeerId}`, { method: 'DELETE' });
+      showToast('Chat unmuted');
+      updateMenuMuteState(selectedPeerId);
+      loadContacts();
+    } else if (action === 'pin') {
+      await authFetch(`/messages/pin/${selectedPeerId}`, { method: 'POST' });
+      showToast('Chat pinned');
+      loadContacts();
+    } else if (action === 'unpin') {
+      await authFetch(`/messages/pin/${selectedPeerId}`, { method: 'DELETE' });
+      showToast('Chat unpinned');
+      loadContacts();
+    } else if (action === 'wallpaper') {
+      document.getElementById('wallpaperPicker')?.classList.remove('hidden');
+    } else if (action === 'block') {
+      if (!confirm(`Block ${selectedPeerName}?`)) return;
+      await authFetch('/block', {
+        method: 'POST',
+        body: JSON.stringify({ blocked_id: selectedPeerId }),
+      });
+      showToast(`${selectedPeerName} blocked`);
+      setChatView(false);
+      loadContacts();
+    } else if (action === 'clear') {
+      if (!confirm(`Clear all messages with ${selectedPeerName}? This cannot be undone.`)) return;
+      document.getElementById('chatMessages').innerHTML = '<p class="wa-empty">Chat cleared</p>';
+      showToast('Chat cleared');
+    }
+  });
+}
+
+function setupWallpaperPicker() {
+  const picker = document.getElementById('wallpaperPicker');
+  const backdrop = picker?.querySelector('.wa-wallpaper-picker__backdrop');
+  backdrop?.addEventListener('click', () => picker?.classList.add('hidden'));
+  document
+    .getElementById('wallpaperPickerClose')
+    ?.addEventListener('click', () => picker?.classList.add('hidden'));
+  picker?.querySelectorAll('.wa-wallpaper-opt').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const wallpaper = btn.dataset.wallpaper;
+      const bg = document.getElementById('chatMessages');
+      if (wallpaper === 'default') {
+        bg?.style.removeProperty('background-image');
+        bg?.style.removeProperty('background-color');
+      } else if (wallpaper === 'solid-light') {
+        bg.style.backgroundImage = 'none';
+        bg.style.backgroundColor = '#e8e4db';
+      } else if (wallpaper === 'solid-dark') {
+        bg.style.backgroundImage = 'none';
+        bg.style.backgroundColor = '#0b141a';
+      } else if (wallpaper === 'leaves') {
+        bg.style.backgroundImage = 'none';
+        bg.style.backgroundColor = '#1a3a2a';
+      } else if (wallpaper === 'ocean') {
+        bg.style.backgroundImage = 'none';
+        bg.style.backgroundColor = '#0a2e4a';
+      } else if (wallpaper === 'sunset') {
+        bg.style.backgroundImage = 'none';
+        bg.style.backgroundColor = '#3a1a1a';
+      }
+      try {
+        localStorage.setItem('chatWallpaper', wallpaper);
+      } catch {
+        /* ignore */
+      }
+      picker?.classList.add('hidden');
+    });
+  });
+}
+
+function loadSavedWallpaper() {
+  try {
+    const wallpaper = localStorage.getItem('chatWallpaper');
+    if (wallpaper && wallpaper !== 'default') {
+      const btn = document.querySelector(`.wa-wallpaper-opt[data-wallpaper="${wallpaper}"]`);
+      if (btn) btn.click();
+    }
+  } catch {
+    /* ignore */
+  }
 }
 
 /* Friends panel */
@@ -587,6 +876,39 @@ async function attachLocalMedia(video) {
   document.getElementById('btnMute').textContent = '🎤';
 }
 
+async function toggleScreenShareChat() {
+  if (screenTrack) {
+    screenTrack.stop();
+    const pc = peerConnection;
+    if (pc)
+      pc.getSenders()
+        .find((s) => s.track === screenTrack)
+        ?.removeTrack?.();
+    screenTrack = null;
+    document.getElementById('screenShareVideo')?.classList.add('hidden');
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+    screenTrack = stream.getVideoTracks()[0];
+    const pc = peerConnection;
+    if (pc) {
+      pc.addTrack(screenTrack, stream);
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      sendCallSignal(selectedPeerId, { type: 'offer', sdp: offer }, activeCallType, activeCallId);
+    }
+    document.getElementById('screenShareVideo').srcObject = stream;
+    document.getElementById('screenShareVideo').classList.remove('hidden');
+    screenTrack.onended = () => {
+      screenTrack = null;
+      document.getElementById('screenShareVideo')?.classList.add('hidden');
+    };
+  } catch {
+    /* user cancelled */
+  }
+}
+
 async function beginCallerMedia() {
   try {
     await attachLocalMedia(activeCallType === 'video');
@@ -746,6 +1068,10 @@ function endCallLocal() {
   activeCallId = null;
   incomingCallerId = null;
   document.getElementById('callOverlay').classList.add('hidden');
+  if (screenTrack) {
+    screenTrack.stop();
+    screenTrack = null;
+  }
   if (localStream) {
     localStream.getTracks().forEach((t) => t.stop());
     localStream = null;
@@ -756,6 +1082,7 @@ function endCallLocal() {
   }
   document.getElementById('localVideo').srcObject = null;
   document.getElementById('remoteVideo').srcObject = null;
+  document.getElementById('screenShareVideo')?.remove();
 }
 
 function hangUpCall(logStatus = 'completed') {
@@ -803,6 +1130,7 @@ function bindCallUi() {
   document.getElementById('btnEndCall')?.addEventListener('click', () => hangUpCall('completed'));
   document.getElementById('btnMute')?.addEventListener('click', toggleMute);
   document.getElementById('btnToggleVideo')?.addEventListener('click', toggleVideo);
+  document.getElementById('btnScreenShare')?.addEventListener('click', toggleScreenShareChat);
   document.getElementById('btnCallDismiss')?.addEventListener('click', dismissCallEnded);
   document.getElementById('btnCallBack')?.addEventListener('click', callBackFromDeclined);
 }
@@ -825,26 +1153,102 @@ async function initChat() {
     const q = document.getElementById('friendSearch')?.value?.trim();
     if (q) searchUsers(q);
   });
+
+  onWs('typing', (data) => {
+    if (data.fromUserId === selectedPeerId) {
+      showTypingIndicator(selectedPeerName);
+    }
+  });
+
   setChatView(false);
   setupSidebarTabs();
   bindCallUi();
   bindMsgMenu();
+  setupChatMenu();
+  setupWallpaperPicker();
+
+  document.getElementById('btnBackToContacts')?.addEventListener('click', () => setChatView(false));
 
   document.getElementById('friendSearch')?.addEventListener('input', (e) => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => searchUsers(e.target.value), 300);
   });
+
   document.getElementById('chatForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     sendMessage();
   });
-  document.getElementById('btnSend')?.addEventListener('click', sendMessage);
+
+  document.getElementById('chatInput')?.addEventListener('input', () => {
+    clearTimeout(typingTimer);
+    sendTypingSignal();
+    typingTimer = setTimeout(() => {}, 500);
+  });
+
+  document.getElementById('chatImageInput')?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const preview = document.getElementById('chatImagePreview');
+    const img = document.getElementById('chatImagePreviewImg');
+    img.src = URL.createObjectURL(file);
+    preview?.classList.remove('hidden');
+  });
+
+  document.getElementById('cancelImagePreview')?.addEventListener('click', () => {
+    document.getElementById('chatImageInput').value = '';
+    document.getElementById('chatImagePreview')?.classList.add('hidden');
+  });
+
+  document.getElementById('cancelReply')?.addEventListener('click', () => {
+    replyToId = null;
+    document.getElementById('replyPreview')?.classList.add('hidden');
+  });
+
+  document.getElementById('btnToggleSearch')?.addEventListener('click', () => {
+    const bar = document.getElementById('chatSearchBar');
+    const isHidden = bar?.classList.contains('d-none');
+    bar?.classList.toggle('d-none', !isHidden);
+    if (isHidden) {
+      document.getElementById('chatSearchInput')?.focus();
+    } else {
+      document.getElementById('chatSearchInput').value = '';
+      document.getElementById('chatSearchCount').textContent = '';
+      chatSearchResults = [];
+      document
+        .querySelectorAll('.wa-bubble-row')
+        .forEach((r) => r.classList.remove('wa-search-highlight'));
+    }
+  });
+
+  document.getElementById('btnCloseSearch')?.addEventListener('click', () => {
+    document.getElementById('chatSearchBar')?.classList.add('d-none');
+    document.getElementById('chatSearchInput').value = '';
+    document.getElementById('chatSearchCount').textContent = '';
+    chatSearchResults = [];
+    document
+      .querySelectorAll('.wa-bubble-row')
+      .forEach((r) => r.classList.remove('wa-search-highlight'));
+  });
+
+  document.getElementById('chatSearchInput')?.addEventListener('input', (e) => {
+    chatSearch(e.target.value);
+  });
+
+  document.getElementById('chatSearchInput')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (e.shiftKey) navigateSearchResult(-1);
+      else navigateSearchResult(1);
+    }
+  });
+
   document.getElementById('btnVoiceCall')?.addEventListener('click', () => startCall(false));
   document.getElementById('btnVideoCall')?.addEventListener('click', () => startCall(true));
 
   await loadContacts();
   loadRequests();
   loadCallLogs();
+  loadSavedWallpaper();
 
   onWs('message', (data) => {
     const m = data.message;

@@ -12,7 +12,7 @@ const {
   deleteNote,
   getNoteFoldersByGroupID,
   getNoteFoldersByGroupIDAndName,
-  // getNoteFoldersByID,
+  getNoteFoldersByID,
   insertNoteFolder,
   updateFolderColor,
   updateFolderIcon,

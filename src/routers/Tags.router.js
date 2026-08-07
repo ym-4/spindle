@@ -8,7 +8,6 @@ router.get('/tags', async (req, res) => {
     const tags = await Tag.getAllTags();
     res.json(tags);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to fetch tags' });
   }
 });
@@ -19,7 +18,6 @@ router.get('/marketplace/by-tag/:tagName', async (req, res) => {
     const listings = await Tag.getListingsByTag(req.params.tagName);
     res.json(listings);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to fetch listings' });
   }
 });
@@ -33,7 +31,6 @@ router.put('/listings/:id/tags', async (req, res) => {
     await Tag.setListingTags(req.params.id, tags);
     res.status(200).json({ message: 'Tags updated' });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to update tags' });
   }
 });
