@@ -13,7 +13,7 @@
   <h1>QA Report</h1>
   <pre>============================================================
   QA REPORT
-  Generated: 2026-08-07T00:44:10.426Z
+  Generated: 2026-08-07T01:35:16.832Z
 ============================================================
 
 ────────────────────────────────────────────────────────────
@@ -23,24 +23,154 @@
 1. LINT (eslint)
 
 
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\unit\GroupFiles.model.test.js
+  104:11  error  'fakeFiles' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  429:11  error  'fakeFolders' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\unit\Groups.model.test.js
+  144:11  error  'fakeGroups' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  252:11  error  'fakeGroups' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  322:11  error  'newFakeGroup' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\unit\Tasks.model.test.js
+   12:3   error  'getTaskItemsByUserAndGroupID' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  102:11  error  'fakeTasks' is assigned a value but never used. Allowed unused vars must match /^_/u                     no-unused-vars
+  205:11  error  'fakeTasks' is assigned a value but never used. Allowed unused vars must match /^_/u                     no-unused-vars
+  227:11  error  'fakeTasks' is assigned a value but never used. Allowed unused vars must match /^_/u                     no-unused-vars
+  331:11  error  'newFakeTask' is assigned a value but never used. Allowed unused vars must match /^_/u                   no-unused-vars
+  417:11  error  'date' is assigned a value but never used. Allowed unused vars must match /^_/u                          no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\__tests__\unit\Whiteboard.model.test.js
+  113:11  error  'fakeWhiteboards' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  232:11  error  'fakeWhiteboards' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  314:11  error  'fakeWhiteboards' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  415:11  error  'newFakeWhiteboard' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
 C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\marketplace-management.spec.js
   593:31  error  'clearCart' is not defined  no-undef
 
-✖ 1 problem (1 error, 0 warnings)
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\models\Groups.model.js
+  318:77  error  'data' is defined but never used. Allowed unused args must match /^_|^(next|req|res|e)$/u  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\models\Tasks.model.js
+  1:9  error  'group' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\chat.js
+  264:15  warning  'msgId' is assigned a value but never used       no-unused-vars
+  324:11  warning  'muteStatus' is assigned a value but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\groupsFeed.js
+  924:2  warning  Insert `␍⏎`  prettier/prettier
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\userNavBarToggle.js
+  156:6  warning  Insert `␍⏎`  prettier/prettier
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\public\js\whiteboard.js
+  918:2  warning  Insert `␍⏎`  prettier/prettier
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\GroupFiles.router.js
+   82:12  error  'results' is defined but never used. Allowed unused args must match /^(next|req|res)$/u  no-unused-vars
+  122:30  error  'err' is defined but never used. Allowed unused args must match /^(next|req|res)$/u      no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Notes.router.js
+  15:3  error  'getNoteFoldersByID' is assigned a value but never used  no-unused-vars
+
+C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\src\routers\Tags.router.js
+  10:12  error  'err' is defined but never used  no-unused-vars
+  20:12  error  'err' is defined but never used  no-unused-vars
+  33:12  error  'err' is defined but never used  no-unused-vars
+
+✖ 29 problems (24 errors, 5 warnings)
+  0 errors and 3 warnings potentially fixable with the `--fix` option.
 
 
 
-   Failed ESLint Rules (1):
+   Failed ESLint Rules (3):
+
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> no-unused-vars (25 violations)
+          __tests__\unit\GroupFiles.model.test.js:104
+          __tests__\unit\GroupFiles.model.test.js:429
+          __tests__\unit\Groups.model.test.js:144
+          __tests__\unit\Groups.model.test.js:252
+          __tests__\unit\Groups.model.test.js:322
+          __tests__\unit\Tasks.model.test.js:12
+          __tests__\unit\Tasks.model.test.js:102
+          __tests__\unit\Tasks.model.test.js:205
+          __tests__\unit\Tasks.model.test.js:227
+          __tests__\unit\Tasks.model.test.js:331
+          __tests__\unit\Tasks.model.test.js:417
+          __tests__\unit\Whiteboard.model.test.js:113
+          __tests__\unit\Whiteboard.model.test.js:232
+          __tests__\unit\Whiteboard.model.test.js:314
+          __tests__\unit\Whiteboard.model.test.js:415
+          src\models\Groups.model.js:318
+          src\models\Tasks.model.js:1
+          src\public\js\chat.js:264
+          src\public\js\chat.js:324
+          src\routers\GroupFiles.router.js:82
+          src\routers\GroupFiles.router.js:122
+          src\routers\Notes.router.js:15
+          src\routers\Tags.router.js:10
+          src\routers\Tags.router.js:20
+          src\routers\Tags.router.js:33
 
    <span style="color:#ef4444;font-weight:bold">[FAIL]</span> no-undef (1 violation)
           e2e-tests\marketplace-management.spec.js:593
 
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> prettier/prettier (3 violations)
+          src\public\js\groupsFeed.js:924
+          src\public\js\userNavBarToggle.js:156
+          src\public\js\whiteboard.js:918
+
 2. FORMAT CHECK (prettier)
 
 Checking formatting...
-All matched files use Prettier code style!
+[[33mwarn[39m] e2e-tests/storageState.json
+[[33mwarn[39m] src/public/cart.html
+[[33mwarn[39m] src/public/chat.html
+[[33mwarn[39m] src/public/create_listing.html
+[[33mwarn[39m] src/public/css/auth.css
+[[33mwarn[39m] src/public/css/profile-page.css
+[[33mwarn[39m] src/public/css/theme.css
+[[33mwarn[39m] src/public/groups_admin.html
+[[33mwarn[39m] src/public/groups_page.html
+[[33mwarn[39m] src/public/groups.html
+[[33mwarn[39m] src/public/index.html
+[[33mwarn[39m] src/public/item.html
+[[33mwarn[39m] src/public/js/groupsFeed.js
+[[33mwarn[39m] src/public/js/userNavBarToggle.js
+[[33mwarn[39m] src/public/js/whiteboard.js
+[[33mwarn[39m] src/public/my_listings.html
+[[33mwarn[39m] src/public/posts.html
+[[33mwarn[39m] src/public/profile.html
+[[33mwarn[39m] src/public/saved.html
+[[33mwarn[39m] src/public/settings.html
+[[33mwarn[39m] src/public/stories.html
+[[33mwarn[39m] Code style issues found in 21 files. Run Prettier with --write to fix.
 
-   <span style="color:#22c55e;font-weight:bold">[PASS]</span> All files match Prettier code style
+
+   Files with formatting issues:
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> e2e-tests/storageState.json
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/cart.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/chat.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/create_listing.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/css/auth.css
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/css/profile-page.css
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/css/theme.css
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/groups_admin.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/groups_page.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/groups.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/index.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/item.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/js/groupsFeed.js
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/js/userNavBarToggle.js
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/js/whiteboard.js
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/my_listings.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/posts.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/profile.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/saved.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/settings.html
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> src/public/stories.html
 
 3. UNIT + INTEGRATION TESTS (jest --coverage)
 
@@ -64,6 +194,7 @@ Inserted 1 saved posts.
 Inserted 17 analytics reactions.
 Inserted 6 analytics saves.
 Inserted 14 badges.
+[DEBUG] sellerRes rows: 1, id: 2
 Inserted 60 marketplace items.
 Inserted 14 groups.
 Inserted 58 group members.
@@ -83,26 +214,26 @@ Database reset completed successfully.
 --------------------------|---------|----------|---------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 File                      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                                                                                                                                                                          
 --------------------------|---------|----------|---------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-All files                 |    63.3 |    46.52 |   60.56 |   64.19 |                                                                                                                                                                                                                                                                                                            
- src                      |    92.3 |       70 |      50 |   95.45 |                                                                                                                                                                                                                                                                                                            
-  app.js                  |    92.3 |       70 |      50 |   95.45 | 63-65,68                                                                                                                                                                                                                                                                                                   
+All files                 |   60.11 |    44.09 |   56.76 |   61.05 |                                                                                                                                                                                                                                                                                                            
+ src                      |   92.47 |       70 |      50 |   95.55 |                                                                                                                                                                                                                                                                                                            
+  app.js                  |   92.47 |       70 |      50 |   95.55 | 64-66,69                                                                                                                                                                                                                                                                                                   
  src/middlewares          |   48.11 |       30 |   47.05 |   48.11 |                                                                                                                                                                                                                                                                                                            
   auth.middleware.js      |   82.14 |     62.5 |     100 |   82.14 | 19,35-37,55                                                                                                                                                                                                                                                                                                
   bcryptMiddleware.js     |   21.05 |        0 |       0 |   21.05 | 16-30,37-47                                                                                                                                                                                                                                                                                                
   fileUpload.js           |   92.85 |       50 |     100 |   92.85 | 58                                                                                                                                                                                                                                                                                                         
   jwtMiddleware.js        |       0 |        0 |       0 |       0 | 4-86                                                                                                                                                                                                                                                                                                       
   upload.js               |   91.66 |       50 |     100 |   91.66 | 22                                                                                                                                                                                                                                                                                                         
- src/models               |   67.01 |    43.85 |   59.23 |   67.98 |                                                                                                                                                                                                                                                                                                            
-  Auth.model.js           |   49.18 |    50.47 |   39.58 |   51.73 | 10,30,181,225-228,264-271,275,279,285,289,293-326,330,336-340,344-347,351-354,358-369,384-404,408-420,429-430,438-444,448-465,469-483,487-491,495-498,502-506,510-515,519-526,530-536,540-583,591-631,640-649                                                                                              
-  Badge.model.js          |     100 |       75 |     100 |     100 | 38                                                                                                                                                                                                                                                                                                         
+ src/models               |   65.14 |    43.46 |   55.37 |   66.14 |                                                                                                                                                                                                                                                                                                            
+  Auth.model.js           |   49.18 |    50.47 |   39.58 |   51.73 | 10,30,176,220-223,259-266,270,274,280,284,288-321,325,331-335,339-342,346-349,353-364,379-399,403-415,424-425,433-439,443-460,464-478,482-486,490-493,497-501,505-510,514-521,525-531,535-578,586-626,635-644                                                                                              
+  Badge.model.js          |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                            
   BlockedUsers.model.js   |   29.41 |      100 |       0 |   29.41 | 4-16,20-24,28-46,50-54                                                                                                                                                                                                                                                                                     
   Calls.model.js          |    37.5 |        0 |       0 |   42.85 | 10-16,20-32                                                                                                                                                                                                                                                                                                
   Cart.model.js           |   36.84 |      100 |       0 |   36.84 | 5-13,18-19,24-25,30-34,39-43,48-51                                                                                                                                                                                                                                                                         
-  Friends.model.js        |   78.35 |    60.93 |   93.75 |    83.9 | 11-14,68,123-128,189,194,196,250-259                                                                                                                                                                                                                                                                       
+  Friends.model.js        |    71.2 |    59.72 |   76.19 |   76.78 | 22-25,79,136-141,155,210,215,217,271-280,298-306,310-339,343-350                                                                                                                                                                                                                                           
   GroupFiles.model.js     |   70.73 |      100 |      60 |   70.73 | 29-34,66-71,75-77,81-86                                                                                                                                                                                                                                                                                    
-  Groups.model.js         |   90.44 |        0 |      85 |   90.44 | 53-58,103-125,238-243,319-321,388-390                                                                                                                                                                                                                                                                      
+  Groups.model.js         |   85.79 |        0 |   79.06 |   85.79 | 53-58,103-125,238-243,319-321,388-390,418-427,431-437,441-446                                                                                                                                                                                                                                              
   Marketplace.model.js    |     100 |     90.9 |     100 |     100 | 227                                                                                                                                                                                                                                                                                                        
-  Message.model.js        |   52.54 |    21.62 |   53.33 |   54.71 | 53-69,83-84,106-111,115-122,126-134,138-151,155-159,163,181                                                                                                                                                                                                                                                
+  Message.model.js        |   56.96 |    35.55 |   45.45 |    58.9 | 95-111,125-126,151-161,165-172,176-184,188-201,205-209,213,230,237,241-245,249,256,275                                                                                                                                                                                                                     
   Notes.model.js          |   26.43 |      100 |       0 |   26.43 | 9-11,16-18,23-28,33-38,44-49,54-66,71-76,81-86,95-97,102-104,111-116,121-126,131-136,141-146,151-156,161-163,172-173,182-184,189-191,196-201,206-211,216-221                                                                                                                                               
   Notification.model.js   |   68.42 |    42.85 |   33.33 |   68.42 | 25-33,37-41,45,52                                                                                                                                                                                                                                                                                          
   Orders.model.js         |   11.11 |      100 |       0 |   11.11 | 4-40                                                                                                                                                                                                                                                                                                       
@@ -111,29 +242,30 @@ All files                 |    63.3 |    46.52 |   60.56 |   64.19 |
   Posts.model.js          |   94.92 |    67.74 |     100 |   95.33 | 12,704-705,710-712,728-735                                                                                                                                                                                                                                                                                 
   Profile.model.js        |   58.16 |    25.97 |      55 |   58.16 | 55-57,62-85,92,113-121,128-144,148-156,160-174,180-186,207-212,216-220,224-230,287-288                                                                                                                                                                                                                     
   Search.model.js         |     100 |    83.33 |     100 |     100 | 5,43                                                                                                                                                                                                                                                                                                       
+  Sessions.model.js       |   33.33 |        0 |    6.25 |   33.87 | 61-90,95-105,109-116,120-124,128-131,135-142,146-150,154-162,166-171,175-179,183-186,190-198,207-212,216-224                                                                                                                                                                                               
   Snake.model.js          |   93.75 |    66.66 |     100 |   93.75 | 13                                                                                                                                                                                                                                                                                                         
   Something.model.js      |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                            
   Stories.model.js        |   22.22 |        0 |       0 |   22.22 | 6-37,41-63,67,71-75,79-83,87-98,102-114,120-126,130-136,140-144                                                                                                                                                                                                                                            
   StudyRoom.model.js      |   28.12 |      100 |       0 |   28.12 | 9-15,20-31,40-51,56-70,79-90,95-113,118-130,135-146                                                                                                                                                                                                                                                        
   Tags.model.js           |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                            
-  Tasks.model.js          |   79.66 |      100 |   73.33 |   79.66 | 15-17,29-34,103-105,117-129                                                                                                                                                                                                                                                                                
+  Tasks.model.js          |      80 |      100 |   73.33 |      80 | 16-18,30-35,104-106,118-130                                                                                                                                                                                                                                                                                
   Whiteboard.model.js     |   66.66 |      100 |   55.55 |   66.66 | 11-16,21-26,33-38,73-78                                                                                                                                                                                                                                                                                    
   Wordle.model.js         |   15.38 |        0 |       0 |   17.64 | 14-74                                                                                                                                                                                                                                                                                                      
   db.js                   |      80 |       50 |       0 |      80 | 10                                                                                                                                                                                                                                                                                                         
- src/realtime             |   12.04 |     1.35 |   22.22 |   11.68 |                                                                                                                                                                                                                                                                                                            
-  wsHub.js                |   12.04 |     1.35 |   22.22 |   11.68 | 10-18,24-26,35-167                                                                                                                                                                                                                                                                                         
- src/routers              |   62.08 |    50.38 |   62.32 |   62.68 |                                                                                                                                                                                                                                                                                                            
-  Auth.router.js          |   35.69 |    26.06 |   19.51 |   37.03 | 20-29,37-46,73,76,82,87-95,116,124,128,137,145,149,159,164-172,180,201,211-213,246,251-257,262-268,273-277,287,295,303-309,316,327,337-343,350,359,367-371,377-385,391-404,410-428,434-440,446-469,475-479,485-492,498-502,508-520,526-542,548-552,558-564,570-575,581-585,591-614,620-625,631-636,642-653 
+ src/realtime             |    7.69 |      0.9 |   10.52 |    7.25 |                                                                                                                                                                                                                                                                                                            
+  wsHub.js                |    7.69 |      0.9 |   10.52 |    7.25 | 10-18,24-26,35-277                                                                                                                                                                                                                                                                                         
+ src/routers              |   58.67 |    47.98 |   59.24 |   59.42 |                                                                                                                                                                                                                                                                                                            
+  Auth.router.js          |   35.69 |    26.94 |   19.51 |   37.03 | 20-29,37-46,73,76,82,87-95,116,124,128,137,145,149,159,164-172,180,201,211-213,246,251-257,262-268,273-277,287,295,303-309,316,327,337-343,350,359,367-371,377-385,391-404,410-428,434-440,446-469,475-479,485-492,498-502,508-520,526-542,548-552,558-564,570-575,581-585,591-614,620-625,631-636,642-653 
   Badge.router.js         |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                            
   BlockedUsers.router.js  |   34.61 |        0 |       0 |      36 | 8-20,27-28,34-35,41-44                                                                                                                                                                                                                                                                                     
   Calls.router.js         |   32.14 |        0 |       0 |   32.14 | 10-14,19-43                                                                                                                                                                                                                                                                                                
   Cart.router.js          |      25 |        0 |       0 |   27.02 | 14-15,21-22,28-47,53-73,80-85,92-96                                                                                                                                                                                                                                                                        
-  Friends.router.js       |    57.6 |    26.47 |   66.66 |   61.62 | 14,19,25-33,38-45,54,64,72,83-84,92,106-107,112-121,132                                                                                                                                                                                                                                                    
+  Friends.router.js       |   48.24 |    28.26 |      50 |   51.88 | 13,18,23-31,36-43,53,63,71,83-84,92,104-105,110-119,130,135-139,144-150,155-164                                                                                                                                                                                                                            
   Giphy.router.js         |   45.45 |      100 |       0 |   45.45 | 7-21                                                                                                                                                                                                                                                                                                       
   GroupFiles.router.js    |   69.23 |    58.33 |   66.66 |   69.23 | 64-91,165-189                                                                                                                                                                                                                                                                                              
   Groups.router.js        |   91.46 |    90.72 |      88 |    91.2 | 74-79,163-198,322,339-344,477,581-588,859-860,982-987,1028                                                                                                                                                                                                                                                 
   Marketplace.router.js   |   97.29 |       90 |     100 |    98.5 | 36                                                                                                                                                                                                                                                                                                         
-  Message.router.js       |   41.07 |       32 |   42.85 |   43.39 | 29,37,41,46,61,71,75,84,88,108-109,114-136,141-156,161-184,189-195                                                                                                                                                                                                                                         
+  Message.router.js       |   33.14 |    27.63 |   21.42 |   35.58 | 36,44,48,53,70,75-93,98-104,116,120,129,133,155-156,161-183,188-203,208-231,236-242,247-253,258-264,269-275,280-286,291-297                                                                                                                                                                                
   Notes.router.js         |   14.03 |        0 |       0 |   14.03 | 39-44,50-56,62-67,73-82,92-114,124-226,234-249,257-278,291-296,303-324,334-345,351-362,368-396,405-414,426-427,438-443,450-455,462-485,500-510                                                                                                                                                             
   Notifications.router.js |   39.13 |      100 |       0 |   39.13 | 9-14,19-23,28-33                                                                                                                                                                                                                                                                                           
   Payments.router.js      |   13.04 |        0 |       0 |   14.63 | 6-17,22-54,59-65                                                                                                                                                                                                                                                                                           
@@ -142,16 +274,17 @@ All files                 |    63.3 |    46.52 |   60.56 |   64.19 |
   Posts.router.js         |   99.44 |    90.32 |     100 |    99.7 | 539                                                                                                                                                                                                                                                                                                        
   Profile.router.js       |   42.17 |    26.78 |      40 |    44.6 | 16,25,33,38-42,47-51,56-60,65-69,74-84,89-111,116-120,125-131,136-140,145-149,154-161,166-170,178,187,195,208,220,228,236                                                                                                                                                                                  
   Search.router.js        |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                            
+  Sessions.router.js      |   17.07 |        0 |       0 |   18.26 | 11-15,21-40,46-51,57-69,75-80,88-92,98-113,119-134,142-146,152-168,174-189,195-200,208-212,218-229                                                                                                                                                                                                         
   Snake.router.js         |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                            
   Something.router.js     |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                            
   Stories.router.js       |   19.13 |        0 |       0 |   21.15 | 16-23,30-35,40-60,65-74,79-93,98-104,111-115,120-135,140-147,152-163,168-174                                                                                                                                                                                                                               
   StudyRoom.router.js     |   26.08 |        0 |       0 |   26.08 | 24-25,31-43,54-66,74-102,112-117,124-138,144-153                                                                                                                                                                                                                                                           
   Tags.router.js          |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                            
-  Tasks.router.js         |   87.77 |    96.66 |      80 |   87.64 | 36-41,47-53,164-169,279,292                                                                                                                                                                                                                                                                                
+  Tasks.router.js         |   87.77 |    96.66 |      80 |   87.64 | 35-40,46-52,163-168,278,291                                                                                                                                                                                                                                                                                
   Whiteboard.router.js    |    64.7 |    72.72 |   47.61 |    64.7 | 29-34,40-45,51-57,63-68,134-160,185                                                                                                                                                                                                                                                                        
   wordle.router.js        |   22.85 |        0 |       0 |   23.52 | 15-22,35-41,54-87                                                                                                                                                                                                                                                                                          
- src/services             |   69.33 |    53.48 |      60 |   78.33 |                                                                                                                                                                                                                                                                                                            
-  badgeService.js         |   82.75 |    62.16 |     100 |   95.55 | 57-58                                                                                                                                                                                                                                                                                                      
+ src/services             |   66.66 |    51.16 |      60 |      75 |                                                                                                                                                                                                                                                                                                            
+  badgeService.js         |   79.31 |    59.45 |     100 |   91.11 | 16,52-58                                                                                                                                                                                                                                                                                                   
   pandabot.js             |   23.52 |        0 |       0 |   26.66 | 7-81                                                                                                                                                                                                                                                                                                       
  src/utils                |     100 |     62.5 |     100 |     100 |                                                                                                                                                                                                                                                                                                            
   jwt.js                  |     100 |     62.5 |     100 |     100 | 3-4,14                                                                                                                                                                                                                                                                                                     
@@ -185,6 +318,7 @@ Inserted 1 saved posts.
 Inserted 17 analytics reactions.
 Inserted 6 analytics saves.
 Inserted 14 badges.
+[DEBUG] sellerRes rows: 1, id: 2
 Inserted 60 marketplace items.
 Inserted 14 groups.
 Inserted 58 group members.
@@ -206,154 +340,152 @@ Saved authenticated storageState for alice@example.com
 
 Running 118 tests using 8 workers
 
-  ✓    4 [chromium] › e2e-tests\marketplace-management.spec.js:174:3 › Marketplace Browse &amp; Listings Grid › should display the listings container and the Add Listing / My Listings entry points (9.7s)
-  ✓    8 [chromium] › e2e-tests\posts.spec.js:66:3 › Page load › should display the posts feed container (10.0s)
-  ✓    7 [chromium] › e2e-tests\search.spec.js:54:3 › Search Results › should return matching posts and comments for a valid query (12.1s)
-  ✓   10 [chromium] › e2e-tests\posts.spec.js:71:3 › Page load › should display the create-post input for a logged-in user (2.8s)
-  ✓    6 [chromium] › e2e-tests\postcomments.spec.js:90:3 › Load Comments › should show the empty state when a post has no comments (13.5s)
-  ✓   11 [chromium] › e2e-tests\search.spec.js:69:3 › Search Results › should show the empty state when nothing matches the query (3.0s)
-  ✓   12 [chromium] › e2e-tests\posts.spec.js:79:3 › Load Posts › should show existing post cards in the feed on page load (3.2s)
-  ✓   15 [chromium] › e2e-tests\posts.spec.js:87:3 › Load Posts › each post card should display author, content, and action buttons (1.7s)
-  ✓    5 [chromium] › e2e-tests\groups.spec.js:79:3 › View Groups › user can view groups for a school (18.9s)
-  ✓   14 [chromium] › e2e-tests\search.spec.js:76:3 › Search Results › should reset filters and rerun the search when Clear is clicked (3.4s)
-  ✓    1 [chromium] › e2e-tests\groups-chat.spec.js:56:3 › Group Chat › View chat (19.9s)
-  ✓    2 [chromium] › e2e-tests\groups-wiki.spec.js:70:3 › Notes › user can view the Notes section (20.3s)
-  ✓   13 [chromium] › e2e-tests\postcomments.spec.js:96:3 › Load Comments › should show existing comments in the thread on page load (6.6s)
-  ✓   16 [chromium] › e2e-tests\posts.spec.js:101:3 › New Post › should allow me to create a new post (2.8s)
-  ✓   18 [chromium] › e2e-tests\search.spec.js:98:3 › Search Filters › should narrow results to the selected category (3.1s)
-  ✓   17 [chromium] › e2e-tests\groups.spec.js:95:3 › View Groups › user can click a group and view group details (4.3s)
-  ✓   23 [chromium] › e2e-tests\search.spec.js:113:3 › Search Filters › should reorder results when sort is switched to oldest first (6.0s)
-  ✓   21 [chromium] › e2e-tests\postcomments.spec.js:109:3 › Load Comments › each comment should display author, content, and action buttons (9.1s)
-  ✓   22 [chromium] › e2e-tests\posts.spec.js:106:3 › New Post › should allow me to create posts in different categories (8.4s)
-  ✓   25 [chromium] › e2e-tests\search.spec.js:130:3 › Search Filters › should exclude all results when date_from is set in the future (3.6s)
-  ✓   27 [chromium] › e2e-tests\posts.spec.js:116:3 › New Post › should keep the Post button disabled until title, category, and content are filled (2.6s)
-  ✓   24 [chromium] › e2e-tests\groups.spec.js:152:3 › Create Group › user can successfully create a group (9.6s)
-  ✓   26 [chromium] › e2e-tests\postcomments.spec.js:126:3 › New Comment › should allow me to post a new comment (3.9s)
-  ✓   28 [chromium] › e2e-tests\search.spec.js:148:3 › Search Autocomplete &amp; Recent Searches › should show a live suggestion while typing (2.9s)
-  ✓   29 [chromium] › e2e-tests\posts.spec.js:128:3 › New Post › should handle special characters in post content (XSS boundary) (3.1s)
-  ✓   31 [chromium] › e2e-tests\postcomments.spec.js:134:3 › New Comment › should keep the submit button disabled until content is entered (2.6s)
-  ✓   19 [chromium] › e2e-tests\groups-chat.spec.js:77:3 › Group Chat › Can send message (16.8s)
-  ✓   30 [chromium] › e2e-tests\groups.spec.js:201:3 › Create Group › user cannot create a group when all required fields are empty (3.5s)
-  ✘    9 [chromium] › e2e-tests\marketplace-management.spec.js:189:3 › Marketplace Browse &amp; Listings Grid › should show a created listing with title, price, and quality badge, linking to its own detail page (26.7s)
-  ✘   20 [chromium] › e2e-tests\groups-wiki.spec.js:90:3 › Notes › user can open the New Note modal (14.9s)
-  ✘    3 [chromium] › e2e-tests\groups-tasks.spec.js:88:3 › Create task › user can create a basic task with title and description (26.8s)
-  ✓   34 [chromium] › e2e-tests\postcomments.spec.js:147:3 › New Comment › should escape special characters in comment content (XSS boundary) (1.6s)
-  ✓   37 [chromium] › e2e-tests\postcomments.spec.js:161:3 › Reply to Comment › should allow me to reply to a comment (2.6s)
-  ✘   32 [chromium] › e2e-tests\search.spec.js:160:3 › Search Autocomplete &amp; Recent Searches › should save a completed search and show it as a recent search (6.7s)
-  ✓   39 [chromium] › e2e-tests\groups-tasks.spec.js:109:3 › Create task › user can create a task with assignee and due date (4.1s)
-  ✓   41 [chromium] › e2e-tests\postcomments.spec.js:174:3 › Reply to Comment › cancelling a reply should discard it (2.5s)
-  ✓   38 [chromium] › e2e-tests\groups-wiki.spec.js:103:3 › Notes › user can create a new note (4.7s)
-  ✓   36 [chromium] › e2e-tests\groups.spec.js:219:3 › Create Group › user can close the Create Group modal using X (7.6s)
-  ✓   33 [chromium] › e2e-tests\posts.spec.js:140:3 › Delete Post › should allow me to delete a post I created, leaving other posts intact (9.0s)
-  ✓   35 [chromium] › e2e-tests\groups-chat.spec.js:114:3 › Group Chat › switching channels changes active class (8.8s)
-  ✓   45 [chromium] › e2e-tests\search.spec.js:176:3 › Search Autocomplete &amp; Recent Searches › should remove only the targeted recent search (2.8s)
-  ✓   46 [chromium] › e2e-tests\groups.spec.js:225:3 › Create Group › closing the Create Group modal does not create a group (3.3s)
-  ✓   47 [chromium] › e2e-tests\posts.spec.js:153:3 › Delete Post › a deleted post's detail page should show a not-found state (4.4s)
-  ✓   49 [chromium] › e2e-tests\search.spec.js:205:3 › Tag Search › should run a tag search and hide the filter bar (2.8s)
-  ✓   43 [chromium] › e2e-tests\postcomments.spec.js:191:3 › Reply to Comment › multiple replies to the same comment should all appear nested under it (8.1s)
-  ✓   50 [chromium] › e2e-tests\groups.spec.js:243:3 › Create Group › user cannot submit a group with only whitespace (3.8s)
-  ✓   44 [chromium] › e2e-tests\groups-wiki.spec.js:137:3 › Notes › user can edit an existing note (8.4s)
-  ✓   52 [chromium] › e2e-tests\search.spec.js:223:3 › Tag Search › should run a tag search when a suggested tag is clicked (2.0s)
-  ✓   42 [chromium] › e2e-tests\groups-tasks.spec.js:147:3 › Create task › user can add multiple subtasks when creating a task (9.4s)
-  ✓   51 [chromium] › e2e-tests\posts.spec.js:166:3 › Delete Post › cancelling the delete confirmation should keep the post (2.8s)
-  ✓   48 [chromium] › e2e-tests\groups-chat.spec.js:140:3 › Edit and Delete Messages › user can edit a message (6.8s)
-  ✓   56 [chromium] › e2e-tests\search.spec.js:245:3 › Tag Search › should show the tag-specific empty state for an unused tag (1.3s)
-  ✓   53 [chromium] › e2e-tests\postcomments.spec.js:210:3 › Edit Comment › should allow the comment owner to edit their comment (2.6s)
-  ✓   54 [chromium] › e2e-tests\groups.spec.js:262:3 › Create Group › shows an error when group creation fails (2.6s)
-  ✓   58 [chromium] › e2e-tests\posts.spec.js:188:3 › Edit Post › should allow the post owner to edit a post's title and content (3.1s)
-  ✓   57 [chromium] › e2e-tests\groups-tasks.spec.js:189:3 › Create task › user can remove a subtask before creating a task (3.6s)
-  ✓   61 [chromium] › e2e-tests\postcomments.spec.js:229:3 › Edit Comment › cancelling an edit should discard changes (2.1s)
-  ✓   60 [chromium] › e2e-tests\whiteboard.spec.js:64:3 › Whiteboard › user can create a whiteboard (3.6s)
-  ✓   65 [chromium] › e2e-tests\postcomments.spec.js:246:3 › Edit Comment › should block saving when the edit is cleared to empty (1.6s)
-  ✓   62 [chromium] › e2e-tests\groups.spec.js:303:3 › Joining and Leaving Groups › user can join a public group (3.5s)
-  ✓   59 [chromium] › e2e-tests\groups-chat.spec.js:192:3 › Edit and Delete Messages › user can delete a message (5.6s)
-  ✓   63 [chromium] › e2e-tests\posts.spec.js:206:3 › Edit Post › an edited post should show an "edited" indicator (2.6s)
-  ✓   64 [chromium] › e2e-tests\groups-tasks.spec.js:214:3 › Create task › user can cancel task creation (3.3s)
-  ✓   66 [chromium] › e2e-tests\whiteboard.spec.js:81:3 › Whiteboard › user can create a pixel whiteboard (2.7s)
-  ✓   69 [chromium] › e2e-tests\posts.spec.js:220:3 › Edit Post › should block saving when the title is cleared (2.2s)
-  ✓   68 [chromium] › e2e-tests\groups.spec.js:329:3 › Joining and Leaving Groups › user can join a public group and then leave it (2.6s)
-  ✓   67 [chromium] › e2e-tests\postcomments.spec.js:270:3 › Delete Comment › should allow me to delete a comment, leaving other comments intact (2.7s)
-  ✓   71 [chromium] › e2e-tests\whiteboard.spec.js:96:3 › Whiteboard › user can open an existing whiteboard (2.5s)
-  ✓   70 [chromium] › e2e-tests\groups-tasks.spec.js:276:3 › Complete task and subtasks › user can complete a subtask (3.1s)
-  ✓   74 [chromium] › e2e-tests\postcomments.spec.js:291:3 › Delete Comment › cancelling the delete confirmation should keep the comment (1.9s)
-  ✓   72 [chromium] › e2e-tests\posts.spec.js:235:3 › Edit Post › cancelling an edit should discard changes (2.3s)
-  ✓   73 [chromium] › e2e-tests\groups.spec.js:345:3 › Joining and Leaving Groups › user can request to join a private group (2.5s)
-  ✓   76 [chromium] › e2e-tests\groups-tasks.spec.js:305:3 › Complete task and subtasks › user can drag task from Todo to In Progress (2.7s)
-  ✓   75 [chromium] › e2e-tests\whiteboard.spec.js:114:3 › Whiteboard › user can draw on a whiteboard (2.8s)
-  ✓   79 [chromium] › e2e-tests\groups.spec.js:384:3 › Joining and Leaving Groups › user can close group details without joining (2.1s)
-  ✓   77 [chromium] › e2e-tests\postcomments.spec.js:308:3 › Delete Comment › deleting a reply should remove only that reply, not its parent or sibling replies (3.0s)
-  ✓   78 [chromium] › e2e-tests\posts.spec.js:289:3 › Poll Tests › should allow me to create a post with a poll (2.8s)
-  ✓   82 [chromium] › e2e-tests\groups.spec.js:394:3 › Joining and Leaving Groups › user can close group details using X without joining (2.2s)
-  ✓   81 [chromium] › e2e-tests\whiteboard.spec.js:145:3 › Whiteboard › user can draw on a pixel whiteboard (2.8s)
-  ✓   84 [chromium] › e2e-tests\posts.spec.js:306:3 › Poll Tests › should allow me to vote on a poll option and see the result (3.1s)
-  ✓   80 [chromium] › e2e-tests\groups-tasks.spec.js:331:3 › Edit and Delete tasks › user can edit an existing task (4.2s)
-  ✘   40 [chromium] › e2e-tests\marketplace-management.spec.js:207:3 › Marketplace Browse &amp; Listings Grid › should paginate when there are more than 10 matching listings (30.5s)
-  ✓   83 [chromium] › e2e-tests\postcomments.spec.js:340:3 › PandaBot Auto-Reply › should get a PandaBot reply when a comment mentions @pandabot (4.6s)
-  ✓   85 [chromium] › e2e-tests\groups.spec.js:412:3 › Joined Group Navigation › user can click a joined group and access its group feed (4.2s)
-  ✓   86 [chromium] › e2e-tests\posts.spec.js:324:3 › Poll Tests › should switch my vote when I click a different option (3.8s)
-  ✓   89 [chromium] › e2e-tests\marketplace-management.spec.js:231:3 › Create Listing › should create a listing and redirect to the marketplace (2.1s)
-  ✓   87 [chromium] › e2e-tests\groups-tasks.spec.js:364:3 › Edit and Delete tasks › user can delete a task (4.0s)
+  ✓    7 [chromium] › e2e-tests\marketplace-management.spec.js:174:3 › Marketplace Browse &amp; Listings Grid › should display the listings container and the Add Listing / My Listings entry points (1.6s)
+  ✓    4 [chromium] › e2e-tests\posts.spec.js:66:3 › Page load › should display the posts feed container (2.2s)
+  ✓    8 [chromium] › e2e-tests\search.spec.js:54:3 › Search Results › should return matching posts and comments for a valid query (3.2s)
+  ✓   10 [chromium] › e2e-tests\posts.spec.js:71:3 › Page load › should display the create-post input for a logged-in user (1.3s)
+  ✓    6 [chromium] › e2e-tests\postcomments.spec.js:90:3 › Load Comments › should show the empty state when a post has no comments (4.6s)
+  ✓    5 [chromium] › e2e-tests\groups.spec.js:79:3 › View Groups › user can view groups for a school (5.0s)
+  ✓   12 [chromium] › e2e-tests\posts.spec.js:79:3 › Load Posts › should show existing post cards in the feed on page load (2.1s)
+  ✓   11 [chromium] › e2e-tests\search.spec.js:69:3 › Search Results › should show the empty state when nothing matches the query (2.6s)
+  ✓   15 [chromium] › e2e-tests\posts.spec.js:87:3 › Load Posts › each post card should display author, content, and action buttons (1.8s)
+  ✓    2 [chromium] › e2e-tests\groups-chat.spec.js:56:3 › Group Chat › View chat (8.6s)
+  ✓    3 [chromium] › e2e-tests\groups-wiki.spec.js:70:3 › Notes › user can view the Notes section (9.2s)
+  ✓   16 [chromium] › e2e-tests\search.spec.js:76:3 › Search Results › should reset filters and rerun the search when Clear is clicked (3.2s)
+  ✓   14 [chromium] › e2e-tests\groups.spec.js:95:3 › View Groups › user can click a group and view group details (4.5s)
+  ✓   13 [chromium] › e2e-tests\postcomments.spec.js:96:3 › Load Comments › should show existing comments in the thread on page load (4.8s)
+  ✓    1 [chromium] › e2e-tests\groups-tasks.spec.js:88:3 › Create task › user can create a basic task with title and description (10.8s)
+  ✓   17 [chromium] › e2e-tests\posts.spec.js:101:3 › New Post › should allow me to create a new post (3.2s)
+  ✓   20 [chromium] › e2e-tests\search.spec.js:98:3 › Search Filters › should narrow results to the selected category (2.0s)
+  ✓   22 [chromium] › e2e-tests\postcomments.spec.js:109:3 › Load Comments › each comment should display author, content, and action buttons (2.5s)
+  ✓   25 [chromium] › e2e-tests\search.spec.js:113:3 › Search Filters › should reorder results when sort is switched to oldest first (5.4s)
+  ✓   21 [chromium] › e2e-tests\groups.spec.js:152:3 › Create Group › user can successfully create a group (7.2s)
+  ✓   26 [chromium] › e2e-tests\postcomments.spec.js:126:3 › New Comment › should allow me to post a new comment (6.2s)
+  ✓   18 [chromium] › e2e-tests\groups-chat.spec.js:77:3 › Group Chat › Can send message (11.3s)
+  ✓   28 [chromium] › e2e-tests\search.spec.js:130:3 › Search Filters › should exclude all results when date_from is set in the future (4.4s)
+  ✓   24 [chromium] › e2e-tests\posts.spec.js:106:3 › New Post › should allow me to create posts in different categories (10.4s)
+  ✓   19 [chromium] › e2e-tests\groups-wiki.spec.js:90:3 › Notes › user can open the New Note modal (12.9s)
+  ✓   23 [chromium] › e2e-tests\groups-tasks.spec.js:109:3 › Create task › user can create a task with assignee and due date (11.7s)
+  ✓   29 [chromium] › e2e-tests\postcomments.spec.js:134:3 › New Comment › should keep the submit button disabled until content is entered (4.0s)
+  ✓   27 [chromium] › e2e-tests\groups.spec.js:201:3 › Create Group › user cannot create a group when all required fields are empty (5.7s)
+  ✓   32 [chromium] › e2e-tests\posts.spec.js:116:3 › New Post › should keep the Post button disabled until title, category, and content are filled (1.6s)
+  ✓   31 [chromium] › e2e-tests\search.spec.js:148:3 › Search Autocomplete &amp; Recent Searches › should show a live suggestion while typing (2.2s)
+  ✓   35 [chromium] › e2e-tests\postcomments.spec.js:147:3 › New Comment › should escape special characters in comment content (XSS boundary) (3.5s)
+  ✓   30 [chromium] › e2e-tests\groups-chat.spec.js:114:3 › Group Chat › switching channels changes active class (6.3s)
+  ✓   36 [chromium] › e2e-tests\groups.spec.js:219:3 › Create Group › user can close the Create Group modal using X (3.9s)
+  ✓   37 [chromium] › e2e-tests\posts.spec.js:128:3 › New Post › should handle special characters in post content (XSS boundary) (3.7s)
+  ✓   34 [chromium] › e2e-tests\groups-tasks.spec.js:147:3 › Create task › user can add multiple subtasks when creating a task (7.4s)
+  ✓   41 [chromium] › e2e-tests\groups.spec.js:225:3 › Create Group › closing the Create Group modal does not create a group (4.4s)
+  ✓   44 [chromium] › e2e-tests\groups.spec.js:243:3 › Create Group › user cannot submit a group with only whitespace (2.6s)
+  ✓   43 [chromium] › e2e-tests\groups-tasks.spec.js:189:3 › Create task › user can remove a subtask before creating a task (4.1s)
+  ✓   39 [chromium] › e2e-tests\postcomments.spec.js:161:3 › Reply to Comment › should allow me to reply to a comment (8.3s)
+  ✓   42 [chromium] › e2e-tests\posts.spec.js:140:3 › Delete Post › should allow me to delete a post I created, leaving other posts intact (9.0s)
+  ✓   45 [chromium] › e2e-tests\groups.spec.js:262:3 › Create Group › shows an error when group creation fails (2.4s)
+  ✘   33 [chromium] › e2e-tests\groups-wiki.spec.js:103:3 › Notes › user can create a new note (10.2s)
+  ✘   38 [chromium] › e2e-tests\search.spec.js:160:3 › Search Autocomplete &amp; Recent Searches › should save a completed search and show it as a recent search (7.7s)
+  ✘    9 [chromium] › e2e-tests\marketplace-management.spec.js:189:3 › Marketplace Browse &amp; Listings Grid › should show a created listing with title, price, and quality badge, linking to its own detail page (23.0s)
+  ✓   47 [chromium] › e2e-tests\postcomments.spec.js:174:3 › Reply to Comment › cancelling a reply should discard it (2.3s)
+  ✓   46 [chromium] › e2e-tests\groups-tasks.spec.js:214:3 › Create task › user can cancel task creation (3.7s)
+  ✓   40 [chromium] › e2e-tests\groups-chat.spec.js:140:3 › Edit and Delete Messages › user can edit a message (12.5s)
+  ✓   48 [chromium] › e2e-tests\posts.spec.js:153:3 › Delete Post › a deleted post's detail page should show a not-found state (4.0s)
+  ✓   52 [chromium] › e2e-tests\search.spec.js:176:3 › Search Autocomplete &amp; Recent Searches › should remove only the targeted recent search (2.9s)
+  ✓   56 [chromium] › e2e-tests\posts.spec.js:166:3 › Delete Post › cancelling the delete confirmation should keep the post (4.0s)
+  ✓   57 [chromium] › e2e-tests\search.spec.js:205:3 › Tag Search › should run a tag search and hide the filter bar (3.4s)
+  ✓   49 [chromium] › e2e-tests\groups.spec.js:303:3 › Joining and Leaving Groups › user can join a public group (8.7s)
+  ✓   50 [chromium] › e2e-tests\postcomments.spec.js:191:3 › Reply to Comment › multiple replies to the same comment should all appear nested under it (8.1s)
+  ✓   59 [chromium] › e2e-tests\search.spec.js:223:3 › Tag Search › should run a tag search when a suggested tag is clicked (3.2s)
+  ✓   55 [chromium] › e2e-tests\groups-chat.spec.js:192:3 › Edit and Delete Messages › user can delete a message (9.5s)
+  ✓   58 [chromium] › e2e-tests\posts.spec.js:188:3 › Edit Post › should allow the post owner to edit a post's title and content (4.6s)
+  ✓   61 [chromium] › e2e-tests\postcomments.spec.js:210:3 › Edit Comment › should allow the comment owner to edit their comment (3.8s)
+  ✓   60 [chromium] › e2e-tests\groups.spec.js:329:3 › Joining and Leaving Groups › user can join a public group and then leave it (4.0s)
+  ✓   62 [chromium] › e2e-tests\search.spec.js:245:3 › Tag Search › should show the tag-specific empty state for an unused tag (1.5s)
+  ✓   65 [chromium] › e2e-tests\postcomments.spec.js:229:3 › Edit Comment › cancelling an edit should discard changes (2.3s)
+  ✓   64 [chromium] › e2e-tests\posts.spec.js:206:3 › Edit Post › an edited post should show an "edited" indicator (2.8s)
+  ✓   66 [chromium] › e2e-tests\groups.spec.js:345:3 › Joining and Leaving Groups › user can request to join a private group (2.6s)
+  ✓   63 [chromium] › e2e-tests\whiteboard.spec.js:64:3 › Whiteboard › user can create a whiteboard (4.0s)
+  ✓   67 [chromium] › e2e-tests\postcomments.spec.js:246:3 › Edit Comment › should block saving when the edit is cleared to empty (2.5s)
+  ✘   54 [chromium] › e2e-tests\groups-tasks.spec.js:276:3 › Complete task and subtasks › user can complete a subtask (9.3s)
+  ✓   68 [chromium] › e2e-tests\posts.spec.js:220:3 › Edit Post › should block saving when the title is cleared (2.5s)
+  ✘   51 [chromium] › e2e-tests\groups-wiki.spec.js:137:3 › Notes › user can edit an existing note (13.5s)
+  ✓   69 [chromium] › e2e-tests\groups.spec.js:384:3 › Joining and Leaving Groups › user can close group details without joining (2.4s)
+  ✓   72 [chromium] › e2e-tests\posts.spec.js:235:3 › Edit Post › cancelling an edit should discard changes (2.7s)
+  ✓   73 [chromium] › e2e-tests\groups.spec.js:394:3 › Joining and Leaving Groups › user can close group details using X without joining (2.5s)
+  ✓   71 [chromium] › e2e-tests\postcomments.spec.js:270:3 › Delete Comment › should allow me to delete a comment, leaving other comments intact (3.9s)
+  ✓   74 [chromium] › e2e-tests\groups-tasks.spec.js:305:3 › Complete task and subtasks › user can drag task from Todo to In Progress (2.7s)
+  ✓   76 [chromium] › e2e-tests\posts.spec.js:289:3 › Poll Tests › should allow me to create a post with a poll (3.1s)
+  ✓   78 [chromium] › e2e-tests\postcomments.spec.js:291:3 › Delete Comment › cancelling the delete confirmation should keep the comment (2.8s)
+  ✓   75 [chromium] › e2e-tests\groups-wiki.spec.js:160:3 › Notes › user can edit and save a note (5.3s)
+  ✓   77 [chromium] › e2e-tests\groups.spec.js:412:3 › Joined Group Navigation › user can click a joined group and access its group feed (4.1s)
+  ✓   79 [chromium] › e2e-tests\groups-tasks.spec.js:331:3 › Edit and Delete tasks › user can edit an existing task (5.4s)
+  ✓   80 [chromium] › e2e-tests\posts.spec.js:306:3 › Poll Tests › should allow me to vote on a poll option and see the result (3.8s)
+  ✓   81 [chromium] › e2e-tests\postcomments.spec.js:308:3 › Delete Comment › deleting a reply should remove only that reply, not its parent or sibling replies (3.5s)
+  ✓   82 [chromium] › e2e-tests\groups-wiki.spec.js:198:3 › Notes › user can create a new note folder (4.6s)
+  ✘   53 [chromium] › e2e-tests\marketplace-management.spec.js:207:3 › Marketplace Browse &amp; Listings Grid › should paginate when there are more than 10 matching listings (23.9s)
+  ✓   85 [chromium] › e2e-tests\postcomments.spec.js:340:3 › PandaBot Auto-Reply › should get a PandaBot reply when a comment mentions @pandabot (4.1s)
+  ✓   83 [chromium] › e2e-tests\groups-tasks.spec.js:364:3 › Edit and Delete tasks › user can delete a task (4.9s)
+  ✓   84 [chromium] › e2e-tests\posts.spec.js:324:3 › Poll Tests › should switch my vote when I click a different option (4.4s)
+  ✓   88 [chromium] › e2e-tests\postcomments.spec.js:354:3 › PandaBot Auto-Reply › should thread the PandaBot reply flat under the parent when mentioned in a reply (3.9s)
+  ✓   87 [chromium] › e2e-tests\marketplace-management.spec.js:231:3 › Create Listing › should create a listing and redirect to the marketplace (7.2s)
+  ✓   86 [chromium] › e2e-tests\groups-wiki.spec.js:229:3 › Notes › user can apply bold formatting to note content (9.4s)
+  ✓   89 [chromium] › e2e-tests\postcomments.spec.js:375:3 › PandaBot Auto-Reply › PandaBot's reply should render with bot-specific avatar and name badge (2.7s)
   ✓   90 [chromium] › e2e-tests\marketplace-management.spec.js:239:3 › Create Listing › should block submission and show validation errors when required fields are missing (1.1s)
-  ✓   88 [chromium] › e2e-tests\postcomments.spec.js:354:3 › PandaBot Auto-Reply › should thread the PandaBot reply flat under the parent when mentioned in a reply (4.2s)
-  ✓   91 [chromium] › e2e-tests\marketplace-management.spec.js:260:3 › Create Listing › should cap the title length at 100 characters and reflect it in the counter (985ms)
-  ✓   93 [chromium] › e2e-tests\marketplace-management.spec.js:277:3 › Item Detail Page › should show the listing title, price, description, and meet-up spot (2.1s)
-  ✓   92 [chromium] › e2e-tests\postcomments.spec.js:375:3 › PandaBot Auto-Reply › PandaBot's reply should render with bot-specific avatar and name badge (2.7s)
-  ✓   94 [chromium] › e2e-tests\marketplace-management.spec.js:292:3 › Item Detail Page › should show a not-found state for an item id that doesn't exist (716ms)
-  ✓   95 [chromium] › e2e-tests\marketplace-management.spec.js:299:3 › Item Detail Page › should hide the "Chat with Seller" button on the viewer's own listing (1.3s)
-  ✓   96 [chromium] › e2e-tests\marketplace-management.spec.js:316:3 › Image Uploads › should preview an uploaded image and show it as the listing thumbnail (1.1s)
-  ✓   97 [chromium] › e2e-tests\marketplace-management.spec.js:339:3 › Image Uploads › should show a navigable carousel when a listing has multiple images (1.7s)
-  ✘   55 [chromium] › e2e-tests\groups-wiki.spec.js:160:3 › Notes › user can edit and save a note (30.1s)
-  ✓   98 [chromium] › e2e-tests\marketplace-management.spec.js:360:3 › Image Uploads › should update the listing thumbnail when a different photo is set as the cover (1.1s)
-  ✓   99 [chromium] › e2e-tests\marketplace-management.spec.js:395:3 › Tags › should attach tags to a listing and display them on the card and detail page (1.5s)
-  ✓  100 [chromium] › e2e-tests\groups-wiki.spec.js:198:3 › Notes › user can create a new note folder (2.5s)
+  ✓   91 [chromium] › e2e-tests\marketplace-management.spec.js:260:3 › Create Listing › should cap the title length at 100 characters and reflect it in the counter (1.1s)
+  ✓   92 [chromium] › e2e-tests\marketplace-management.spec.js:277:3 › Item Detail Page › should show the listing title, price, description, and meet-up spot (1.2s)
+  ✓   93 [chromium] › e2e-tests\marketplace-management.spec.js:292:3 › Item Detail Page › should show a not-found state for an item id that doesn't exist (825ms)
+  ✓   94 [chromium] › e2e-tests\marketplace-management.spec.js:299:3 › Item Detail Page › should hide the "Chat with Seller" button on the viewer's own listing (1.4s)
+  ✓   95 [chromium] › e2e-tests\marketplace-management.spec.js:316:3 › Image Uploads › should preview an uploaded image and show it as the listing thumbnail (1.0s)
+  ✓   96 [chromium] › e2e-tests\marketplace-management.spec.js:339:3 › Image Uploads › should show a navigable carousel when a listing has multiple images (1.7s)
+  ✘   70 [chromium] › e2e-tests\whiteboard.spec.js:81:3 › Whiteboard › user can create a pixel whiteboard (30.1s)
+  ✓   97 [chromium] › e2e-tests\marketplace-management.spec.js:360:3 › Image Uploads › should update the listing thumbnail when a different photo is set as the cover (1.1s)
+  ✓   98 [chromium] › e2e-tests\whiteboard.spec.js:96:3 › Whiteboard › user can open an existing whiteboard (1.8s)
+  ✓   99 [chromium] › e2e-tests\marketplace-management.spec.js:395:3 › Tags › should attach tags to a listing and display them on the card and detail page (1.7s)
   ✓  101 [chromium] › e2e-tests\marketplace-management.spec.js:415:3 › Tags › should show the tag-limit modal after reaching the 5-tag maximum (1.3s)
-  ✓  103 [chromium] › e2e-tests\marketplace-management.spec.js:429:3 › Tags › should filter listings down to a tag when its chip is selected (1.6s)
-  ✓  102 [chromium] › e2e-tests\groups-wiki.spec.js:229:3 › Notes › user can apply bold formatting to note content (2.0s)
-  ✓  104 [chromium] › e2e-tests\marketplace-management.spec.js:453:3 › Search &amp; Filters › should filter listings by name via the search bar and restore them when cleared (1.8s)
-  ✓  105 [chromium] › e2e-tests\marketplace-management.spec.js:473:3 › Search &amp; Filters › should exclude listings priced above the max-price filter and show the active-filter badge (2.7s)
-  ✓  106 [chromium] › e2e-tests\marketplace-management.spec.js:498:3 › Search &amp; Filters › clearing filters should remove the active-filter badge and show all listings again (2.0s)
-  ✓  107 [chromium] › e2e-tests\marketplace-management.spec.js:528:3 › Cart › should let a shopper add an item to their cart and update the cart badge (1.7s)
-  ✓  108 [chromium] › e2e-tests\marketplace-management.spec.js:541:3 › Cart › should list the item with the correct price and quantity, and persist an edited quantity (2.4s)
-  ✓  109 [chromium] › e2e-tests\marketplace-management.spec.js:560:3 › Cart › should remove a single item, then clear the cart entirely (2.6s)
-  ✓  110 [chromium] › e2e-tests\marketplace-management.spec.js:598:3 › Checkout / Mock Payment Gateway › should open the payment modal with the correct order total (2.0s)
-  ✓  111 [chromium] › e2e-tests\marketplace-management.spec.js:609:3 › Checkout / Mock Payment Gateway › should complete payment with a valid card and show a receipt (3.8s)
-  ✓  112 [chromium] › e2e-tests\marketplace-management.spec.js:627:3 › Checkout / Mock Payment Gateway › should show a payment error for a declined card and keep the cart intact (3.8s)
-  ✓  113 [chromium] › e2e-tests\marketplace-management.spec.js:654:3 › Recommended Items › should recommend another listing that shares a tag (1.8s)
-  ✓  114 [chromium] › e2e-tests\marketplace-management.spec.js:670:3 › Recommended Items › should link a recommended item's card through to its own detail page (1.8s)
-  ✓  115 [chromium] › e2e-tests\marketplace-management.spec.js:690:3 › Recommended Items › should let a shopper add a recommended item to their cart (2.6s)
-  ✓  116 [chromium] › e2e-tests\marketplace-management.spec.js:713:3 › Owner Listing Management › should show owner controls and let the owner edit a listing (1.8s)
-  ✓  117 [chromium] › e2e-tests\marketplace-management.spec.js:741:3 › Owner Listing Management › should mark a listing as sold, hide it from the marketplace, then relist it (1.5s)
-  ✓  118 [chromium] › e2e-tests\marketplace-management.spec.js:767:3 › Owner Listing Management › should keep a listing when delete is cancelled, but remove it (and only it) when confirmed (2.5s)
+  ✓  100 [chromium] › e2e-tests\whiteboard.spec.js:114:3 › Whiteboard › user can draw on a whiteboard (2.0s)
+  ✓  102 [chromium] › e2e-tests\marketplace-management.spec.js:429:3 › Tags › should filter listings down to a tag when its chip is selected (1.6s)
+  ✓  104 [chromium] › e2e-tests\marketplace-management.spec.js:453:3 › Search &amp; Filters › should filter listings by name via the search bar and restore them when cleared (1.6s)
+  ✓  105 [chromium] › e2e-tests\marketplace-management.spec.js:473:3 › Search &amp; Filters › should exclude listings priced above the max-price filter and show the active-filter badge (2.0s)
+  ✓  106 [chromium] › e2e-tests\marketplace-management.spec.js:498:3 › Search &amp; Filters › clearing filters should remove the active-filter badge and show all listings again (1.6s)
+  ✘  103 [chromium] › e2e-tests\whiteboard.spec.js:145:3 › Whiteboard › user can draw on a pixel whiteboard (6.6s)
+  ✓  107 [chromium] › e2e-tests\marketplace-management.spec.js:528:3 › Cart › should let a shopper add an item to their cart and update the cart badge (1.6s)
+  ✓  108 [chromium] › e2e-tests\marketplace-management.spec.js:541:3 › Cart › should list the item with the correct price and quantity, and persist an edited quantity (2.2s)
+  ✓  109 [chromium] › e2e-tests\marketplace-management.spec.js:560:3 › Cart › should remove a single item, then clear the cart entirely (2.9s)
+  ✓  110 [chromium] › e2e-tests\marketplace-management.spec.js:598:3 › Checkout / Mock Payment Gateway › should open the payment modal with the correct order total (2.4s)
+  ✓  111 [chromium] › e2e-tests\marketplace-management.spec.js:609:3 › Checkout / Mock Payment Gateway › should complete payment with a valid card and show a receipt (3.6s)
+  ✓  112 [chromium] › e2e-tests\marketplace-management.spec.js:627:3 › Checkout / Mock Payment Gateway › should show a payment error for a declined card and keep the cart intact (3.7s)
+  ✓  113 [chromium] › e2e-tests\marketplace-management.spec.js:654:3 › Recommended Items › should recommend another listing that shares a tag (1.5s)
+  ✓  114 [chromium] › e2e-tests\marketplace-management.spec.js:670:3 › Recommended Items › should link a recommended item's card through to its own detail page (2.0s)
+  ✓  115 [chromium] › e2e-tests\marketplace-management.spec.js:690:3 › Recommended Items › should let a shopper add a recommended item to their cart (2.0s)
+  ✓  116 [chromium] › e2e-tests\marketplace-management.spec.js:713:3 › Owner Listing Management › should show owner controls and let the owner edit a listing (1.5s)
+  ✓  117 [chromium] › e2e-tests\marketplace-management.spec.js:741:3 › Owner Listing Management › should mark a listing as sold, hide it from the marketplace, then relist it (1.7s)
+  ✓  118 [chromium] › e2e-tests\marketplace-management.spec.js:767:3 › Owner Listing Management › should keep a listing when delete is cancelled, but remove it (and only it) when confirmed (2.3s)
 
 
-  1) [chromium] › e2e-tests\groups-tasks.spec.js:88:3 › Create task › user can create a basic task with title and description 
+  1) [chromium] › e2e-tests\groups-tasks.spec.js:276:3 › Complete task and subtasks › user can complete a subtask 
 
-    Error: expect(locator).toBeHidden() failed
+    Error: expect(locator).toBeVisible() failed
 
-    Locator:  locator('#createTaskModal')
-    Expected: hidden
-    Received: visible
-    Timeout:  5000ms
+    Locator: locator('.task-card').filter({ hasText: 'Build Login Page' }).locator('.subtask').filter({ hasText: 'Connect Login API' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
 
     Call log:
-      - Expect "toBeHidden" with timeout 5000ms
-      - waiting for locator('#createTaskModal')
-        13 × locator resolved to &lt;div tabindex="-1" role="dialog" aria-modal="true" id="createTaskModal" class="modal fade show"&gt;…&lt;/div&gt;
-           - unexpected value "visible"
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.task-card').filter({ hasText: 'Build Login Page' }).locator('.subtask').filter({ hasText: 'Connect Login API' })
 
 
-      101 |
-      102 |     // Verify modal closes
-    &gt; 103 |     await expect(page.locator('#createTaskModal')).toBeHidden();
-          |                                                    ^
-      104 |
-      105 |     // Verify task appears on the board
-      106 |     await expect(page.locator('.task-card').filter({ hasText: taskTitle })).toBeVisible();
-        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\groups-tasks.spec.js:103:52
+      287 |     const icon = subtask.locator('.subtask-icon');
+      288 |
+    &gt; 289 |     await expect(subtask).toBeVisible();
+          |                           ^
+      290 |
+      291 |     // Complete
+      292 |     await subtask.click();
+        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\groups-tasks.spec.js:289:27
 
-    Error Context: test-results\groups-tasks-Create-task-u-a7b26--with-title-and-description-chromium\error-context.md
+    Error Context: test-results\groups-tasks-Complete-task-49f8e-user-can-complete-a-subtask-chromium\error-context.md
 
-  2) [chromium] › e2e-tests\groups-wiki.spec.js:90:3 › Notes › user can open the New Note modal ────
+  2) [chromium] › e2e-tests\groups-wiki.spec.js:103:3 › Notes › user can create a new note ─────────
 
     Error: expect(locator).toBeVisible() failed
 
@@ -369,64 +501,56 @@ Running 118 tests using 8 workers
            - unexpected value "hidden"
 
 
-      94 |     await page.locator('#createNoteBtn').click();
-      95 |
-    &gt; 96 |     await expect(page.locator('#newNoteModal')).toBeVisible();
-         |                                                 ^
-      97 |
-      98 |     await expect(page.locator('#noteNameInput')).toBeVisible();
-      99 |
-        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\groups-wiki.spec.js:96:49
+      113 |     await page.locator('#createNoteBtn').click();
+      114 |
+    &gt; 115 |     await expect(page.locator('#newNoteModal')).toBeVisible();
+          |                                                 ^
+      116 |
+      117 |     // Enter note name
+      118 |     await page.locator('#noteNameInput').fill(noteName);
+        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\groups-wiki.spec.js:115:49
 
-    Error Context: test-results\groups-wiki-Notes-user-can-open-the-New-Note-modal-chromium\error-context.md
+    Error Context: test-results\groups-wiki-Notes-user-can-create-a-new-note-chromium\error-context.md
 
-  3) [chromium] › e2e-tests\groups-wiki.spec.js:160:3 › Notes › user can edit and save a note ──────
+  3) [chromium] › e2e-tests\groups-wiki.spec.js:137:3 › Notes › user can edit an existing note ─────
 
-    Test timeout of 30000ms exceeded.
+    Error: expect(locator).toBeVisible() failed
 
-    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Locator:  locator('#noteTitleInput')
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
     Call log:
+      - Expect "toBeVisible" with timeout 5000ms
       - waiting for locator('#noteTitleInput')
-        - locator resolved to &lt;input type="text" id="noteTitleInput" class="form-control d-none"/&gt;
-        - fill("Updated E2E Note 1786063846296")
-      - attempting fill action
-        2 × waiting for element to be visible, enabled and editable
-          - element is not visible
-        - retrying fill action
-        - waiting 20ms
-        2 × waiting for element to be visible, enabled and editable
-          - element is not visible
-        - retrying fill action
-          - waiting 100ms
-        53 × waiting for element to be visible, enabled and editable
-           - element is not visible
-         - retrying fill action
-           - waiting 500ms
+        13 × locator resolved to &lt;input type="text" id="noteTitleInput" class="form-control d-none"/&gt;
+           - unexpected value "hidden"
 
 
-      172 |     const updatedTitle = `Updated E2E Note ${Date.now()}`;
-      173 |
-    &gt; 174 |     await page.locator('#noteTitleInput').fill(updatedTitle);
-          |                                           ^
-      175 |
-      176 |     // Enter content in Quill editor
-      177 |     await page.locator('#noteEditor .ql-editor').fill('This note was updated during an E2E test.');
-        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\groups-wiki.spec.js:174:43
+      151 |
+      152 |     // Title input should be visible
+    &gt; 153 |     await expect(page.locator('#noteTitleInput')).toBeVisible();
+          |                                                   ^
+      154 |   });
+      155 |
+      156 |   // ----------------------------------------------------------
+        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\groups-wiki.spec.js:153:51
 
-    Error Context: test-results\groups-wiki-Notes-user-can-edit-and-save-a-note-chromium\error-context.md
+    Error Context: test-results\groups-wiki-Notes-user-can-edit-an-existing-note-chromium\error-context.md
 
   4) [chromium] › e2e-tests\marketplace-management.spec.js:189:3 › Marketplace Browse &amp; Listings Grid › should show a created listing with title, price, and quality badge, linking to its own detail page 
 
     Error: expect(locator).toBeVisible() failed
 
-    Locator: locator('.spindle-card').filter({ has: locator('.spindle-card-title').filter({ hasText: 'E2E Browse Basic 1786063791302-1' }) })
+    Locator: locator('.spindle-card').filter({ has: locator('.spindle-card-title').filter({ hasText: 'E2E Browse Basic 1786066846627-1' }) })
     Expected: visible
     Timeout: 20000ms
     Error: element(s) not found
 
     Call log:
       - Expect "toBeVisible" with timeout 20000ms
-      - waiting for locator('.spindle-card').filter({ has: locator('.spindle-card-title').filter({ hasText: 'E2E Browse Basic 1786063791302-1' }) })
+      - waiting for locator('.spindle-card').filter({ has: locator('.spindle-card-title').filter({ hasText: 'E2E Browse Basic 1786066846627-1' }) })
 
 
       109 |   await page.locator('#marketplaceSearch').fill(title);
@@ -444,18 +568,16 @@ Running 118 tests using 8 workers
 
   5) [chromium] › e2e-tests\marketplace-management.spec.js:207:3 › Marketplace Browse &amp; Listings Grid › should paginate when there are more than 10 matching listings 
 
-    Test timeout of 30000ms exceeded.
-
     Error: expect(locator).toBeVisible() failed
 
-    Locator: locator('.spindle-card').filter({ has: locator('.spindle-card-title').filter({ hasText: 'E2E Pagination 1786063829920-5' }) })
+    Locator: locator('.spindle-card').filter({ has: locator('.spindle-card-title').filter({ hasText: 'E2E Pagination 1786066884570-2' }) })
     Expected: visible
+    Timeout: 20000ms
     Error: element(s) not found
 
     Call log:
       - Expect "toBeVisible" with timeout 20000ms
-      - waiting for locator('.spindle-card').filter({ has: locator('.spindle-card-title').filter({ hasText: 'E2E Pagination 1786063829920-5' }) })
-      - Test timeout of 30000ms exceeded.
+      - waiting for locator('.spindle-card').filter({ has: locator('.spindle-card-title').filter({ hasText: 'E2E Pagination 1786066884570-2' }) })
 
 
       109 |   await page.locator('#marketplaceSearch').fill(title);
@@ -483,7 +605,7 @@ Running 118 tests using 8 workers
     - Recent searches
     +
     +       
-    +       RecentSearchKeyword1786063827923
+    +       RecentSearchKeyword1786066872432
     +       
 
     Call log:
@@ -492,7 +614,7 @@ Running 118 tests using 8 workers
         13 × locator resolved to &lt;div id="searchDropdown" class="search-dropdown"&gt;…&lt;/div&gt;
            - unexpected value "
           
-          RecentSearchKeyword1786063827923
+          RecentSearchKeyword1786066872432
           "
 
 
@@ -507,14 +629,76 @@ Running 118 tests using 8 workers
 
     Error Context: test-results\search-Search-Autocomplete-902ea--show-it-as-a-recent-search-chromium\error-context.md
 
-  6 failed
-    [chromium] › e2e-tests\groups-tasks.spec.js:88:3 › Create task › user can create a basic task with title and description 
-    [chromium] › e2e-tests\groups-wiki.spec.js:90:3 › Notes › user can open the New Note modal ─────
-    [chromium] › e2e-tests\groups-wiki.spec.js:160:3 › Notes › user can edit and save a note ───────
+  7) [chromium] › e2e-tests\whiteboard.spec.js:81:3 › Whiteboard › user can create a pixel whiteboard 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#whiteboardTitle')
+        - locator resolved to &lt;input type="text" required="" class="form-control" id="whiteboardTitle" placeholder="e.g. Revision Mindmap"/&gt;
+        - fill("Pixel Board")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        54 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      85 |     await page.locator('#createWhiteboardBtn').click();
+      86 |
+    &gt; 87 |     await page.locator('#whiteboardTitle').fill('Pixel Board');
+         |                                            ^
+      88 |
+      89 |     await page.locator('label[for="modePixel"]').click();
+      90 |
+        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\whiteboard.spec.js:87:44
+
+    Error Context: test-results\whiteboard-Whiteboard-user-can-create-a-pixel-whiteboard-chromium\error-context.md
+
+  8) [chromium] › e2e-tests\whiteboard.spec.js:145:3 › Whiteboard › user can draw on a pixel whiteboard 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('#folderStructure .wiki-file').filter({ hasText: 'Pixel Board' }).first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('#folderStructure .wiki-file').filter({ hasText: 'Pixel Board' }).first()
+
+
+      153 |       .first();
+      154 |
+    &gt; 155 |     await expect(whiteboard).toBeVisible();
+          |                              ^
+      156 |
+      157 |     await whiteboard.click();
+      158 |
+        at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\e2e-tests\whiteboard.spec.js:155:30
+
+    Error Context: test-results\whiteboard-Whiteboard-user-can-draw-on-a-pixel-whiteboard-chromium\error-context.md
+
+  8 failed
+    [chromium] › e2e-tests\groups-tasks.spec.js:276:3 › Complete task and subtasks › user can complete a subtask 
+    [chromium] › e2e-tests\groups-wiki.spec.js:103:3 › Notes › user can create a new note ──────────
+    [chromium] › e2e-tests\groups-wiki.spec.js:137:3 › Notes › user can edit an existing note ──────
     [chromium] › e2e-tests\marketplace-management.spec.js:189:3 › Marketplace Browse &amp; Listings Grid › should show a created listing with title, price, and quality badge, linking to its own detail page 
     [chromium] › e2e-tests\marketplace-management.spec.js:207:3 › Marketplace Browse &amp; Listings Grid › should paginate when there are more than 10 matching listings 
     [chromium] › e2e-tests\search.spec.js:160:3 › Search Autocomplete &amp; Recent Searches › should save a completed search and show it as a recent search 
-  112 passed (2.3m)
+    [chromium] › e2e-tests\whiteboard.spec.js:81:3 › Whiteboard › user can create a pixel whiteboard 
+    [chromium] › e2e-tests\whiteboard.spec.js:145:3 › Whiteboard › user can draw on a pixel whiteboard 
+  110 passed (2.3m)
 [WebServer] error: update or delete on table "MarketplaceItems" violates foreign key constraint "OrderItems_item_id_fkey" on table "OrderItems"
 [WebServer]     at C:\Users\payym\Downloads\CICD\ay2627s1-project-class-2b21-group-pineapplepizza\node_modules\pg-pool\index.js:45:11
 [WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
@@ -522,7 +706,7 @@ Running 118 tests using 8 workers
 [WebServer]   length: 298,
 [WebServer]   severity: 'ERROR',
 [WebServer]   code: '23503',
-[WebServer]   detail: 'Key (id)=(86) is still referenced from table "OrderItems".',
+[WebServer]   detail: 'Key (id)=(83) is still referenced from table "OrderItems".',
 [WebServer]   hint: undefined,
 [WebServer]   position: undefined,
 [WebServer]   internalPosition: undefined,
@@ -543,7 +727,7 @@ Running 118 tests using 8 workers
   QA SUMMARY
 ============================================================
    <span style="color:#ef4444;font-weight:bold">[FAIL]</span> 1. LINT (eslint)
-   <span style="color:#22c55e;font-weight:bold">[PASS]</span> 2. FORMAT CHECK (prettier)
+   <span style="color:#ef4444;font-weight:bold">[FAIL]</span> 2. FORMAT CHECK (prettier)
    <span style="color:#22c55e;font-weight:bold">[PASS]</span> 3. UNIT + INTEGRATION TESTS (jest --coverage)
    <span style="color:#ef4444;font-weight:bold">[FAIL]</span> 4. E2E TESTS (playwright)
 
@@ -557,7 +741,7 @@ Running 118 tests using 8 workers
    reports/qa-report.html          (this combined report)
 ============================================================
 
-   2 pipeline step(s) FAILED.
+   3 pipeline step(s) FAILED.
 </pre>
 </body>
 </html>
