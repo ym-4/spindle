@@ -1,7 +1,7 @@
 # 🐼 SPindle
 
 <p align="center">
-  <img src="src/public/images/Logo_Panda.png" alt="SPindle Logo" width="180">
+  <img src="src/public/images/Logo_Panda.png" alt="SPindle Logo" width="120">
 </p>
 
 <h3 align="center">Singapore Polytechnic's Student Social Platform</h3>
@@ -12,8 +12,6 @@
 
 <p align="center">
   <a href="https://ay2627s1-project-class-2b21-group.onrender.com/home.html?login=1&tab=login&return=index.html">🚀 Try SPindle</a>
-  &nbsp;•&nbsp;
-  <a href="docs/overview.html">📖 Project Showcase</a>
 </p>
 
 ---
@@ -196,7 +194,6 @@ Test Reports
 | Resource                                                                                                                    | Description                   |
 | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
 | 🚀 [Live Application](https://ay2627s1-project-class-2b21-group.onrender.com/home.html?login=1&tab=login&return=index.html) | Try the deployed application  |
-| 📖 [Project Showcase](docs/overview.html)                                                                                   | Visual overview of SPindle    |
 | ⚙️ [Server](src/server.js)                                                                                                  | Application entry point       |
 | 🔌 [App](src/app.js)                                                                                                        | Express application setup     |
 | 🗄️ [Database Schema](schema.sql)                                                                                            | PostgreSQL database structure |
@@ -347,12 +344,12 @@ SPindle was created to explore how a student-focused platform could bring multip
 
 ---
 
-## 🐼 Thanks for Visiting SPindle!
+## 💐 Thanks for Visiting SPindle!
 
 <p align="center">
   <img src="https://media.tenor.com/0UAWUFaLbXIAAAAM/anime-panda.gif" alt="Cute Panda GIF" width="400">
 </p>
 
 <p align="center">
-  <strong>Built for SP students, by SP students 🐼</strong>
+  <strong>Built for SP students, by SP students 💖 </strong>
 </p>
